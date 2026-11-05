@@ -149,8 +149,9 @@ SV_SFT_DIR=../data/sft uv run python -I train_job.py launch   # uploads the 18 S
 uv run python -I train_job.py status | cost        # log tail / billable seconds x 2.7636 USD/h
 uv run python -I deploy.py single                  # after the job: stage adapters, LMI model, endpoint, ~10 min
 uv run python -I deploy.py status | smoke <role>   # smoke base | smoke medical_chamber
+uv run python -I invoke_user.py --env ../../.env    # invoke-only key for the proxy (no SSO expiry)
 uv run python -I proxy.py                          # OpenAI-compatible on http://127.0.0.1:8790/v1
-./teardown.sh                                      # dry run; ./teardown.sh --execute deletes everything
+./teardown.sh                                      # dry run; --execute deletes everything incl. the IAM user
 ```
 
 - **Infra** (`setup_infra.py`): bucket with public access blocked, SSE-S3, TLS-only policy. Execution role
@@ -185,20 +186,29 @@ uv run python -I proxy.py                          # OpenAI-compatible on http:/
 - **Eval** (`eval_report.py`): `eval_stance.py --gen-base-url http://127.0.0.1:8790/v1 --base-model sv-base
   --adapter-model "sv-{role}" --judge-model gpt-6-sol --judge-temperature none`, then
   `eval_report.py <run dirs>` writes `out/eval_sagemaker.md` and `out/persona_fidelity.json`.
+  Result (244 held-out rows, run 20261105-232834): micro in-character 0.39 adapter vs 0.47 baseline,
+  stance sign 0.44 vs 0.57, within one step 0.69 vs 0.64; the adapter wins in-character for nursing,
+  chamber_labour and hospitals only, and 27 of 244 adapter outputs loop on a sentence. Details and caveats
+  in `out/eval_sagemaker.md` (committed with `persona_fidelity.json` although `out/` is ignored: metrics only).
 
 **Costs actually incurred** (on-demand, ml.g6e.xlarge eu-north-1 = 2.7636 USD/h for training; the Pricing
 API has no separate hosting row for this type, the same rate is assumed):
 
 | item | duration | USD |
 |---|---:|---:|
-| training job `sv-ki-challenge-lora-1105-220044` (9 adapters, 3 epochs) | about 0.9 h (adapters 2 to 4 min each, laender about 22 min; final billable seconds via `train_job.py cost`) | about 2.5 |
-| first endpoint, inference-component mode (21:01 to 21:34 UTC, deleted) | 0.55 h | about 1.5 |
-| S3 (base weights 16 GB + adapters, one day) | | < 0.1 |
-| single-model endpoint, projected from start to 13:00 CET on jury day | about 14 h | about 39 |
-| **projected total** | | **about 43** |
+| training job `sv-ki-challenge-lora-1105-220044` (9 adapters, 3 epochs, base copy to S3) | 3,118 billable s | 2.39 |
+| first endpoint, inference-component mode (22:01 to 22:34 CET, deleted) | about 0.55 h | about 1.52 |
+| single-model endpoint, InService since 23:07 CET, projected to 13:00 CET on jury day | about 14 h | about 38.4 |
+| S3 (21 GB: base weights, staged adapters, data; one day) | | < 0.1 |
+| **spent by 23:10 CET** | | **about 4.0** |
+| **projected total to 13:00** | | **about 42.5** |
 
-Status 2026-11-05 22:45 CET: the AWS CLI login session expired while the job was training; the job runs on
-its own role and finishes by itself, but `deploy.py single` and the eval need a fresh `aws login` first.
+The CLI login (SSO) expires after about an hour, so the proxy does not use it for the demo:
+`uv run python -I invoke_user.py --env ../../.env` creates IAM user `sv-ki-challenge-invoke` with only
+`sagemaker:InvokeEndpoint` and `InvokeEndpointWithResponseStream` on the endpoint ARN and writes one access
+key to the gitignored repo `.env` as `SV_SAGEMAKER_ACCESS_KEY_ID` / `SV_SAGEMAKER_SECRET_ACCESS_KEY` (never
+printed). The proxy prefers these and falls back to the default profile; it reads the repo `.env`
+(`SV_ENV_FILE` overrides the path, e.g. when running from a worktree).
 
 Delete with `models/aws/teardown.sh --execute` right after the jury (hosting bills per hour while idle).
 Download the adapters first if they should outlive the bucket:
