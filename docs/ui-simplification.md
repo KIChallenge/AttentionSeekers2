@@ -68,8 +68,11 @@ mono line moves to Engineer; variant column goes (it is a filter).
 Primary question: "Who is speaking to whom right now?"
 
 Noise: subtitle header with role, addressee, kind chip, reply with id, "Ausgewählter Austausch"
-chip and an id link; the rail repeats the exchange. Changes: subtitle keeps speaker, addressee,
-reply (by name); ids and the exchange chip move to Engineer.
+chip and an id link; the rail repeats the exchange. Not changed on this branch: the stage is
+being reworked on its own branch (voices, meeting mode), so `components/stage/**` stays
+untouched here. The stage only inherits the shared timeline's label rule (whole label or none).
+Suggested for that branch: subtitle keeps speaker, addressee and reply by name; ids and the
+exchange chip move to Engineer.
 
 ### 4. Analysis `/runs/[runId]/analysis`
 
@@ -102,5 +105,9 @@ party and the "angepasst" chip stay, the model id moves behind the chip at Analy
 
 ## Deliberately left
 
-- The replay player and the 3D stage are untouched beyond shared components.
-- No new strings beyond the few needed for the new toggles; every string exists in DE and EN.
+- The stage (2D tiles, 3D avatars, voices) and the replay player are untouched beyond shared
+  components (timeline, utterance card, round summary, source chip).
+- The inspector keeps its full layout: it is the Engineer screen by definition.
+- No new strings; the few labels the new folds need reuse existing DE and EN entries.
+- Executive level is unchanged except where a shared component got quieter; the stand panel
+  (agreement per topic, binding conflict) now lives in the right rail at every level.
