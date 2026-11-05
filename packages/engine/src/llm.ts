@@ -258,6 +258,11 @@ export function repairToSchema(data: unknown, schema: JsonSchema): unknown {
     if (!Array.isArray(arr)) return [];
     return inner.items ? arr.map((x) => repairToSchema(x, inner.items as JsonSchema)) : arr;
   }
+  if (inner.type === "string" && !inner.enum && typeof data !== "string") {
+    if (typeof data === "number" || typeof data === "boolean") return String(data);
+    if (Array.isArray(data) && data.every((x) => typeof x === "string")) return data.join("; ");
+    return data;
+  }
   if ((inner.type === "number" || inner.type === "integer") && typeof data === "string") {
     const n = Number(data.replace(",", "."));
     return Number.isFinite(n) ? n : data;

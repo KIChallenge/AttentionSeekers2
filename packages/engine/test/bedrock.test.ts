@@ -77,6 +77,11 @@ describe("Bedrock Converse adapter", () => {
       changedBecauseOf: null,
     });
     expect(fixed.claims).toEqual([]);
+    const listy = {
+      stances: [{ topicId: "t-tss", stance: 1, rationaleEn: ["a", "b"] }],
+      kind: "rebuttal",
+    };
+    expect(S.parse(repairToSchema(listy, json)).stances[0]?.rationaleEn).toBe("a; b");
     const noNumber = { stances: [{ topicId: "t-tss" }], claims: [], kind: "position" };
     expect(S.safeParse(repairToSchema(noNumber, json)).success).toBe(false);
     const noKind = { stances: [], claims: [] };
