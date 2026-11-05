@@ -66,10 +66,7 @@ export function fmtNum(v: number, lang: Lang, digits = 0): string {
 export function ageMonths(sourceDate: string, asOf: string): number {
   const a = new Date(sourceDate);
   const b = new Date(asOf);
-  return Math.max(
-    0,
-    (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth()),
-  );
+  return Math.max(0, (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth()));
 }
 
 /** Chip label "institution · date · outlet" (W-07); SOZDOK shows the legal reference. */

@@ -42,7 +42,8 @@ function ClaimText({ u, claims }: { u: Utterance; claims: Claim[] }) {
         {text.slice(c.span.start, c.span.end)}
       </span>,
     );
-    for (const ref of c.citations) out.push(<SourceChip key={`${c.id}-${ref.segmentId}`} cite={ref} />);
+    for (const ref of c.citations)
+      out.push(<SourceChip key={`${c.id}-${ref.segmentId}`} cite={ref} />);
     pos = c.span.end;
   }
   out.push(text.slice(pos));
@@ -71,7 +72,7 @@ export function UtteranceCard({
   const applied = snap.lessonApplications.filter((a) => a.utteranceId === u.id);
   return (
     // biome-ignore lint/a11y/useSemanticElements: card contains links and popover buttons
-    <article
+    <div
       id={u.id}
       role="button"
       tabIndex={0}
@@ -136,7 +137,7 @@ export function UtteranceCard({
           <span className="ml-auto font-mono text-[11px] text-muted-foreground">{u.model}</span>
         </Level>
       </header>
-      <p className="mt-2 text-[15px] leading-relaxed">
+      <p className="mt-2 text-sm leading-relaxed">
         <ClaimText u={u} claims={claims} />
       </p>
       {(claims.length > 0 || applied.length > 0) && (
@@ -177,7 +178,7 @@ export function UtteranceCard({
           </div>
         ) : null}
       </Level>
-    </article>
+    </div>
   );
 }
 
@@ -211,7 +212,7 @@ export function PendingCard({
           {t.live.streaming}
         </Chip>
       </header>
-      <div className="mt-2 min-h-[3.25rem] text-[15px] leading-relaxed">
+      <div className="mt-2 min-h-[3.25rem] text-sm leading-relaxed">
         {text ? (
           <>
             {text}

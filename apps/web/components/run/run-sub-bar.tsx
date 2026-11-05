@@ -8,8 +8,7 @@ import { useRun } from "./run-context";
 
 /** Second bar on every run screen: question, screen links, status, live replay control. */
 export function RunSubBar() {
-  const { run, snap, runId, t, streaming, streamState, playLive, stop, speed, setSpeed } =
-    useRun();
+  const { run, snap, runId, t, streaming, streamState, playLive, stop, speed, setSpeed } = useRun();
   const path = usePathname();
   const base = `/runs/${runId}`;
   const links = [
@@ -19,7 +18,11 @@ export function RunSubBar() {
       label: t.nav.agents,
       active: path.startsWith(`${base}/agents`),
     },
-    { href: `${base}/analysis`, label: t.nav.analysis, active: path.startsWith(`${base}/analysis`) },
+    {
+      href: `${base}/analysis`,
+      label: t.nav.analysis,
+      active: path.startsWith(`${base}/analysis`),
+    },
     { href: `${base}/outcome`, label: t.nav.outcome, active: path.startsWith(`${base}/outcome`) },
     { href: `${base}/result`, label: t.nav.result, active: path.startsWith(`${base}/result`) },
   ];

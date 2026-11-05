@@ -22,15 +22,15 @@ export function SourceChip({ cite, compact = false }: { cite: CitationRef; compa
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="mx-0.5 inline-flex h-[18px] translate-y-[-1px] items-center gap-1 rounded-[5px] border bg-gray-alpha-50 px-1.5 align-middle font-mono text-[10.5px] text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+          className="mx-0.5 inline-flex h-[18px] max-w-full translate-y-[-1px] items-center gap-1 overflow-hidden whitespace-nowrap rounded-[5px] border bg-gray-alpha-50 px-1.5 align-middle font-mono text-[10.5px] text-muted-foreground hover:border-foreground/40 hover:text-foreground"
           title={src?.title ?? cite.sourceId}
         >
           <span
             className={cn("size-1.5 rounded-[2px]", sozdok ? "bg-foreground" : "bg-gray-alpha-400")}
           />
-          {sourceLabel(src, cite)}
+          <span className="truncate">{sourceLabel(src, cite)}</span>
           {compact ? null : (
-            <span className="text-text-tertiary">
+            <span className="shrink-0 text-text-tertiary">
               · w {cite.recencyWeight.toFixed(2)}
               {age !== null ? ` · ${t.source.ageMonths(age)}` : ""}
             </span>

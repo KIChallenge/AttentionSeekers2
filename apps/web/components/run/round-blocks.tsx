@@ -179,7 +179,10 @@ export function LessonCards({ round, lessons }: { round: number; lessons: RoundL
                 <div className="mt-1.5 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
                   {t.live.blockedBy}
                   {l.blockedBy.map((b) => (
-                    <span key={`${b.agentId}-${b.proposalId}`} className="inline-flex items-center gap-1">
+                    <span
+                      key={`${b.agentId}-${b.proposalId}`}
+                      className="inline-flex items-center gap-1"
+                    >
                       <Tile id={b.agentId} />
                       <span className="font-mono">{b.proposalId}</span>
                     </span>
