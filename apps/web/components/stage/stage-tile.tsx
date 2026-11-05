@@ -19,7 +19,7 @@ function Head({ role, color }: { role: TileRole; color: string }) {
   return <circle cx="100" cy="90" r="42" fill={color} />;
 }
 
-function Figure({
+export function StageFigure({
   role,
   color,
   code,
@@ -147,7 +147,7 @@ export const StageTile = memo(function StageTile({
       }}
     >
       <div className="min-h-0 flex-1 px-[12%] pt-[6%]">
-        <Figure role={role} color={color} code={code} active={active} />
+        <StageFigure role={role} color={color} code={code} active={active} />
       </div>
       <figcaption className="flex h-9 shrink-0 items-center gap-2 border-t bg-card/80 px-3">
         <span
