@@ -187,7 +187,7 @@ def remove_running_lines(pages):
     return out, len(rep)
 
 
-PARL_STAMP = re.compile(r"^\s*(\d+/SN-\d+/ME\b.*GP\b|www\.parlament\.gv\.at\s*$|\d+\s+von\s+\d+\s*$)", re.I)
+PARL_STAMP = re.compile(r"^\s*(.*Vollständigkeit des Inhaltes wird von der Parlamentsdirektion|Für die Richtigkeit|\d+/SN-\d+/ME\b.*GP\b|www\.parlament\.gv\.at\s*$|\d+\s+von\s+\d+\s*$)", re.I)
 SIG_LINE = re.compile(r"^[A-ZÄÖÜ(][\w .,:;()/&\-–]{0,70}$")
 
 
@@ -267,7 +267,8 @@ def to_paragraphs(lines):
                 t = t[:-1] + ln
             else:
                 t = (t + " " + ln) if t else ln
-        out.append(re.sub(r"\s+", " ", t).strip())
+        # normalise U+2014 to an en dash (project rule: no em dash anywhere in derived files)
+        out.append(re.sub(r"\s+", " ", t.replace("\u2014", "\u2013")).strip())
     return [p for p in out if p]
 
 
@@ -377,6 +378,8 @@ def main():
                           "masked_title": c["masked_title"], "masked_name_list": c["masked_name_list"],
                           "masked_first_name": c["masked_first_name"], "clean_chars": len(text)})
         tot.update(c)
+        # scans: the only text layer is the Parliament stamp/disclaimer, so judge on cleaned text
+        logs[key]["needs_ocr"] = logs[key]["needs_ocr"] or len(text) < 150 * logs[key]["pages"]
         d, mo, y = r["date"].split(".")
         base = {"id": f"{r['gp']}/SNME/{r['snme_inr']}", "institution_id": r["institution_id"],
                 "institution": r["institution"], "agent": r["agent"], "date": f"{y}-{mo}-{d}", "gp": r["me_gp"],

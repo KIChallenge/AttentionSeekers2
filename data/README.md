@@ -83,7 +83,7 @@ all derived text with the rule set and fails on any hit. NER-only names (rare su
 first name) can in principle survive where spaCy misses them; spot checks found none, but treat the
 corpus as person-stripped by best effort, not by proof. Submitter strings with names stay in `raw/`.
 
-**Segmentation.** Paragraphs (line joining with list/heading and short-line breaks). Each segment lists
+**Segmentation.** U+2014 is normalised to an en dash. Paragraphs (line joining with list/heading and short-line breaks). Each segment lists
 the provisions it references (`§ 5 Abs. 2 Z 3`, `Art. 15a`, `Z 4`, `Anlage 1`). No stance labels yet.
 
 ## Outputs (derived/, person-free)
@@ -93,14 +93,42 @@ the provisions it references (`§ 5 Abs. 2 Z 3`, `Art. 15a`, `Z 4`, `Anlage 1`).
 | `me_index.jsonl` | 1,780 | One row per ME: `gp`, `me_inr`, title, Ressort, Einlangen, Frist, topics, Schlagworte, eurovoc, `health_core`, `health_broad`, reasons, document links. **Join key `(gp, me_inr)`** |
 | `stellungnahmen_index.jsonl` | 21,588 | Every alias-matched institutional statement on an ME: `gp`, `snme_inr`, citation, date, `institution_id`, `agent`, `co_institutions`, `me_gp`, `me_inr`, ME title/Ressort, health flags, URL |
 | `counts_institutions.csv`, `counts_agents.csv` | | counts on all, health_core and health_broad MEs |
-| `stellungnahmen.jsonl` | TEXTS | One row per extracted health statement: id, institution, agent, ISO date, GP, ME number/citation/title, pages, `needs_ocr`, `n_chars`, cleaned masked `text` |
-| `stellungnahmen_segments.jsonl` | SEGS | Paragraph segments with `provisions[]`, `references_provision` |
+| `stellungnahmen.jsonl` | 2,667 | One row per extracted health statement: id, institution, agent, ISO date, GP, ME number/citation/title, pages, `needs_ocr`, `n_chars`, cleaned masked `text` |
+| `stellungnahmen_segments.jsonl` | 91,820 | Paragraph segments with `provisions[]`, `references_provision` |
 | `extraction_log.jsonl`, `masking_summary.json` | | per-statement extraction and masking stats |
 | `COUNTS.md` | | full per-institution table |
 
 ## Counts
 
-COUNTS_TABLE
+Statements (SN) by simulator agent, GP XXIII to XXVIII. "health MEs" = distinct `health_core` MEs the
+agent commented on. PDFs and texts are for health MEs only. Full per-institution table: `derived/COUNTS.md`.
+
+| Institution | SN all MEs | SN health MEs | health MEs | PDFs | texts (>=500 chars) | needs OCR |
+|---|---:|---:|---:|---:|---:|---:|
+| **bmsgpk** | 346 | 4 | 4 | 4 | 4 | 0 |
+| **sv** | 589 | 131 | 111 | 131 | 113 | 18 |
+| **aerztekammer** | 252 | 96 | 91 | 96 | 59 | 37 |
+| **contract_physicians** | 17 | 15 | 6 | 14 | 12 | 2 |
+| **elective_physicians** | 0 | 0 | 0 | 0 | 0 | 0 |
+| **hospitals** | 148 | 114 | 54 | 113 | 76 | 36 |
+| **nursing** | 96 | 79 | 37 | 79 | 69 | 4 |
+| **patients** | 86 | 50 | 35 | 50 | 44 | 6 |
+| **laender** | 9370 | 1026 | 167 | 1024 | 967 | 16 |
+| **bmf** | 963 | 91 | 91 | 91 | 91 | 0 |
+| **other** | 9721 | 1331 | 167 | 1065 | 861 | 184 |
+
+Key non-agent institutions on health MEs (SN health / texts): AK 152 / 103, WKÖ 126 / 74, Gesundheitsberufe
+(MTD, Hebammen, Physio) 126 / 122, Rechnungshof 118 / 106, Freie Wohlfahrt 96 / 87, ÖGB 56 / 32, Städtebund
+48 / 45, Apothekerkammer 45 / 45, Seniorenrat 38 / 38, IV 30 / 9, Pharmaindustrie 22 / 9, Zahnärztekammer 32 / 17.
+
+Reading for persona training: SV (Dachverband 114 health statements, 98 texts), ÖÄK (92 / 55),
+Länder (each Land 80 to 168), BMF (91) and the hospital operators (114 / 76) have enough material. Nursing
+(79 / 69) and patients (50 / 44) are thin but usable. Contract physicians have 15 statements (Hausärzteverband,
+ÖGAM, JAMÖ, one ÖÄK Bundeskurie niedergelassene Ärzte) and **elective physicians have zero**: no Wahlärzte
+association ever submitted a Stellungnahme on an ME in 2006 to 2026. The **health ministry** has only 4
+statements because it authors the drafts: its formal voice is the ME text and Erläuterungen of the 168
+health MEs (document links in `me_index.jsonl`), not list 142.
+BMF statements are budget-impact notes (91 texts, median about 2,700 chars).
 
 ## Licences
 
@@ -113,4 +141,16 @@ COUNTS_TABLE
 
 ## Known gaps
 
-GAPS
+- **OCR**: 303 of 2,667 health statements are scans with no text layer (mostly GP XXIII/XXIV; ÖÄK 37,
+  hospital operators 36, AK 44, WKÖ 50). Flagged `needs_ocr`; not OCRed (tesseract not installed).
+  `stellungnahmen.jsonl` keeps these rows with empty or near-empty `text`.
+- **Not downloaded**: statements on non-health MEs (all agents), and on health MEs for non-agent bodies outside
+  the keep-list in `04_fetch_pdfs.py` (BKA-Verfassungsdienst, Datenschutz, Medizinische Universitäten,
+  Landwirtschaftskammer, AGES; about 250 statements). `04 --broad` adds the `health_broad` MEs.
+- 12 health statements have no PDF on the detail page.
+- ME 164/XXVII: 6,066 citizen rows not retrievable (API cap); all institutional rows present.
+- Statements on Regierungsvorlagen / Initiativanträge (`BEZUG_ITYP` I, A) are not included, only on MEs.
+- Health flag is rule-based; spot checks found it clean after excluding animal-welfare and family items, but
+  borderline items (e.g. Bäderhygienegesetz, Lebensmittel) count as health.
+- Masking is best-effort: 5,301 of 147,697 sentences masked (NER 4,743, title rule 200, name lists 268,
+  first-name rule 90); `check_leaks.py` reports 0 rule hits on derived text.
