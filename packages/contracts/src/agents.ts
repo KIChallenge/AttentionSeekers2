@@ -103,5 +103,13 @@ export const AgentConfig = z.object({
   color: z.string(),
   /** Display code, e.g. "ÄK". */
   code: z.string().max(3),
+  /**
+   * Up to three delegates per institution, each a fictional, unnamed functional role
+   * ("Verhandlungsführung", "Finanzreferat"). Never a real person or a name (CON-1, CON-2).
+   */
+  delegates: z
+    .array(z.object({ id: z.string(), role: LocalizedText }))
+    .max(3)
+    .optional(),
 });
 export type AgentConfig = z.infer<typeof AgentConfig>;

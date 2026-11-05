@@ -13,7 +13,7 @@ import type {
   StrategicAssessment,
 } from "./strategy.ts";
 import type { UtteranceTrace } from "./traces.ts";
-import type { Utterance } from "./utterance.ts";
+import type { Exchange, Utterance } from "./utterance.ts";
 
 // foldRun: the one place where an event changes the screen. Pure, JSON-serialisable
 // state, shared by the server (snapshots of finished runs) and the client (streaming).
@@ -71,6 +71,8 @@ export interface RunSnapshot {
   assessments: Record<string, StrategicAssessment[]>;
   calculi: CoalitionCalculus[];
   lessons: RoundLesson[];
+  /** Exchanges in opening order; closed ones carry their outcome. */
+  exchanges: Exchange[];
   lessonApplications: LessonApplication[];
   degraded: Array<{ agentId: AgentId; utteranceId: string | null; reason: string }>;
   figures: ImpactFigure[];
@@ -122,6 +124,7 @@ export function emptySnapshot(): RunSnapshot {
     assessments: {},
     calculi: [],
     lessons: [],
+    exchanges: [],
     lessonApplications: [],
     degraded: [],
     figures: [],
@@ -291,6 +294,15 @@ export function reduceRun(s: RunSnapshot, e: RunEvent, opts: ReduceOptions = {})
 
     case "round.summary":
       return { ...base, summaries: upsertByRound(base.summaries, e.summary) };
+
+    case "exchange.opened":
+    case "exchange.closed":
+      return {
+        ...base,
+        exchanges: base.exchanges.some((x) => x.id === e.exchange.id)
+          ? base.exchanges.map((x) => (x.id === e.exchange.id ? e.exchange : x))
+          : [...base.exchanges, e.exchange],
+      };
 
     case "lesson.recorded":
       return {

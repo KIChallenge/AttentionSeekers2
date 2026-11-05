@@ -13,7 +13,7 @@ import {
   StrategicAssessment,
 } from "./strategy.ts";
 import { UtteranceTrace } from "./traces.ts";
-import { Utterance } from "./utterance.ts";
+import { Exchange, Utterance } from "./utterance.ts";
 
 // RunEvent NDJSON protocol (ui-plan 4.2). One JSON object per line.
 // Rules: seq starts at 0 with run.started and is strictly increasing per run;
@@ -85,6 +85,8 @@ export const RunEvent = z.discriminatedUnion("type", [
   z.object({ ...Envelope, type: z.literal("coalition.computed"), calculus: CoalitionCalculus }),
   z.object({ ...Envelope, type: z.literal("round.summary"), summary: RoundSummary }),
   z.object({ ...Envelope, type: z.literal("lesson.recorded"), lesson: RoundLesson }),
+  z.object({ ...Envelope, type: z.literal("exchange.opened"), exchange: Exchange }),
+  z.object({ ...Envelope, type: z.literal("exchange.closed"), exchange: Exchange }),
   z.object({ ...Envelope, type: z.literal("lesson.applied"), application: LessonApplication }),
   z.object({
     ...Envelope,
