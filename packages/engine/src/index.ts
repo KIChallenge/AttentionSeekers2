@@ -10,6 +10,7 @@
  *   impact.ts     deterministic impact model (FR-N3..N6)
  *   forecast.ts   SV_FORECAST_CMD bridge
  *   guard.ts      CON-1/CON-2 person-name guard
+ *   trace.ts      agent trace: one llm.call event per model call, attributed to its record
  *   runner.ts     the loop; writer.ts the event writer
  */
 export * from "./coalition.ts";

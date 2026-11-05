@@ -2,6 +2,7 @@
 // structured(): strict JSON schema from Zod, one retry on invalid output, refusal and
 // truncation errors, concurrency slot, key redaction. Returns usage and latency for
 // telemetry (FR-T7). The model id is passed per call (FR-X1, NFR-4).
+import { AsyncLocalStorage } from "node:async_hooks";
 import { z } from "zod";
 
 export type Message = { role: "system" | "user" | "assistant"; content: string };
@@ -12,8 +13,42 @@ export interface CallMeta {
   tokensIn: number;
   tokensOut: number;
   reasoningTokens: number;
+  /** Prompt tokens served from the provider's prompt cache (0 when not reported). */
+  tokensCached: number;
   retries: number;
   gatewayRequestId: string | null;
+}
+
+/**
+ * One finished structured() call as seen by the agent trace: wall time across all
+ * attempts, tokens summed over the attempts that returned, and how it ended.
+ */
+export interface CallRecord {
+  schemaName: string;
+  model: string;
+  /** performance.now() at the start of the first attempt. */
+  startedAt: number;
+  durationMs: number;
+  tokensIn: number;
+  tokensCached: number;
+  tokensOut: number;
+  tokensReasoning: number;
+  attempts: number;
+  status: "ok" | "repaired" | "failed";
+  error: string | null;
+  gatewayRequestId: string | null;
+  messages: Message[];
+  output: unknown;
+}
+
+const callSinks = new AsyncLocalStorage<(r: CallRecord) => void>();
+
+/**
+ * Runs fn with a sink that receives a CallRecord for every structured() call made inside it
+ * (async context, so parallel runs and parallel agents never mix). The innermost sink wins.
+ */
+export function observeCalls<T>(sink: (r: CallRecord) => void, fn: () => T): T {
+  return callSinks.run(sink, fn);
 }
 
 export interface Usage {
@@ -104,6 +139,7 @@ async function complete(
           prompt_tokens?: number;
           completion_tokens?: number;
           completion_tokens_details?: { reasoning_tokens?: number };
+          prompt_tokens_details?: { cached_tokens?: number };
         };
       };
       const u = json.usage ?? {};
@@ -126,6 +162,7 @@ async function complete(
           tokensIn: u.prompt_tokens ?? 0,
           tokensOut: u.completion_tokens ?? 0,
           reasoningTokens: u.completion_tokens_details?.reasoning_tokens ?? 0,
+          tokensCached: u.prompt_tokens_details?.cached_tokens ?? 0,
           gatewayRequestId: json.id ?? null,
         },
       };
@@ -346,7 +383,7 @@ async function completeBedrock(
           };
         };
         stopReason?: string;
-        usage?: { inputTokens?: number; outputTokens?: number };
+        usage?: { inputTokens?: number; outputTokens?: number; cacheReadInputTokens?: number };
       };
       const u = json.usage ?? {};
       usage.calls++;
@@ -371,6 +408,7 @@ async function completeBedrock(
           tokensIn: u.inputTokens ?? 0,
           tokensOut: u.outputTokens ?? 0,
           reasoningTokens: 0,
+          tokensCached: u.cacheReadInputTokens ?? 0,
           gatewayRequestId: res.headers.get("x-amzn-requestid"),
         },
       };
@@ -414,9 +452,27 @@ export async function structured<T extends z.ZodType>(
   };
   const stat = statOf(model);
   stat.calls++;
+  const sink = callSinks.getStore();
+  const started = performance.now();
+  const acc = { tokensIn: 0, tokensCached: 0, tokensOut: 0, tokensReasoning: 0, attempts: 0 };
+  let requestId: string | null = null;
+  const report = (status: CallRecord["status"], output: unknown, error: string | null) =>
+    sink?.({
+      schemaName: name,
+      model,
+      startedAt: started,
+      durationMs: Math.round(performance.now() - started),
+      ...acc,
+      status,
+      error,
+      gatewayRequestId: requestId,
+      messages,
+      output,
+    });
   let lastError: unknown;
   for (let attempt = 0; attempt < 2; attempt++) {
     stat.attempts++;
+    acc.attempts++;
     let content: string;
     let meta: Omit<CallMeta, "retries">;
     try {
@@ -444,14 +500,23 @@ export async function structured<T extends z.ZodType>(
       lastError = error;
       continue;
     }
+    acc.tokensIn += meta.tokensIn;
+    acc.tokensCached += meta.tokensCached;
+    acc.tokensOut += meta.tokensOut;
+    acc.tokensReasoning += meta.reasoningTokens;
+    requestId = meta.gatewayRequestId;
     try {
       const raw: unknown = JSON.parse(content);
       const direct = schema.safeParse(raw);
-      if (direct.success) return { data: direct.data, meta: { ...meta, retries: attempt } };
+      if (direct.success) {
+        report("ok", direct.data, null);
+        return { data: direct.data, meta: { ...meta, retries: attempt } };
+      }
       if (isBedrock(model)) {
         const fixed = schema.safeParse(repairToSchema(raw, json as JsonSchema));
         if (fixed.success) {
           stat.repaired++;
+          report("repaired", fixed.data, null);
           return { data: fixed.data, meta: { ...meta, retries: attempt } };
         }
       }
@@ -466,9 +531,9 @@ export async function structured<T extends z.ZodType>(
     }
   }
   stat.failed++;
-  throw new StructuredOutputError(
-    `LLM ${name}: ${redact(lastError instanceof Error ? lastError.message : String(lastError))}`,
-  );
+  const message = redact(lastError instanceof Error ? lastError.message : String(lastError));
+  report("failed", null, message.slice(0, 300));
+  throw new StructuredOutputError(`LLM ${name}: ${message}`);
 }
 
 /** Rough token estimate for prompt blocks shown in the inspector. */
