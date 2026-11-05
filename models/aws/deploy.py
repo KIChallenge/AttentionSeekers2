@@ -12,6 +12,7 @@ baseline.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import time
 from pathlib import Path
@@ -93,7 +94,9 @@ def base(_a):
                 "ModelName": MODEL_NAME,
                 "StartupParameters": {"ModelDataDownloadTimeoutInSeconds": 1800,
                                       "ContainerStartupHealthCheckTimeoutInSeconds": 1800},
-                "ComputeResourceRequirements": {"NumberOfAcceleratorDevicesRequired": 1, "MinMemoryRequiredInMb": 16384}},
+                "ComputeResourceRequirements": {"NumberOfAcceleratorDevicesRequired": 1,
+                                              # g6e.xlarge exposes well under its 32 GiB to components
+                                              "MinMemoryRequiredInMb": int(os.environ.get("SV_IC_MEM_MB", "2048"))}},
             RuntimeConfig={"CopyCount": 1})
         print("base IC creating:", BASE_IC)
 
