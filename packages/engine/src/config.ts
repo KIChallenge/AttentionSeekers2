@@ -231,5 +231,21 @@ export function defaultTemperament(agentId: string) {
 
 export const DEFAULT_MODEL = () => process.env.SV_DEFAULT_MODEL ?? "azure/gpt-6-sol";
 export const EXPERT_MODEL = () => process.env.SV_EXPERT_MODEL ?? DEFAULT_MODEL();
-/** Second verifier (FR-N7); a different family when the team deploys one. */
-export const VERIFIER_MODEL = () => process.env.SV_VERIFIER_MODEL ?? EXPERT_MODEL();
+const hasSecondFamily = () =>
+  Boolean(process.env.BIFROST_SEED_BEDROCK_KEY && process.env.BIFROST_SEED_BEDROCK_REGION);
+/**
+ * Second model family (FR-X1, FR-N7) via Amazon Bedrock. Nova Pro by default: the only
+ * Mistral model enabled on the account (Pixtral Large) is throttled to about one request
+ * per minute, far below a run's needs; set SV_SECOND_MODEL to use it anyway.
+ */
+export const SECOND_MODEL = (): string | null =>
+  process.env.SV_SECOND_MODEL ?? (hasSecondFamily() ? "bedrock/eu.amazon.nova-pro-v1:0" : null);
+/** Institutions seated on the second family by default (two-family floor, FR-X1). */
+export const SECOND_FAMILY_AGENTS = (): string[] =>
+  (process.env.SV_SECOND_FAMILY_AGENTS ?? "ak,pf,bl,pv")
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+/** Second verifier (FR-N7): the other family when available, so the check is cross-family. */
+export const VERIFIER_MODEL = () =>
+  process.env.SV_VERIFIER_MODEL ?? SECOND_MODEL() ?? EXPERT_MODEL();
