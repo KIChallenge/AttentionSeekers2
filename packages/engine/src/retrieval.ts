@@ -28,6 +28,20 @@ export interface EvidenceSet {
 
 export const HALF_LIFE_YEARS = 2;
 
+/** The UI fixture corpus is invented; live runs skip it unless SV_INCLUDE_FIXTURE=1. */
+export const FIXTURE_REVISION = "corpus-2026-10-31";
+function excludedRevision(): string {
+  return process.env.SV_INCLUDE_FIXTURE === "1" ? "__none__" : FIXTURE_REVISION;
+}
+
+/**
+ * FR-H2 eligibility: a source is visible to an agent iff its date is on or before the
+ * run's as-of date. The SQL below applies the same predicate (src.date <= asOf).
+ */
+export function isEligible(sourceDate: string, asOf: string): boolean {
+  return sourceDate.slice(0, 10) <= asOf.slice(0, 10);
+}
+
 /** FR-P4: exponential decay with a two-year half-life, floored at 0.05. */
 export function recencyWeight(date: string, asOf: string): number {
   const age = (Date.parse(asOf) - Date.parse(date)) / (365.25 * 86_400_000);
@@ -110,29 +124,46 @@ export async function retrieve(opts: {
   excludeSegmentIds?: string[];
   includeSegmentIds?: string[];
 }): Promise<EvidenceSet> {
-  const { query, role, asOf, limit = 10, use = 5 } = opts;
+  const { query, role, asOf, limit = 10, use = 6 } = opts;
   const terms = queryTerms(query);
   const trace: RetrievalTrace = { query: terms.join(" "), asOf, corpusRevision, candidates: [] };
   const d = await db();
   if (!d) return { passages: [], trace };
   let rows: Row[] = [];
+  const lexRank = new Map<string, number>();
+  const ownRank = new Map<string, number>();
   try {
     const { sql } = await import("drizzle-orm");
     const tsq = terms.join(" OR ");
-    const res = await d.execute(sql`
+    // Two bounded queries so the plan stays cheap on a large corpus: lexical top hits
+    // via the GIN index, plus the most recent passages of the agent's own institution.
+    const lexical = await d.execute(sql`
       with q as (select websearch_to_tsquery('german', ${tsq}) as q)
-      select s.id as segment_id, s.source_id, s.text, src.date, src.institution_code,
+      select s.id as segment_id, s.source_id, s.text, src.date::text as date, src.institution_code,
              src.institution_role, src.kind, src.title, src.outlet, src.corpus_revision,
              ts_rank_cd(s.tsv, q.q) as rank
       from segments s join sources src on src.id = s.source_id, q
-      where src.date <= ${asOf}::date and src.person_filtered = true
-        and (s.tsv @@ q.q or src.institution_role = ${role})
-      order by (s.tsv @@ q.q) desc, ts_rank_cd(s.tsv, q.q) desc, src.date desc
-      limit 60`);
-    rows = (res as unknown as { rows: Row[] }).rows;
+      where s.tsv @@ q.q and src.date <= ${asOf}::date and src.person_filtered = true and src.corpus_revision <> ${excludedRevision()}
+      order by ts_rank_cd(s.tsv, q.q) desc, src.date desc
+      limit 40`);
+    const own = await d.execute(sql`
+      with q as (select websearch_to_tsquery('german', ${tsq}) as q)
+      select s.id as segment_id, s.source_id, s.text, src.date::text as date, src.institution_code,
+             src.institution_role, src.kind, src.title, src.outlet, src.corpus_revision,
+             ts_rank_cd(s.tsv, q.q) as rank
+      from segments s join sources src on src.id = s.source_id, q
+      where src.institution_role = ${role} and src.date <= ${asOf}::date
+        and src.person_filtered = true and src.corpus_revision <> ${excludedRevision()}
+      order by (s.tsv @@ q.q) desc, src.date desc
+      limit 12`);
+    const lexRows = (lexical as unknown as { rows: Row[] }).rows;
+    const ownRows = (own as unknown as { rows: Row[] }).rows;
+    for (const [i, r] of lexRows.entries()) lexRank.set(r.segment_id, i + 1);
+    for (const [i, r] of ownRows.entries()) ownRank.set(r.segment_id, i + 1);
+    rows = [...lexRows, ...ownRows];
     if (opts.includeSegmentIds?.length) {
       const extra = await d.execute(sql`
-        select s.id as segment_id, s.source_id, s.text, src.date, src.institution_code,
+        select s.id as segment_id, s.source_id, s.text, src.date::text as date, src.institution_code,
                src.institution_role, src.kind, src.title, src.outlet, src.corpus_revision, 0.5 as rank
         from segments s join sources src on src.id = s.source_id
         where s.id = any(${opts.includeSegmentIds}) and src.date <= ${asOf}::date`);
@@ -146,22 +177,31 @@ export async function retrieve(opts: {
   if (rows[0]) corpusRevision = rows[0].corpus_revision;
   trace.corpusRevision = corpusRevision;
   const excluded = new Set(opts.excludeSegmentIds ?? []);
+  // Reciprocal rank fusion of the lexical list and the own-institution list (k = 60),
+  // times the recency weight (FR-P4).
+  const K = 60;
   const scored = rows
+    .filter((r) => isEligible(isoDay(r.date), asOf))
     .filter((r, i, all) => all.findIndex((x) => x.segment_id === r.segment_id) === i)
-    .map((r, i) => {
+    .map((r) => {
       const date = isoDay(r.date);
       const w = recencyWeight(date, asOf);
       const own = r.institution_role === role;
-      const lexical = Number(r.rank) > 0 ? 1 / (60 + i + 1) : 0.004;
-      return { r, date, w, own, bm25Rank: Number(r.rank) > 0 ? i + 1 : null, fused: lexical * w * (own ? 1.5 : 1) };
+      const lr = lexRank.get(r.segment_id);
+      const or = ownRank.get(r.segment_id);
+      const rrf = (lr ? 1 / (K + lr) : 0) + (or ? 1 / (K + or) : 0) || 1 / (K + 30);
+      return { r, date, w, own, bm25Rank: lr ?? null, fused: rrf * w };
     })
     .sort((a, b) => b.fused - a.fused)
-    .slice(0, limit);
+    .slice(0, limit * 2);
   const passages: Passage[] = [];
   for (const s of scored) {
     let discardReason: string | null = null;
     if (excluded.has(s.r.segment_id)) discardReason = "removed_by_fork_edit";
     else if (passages.length >= use) discardReason = "below_cutoff";
+    // Diversity: at most two passages per source document.
+    else if (passages.filter((p) => p.sourceId === s.r.source_id).length >= 2)
+      discardReason = "same_source_cap";
     const used = discardReason === null;
     trace.candidates.push({
       segmentId: s.r.segment_id,

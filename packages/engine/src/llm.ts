@@ -29,8 +29,8 @@ export const usage: Usage = { calls: 0, tokensIn: 0, tokensOut: 0, reasoningToke
 let active = 0;
 const waiting: Array<() => void> = [];
 function limit(): number {
-  const v = Number(process.env.SV_LLM_CONCURRENCY ?? 12);
-  return Number.isSafeInteger(v) && v > 0 ? v : 12;
+  const v = Number(process.env.SV_LLM_CONCURRENCY ?? 24);
+  return Number.isSafeInteger(v) && v > 0 ? v : 24;
 }
 async function slot<T>(run: () => Promise<T>): Promise<T> {
   if (active >= limit()) await new Promise<void>((r) => waiting.push(r));
@@ -92,7 +92,8 @@ async function complete(
         signal: AbortSignal.timeout(timeoutMs),
       });
       status = res.status;
-      if (!res.ok) throw new Error(`LLM ${res.status}: ${redact((await res.text()).slice(0, 300))}`);
+      if (!res.ok)
+        throw new Error(`LLM ${res.status}: ${redact((await res.text()).slice(0, 300))}`);
       const json = (await res.json()) as {
         id?: string;
         choices?: Array<{
