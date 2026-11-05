@@ -45,7 +45,7 @@ export function Scrubber({
   marks: ScrubMarks;
   pos: number;
   onSeek: (idx: number) => void;
-  labels: { round: string; change: string; injected: string };
+  labels: { round: string; change: string; injected: string; timeline?: string };
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const total = Math.max(1, events.at(-1)?.tMs ?? 1);
@@ -78,7 +78,7 @@ export function Scrubber({
         aria-valuemin={0}
         aria-valuemax={events.length}
         aria-valuenow={pos}
-        aria-label="Timeline"
+        aria-label={labels.timeline ?? "Timeline"}
         className="relative h-16 cursor-pointer touch-none outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
         onPointerDown={(e) => {
           (e.target as Element).setPointerCapture?.(e.pointerId);

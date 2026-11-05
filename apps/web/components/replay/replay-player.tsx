@@ -239,7 +239,12 @@ export function ReplayPlayer({ runId, events }: { runId: string; events: RunEven
             seek(i);
             setFollow(true);
           }}
-          labels={{ round: "R", change: t.replay.positionChange, injected: t.replay.injected }}
+          labels={{
+            round: "R",
+            change: t.replay.positionChange,
+            injected: t.replay.injected,
+            timeline: lang === "de" ? "Zeitachse" : "Timeline",
+          }}
         />
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pb-1 text-[11px] text-muted-foreground">
           <span className="num">

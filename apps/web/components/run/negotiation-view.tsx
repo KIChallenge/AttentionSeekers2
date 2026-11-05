@@ -37,7 +37,10 @@ function Roster({ round }: { round: number }) {
           </Level>
         </span>
         {active ? (
-          <span className="flex h-3 items-end gap-[2px] max-desk:hidden" title="speaking">
+          <span
+            className="flex h-3 items-end gap-[2px] max-desk:hidden"
+            title={lang === "de" ? "spricht" : "speaking"}
+          >
             {[0.5, 1, 0.7].map((h) => (
               <i
                 key={h}
@@ -441,7 +444,7 @@ export function NegotiationView({
           </span>
           <Level min="analyst">
             <Seg
-              label="view"
+              label={`${t.live.condensed} / ${t.live.full}`}
               value={view}
               onChange={setView}
               options={[
