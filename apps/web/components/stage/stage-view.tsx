@@ -207,7 +207,17 @@ export function StageView() {
       code: a.code,
       color: a.color,
       name: id === "moderator" ? s.moderator : id === "expert" ? s.expert : a.name,
-      role: u?.speaker === id && role ? role : firstRole ? L(firstRole, lang) : "",
+      // delegate role when the run names one, otherwise the seat's generic function
+      role:
+        u?.speaker === id && role
+          ? role
+          : firstRole
+            ? L(firstRole, lang)
+            : kind === "moderator"
+              ? s.roleModerator
+              : kind === "expert"
+                ? s.roleExpert
+                : s.roleDelegation,
     };
   });
   const listeners = [

@@ -281,19 +281,18 @@ export function AvatarStage({
                     : undefined,
             }}
           >
-            <figcaption className="absolute inset-x-1.5 bottom-1.5 flex min-w-0 items-center gap-2 rounded-md border bg-card/90 px-2 py-1 shadow-xs backdrop-blur-sm">
+            <figcaption className="absolute inset-x-1 bottom-1 flex min-w-0 items-center gap-1.5 rounded-md border bg-card/90 px-1.5 py-0.5 shadow-xs backdrop-blur-sm">
               <span
                 className="inline-grid h-5 min-w-5 shrink-0 place-items-center rounded-[5px] px-1 text-[10px] font-semibold text-white"
                 style={{ background: seat.color }}
               >
                 {seat.code}
               </span>
-              <span className="min-w-0 flex-1 leading-tight">
-                <span className="block truncate text-[13px] font-medium">{seat.name}</span>
+              {/* one line, so short tiles keep the face clear of the plate */}
+              <span className="min-w-0 flex-1 truncate text-[13px] leading-5">
+                <span className="font-medium">{seat.name}</span>
                 {seat.role ? (
-                  <span className="block truncate text-[11px] text-muted-foreground">
-                    {seat.role}
-                  </span>
+                  <span className="text-[11px] text-muted-foreground"> · {seat.role}</span>
                 ) : null}
               </span>
               {active ? (

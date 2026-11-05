@@ -48,6 +48,9 @@ const de = {
     "Stilisierte 3D-Figuren, eine je Institution, Lippenbewegung aus den vorgerenderten Stimmen",
   view3dLoading: "3D-Figuren werden geladen",
   view3dFallback: "3D nicht verfügbar, Kachelansicht aktiv",
+  roleDelegation: "Delegation",
+  roleModerator: "Gesprächsleitung",
+  roleExpert: "Fachexpertise",
 };
 
 export type StageStrings = typeof de;
@@ -98,6 +101,9 @@ const en: StageStrings = {
   view3dHint: "Stylized 3D figures, one per institution, lip sync from the pre-rendered voices",
   view3dLoading: "Loading 3D figures",
   view3dFallback: "3D unavailable, showing tiles",
+  roleDelegation: "Delegation",
+  roleModerator: "Chair",
+  roleExpert: "Subject expertise",
 };
 
 export const stageStrings: Record<Lang, StageStrings> = { de, en };
