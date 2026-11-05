@@ -30,8 +30,16 @@ export interface Profile {
   register: string;
   keywords: string;
   redLineIds: string[];
+  /** Fictional, unnamed functional roles (CON-1/CON-2); the first one leads. */
+  delegates?: DelegateDef[];
 }
-interface RedLineDef {
+export interface DelegateDef {
+  id: string;
+  role: Bi;
+  /** Topic keys this delegate covers in focused exchanges; empty for the lead. */
+  topicKeys: string[];
+}
+export interface RedLineDef {
   id: string;
   agentId: string;
   role: RedLine["role"];
@@ -90,6 +98,19 @@ export function profileOf(agentId: string): Profile {
     keywords: c?.nameDe ?? "",
     redLineIds: [],
   };
+}
+
+/** At most three delegates; an institution without config gets a lead only. */
+export function delegatesOf(agentId: string): DelegateDef[] {
+  const list = profileOf(agentId).delegates;
+  if (list?.length) return list.slice(0, 3);
+  return [
+    {
+      id: `${agentId}-lead`,
+      role: { de: "Verhandlungsführung", en: "Lead negotiator" },
+      topicKeys: [],
+    },
+  ];
 }
 
 export function redLinesOf(agentId: string): RedLineDef[] {
@@ -198,6 +219,7 @@ export function agentConfigOf(
     },
     color: c?.color ?? "var(--c-opt)",
     code: c?.code ?? agentId.toUpperCase().slice(0, 3),
+    delegates: delegatesOf(agentId).map((d) => ({ id: d.id, role: bi(d.role) })),
   };
 }
 
