@@ -4,7 +4,7 @@ import type { CitationRef, Claim, ClaimState } from "@sv/contracts";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Chip, EntityRef } from "./bits";
-import { ageMonths, claimStateClass, L, sourceLabel } from "./helpers";
+import { ageMonths, claimStateClass, L, sourceLabel, withKeys } from "./helpers";
 import { useRun } from "./run-context";
 
 /**
@@ -107,15 +107,15 @@ export function ClaimRow({ claim, dense = false }: { claim: Claim; dense?: boole
       <p className="mt-1 text-sm">„{claim.atomicText}“</p>
       {claim.citations.length ? (
         <div className="mt-1.5 flex flex-wrap gap-1">
-          {claim.citations.map((c, i) => (
-            <SourceChip key={`${c.segmentId}-${i}`} cite={c} />
+          {withKeys(claim.citations, (c) => c.segmentId).map(([key, c]) => (
+            <SourceChip key={key} cite={c} />
           ))}
         </div>
       ) : null}
       {!dense && claim.verifyingModels.length ? (
         <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
-          {claim.verifyingModels.map((v, i) => (
-            <li key={`${v.model}-${i}`}>
+          {withKeys(claim.verifyingModels, (v) => v.model).map(([key, v]) => (
+            <li key={key}>
               <span className="font-mono">{v.model}</span>:{" "}
               <span
                 className={cn(

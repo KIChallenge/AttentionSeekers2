@@ -99,3 +99,14 @@ export const claimUnderline: Record<ClaimState, string> = {
 };
 
 export const roundLabel = (n: number) => `R${n}`;
+
+/** Keys for lists that may repeat an item ("x", "x#2", ...), stable without array indices. */
+export function withKeys<T>(items: readonly T[], keyOf: (item: T) => string): Array<[string, T]> {
+  const seen = new Map<string, number>();
+  return items.map((item) => {
+    const k = keyOf(item);
+    const n = (seen.get(k) ?? 0) + 1;
+    seen.set(k, n);
+    return [n > 1 ? `${k}#${n}` : k, item];
+  });
+}

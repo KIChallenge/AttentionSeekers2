@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { Level, usePrefs } from "@/components/shell/providers";
 import { cn } from "@/lib/utils";
 import { Chip, EntityRef, Tile } from "./bits";
-import { agentLook, claimUnderline, L } from "./helpers";
+import { agentLook, claimUnderline, L, withKeys } from "./helpers";
 import { ClaimStateBadge, SourceChip } from "./provenance";
 import { useRun } from "./run-context";
 
@@ -20,8 +20,8 @@ function ClaimText({ u, claims }: { u: Utterance; claims: Claim[] }) {
         {text}
         {claims.flatMap((c) => c.citations).length ? " " : null}
         {claims.flatMap((c) =>
-          c.citations.map((ref, i) => (
-            <SourceChip key={`${c.id}-${ref.segmentId}-${i}`} cite={ref} />
+          withKeys(c.citations, (ref) => `${c.id}-${ref.segmentId}`).map(([key, ref]) => (
+            <SourceChip key={key} cite={ref} />
           )),
         )}
       </>
@@ -44,8 +44,8 @@ function ClaimText({ u, claims }: { u: Utterance; claims: Claim[] }) {
         {text.slice(c.span.start, c.span.end)}
       </span>,
     );
-    for (const [i, ref] of c.citations.entries())
-      out.push(<SourceChip key={`${c.id}-${ref.segmentId}-${i}`} cite={ref} />);
+    for (const [key, ref] of withKeys(c.citations, (r) => `${c.id}-${r.segmentId}`))
+      out.push(<SourceChip key={key} cite={ref} />);
     pos = c.span.end;
   }
   out.push(text.slice(pos));
