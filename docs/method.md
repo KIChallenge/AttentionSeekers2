@@ -12,11 +12,11 @@ Grenzen vor den Stärken, wo beides auf denselben Punkt zielt.
 Der Simulator macht drei Aussagen, und jede wird anders geprüft. Sie werden nie zu einem
 "realistisch" zusammengefasst.
 
-| Behauptung | Wie gemessen | Status |
-|---|---|---|
-| **Ergebnisplausibilität**: Ist das ausgehandelte Paket historisch plausibel? | Referenzklassen-Prognose über Erstentwürfe, Labels aus dem Gesetzgebungsprotokoll | gemessen als Basisrate mit Intervall |
-| **Positionstreue**: Vertritt jeder Agent, was die Institution historisch vertreten hat? | Abstand der simulierten Position zum gefitteten Stance-Profil; Persona-Klassifikator "klingt wie Institution X" | berechnet pro Agent |
-| **Prozessrealismus**: Verläuft die Verhandlung wie eine echte? | nicht gemessen | ausdrücklich offen |
+| Behauptung                                                                              | Wie gemessen                                                                                                    | Status                               |
+| --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| **Ergebnisplausibilität**: Ist das ausgehandelte Paket historisch plausibel?            | Referenzklassen-Prognose über Erstentwürfe, Labels aus dem Gesetzgebungsprotokoll                               | gemessen als Basisrate mit Intervall |
+| **Positionstreue**: Vertritt jeder Agent, was die Institution historisch vertreten hat? | Abstand der simulierten Position zum gefitteten Stance-Profil; Persona-Klassifikator "klingt wie Institution X" | berechnet pro Agent                  |
+| **Prozessrealismus**: Verläuft die Verhandlung wie eine echte?                          | nicht gemessen                                                                                                  | ausdrücklich offen                   |
 
 ## 2. Woher die Positionen kommen
 
@@ -148,14 +148,14 @@ Verhandlung sind in dieser Challenge entstanden. Tabelle im README, Abschnitt 1.
 
 ## 9. Literatur, die eine Entscheidung geändert hat
 
-| Befund | Konsequenz |
-|---|---|
-| Frontier-Modelle haben Lookahead-Bias auf historische Ausgänge | regelbasierte Labels, Backtest nur als schwache Evidenz |
-| Letzter Sprecher hat bis zu 22 % Vorteil | Reihenfolge pro Runde zufällig und protokolliert |
-| Moderator-Zusammenfassungen erzeugen Scheinkonsens | offene Konflikte zuerst |
-| Homogene Debatten schlagen ein Einzelmodell nicht | zwei Modellfamilien als Untergrenze |
-| Kein deutschsprachiger Stance-Datensatz für Gesundheitspolitik | Labels als LLM-abgeleitet deklariert |
-| Kein Agentensystem hat bisher einen echten Verhandlungsausgang reproduziert | Backtest als ein Datenpunkt, nicht als Beweis |
-| Für die österreichische Begutachtung als Einflusskanal fehlt Forschung | der Stellungnahmen-Korpus ist selbst ein Beitrag |
+| Befund                                                                      | Konsequenz                                              |
+| --------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Frontier-Modelle haben Lookahead-Bias auf historische Ausgänge              | regelbasierte Labels, Backtest nur als schwache Evidenz |
+| Letzter Sprecher hat bis zu 22 % Vorteil                                    | Reihenfolge pro Runde zufällig und protokolliert        |
+| Moderator-Zusammenfassungen erzeugen Scheinkonsens                          | offene Konflikte zuerst                                 |
+| Homogene Debatten schlagen ein Einzelmodell nicht                           | zwei Modellfamilien als Untergrenze                     |
+| Kein deutschsprachiger Stance-Datensatz für Gesundheitspolitik              | Labels als LLM-abgeleitet deklariert                    |
+| Kein Agentensystem hat bisher einen echten Verhandlungsausgang reproduziert | Backtest als ein Datenpunkt, nicht als Beweis           |
+| Für die österreichische Begutachtung als Einflusskanal fehlt Forschung      | der Stellungnahmen-Korpus ist selbst ein Beitrag        |
 
 Vollständige Bibliographie im Projektordner (`research/papers.md`, `research/papers-addendum.md`).

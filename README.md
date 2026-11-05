@@ -92,31 +92,31 @@ Datenbank (Akzeptanzkriterium 19).
 
 ### 1.4 Methoden und zentrale technische Entscheidungen
 
-| Entscheidung | Begründung |
-|---|---|
+| Entscheidung                                          | Begründung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Referenzklassen-Prognose statt trainiertem Modell** | Über 18 Jahre gibt es nur 30 bis 60 echte Verhandlungsepisoden (Register: 165 gesundheitsbezogene Ministerialentwürfe in 156 Episoden), und die Kassenfusion 2019/2020 ist ein Strukturbruch. Ein Klassifikator auf dieser Basis ist nicht validierbar und würde Scheinpräzision liefern. Stattdessen: gezählte Basisraten vergleichbarer Erstentwürfe, "umgesetzt in k von n vergleichbaren Fällen", mit Jeffreys- bzw. Wilson-Intervall und Small-n-Warnung bei n < 5. Alle Regeln sind vor dem ersten Score in `forecasting/PREREGISTRATION.md` festgelegt |
-| **Labels aus dem Gesetzgebungsprotokoll** | Der Ausgang (umgesetzt, teilweise umgesetzt, abgelehnt, versandet, ersetzt) kommt mechanisch aus Parlament Open Data und RIS (Bundesgesetzblatt, dritte Lesung, Textähnlichkeit Entwurf zu Endfassung, VfGH-Aufhebungen), nie aus der Presse. Beschreibung und Label stammen damit aus getrennten Quellen, Leakage ist strukturell ausgeschlossen. Einheit ist der erste öffentliche Entwurf, nicht die Regierungsvorlage, denn rund 97 % der eingebrachten Regierungsvorlagen werden beschlossen |
-| **Stellungnahmen als Positionsquelle** | Begutachtungs-Stellungnahmen (Parlament Liste 142) sind datierte, formelle, institutionelle Positionen: 21.588 zugeordnete Stellungnahmen, davon 2.667 gesundheitsbezogene Texte. Sie erfüllen die Vorgabe "Standpunkte aus Medienberichten und Pressestatements, nachvollziehbar" besser als Pressezitate, weil sie keiner Person in den Mund gelegt sind. Grenze: Stellungnahmen sind Eröffnungspositionen, rote Linien brauchen eine zweite Quelle |
-| **Zwei Modellfamilien** | Homogene Debatten schlagen ein Einzelmodell nicht (Literatur in PRD 12). Agenten und Prüfung laufen deshalb über ein Gateway, das Modelle per Konfiguration tauscht; der zweite Verifier soll aus einer anderen Familie kommen (`SV_VERIFIER_MODEL`). Welche Modelle tatsächlich im Referenzlauf liefen, steht auf `/method` |
-| **Prüfung auf Claim-Ebene** | Der Experte zerlegt Aussagen in atomare Claims und prüft jeden gegen die zitierte Passage und gegen andere Zahlen. Zwei unabhängige Prüfaufrufe; Uneinigkeit lässt einen Claim "ungeprüft", ein Widerspruch markiert ihn als "widersprochen". Die Zustände geprüft, ungeprüft, widersprochen und Annahme werden nie zu einem "ok" zusammengelegt |
-| **Namensmaskierung** | Personennamen werden vor jedem Modellschritt satzweise maskiert (spaCy NER, Titel-Regel, Namenslisten, Vornamen-Regel, Signaturzeichen) und von `check_leaks.py` und einem Guard in der Engine erneut geprüft; der Guard schlägt bei einem Treffer fehl. Für den Persona-Klassifikator werden zusätzlich Institutionsnamen durch `[INSTITUTION]` ersetzt, damit er am Stil und nicht am Namen lernt |
-| **as-of-Retrieval** | Jeder Lauf hat ein as-of-Datum; das Retrieval liefert nur Quellen mit Datum davor (SQL-Prädikat `src.date <= asOf`). Jüngere Quellen wiegen mehr (exponentieller Abfall, Halbwertszeit zwei Jahre), Gewicht und Alter stehen an jedem Zitat. Das erfüllt die Vorgabe "aktuelle Ereignisse stärker gewichten" und erlaubt einen Backtest auf einen historischen Stichtag |
-| **Ein Ereignisformat für Live und Replay** | NDJSON statt Chat-Stream: die Verhandlung ist kein Chat, und ein Replay ist "dieselben Zeilen erneut lesen". Die Demo hängt nicht an der Latenz des Gateways |
-| **Deterministisches Impact-Modell** | Kosten- und Wirkungszahlen kommen aus einer getesteten Funktion mit sichtbaren Eingaben. Eine offizielle Wartezeitenreihe existiert nicht, deshalb ist der Wartezeiteffekt als Annahme gekennzeichnet |
-| **Koalitionskalkül ohne LLM** | Wer blockieren kann, folgt aus Vetostatus und Stimmen, nicht aus einer Modellmeinung. Damit ist der spieltheoretische Teil reproduzierbar |
+| **Labels aus dem Gesetzgebungsprotokoll**             | Der Ausgang (umgesetzt, teilweise umgesetzt, abgelehnt, versandet, ersetzt) kommt mechanisch aus Parlament Open Data und RIS (Bundesgesetzblatt, dritte Lesung, Textähnlichkeit Entwurf zu Endfassung, VfGH-Aufhebungen), nie aus der Presse. Beschreibung und Label stammen damit aus getrennten Quellen, Leakage ist strukturell ausgeschlossen. Einheit ist der erste öffentliche Entwurf, nicht die Regierungsvorlage, denn rund 97 % der eingebrachten Regierungsvorlagen werden beschlossen                                                             |
+| **Stellungnahmen als Positionsquelle**                | Begutachtungs-Stellungnahmen (Parlament Liste 142) sind datierte, formelle, institutionelle Positionen: 21.588 zugeordnete Stellungnahmen, davon 2.667 gesundheitsbezogene Texte. Sie erfüllen die Vorgabe "Standpunkte aus Medienberichten und Pressestatements, nachvollziehbar" besser als Pressezitate, weil sie keiner Person in den Mund gelegt sind. Grenze: Stellungnahmen sind Eröffnungspositionen, rote Linien brauchen eine zweite Quelle                                                                                                         |
+| **Zwei Modellfamilien**                               | Homogene Debatten schlagen ein Einzelmodell nicht (Literatur in PRD 12). Agenten und Prüfung laufen deshalb über ein Gateway, das Modelle per Konfiguration tauscht; der zweite Verifier soll aus einer anderen Familie kommen (`SV_VERIFIER_MODEL`). Welche Modelle tatsächlich im Referenzlauf liefen, steht auf `/method`                                                                                                                                                                                                                                  |
+| **Prüfung auf Claim-Ebene**                           | Der Experte zerlegt Aussagen in atomare Claims und prüft jeden gegen die zitierte Passage und gegen andere Zahlen. Zwei unabhängige Prüfaufrufe; Uneinigkeit lässt einen Claim "ungeprüft", ein Widerspruch markiert ihn als "widersprochen". Die Zustände geprüft, ungeprüft, widersprochen und Annahme werden nie zu einem "ok" zusammengelegt                                                                                                                                                                                                              |
+| **Namensmaskierung**                                  | Personennamen werden vor jedem Modellschritt satzweise maskiert (spaCy NER, Titel-Regel, Namenslisten, Vornamen-Regel, Signaturzeichen) und von `check_leaks.py` und einem Guard in der Engine erneut geprüft; der Guard schlägt bei einem Treffer fehl. Für den Persona-Klassifikator werden zusätzlich Institutionsnamen durch `[INSTITUTION]` ersetzt, damit er am Stil und nicht am Namen lernt                                                                                                                                                           |
+| **as-of-Retrieval**                                   | Jeder Lauf hat ein as-of-Datum; das Retrieval liefert nur Quellen mit Datum davor (SQL-Prädikat `src.date <= asOf`). Jüngere Quellen wiegen mehr (exponentieller Abfall, Halbwertszeit zwei Jahre), Gewicht und Alter stehen an jedem Zitat. Das erfüllt die Vorgabe "aktuelle Ereignisse stärker gewichten" und erlaubt einen Backtest auf einen historischen Stichtag                                                                                                                                                                                       |
+| **Ein Ereignisformat für Live und Replay**            | NDJSON statt Chat-Stream: die Verhandlung ist kein Chat, und ein Replay ist "dieselben Zeilen erneut lesen". Die Demo hängt nicht an der Latenz des Gateways                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **Deterministisches Impact-Modell**                   | Kosten- und Wirkungszahlen kommen aus einer getesteten Funktion mit sichtbaren Eingaben. Eine offizielle Wartezeitenreihe existiert nicht, deshalb ist der Wartezeiteffekt als Annahme gekennzeichnet                                                                                                                                                                                                                                                                                                                                                         |
+| **Koalitionskalkül ohne LLM**                         | Wer blockieren kann, folgt aus Vetostatus und Stimmen, nicht aus einer Modellmeinung. Damit ist der spieltheoretische Teil reproduzierbar                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 Ausführlich, mit Grenzen: [`docs/method.md`](docs/method.md).
 
 ### 1.5 Datenquellen und Lizenzen
 
-| Quelle | Verwendung | Lizenz |
-|---|---|---|
-| Parlament Österreich Open Data (Ministerialentwürfe Liste 81, Stellungnahmen Liste 142, Vorlagen Liste 101) | Stellungnahmen-Index, Prognoseregister, Labels | CC BY 4.0, "Quelle: Parlament Österreich" |
-| RIS (Bundesgesetzblatt, VfGH-Kundmachungen) | Labels: Inkrafttreten, Aufhebungen | CC BY 4.0 |
-| Texte der Begutachtungs-Stellungnahmen | Positionen, Persona-Fitting, Zitate (maskiert) | Rechte bei den einreichenden Institutionen. PDFs bleiben in `data/raw/` und werden nicht veröffentlicht; abgeleiteter Text nur mit Zitat, nicht als Ganzes weitergeben |
-| Statistik Austria OGD, Eurostat, BMF UG 24, Rechnungshof Bundesrechnungsabschluss | Impact-Eingaben, Zahlenprüfung | CC BY 4.0 |
-| DVSV Statistisches Handbuch, ÖÄK Ärztestatistik, Zielsteuerung-Monitoringberichte | Kassenstellen, Ärzt:innenzahlen, Zielwerte | keine offene Lizenz angegeben; zitiert, interne Nutzung, Weitergabe nur nach Rückfrage |
-| Pressespiegel (SV-Box) | Lokale Volltextsuche, Kontext | laut Teilnahmeinformation frei verteilbar; trotzdem nicht als Ganzes ins Repo gelegt. APA-OTS wird nicht gecrawlt (`tdm-reservation: 1`) |
+| Quelle                                                                                                      | Verwendung                                     | Lizenz                                                                                                                                                                 |
+| ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Parlament Österreich Open Data (Ministerialentwürfe Liste 81, Stellungnahmen Liste 142, Vorlagen Liste 101) | Stellungnahmen-Index, Prognoseregister, Labels | CC BY 4.0, "Quelle: Parlament Österreich"                                                                                                                              |
+| RIS (Bundesgesetzblatt, VfGH-Kundmachungen)                                                                 | Labels: Inkrafttreten, Aufhebungen             | CC BY 4.0                                                                                                                                                              |
+| Texte der Begutachtungs-Stellungnahmen                                                                      | Positionen, Persona-Fitting, Zitate (maskiert) | Rechte bei den einreichenden Institutionen. PDFs bleiben in `data/raw/` und werden nicht veröffentlicht; abgeleiteter Text nur mit Zitat, nicht als Ganzes weitergeben |
+| Statistik Austria OGD, Eurostat, BMF UG 24, Rechnungshof Bundesrechnungsabschluss                           | Impact-Eingaben, Zahlenprüfung                 | CC BY 4.0                                                                                                                                                              |
+| DVSV Statistisches Handbuch, ÖÄK Ärztestatistik, Zielsteuerung-Monitoringberichte                           | Kassenstellen, Ärzt:innenzahlen, Zielwerte     | keine offene Lizenz angegeben; zitiert, interne Nutzung, Weitergabe nur nach Rückfrage                                                                                 |
+| Pressespiegel (SV-Box)                                                                                      | Lokale Volltextsuche, Kontext                  | laut Teilnahmeinformation frei verteilbar; trotzdem nicht als Ganzes ins Repo gelegt. APA-OTS wird nicht gecrawlt (`tdm-reservation: 1`)                               |
 
 Details: `data/README.md`, `data/STATS.md`, `forecasting/README.md`, `models/README.md`.
 
@@ -127,16 +127,16 @@ stammen aus dem früheren Projekt eines Teammitglieds (medlyn, Quellen-verknüpf
 Evidenz); Verhandlungs-Engine, Agentenkonstruktion, Koalitionskalkül, Experte-Prüfung,
 Datenkorpus, Prognose und alle Visualisierungen der Verhandlung sind in dieser Challenge entstanden.
 
-| Übernommen aus medlyn (eigene Vorarbeit des Teams) | In der Challenge gebaut |
-|---|---|
-| shadcn/ui-Primitive und Design-Tokens (`apps/web/components/ui`), Theme-Handling | Verhandlungs-Engine: Moderator, Agenten, Runden, Lessons (`packages/engine`) |
-| Muster NDJSON-über-fetch für Streaming | `RunEvent`-Protokoll, `foldRun`, Replay mit Zeitachse (`packages/contracts`) |
-| Muster des Gateway-Clients mit striktem JSON-Schema (`structured()`) | Koalitionskalkül, strategische Einschätzung, Impact-Modell, CON-1/2-Guard |
-| Konvention "Claim-Boundary": nichts erreicht die UI ohne geprüfte Quelle | Experte mit zwei Verifiern, Claim-Zustände |
-|  | Stellungnahmen-Korpus mit Maskierung, Statistik-Katalog (`data/`) |
-|  | Register der Erstentwürfe, Labels, Referenzklassen-Prognose (`forecasting/`) |
-|  | Persona-Klassifikator und Fine-Tuning-Kit (`models/`) |
-|  | Alle Screens: Setup-Raum, Live-Verhandlung, Inspector, Trajektorien, Konsensmatrix, Koalitionsgraph, Ergebnisdokument, Archiv, `/method` |
+| Übernommen aus medlyn (eigene Vorarbeit des Teams)                               | In der Challenge gebaut                                                                                                                  |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| shadcn/ui-Primitive und Design-Tokens (`apps/web/components/ui`), Theme-Handling | Verhandlungs-Engine: Moderator, Agenten, Runden, Lessons (`packages/engine`)                                                             |
+| Muster NDJSON-über-fetch für Streaming                                           | `RunEvent`-Protokoll, `foldRun`, Replay mit Zeitachse (`packages/contracts`)                                                             |
+| Muster des Gateway-Clients mit striktem JSON-Schema (`structured()`)             | Koalitionskalkül, strategische Einschätzung, Impact-Modell, CON-1/2-Guard                                                                |
+| Konvention "Claim-Boundary": nichts erreicht die UI ohne geprüfte Quelle         | Experte mit zwei Verifiern, Claim-Zustände                                                                                               |
+|                                                                                  | Stellungnahmen-Korpus mit Maskierung, Statistik-Katalog (`data/`)                                                                        |
+|                                                                                  | Register der Erstentwürfe, Labels, Referenzklassen-Prognose (`forecasting/`)                                                             |
+|                                                                                  | Persona-Klassifikator und Fine-Tuning-Kit (`models/`)                                                                                    |
+|                                                                                  | Alle Screens: Setup-Raum, Live-Verhandlung, Inspector, Trajektorien, Konsensmatrix, Koalitionsgraph, Ergebnisdokument, Archiv, `/method` |
 
 medlyn steht unter CC BY-NC 4.0; diese Lizenz bindet Dritte, nicht den Urheber. Der Urheber ist
 Teammitglied und gewährt die Nutzung der übernommenen Teile für dieses Repository. shadcn/ui
@@ -151,11 +151,13 @@ welche Koalitionen möglich sind und wie oft vergleichbare Entwürfe historisch 
 Die Ausgabe ist eine Vorbereitungsunterlage mit Quellen, keine Entscheidung.
 
 **Was es für den Echtbetrieb braucht:**
+
 - Konnektor zum internen Archiv (SOZDOK, Pressespiegel) statt der lokalen Kopie
 - eigenen Azure-Tenant des Dachverbands hinter dem Gateway (nur Konfiguration, kein Code)
 - Review jeder Simulation durch eine:n Policy-Analyst:in, bevor sie verwendet wird
 
 **Nächste drei Schritte:**
+
 1. Backtest SV-OG 2018 und PrimVG 2017 ausführen und das Ergebnis veröffentlichen, mit der
    vorab formulierten Erwartung, dass der Simulator bei der SV-OG weicher ausfällt (siehe
    Einschränkungen).
@@ -225,18 +227,18 @@ drizzle-orm, turbo, Biome, vitest; Python: requests, pypdf, spaCy, SetFit, PEFT/
 
 `.env` im Repo-Wurzelverzeichnis (Vorlage `.env.example`, wird nie committet):
 
-| Variable | Zweck |
-|---|---|
-| `OPENAI_COMPATIBLE_BASE_URL` | Basis-URL des Gateways für alle Modellaufrufe |
-| `OPENAI_COMPATIBLE_API_KEY` | Gateway-Schlüssel (nie committen, nie ausgeben) |
-| `SV_DEFAULT_MODEL` | Modell der Agenten und des Moderators (Standard `azure/gpt-6-sol`) |
-| `SV_EXPERT_MODEL` | Modell des Experte-Agenten (Standard: wie oben) |
-| `SV_VERIFIER_MODEL` | Zweiter Verifier, idealerweise andere Modellfamilie |
-| `SV_LLM_CONCURRENCY` | Parallele Modellaufrufe (Standard 24) |
-| `DATABASE_URL` | Postgres-Verbindung; nicht erreichbar heißt Fallback auf `runs/` |
-| `SV_REPLAY_DIR` | Verzeichnis der gespeicherten Läufe (Standard `runs`) |
-| `SV_FORECAST_CMD` | Optional: Prognose-CLI, wird am Ende eines Live-Laufs einmal aufgerufen |
-| `BIFROST_SEED_AZURE_ENDPOINT`, `BIFROST_SEED_AZURE_KEY` | Azure-Foundry-Zugang für das Gateway und das Fine-Tuning-Skript |
+| Variable                                                | Zweck                                                                   |
+| ------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `OPENAI_COMPATIBLE_BASE_URL`                            | Basis-URL des Gateways für alle Modellaufrufe                           |
+| `OPENAI_COMPATIBLE_API_KEY`                             | Gateway-Schlüssel (nie committen, nie ausgeben)                         |
+| `SV_DEFAULT_MODEL`                                      | Modell der Agenten und des Moderators (Standard `azure/gpt-6-sol`)      |
+| `SV_EXPERT_MODEL`                                       | Modell des Experte-Agenten (Standard: wie oben)                         |
+| `SV_VERIFIER_MODEL`                                     | Zweiter Verifier, idealerweise andere Modellfamilie                     |
+| `SV_LLM_CONCURRENCY`                                    | Parallele Modellaufrufe (Standard 24)                                   |
+| `DATABASE_URL`                                          | Postgres-Verbindung; nicht erreichbar heißt Fallback auf `runs/`        |
+| `SV_REPLAY_DIR`                                         | Verzeichnis der gespeicherten Läufe (Standard `runs`)                   |
+| `SV_FORECAST_CMD`                                       | Optional: Prognose-CLI, wird am Ende eines Live-Laufs einmal aufgerufen |
+| `BIFROST_SEED_AZURE_ENDPOINT`, `BIFROST_SEED_AZURE_KEY` | Azure-Foundry-Zugang für das Gateway und das Fine-Tuning-Skript         |
 
 Agentenprofile (Ziele, Interessen, Restriktionen, Budget, Prioritäten, Temperament, Vetostatus)
 liegen als Daten in `packages/engine/config/agents.json`, Szenario-Vorlagen in
