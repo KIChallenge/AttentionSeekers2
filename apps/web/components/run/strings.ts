@@ -10,6 +10,7 @@ const de = {
     result: "Ergebnisdokument",
     inspector: "Inspektor",
     agents: "Agentenkarte",
+    stage: "Bühne",
   },
   live: {
     question: "Frage",
@@ -433,6 +434,7 @@ const en: RunStrings = {
     result: "Result document",
     inspector: "Inspector",
     agents: "Agent card",
+    stage: "Stage",
   },
   live: {
     question: "Question",
