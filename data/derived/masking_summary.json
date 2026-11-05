@@ -1,12 +1,12 @@
 {
- "statements": 300,
- "sentences": 23891,
- "masked": 602,
- "masked_ner": 540,
- "masked_title": 26,
- "masked_name_list": 27,
- "masked_first_name": 9,
- "needs_ocr": 6,
- "segments": 17603,
- "segments_with_provision": 2457
+ "statements": 2667,
+ "sentences": 147697,
+ "masked": 5301,
+ "masked_ner": 4743,
+ "masked_title": 200,
+ "masked_name_list": 268,
+ "masked_first_name": 90,
+ "needs_ocr": 303,
+ "segments": 91820,
+ "segments_with_provision": 18956
 }
