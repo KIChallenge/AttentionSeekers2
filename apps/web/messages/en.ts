@@ -54,6 +54,7 @@ export const en = {
     no_peer_control: "Control run",
     fork: "Fork",
     backtest: "Backtest",
+    model_ensemble: "Model ensemble",
   },
   stub: {
     soon: "Scaffold. This view is built in the lane tickets.",

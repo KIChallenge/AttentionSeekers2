@@ -54,6 +54,7 @@ export const de = {
     no_peer_control: "Kontrolllauf",
     fork: "Abzweigung",
     backtest: "Backtest",
+    model_ensemble: "Modell-Ensemble",
   },
   stub: {
     soon: "Gerüst. Diese Ansicht wird in den Lane-Tickets gebaut.",

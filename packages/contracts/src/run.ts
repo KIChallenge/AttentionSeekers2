@@ -56,6 +56,16 @@ export const RunVariant = z.discriminatedUnion("kind", [
     }),
   }),
   z.object({ kind: z.literal("backtest"), episodeId: z.string() }),
+  /**
+   * Added 2026-11-06 (model ensemble, FR-X2 to FR-X4): the same question re-run under a named
+   * model-to-seat assignment. `label` names the assignment (for example all_gpt, all_nova,
+   * mixed, swapped); the per-seat ids stay in Run.modelAssignment.
+   */
+  z.object({
+    kind: z.literal("model_ensemble"),
+    label: z.string(),
+    baseRunId: z.string().nullable(),
+  }),
 ]);
 export type RunVariant = z.infer<typeof RunVariant>;
 

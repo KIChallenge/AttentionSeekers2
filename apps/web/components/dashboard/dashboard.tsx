@@ -14,6 +14,7 @@ import { laneT } from "@/components/entity/messages";
 import { AgentTile } from "@/components/run/agent-tile";
 import { OutcomeBadge } from "@/components/run/outcome-badge";
 import { Level, usePrefs } from "@/components/shell/providers";
+import { topicT } from "@/components/topics/messages";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatDate, formatDuration } from "@/lib/format";
+import { topicKeyOf } from "@/lib/topic-compare";
 import { cn } from "@/lib/utils";
 import { ForkButton } from "./fork-button";
 
@@ -170,6 +172,9 @@ function Pinned({ d, forkAvailable }: { d: PinnedDetail; forkAvailable: boolean 
             </Button>
             <Button asChild variant="outline">
               <Link href={`/runs/${r.id}`}>{base.dashboard.open}</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href={`/topics/${topicKeyOf(r)}`}>{topicT(lang).compare}</Link>
             </Button>
             <ForkButton
               runId={r.id}
@@ -405,6 +410,9 @@ export function Dashboard({
                           <Button asChild size="sm" variant="outline">
                             <Link href={`/replay/${r.id}`}>{base.dashboard.replay}</Link>
                           </Button>
+                          <Button asChild size="sm" variant="ghost">
+                            <Link href={`/topics/${topicKeyOf(r)}`}>{topicT(lang).compare}</Link>
+                          </Button>
                           <ForkButton
                             runId={r.id}
                             rounds={r.roundsCompleted || r.roundLimit}
@@ -446,6 +454,9 @@ export function Dashboard({
                   <div className="flex gap-1">
                     <Button asChild size="sm" variant="outline">
                       <Link href={`/replay/${r.id}`}>{base.dashboard.replay}</Link>
+                    </Button>
+                    <Button asChild size="sm" variant="ghost">
+                      <Link href={`/topics/${topicKeyOf(r)}`}>{topicT(lang).compare}</Link>
                     </Button>
                     <ForkButton
                       runId={r.id}
