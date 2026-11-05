@@ -111,6 +111,7 @@ const de = {
     openAgent: "Agentenkarte öffnen",
     claims: "Geprüfte Aussagen",
     notRecorded: "nicht aufgezeichnet",
+    assigned: "zugewiesen, nicht aufgezeichnet",
     derivedNote:
       "Abgeleitet aus der Beitrags-Telemetrie: Start = Speicherzeitpunkt minus Latenz (obere Schranke).",
     tokensUnit: "Tokens",
@@ -219,6 +220,7 @@ const en: TraceStrings = {
     openAgent: "Open agent card",
     claims: "Checked claims",
     notRecorded: "not recorded",
+    assigned: "assigned, not recorded",
     derivedNote:
       "Derived from utterance telemetry: start = time stored minus latency (an upper bound).",
     tokensUnit: "tokens",

@@ -153,6 +153,7 @@ export function CallDetail({
             style={{ background: familyColor(modelFamily(call.model)) }}
           />
           {call.model}
+          {call.unknown?.includes("model") ? ` (${d.assigned})` : ""}
         </Chip>
         <Chip
           className={cn(
