@@ -16,7 +16,7 @@ import { timelineStrings } from "@/components/timeline/strings";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
-import { Chip, EntityRef, Meter, Seg, Tile } from "./bits";
+import { EntityRef, Meter, Seg, Tile } from "./bits";
 import { agentLook, delegateRole, L } from "./helpers";
 import { ClaimRow, SourceChip } from "./provenance";
 import { EventCard, ExpertNote, LessonCards, RoundSummaryCard } from "./round-blocks";
@@ -25,6 +25,7 @@ import { PendingCard, UtteranceCard } from "./utterance-card";
 
 type View = "condensed" | "full";
 
+/** Slim participant rail: tile and name; the unit is a tooltip, the model id Engineer-only. */
 function Roster({ round, focus }: { round: number; focus: SpeakerFocus | null }) {
   const { snap, run, t, lang, runId } = useRun();
   const rs = snap.rounds.find((r) => r.round === round);
@@ -37,15 +38,17 @@ function Roster({ round, focus }: { round: number; focus: SpeakerFocus | null })
     const speaking = focus?.speaker === id;
     const addressed = !!focus?.addressedTo.includes(id);
     const role = speaking ? delegateRole(run, id, focus?.delegateId, lang) : "";
+    const note = addressed ? timelineStrings[lang].addressedRow : role;
     const inner = (
       <>
         <Tile id={id} size="md" />
         <span className="min-w-0 flex-1 max-desk:sr-only">
-          <span className="block truncate text-sm">{a.name}</span>
-          <span className="block truncate text-xs text-muted-foreground">
-            {role || sub}
-            {addressed ? ` · ${timelineStrings[lang].addressedRow}` : ""}
+          <span className={cn("block text-sm leading-snug", speaking && "font-medium")}>
+            {a.name}
           </span>
+          {note ? (
+            <span className="block truncate text-xs text-muted-foreground">{note}</span>
+          ) : null}
           <Level min="engineer">
             <span className="block truncate font-mono text-[10px] text-muted-foreground">
               {run.modelAssignment[id] ?? ""}
@@ -69,17 +72,18 @@ function Roster({ round, focus }: { round: number; focus: SpeakerFocus | null })
       </>
     );
     const cls = cn(
-      "relative flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-gray-alpha-100 max-desk:justify-center max-desk:px-0",
+      "relative flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-gray-alpha-100 max-desk:justify-center max-desk:px-0",
       (active || speaking) &&
         "bg-gray-alpha-100 before:absolute before:inset-y-1 before:-left-2 before:w-[3px] before:rounded before:bg-foreground",
       addressed && "ring-1 ring-foreground/25 ring-inset",
     );
+    const title = sub ? `${a.name} · ${sub}` : a.name;
     return href ? (
-      <Link key={id} href={href} className={cls} title={a.name}>
+      <Link key={id} href={href} className={cls} title={title}>
         {inner}
       </Link>
     ) : (
-      <div key={id} className={cls}>
+      <div key={id} className={cls} title={title}>
         {inner}
       </div>
     );
@@ -101,11 +105,11 @@ function Roster({ round, focus }: { round: number; focus: SpeakerFocus | null })
       </div>
       <Level min="analyst">
         {calc?.coalitions.length ? (
-          <div className="max-desk:hidden">
-            <div className="mb-1 px-2 text-xs text-muted-foreground">
-              {t.live.coalitions(calc.round)}
-            </div>
-            <ul className="space-y-1.5 px-2 text-xs">
+          <details className="max-desk:hidden">
+            <summary className="cursor-pointer px-2 text-xs text-muted-foreground hover:text-foreground">
+              {t.live.coalitions(calc.round)} · {calc.coalitions.length}
+            </summary>
+            <ul className="mt-1.5 space-y-1.5 px-2 text-xs">
               {calc.coalitions.map((c) => (
                 <li key={c.id} className="flex flex-wrap items-center gap-1">
                   {c.members.map((m) => (
@@ -119,7 +123,7 @@ function Roster({ round, focus }: { round: number; focus: SpeakerFocus | null })
                 </li>
               ))}
             </ul>
-          </div>
+          </details>
         ) : null}
       </Level>
     </div>
@@ -162,7 +166,9 @@ function Outline({ onJump }: { onJump: (id: string) => void }) {
                     className="flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left text-xs hover:bg-gray-alpha-100 max-desk:justify-center max-desk:px-0"
                   >
                     <Tile id={u.speaker} />
-                    <span className="font-mono max-desk:sr-only">{u.id}</span>
+                    <Level min="engineer">
+                      <span className="font-mono max-desk:sr-only">{u.id}</span>
+                    </Level>
                     <span className="truncate text-muted-foreground max-desk:sr-only">
                       {t.kind[u.kind]}
                     </span>
@@ -176,27 +182,97 @@ function Outline({ onJump }: { onJump: (id: string) => void }) {
   );
 }
 
-function SidePanel({ id }: { id: string | null }) {
-  const { snap, t, lang, runId, run } = useRun();
+/** Stand of the negotiation: agreement per topic and the most binding conflict. */
+function StandPanel() {
+  const { snap, run, t, lang, runId, evidence } = useRun();
+  const last = snap.summaries[snap.summaries.length - 1] ?? null;
+  const binding = last
+    ? [...last.openConflicts].sort((a, b) => b.boundBy.length - a.boundBy.length)[0]
+    : null;
+  return (
+    <div className="space-y-5">
+      <div>
+        <div className="text-base font-semibold">{t.live.executiveTitle}</div>
+        <p className="mt-0.5 text-xs text-muted-foreground">{t.live.selectHint}</p>
+      </div>
+      {snap.status === "completed" ? (
+        <section className="rounded-xl border border-success/30 bg-success/5 p-3 text-sm">
+          <div className="font-medium">{t.live.resultReady}</div>
+          <div className="mt-1.5 flex gap-3">
+            <EntityRef href={`/runs/${runId}/outcome`}>{t.nav.outcome}</EntityRef>
+            <EntityRef href={`/runs/${runId}/result`}>{t.nav.result}</EntityRef>
+          </div>
+        </section>
+      ) : null}
+      <section>
+        <div className="mb-2 text-xs text-muted-foreground">{t.live.agreement}</div>
+        <ul className="space-y-2.5">
+          {run.mandate.topics.map((tp) => {
+            const st = topicStatus(snap, tp.id);
+            return (
+              <li key={tp.id} title={L(tp.measure, lang)}>
+                <div className="mb-1 flex justify-between gap-2 text-sm">
+                  <span className="truncate">{L(tp.label, lang)}</span>
+                  <span className="num shrink-0 text-muted-foreground">
+                    {st.support} {t.live.of} {st.of}
+                  </span>
+                </div>
+                <Meter value={st.of ? st.support / st.of : 0} />
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+      {binding ? (
+        <section>
+          <div className="mb-1 text-xs text-muted-foreground">{t.live.mostBinding}</div>
+          <div className="text-sm">{L(binding.note, lang)}</div>
+          {binding.boundBy.length ? (
+            <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
+              {binding.boundBy.map((b) => (
+                <li key={b} className="border-l-2 border-warning pl-2" title={b}>
+                  {L(evidence.redLines[b]?.text, lang) || b}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
+function SidePanel({ id, onBack }: { id: string | null; onBack?: () => void }) {
+  const { snap, run, t, lang, runId } = useRun();
   const u = id ? snap.utterances[id] : null;
-  if (!u) {
-    return <p className="text-sm text-muted-foreground">{t.live.selectHint}</p>;
-  }
+  if (!u) return <StandPanel />;
   const claims = u.claimIds.map((c) => snap.claims[c]).filter((c): c is Claim => !!c);
   const cites = claims.flatMap((c) => c.citations);
   const uniq = [...new Map(cites.map((c) => [c.segmentId, c])).values()];
+  const speaker = agentLook(run, u.speaker, lang);
   return (
     <div className="space-y-5">
+      {onBack ? (
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          ← {t.live.executiveTitle}
+        </button>
+      ) : null}
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-base font-semibold">
-            {t.live.utterance} <span className="font-mono">{u.id}</span>
+          <div className="flex items-center gap-2 text-base font-semibold">
+            <Tile id={u.speaker} size="md" />
+            <span className="truncate">{speaker.name}</span>
           </div>
-          <div className="mt-1 flex items-center gap-2">
-            <Tile id={u.speaker} withName />
-            <Chip>
-              {t.live.round} {u.round}
-            </Chip>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {t.live.round} {u.round} · {t.kind[u.kind]}
+            <Level min="engineer">
+              {" · "}
+              <span className="font-mono">{u.id}</span>
+            </Level>
           </div>
         </div>
         <Link
@@ -258,7 +334,6 @@ function SidePanel({ id }: { id: string | null }) {
           </div>
         ) : null}
       </Level>
-      <p className="text-[11px] text-muted-foreground">{L(run.mandate.objective, lang)}</p>
     </div>
   );
 }
@@ -268,70 +343,25 @@ function SourceBlock({ cite }: { cite: Claim["citations"][number] }) {
   const seg = evidence.segments[cite.segmentId];
   return (
     <div className="rounded-xl border p-2.5">
-      <SourceChip cite={cite} />
+      <SourceChip cite={cite} compact />
       {seg ? <p className="mt-1.5 text-sm">„{seg.text}“</p> : null}
     </div>
   );
 }
 
-function ExecutiveView() {
-  const { snap, run, t, lang, runId, evidence } = useRun();
+/** Executive main column: the last round summary; the stand itself is in the right panel. */
+function ExecutiveView({ withStand }: { withStand: boolean }) {
+  const { snap, t } = useRun();
   const last = snap.summaries[snap.summaries.length - 1] ?? null;
-  const binding = last
-    ? [...last.openConflicts].sort((a, b) => b.boundBy.length - a.boundBy.length)[0]
-    : null;
   return (
     <div className="space-y-4">
-      {snap.status === "completed" ? (
-        <section className="rounded-2xl border border-success/30 bg-success/5 p-4">
-          <h3 className="font-semibold">{t.live.resultReady}</h3>
-          <p className="mt-1 text-sm">{t.live.resultReadyBody}</p>
-          <div className="mt-2 flex gap-2 text-sm">
-            <EntityRef href={`/runs/${runId}/outcome`}>{t.nav.outcome}</EntityRef>
-            <EntityRef href={`/runs/${runId}/result`}>{t.nav.result}</EntityRef>
-          </div>
-        </section>
-      ) : null}
       <p className="text-xs text-muted-foreground">{t.live.executiveHint}</p>
-      {last ? <RoundSummaryCard summary={last} /> : null}
-      {binding ? (
-        <section className="rounded-2xl border border-warning/40 p-4">
-          <div className="text-xs text-muted-foreground">{t.live.mostBinding}</div>
-          <div className="mt-1 font-medium">{L(binding.note, lang)}</div>
-          <div className="mt-1 flex flex-wrap gap-1">
-            {binding.boundBy.map((b) => (
-              <Chip
-                key={b}
-                className="h-auto border-warning/40 py-0.5 whitespace-normal text-warning"
-              >
-                {L(evidence.redLines[b]?.text, lang) || b}
-              </Chip>
-            ))}
-          </div>
+      {withStand ? (
+        <section className="rounded-2xl border p-4">
+          <StandPanel />
         </section>
       ) : null}
-      <section className="rounded-2xl border p-4">
-        <h3 className="mb-3 font-semibold">{t.live.agreement}</h3>
-        <ul className="space-y-3">
-          {run.mandate.topics.map((tp) => {
-            const st = topicStatus(snap, tp.id);
-            return (
-              <li key={tp.id}>
-                <div className="mb-1 flex justify-between gap-2 text-sm">
-                  <span>
-                    {L(tp.label, lang)}{" "}
-                    <span className="text-muted-foreground">· {L(tp.measure, lang)}</span>
-                  </span>
-                  <span className="num">
-                    {st.support} {t.live.of} {st.of}
-                  </span>
-                </div>
-                <Meter value={st.of ? st.support / st.of : 0} />
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+      {last ? <RoundSummaryCard summary={last} /> : null}
     </div>
   );
 }
@@ -354,8 +384,9 @@ export function NegotiationView({
     initialView ?? (level === "engineer" ? "full" : "condensed"),
   );
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
-  const firstTrace = Object.keys(snap.traceAvailable)[0] ?? null;
-  const [selected, setSelected] = useState<string | null>(initialSelected ?? firstTrace);
+  // Nothing is selected on load: the right panel shows the stand of the negotiation until
+  // the viewer picks an utterance (or arrives with ?u=).
+  const [selected, setSelected] = useState<string | null>(initialSelected ?? null);
   const scroller = useRef<HTMLElement>(null);
   const [seen, setSeen] = useState(snap.utteranceOrder.length);
   const [atBottom, setAtBottom] = useState(true);
@@ -416,19 +447,20 @@ export function NegotiationView({
   const focus = focusOf(snap, activeId);
   const parallel = parallelExchanges(snap.exchanges);
   const exchangeById = new Map(snap.exchanges.map((x) => [x.id, x]));
+  const inRound = snap.rounds.find((r) => r.round === current)?.utteranceIds.length ?? 0;
 
   return (
     <div
       className={cn(
         "grid h-[calc(100dvh-50px-2.75rem)] grid-cols-1 md:grid-cols-[56px_minmax(0,1fr)]",
         projector
-          ? "desk:grid-cols-[18rem_minmax(0,1fr)]"
-          : "desk:grid-cols-[248px_minmax(0,1fr)_360px]",
+          ? "desk:grid-cols-[16rem_minmax(0,1fr)]"
+          : "desk:grid-cols-[232px_minmax(0,1fr)_340px]",
       )}
     >
       <aside
         aria-label={view === "full" ? t.live.outline : t.live.roster}
-        className="hidden overflow-y-auto border-r px-1.5 py-4 md:block desk:p-4"
+        className="hidden overflow-y-auto border-r px-1.5 py-4 md:block desk:px-3"
       >
         {view === "full" ? <Outline onJump={jump} /> : <Roster round={current} focus={focus} />}
       </aside>
@@ -443,7 +475,7 @@ export function NegotiationView({
           setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 80);
         }}
       >
-        <div className="sticky top-0 z-[5] flex flex-wrap items-center gap-3 border-b bg-background/95 px-5 py-2.5 backdrop-blur">
+        <div className="sticky top-0 z-[5] flex flex-wrap items-center gap-x-3 gap-y-2 border-b bg-background/95 px-5 py-2 backdrop-blur">
           <Seg
             label={t.live.round}
             value={current}
@@ -456,16 +488,11 @@ export function NegotiationView({
               label: String(i + 1),
             }))}
           />
-          <span className="text-xs text-muted-foreground">
-            {t.live.roundOf(current, run.room.roundLimit)} · {t.live.phase}:{" "}
-            {phase ? (lang === "de" ? phase.de : phase.en) : "-"}
+          <span className="text-xs text-muted-foreground" title={t.live.utterancesInRound(inRound)}>
+            {t.live.roundOf(current, run.room.roundLimit)}
+            {phase ? ` · ${lang === "de" ? phase.de : phase.en}` : ""}
           </span>
           <span className="flex-1" />
-          <span className="text-xs text-muted-foreground">
-            {t.live.utterancesInRound(
-              snap.rounds.find((r) => r.round === current)?.utteranceIds.length ?? 0,
-            )}
-          </span>
           <Level min="analyst">
             <Seg
               label={`${t.live.condensed} / ${t.live.full}`}
@@ -489,15 +516,16 @@ export function NegotiationView({
               select(id);
             }}
             collapsible
+            defaultOpen={false}
             className="basis-full shadow-none"
           />
         </div>
-        <div className="mx-auto max-w-[920px] space-y-3 px-5 py-4">
+        <div className="mx-auto max-w-[880px] space-y-3 px-5 py-4">
           <p id="transcript-keys" className="sr-only">
             {t.live.transcriptKeys}
           </p>
           <Level only="executive">
-            <ExecutiveView />
+            <ExecutiveView withStand={projector} />
           </Level>
           <Level min="analyst">
             {snap.rounds.length === 0 ? (
@@ -607,7 +635,7 @@ export function NegotiationView({
           aria-label={t.nav.inspector}
           className="hidden min-w-0 overflow-x-hidden overflow-y-auto border-l p-4 desk:block"
         >
-          <SidePanel id={selected} />
+          <SidePanel id={selected} onBack={() => setSelected(null)} />
         </aside>
       )}
       <Sheet open={overlay && sheetOpen} onOpenChange={setSheetOpen}>

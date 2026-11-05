@@ -1,6 +1,7 @@
 "use client";
 
 import type { RoundLesson, RoundSummary, ScheduledEvent } from "@sv/contracts";
+import { Level } from "@/components/shell/providers";
 import { Chip, Tile, UttRef } from "./bits";
 import { L } from "./helpers";
 import { SourceChip } from "./provenance";
@@ -27,7 +28,14 @@ export function RoundSummaryCard({
   onToggle?: () => void;
   expanded?: boolean;
 }) {
-  const { t, lang, run, snap } = useRun();
+  const { t, lang, run, snap, evidence } = useRun();
+  // Open conflicts come first (FR-M7); agreement, failed proposals and new options sit in
+  // one closed details row so the card reads as text plus conflicts.
+  const secondary = [
+    { label: t.live.agreement, n: summary.consensus.length },
+    { label: t.live.failedProposals, n: summary.failedProposals.length },
+    { label: t.live.newOptions, n: summary.newOptions.length },
+  ].filter((s) => s.n > 0);
   return (
     <section className="rounded-2xl border bg-gray-alpha-50 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -43,83 +51,95 @@ export function RoundSummaryCard({
         ) : null}
       </div>
       <p className="mt-1 text-sm">{L(summary.text, lang)}</p>
-      <div className="mt-3 grid gap-x-6 gap-y-3 text-sm md:grid-cols-2">
-        <div>
-          <div className="text-xs text-muted-foreground">
-            {t.live.openConflicts} ({summary.openConflicts.length})
-          </div>
-          <ul className="mt-1 space-y-1.5">
-            {summary.openConflicts.map((c) => (
-              <li key={c.topicId}>
-                <span className="font-medium">{topicName(run, c.topicId, lang)}</span>
-                <span className="text-muted-foreground">: {L(c.note, lang)}</span>
-                <div className="mt-0.5 flex flex-wrap items-center gap-1">
-                  {c.sides[0].map((a) => (
-                    <Tile key={a} id={a} />
-                  ))}
+      <div className="mt-3 text-sm">
+        <div className="text-xs text-muted-foreground">
+          {t.live.openConflicts} ({summary.openConflicts.length})
+        </div>
+        <ul className="mt-1 space-y-2">
+          {summary.openConflicts.map((c) => (
+            <li key={c.topicId}>
+              <span className="font-medium">{topicName(run, c.topicId, lang)}</span>
+              <span className="text-muted-foreground">: {L(c.note, lang)}</span>
+              <div className="mt-1 flex flex-wrap items-center gap-1">
+                {c.sides[0].map((a) => (
+                  <Tile key={a} id={a} />
+                ))}
+                {c.sides[0].length && c.sides[1].length ? (
                   <span className="px-1 text-xs text-muted-foreground">vs</span>
-                  {c.sides[1].map((a) => (
-                    <Tile key={a} id={a} />
-                  ))}
+                ) : null}
+                {c.sides[1].map((a) => (
+                  <Tile key={a} id={a} />
+                ))}
+              </div>
+              {c.boundBy.length ? (
+                <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
                   {c.boundBy.map((rl) => (
-                    <Chip key={rl} className="border-warning/40 text-warning font-mono">
-                      {rl}
-                    </Chip>
+                    <li key={rl} className="border-l-2 border-warning pl-2" title={rl}>
+                      {L(evidence.redLines[rl]?.text, lang) || rl}
+                    </li>
                   ))}
-                </div>
-              </li>
-            ))}
-            {summary.openConflicts.length === 0 ? (
-              <li className="text-muted-foreground">{t.live.none}</li>
-            ) : null}
-          </ul>
-        </div>
-        <div>
-          <div className="text-xs text-muted-foreground">{t.live.agreement}</div>
-          <ul className="mt-1 space-y-1">
-            {summary.consensus.map((c) => (
-              <li key={c.topicId} className="flex justify-between gap-2">
-                <span>{L(c.note, lang)}</span>
-                <span className="num shrink-0 text-muted-foreground">
-                  {c.share[0]}/{c.share[1]}
-                </span>
-              </li>
-            ))}
-            {summary.consensus.length === 0 ? (
-              <li className="text-muted-foreground">{t.live.none}</li>
-            ) : null}
-          </ul>
-        </div>
-        <div>
-          <div className="text-xs text-muted-foreground">{t.live.failedProposals}</div>
-          <ul className="mt-1 space-y-1">
-            {summary.failedProposals.map((f) => {
-              const p = snap.proposals[f.proposalId];
-              return (
-                <li key={f.proposalId}>
-                  <span className="font-mono text-xs">{f.proposalId}</span>{" "}
-                  {p ? L(p.title, lang) : null}
-                  <span className="text-muted-foreground"> · {L(f.reason, lang)}</span>
-                </li>
-              );
-            })}
-            {summary.failedProposals.length === 0 ? (
-              <li className="text-muted-foreground">{t.live.none}</li>
-            ) : null}
-          </ul>
-        </div>
-        <div>
-          <div className="text-xs text-muted-foreground">{t.live.newOptions}</div>
-          <ul className="mt-1 space-y-1">
-            {summary.newOptions.map((o) => (
-              <li key={o.text}>{L(o, lang)}</li>
-            ))}
-            {summary.newOptions.length === 0 ? (
-              <li className="text-muted-foreground">{t.live.none}</li>
-            ) : null}
-          </ul>
-        </div>
+                </ul>
+              ) : null}
+            </li>
+          ))}
+          {summary.openConflicts.length === 0 ? (
+            <li className="text-muted-foreground">{t.live.none}</li>
+          ) : null}
+        </ul>
       </div>
+      {secondary.length ? (
+        <details className="mt-3 text-sm">
+          <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+            {secondary.map((s) => `${s.label} ${s.n}`).join(" · ")}
+          </summary>
+          <div className="mt-2 grid gap-x-6 gap-y-3 md:grid-cols-2">
+            {summary.consensus.length ? (
+              <div>
+                <div className="text-xs text-muted-foreground">{t.live.agreement}</div>
+                <ul className="mt-1 space-y-1">
+                  {summary.consensus.map((c) => (
+                    <li key={c.topicId} className="flex justify-between gap-2">
+                      <span>{L(c.note, lang)}</span>
+                      <span className="num shrink-0 text-muted-foreground">
+                        {c.share[0]}/{c.share[1]}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {summary.failedProposals.length ? (
+              <div>
+                <div className="text-xs text-muted-foreground">{t.live.failedProposals}</div>
+                <ul className="mt-1 space-y-1">
+                  {summary.failedProposals.map((f) => {
+                    const p = snap.proposals[f.proposalId];
+                    return (
+                      <li key={f.proposalId}>
+                        <Level min="engineer">
+                          <span className="font-mono text-xs">{f.proposalId} </span>
+                        </Level>
+                        {p ? L(p.title, lang) : f.proposalId}
+                        <span className="text-muted-foreground"> · {L(f.reason, lang)}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : null}
+            {summary.newOptions.length ? (
+              <div>
+                <div className="text-xs text-muted-foreground">{t.live.newOptions}</div>
+                <ul className="mt-1 space-y-1">
+                  {summary.newOptions.map((o) => (
+                    <li key={o.text}>{L(o, lang)}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+        </details>
+      ) : null}
     </section>
   );
 }
@@ -136,14 +156,19 @@ export function LessonCards({ round, lessons }: { round: number; lessons: RoundL
   );
   const shown = interesting.length ? interesting : lessons.slice(0, 3);
   if (!shown.length) return null;
+  // Closed by default: the lessons matter when the jury asks what an agent learned, not
+  // while reading the round.
   return (
-    <section className="rounded-2xl border border-info/25 bg-info/5 p-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-semibold">{t.live.lessonsTitle(round)}</h3>
-        <span className="text-xs text-muted-foreground">
-          {t.live.lessonsSub} · {shown.length}/{lessons.length}
-        </span>
-      </div>
+    <details className="group rounded-2xl border border-info/25 bg-info/5 px-4 py-3">
+      <summary className="flex cursor-pointer flex-wrap items-baseline justify-between gap-2 marker:content-none">
+        <h3 className="font-semibold">
+          <span className="mr-1.5 inline-block text-xs text-muted-foreground transition-transform group-open:rotate-90">
+            ▸
+          </span>
+          {t.live.lessonsTitle(round)} · {shown.length}
+        </h3>
+        <span className="text-xs text-muted-foreground">{t.live.lessonsSub}</span>
+      </summary>
       <div className="mt-3 grid gap-2 md:grid-cols-2 2xl:grid-cols-3">
         {shown.map((l) => {
           const applied = snap.lessonApplications.filter(
@@ -153,9 +178,6 @@ export function LessonCards({ round, lessons }: { round: number; lessons: RoundL
             <div key={l.agentId} className="rounded-xl border bg-card p-3 text-sm">
               <div className="flex items-center gap-2">
                 <Tile id={l.agentId} withName />
-                <span className="ml-auto font-mono text-[11px] text-muted-foreground">
-                  {l.agentId}@r{l.round}
-                </span>
               </div>
               <p className="mt-1.5">{L(l.implication, lang)}</p>
               <p className="mt-1 text-muted-foreground">
@@ -210,7 +232,7 @@ export function LessonCards({ round, lessons }: { round: number; lessons: RoundL
           );
         })}
       </div>
-    </section>
+    </details>
   );
 }
 

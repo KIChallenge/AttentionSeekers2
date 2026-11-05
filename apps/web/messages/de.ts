@@ -98,7 +98,7 @@ export const de = {
   },
   archive: {
     title: "Evidenzarchiv",
-    sub: "Eine Suche über alles, woraus die Agenten argumentieren, mit Stichtag-Regler (FR-H2).",
+    sub: "Eine Suche über alles, woraus die Agenten argumentieren, mit Stichtag-Regler.",
   },
 } as const;
 
