@@ -26,13 +26,25 @@ export interface StageLive {
   playing: boolean;
 }
 
+/** ElevenLabs characters this month, from /api/tts/usage (cached 60 s on the server). */
+export interface VoiceUsage {
+  tier: string;
+  used: number;
+  limit: number;
+}
+
 /**
- * Plays utterances one after another. With a pre-rendered manifest (FR-S3) each utterance is
- * an audio file routed through a Web Audio analyser whose RMS drives the mouth bars; without
- * one, playback is silent and timed by text length with a synthetic envelope. Amplitude goes
- * straight into the CSS variable --amp on `rootRef`, progress into state at word steps.
- * An optional ElevenLabs variant (manifest.elevenlabs.json) wins per utterance where present;
- * Azure voices everything else. The browser Web Speech API is never used.
+ * Plays utterances one after another. Each utterance is an audio file routed through a Web
+ * Audio analyser whose RMS drives the mouth bars; without audio, playback is silent and timed
+ * by text length with a synthetic envelope. Amplitude goes straight into the CSS variable
+ * --amp on `rootRef`, progress into state at word steps.
+ *
+ * Audio comes from /api/runs/<id>/tts/<uttId> (mode "route"): an utterance is voiced the first
+ * time someone plays it (ElevenLabs, Azure as fallback) and cached; while playing, the next two
+ * on the playlist are fetched ahead so they are ready. Nothing is rendered for lines nobody
+ * plays, and the whole-run render is no longer triggered. Without the route (static hosting)
+ * the offline manifests under /stage/<id>/<lang>/ are used (mode "static"), the ElevenLabs
+ * file winning per utterance. The browser Web Speech API is never used.
  */
 export function useStagePlayer({
   runId,
@@ -74,90 +86,99 @@ export function useStagePlayer({
 
   const setIdx = useCallback((i: number) => setIdxRaw(Math.max(0, Math.min(last, i))), [last]);
 
-  // Manifest per run and language. Without one, the stage asks the server to render the voices
-  // (POST /api/runs/<id>/tts) and polls until the manifest appears, so a run started live gets
-  // its voices within about a minute. Only if rendering is impossible does it say "no sound".
+  const [mode, setMode] = useState<"route" | "static" | null>(null);
+  const [providers, setProviders] = useState<Record<string, AudioProvider>>({});
+  const [usage, setUsage] = useState<VoiceUsage | null>(null);
+  const providersRef = useRef(providers);
+  providersRef.current = providers;
+  const prefetched = useRef(new Set<string>());
+  /** Utterance whose audio has started; prefetch waits for it so it never delays a first play. */
+  const [heard, setHeard] = useState<string | null>(null);
+  const enc = encodeURIComponent(runId);
+
+  const learn = useCallback((id: string, p: string | null) => {
+    if (p !== "elevenlabs" && p !== "azure") return;
+    setProviders((prev) => (prev[id] === p ? prev : { ...prev, [id]: p }));
+  }, []);
+
+  const refreshUsage = useCallback(async () => {
+    const r = await fetch("/api/tts/usage").catch(() => null);
+    const b = (await r?.json().catch(() => null)) as ({ available?: boolean } & VoiceUsage) | null;
+    if (b?.available) setUsage({ tier: b.tier, used: b.used, limit: b.limit });
+  }, []);
+
   useEffect(() => {
     let alive = true;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let started = Date.now();
-    const base = `/stage/${encodeURIComponent(runId)}/${lang}/manifest.json`;
-    const load = async (): Promise<boolean> => {
-      const r = await fetch(base, { cache: "no-store" }).catch(() => null);
-      if (!r?.ok) return false;
-      const m = (await r.json().catch(() => null)) as AudioManifest | null;
-      if (!m || Object.keys(m.files ?? {}).length === 0) return false;
-      if (alive) {
-        setManifest(m);
-        setAudioState("on");
-      }
-      return true;
-    };
-    const poll = async () => {
-      if (!alive) return;
-      if (await load()) return;
-      if (Date.now() - started > 8 * 60 * 1000) {
-        if (alive) setAudioState("off");
-        return;
-      }
-      timer = setTimeout(poll, 4000);
-    };
     setAudioState("loading");
+    setMode(null);
     setManifest(null);
-    const request = async () => {
-      if (!alive) return;
-      const res = await fetch(`/api/runs/${encodeURIComponent(runId)}/tts?lang=${lang}`, {
-        method: "POST",
-      }).catch(() => null);
-      const body = (await res?.json().catch(() => null)) as { state?: string } | null;
-      if (!alive) return;
-      if (body?.state === "rendering" || body?.state === "ready") {
-        started = Date.now();
-        setAudioState("rendering");
-        timer = setTimeout(poll, 4000);
-      } else if (body?.state === "waiting") {
-        setAudioState("waiting");
-        timer = setTimeout(request, 15000);
-      } else {
-        setAudioState("off");
-      }
-    };
-    void (async () => {
-      if (await load()) return;
-      await request();
-    })();
-    return () => {
-      alive = false;
-      if (timer) clearTimeout(timer);
-    };
-  }, [runId, lang]);
-
-  // ElevenLabs variant: static, rendered offline for a span only; no polling, no rendering.
-  useEffect(() => {
-    let alive = true;
     setEleven(null);
-    void (async () => {
-      const r = await fetch(`/stage/${encodeURIComponent(runId)}/${lang}/${EL_MANIFEST}`, {
-        cache: "no-store",
-      }).catch(() => null);
-      if (!r?.ok) return;
+    setProviders({});
+    prefetched.current = new Set();
+    const manifestAt = async (name: string) => {
+      const r = await fetch(`/stage/${enc}/${lang}/${name}`, { cache: "no-store" }).catch(
+        () => null,
+      );
+      if (!r?.ok) return null;
       const m = (await r.json().catch(() => null)) as AudioManifest | null;
-      if (alive && m && Object.keys(m.files ?? {}).length > 0) setEleven(m);
+      return m && Object.keys(m.files ?? {}).length > 0 ? m : null;
+    };
+    void (async () => {
+      const [res, az, el] = await Promise.all([
+        fetch(`/api/runs/${enc}/tts?lang=${lang}`, { cache: "no-store" }).catch(() => null),
+        manifestAt("manifest.json"),
+        manifestAt(EL_MANIFEST),
+      ]);
+      const body = res?.ok
+        ? ((await res.json().catch(() => null)) as { state?: string; live?: boolean } | null)
+        : null;
+      if (!alive) return;
+      setManifest(az);
+      setEleven(el);
+      // the route serves cached files even without keys, so it wins whenever it answers
+      const m = body && (body.live || az || el) ? "route" : !body && (az || el) ? "static" : null;
+      setMode(m);
+      setAudioState(m ? "on" : "off");
+      if (m === "route") void refreshUsage();
     })();
     return () => {
       alive = false;
     };
-  }, [runId, lang]);
+  }, [lang, enc, refreshUsage]);
 
-  const fileFor = useCallback(
-    (u: Utterance | null) => (u ? (audioFileFor(u.id, manifest, eleven)?.file ?? null) : null),
-    [manifest, eleven],
+  /** URL that plays `u`, or null when it plays silent. */
+  const srcFor = useCallback(
+    (u: Utterance | null) => {
+      if (!u || !mode) return null;
+      if (mode === "route") return `/api/runs/${enc}/tts/${encodeURIComponent(u.id)}?lang=${lang}`;
+      const f = audioFileFor(u.id, manifest, eleven)?.file;
+      return f ? `/stage/${enc}/${lang}/${f}` : null;
+    },
+    [mode, enc, lang, manifest, eleven],
   );
-  /** Provider that voices `u`, or null when it plays silent. */
+  /** Provider that voiced `u` as far as known (header, meta or manifest), else null. */
   const providerOf = useCallback(
     (u: Utterance | null): AudioProvider | null =>
-      u ? (audioFileFor(u.id, manifest, eleven)?.provider ?? null) : null,
-    [manifest, eleven],
+      u ? (providers[u.id] ?? audioFileFor(u.id, manifest, eleven)?.provider ?? null) : null,
+    [providers, manifest, eleven],
+  );
+
+  /** Asks the route who voiced `id` (no rendering); retries while a render is running. */
+  const askProvider = useCallback(
+    async (id: string, tries = 6) => {
+      for (let t = 0; t < tries; t++) {
+        const r = await fetch(
+          `/api/runs/${enc}/tts/${encodeURIComponent(id)}?lang=${lang}&meta=1`,
+        ).catch(() => null);
+        const b = (await r?.json().catch(() => null)) as { provider?: string | null } | null;
+        if (b?.provider) {
+          learn(id, b.provider);
+          return;
+        }
+        await new Promise((res) => setTimeout(res, 1200));
+      }
+    },
+    [enc, lang, learn],
   );
 
   const ensureAudio = useCallback(() => {
@@ -199,17 +220,45 @@ export function useStagePlayer({
     elapsedRef.current = 0;
     liveRef.current.p = 0;
     setSpoken(0);
-    const file = fileFor(current);
+    // the source is set when playback starts, so stepping through lines renders nothing
     const el = audioRef.current;
     if (el) {
       el.pause();
-      if (file) el.src = `/stage/${encodeURIComponent(runId)}/${lang}/${file}`;
-      else el.removeAttribute("src");
+      el.removeAttribute("src");
     }
-  }, [idx, lang, manifest, eleven]);
+  }, [idx, lang, mode]);
 
   const nextRef = useRef(nextOf);
   nextRef.current = nextOf;
+  // While someone listens, voice the next two playlist entries ahead of time, starting once
+  // the current line is audible.
+  useEffect(() => {
+    if (!playing || mode !== "route" || heard !== (utterances[idx]?.id ?? null)) return;
+    const step = (i: number | null) =>
+      i === null ? null : nextRef.current ? nextRef.current(i) : i < last ? i + 1 : null;
+    const n1 = step(idx);
+    const n2 = step(n1);
+    const ahead = [n1, n2]
+      .map((i) => (i === null ? null : (utterances[i] ?? null)))
+      .filter((u): u is Utterance => !!u && !prefetched.current.has(u.id));
+    if (ahead.length === 0) return;
+    for (const u of ahead) prefetched.current.add(u.id);
+    void (async () => {
+      // one after the other: the free tier allows only a few concurrent requests
+      for (const u of ahead) {
+        const url = srcFor(u);
+        if (!url) continue;
+        const r = await fetch(url).catch(() => null);
+        if (!r?.ok) {
+          prefetched.current.delete(u.id);
+          continue;
+        }
+        learn(u.id, r.headers.get("X-Voice-Provider"));
+        await r.arrayBuffer().catch(() => null);
+      }
+    })();
+  }, [playing, mode, heard, idx, last, utterances, srcFor, learn]);
+
   const advance = useCallback(() => {
     const i = idxRef.current;
     const n = nextRef.current ? nextRef.current(i) : i < last ? i + 1 : null;
@@ -225,27 +274,33 @@ export function useStagePlayer({
       return;
     }
     const text = textOf(current);
-    const file = fileFor(current);
+    const src = srcFor(current);
     const duration = silentDurationMs(text);
+    const id = current.id;
     let raf = 0;
     let lastT = performance.now();
     let done = false;
     let el: HTMLAudioElement | null = null;
     const buf = new Uint8Array(1024);
 
-    if (file) {
+    if (src) {
       el = ensureAudio();
-      const want = `/stage/${encodeURIComponent(runId)}/${lang}/${file}`;
-      if (!el.src.endsWith(want)) el.src = want;
+      if (!el.src.endsWith(src)) el.src = src;
       el.playbackRate = speed;
       void ctxRef.current?.resume();
+      el.onplaying = () => {
+        setHeard(id);
+        if (mode === "route" && !providersRef.current[id]) void askProvider(id);
+      };
       el.onended = () => {
         done = true;
+        if (mode === "route") void refreshUsage();
         window.setTimeout(advance, 450 / speed);
       };
       el.play().catch(() => {
         // Autoplay blocked or file missing: fall back to silent timing for this one.
         el = null;
+        setHeard(id);
       });
     }
 
@@ -260,8 +315,9 @@ export function useStagePlayer({
       lastT = now;
       if (done) return;
       if (el) {
+        // a freshly streamed render has no duration until it ends: estimate from the text
         const d = Number.isFinite(el.duration) && el.duration > 0 ? el.duration : 0;
-        const p = d ? el.currentTime / d : 0;
+        const p = d ? el.currentTime / d : Math.min(0.97, (el.currentTime * 1000) / duration);
         let amp = 0;
         const an = analyserRef.current;
         if (an) {
@@ -298,12 +354,25 @@ export function useStagePlayer({
       cancelAnimationFrame(raf);
       if (el) {
         el.onended = null;
+        el.onplaying = null;
         el.pause();
       }
       liveRef.current.playing = false;
       writeAmp(0);
     };
-  }, [playing, current, speed, runId, lang, textOf, fileFor, ensureAudio, advance, writeAmp]);
+  }, [
+    playing,
+    current,
+    speed,
+    textOf,
+    srcFor,
+    mode,
+    ensureAudio,
+    advance,
+    writeAmp,
+    askProvider,
+    refreshUsage,
+  ]);
 
   useEffect(
     () => () => {
@@ -326,6 +395,8 @@ export function useStagePlayer({
     audioState,
     manifest,
     eleven,
+    mode,
+    usage,
     provider: providerOf(current),
     liveRef,
   };

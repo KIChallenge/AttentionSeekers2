@@ -10,13 +10,15 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { replayDir } from "@/lib/runs";
+import { env as voiceEnv } from "@/lib/stage-voice";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-// On-demand voice rendering for runs that have no pre-rendered audio yet, so a run started
-// live in front of the jury gets voices on its stage within about a minute. The script runs
-// detached with an argument array (no shell); a lock file prevents parallel renders.
+// Whole-run Azure rendering (POST) for offline prep; the stage no longer triggers it by default
+// and voices each utterance lazily through ./[uttId]. GET reports the whole-run state and
+// whether lazy voicing is available (`live`: an ElevenLabs or Azure key is configured). The
+// script runs detached with an argument array (no shell); a lock file prevents parallel renders.
 const RUN_ID = /^[A-Za-z0-9_-]{1,120}$/;
 const LOCK_TTL_MS = 10 * 60 * 1000;
 
@@ -58,7 +60,9 @@ export async function GET(req: Request, ctx: { params: Promise<{ runId: string }
   const { runId } = await ctx.params;
   const p = parse(req, runId);
   if (!p) return Response.json({ error: "bad run id" }, { status: 400 });
-  return Response.json({ state: state(runId, p.lang) });
+  const e = voiceEnv();
+  const live = !!(e.ELEVENLABS_API_KEY || e.STAGE_TTS_KEY || e.OPENAI_COMPATIBLE_API_KEY);
+  return Response.json({ state: state(runId, p.lang), live });
 }
 
 export async function POST(req: Request, ctx: { params: Promise<{ runId: string }> }) {

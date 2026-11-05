@@ -261,13 +261,16 @@ export function StageView() {
               p.audioState === "off" && "border-warning/40 bg-warning/10 text-warning",
             )}
             title={
-              p.audioState === "off" && !p.eleven
+              p.audioState === "off"
                 ? s.audioOffHint
                 : [
                     p.provider
-                      ? `${s.voiceBy}: ${p.provider === "elevenlabs" ? (p.eleven?.model ?? s.voiceEleven) : (p.manifest?.model ?? s.voiceAzure)}`
-                      : (p.manifest?.model ?? ""),
-                    p.eleven ? s.elevenAttribution : "",
+                      ? `${s.voiceBy}: ${p.provider === "elevenlabs" ? s.voiceEleven : s.voiceAzure}`
+                      : p.mode === "route"
+                        ? s.voiceOnDemand
+                        : "",
+                    p.usage ? s.voiceUsage(p.usage.used, p.usage.limit, p.usage.tier, lang) : "",
+                    p.mode === "route" || p.eleven ? s.elevenAttribution : "",
                   ]
                     .filter(Boolean)
                     .join("\n") || undefined

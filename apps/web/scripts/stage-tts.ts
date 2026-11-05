@@ -20,8 +20,9 @@
 //   openai           POST {OPENAI_COMPATIBLE_BASE_URL}/audio/speech, deployment STAGE_TTS_MODEL
 //                    (default gpt-4o-mini-tts). Probe on 2026-11-05: listed under /models but
 //                    not deployed on the team resource (404 DeploymentNotFound).
-//   elevenlabs       POST https://api.elevenlabs.io/v1/text-to-speech/{voice_id}, model
-//                    ELEVENLABS_MODEL (default eleven_multilingual_v2), mp3_44100_128, no request
+//   elevenlabs       POST https://api.elevenlabs.io/v1/text-to-speech/{voice_id}/stream, voices
+//                    from lib/stage-voices.json, model ELEVENLABS_MODEL (default
+//                    eleven_multilingual_v2), mp3_44100_128, no request
 //                    stitching. Key: ELEVENLABS_API_KEY. Writes <utteranceId>.el.mp3 and
 //                    manifest.elevenlabs.json next to the Azure files; the stage prefers the
 //                    .el.mp3 per utterance and plays Azure everywhere else. Any ElevenLabs error
@@ -31,8 +32,10 @@
 //                    and its neighbours. Voices and the upgrade path: public/stage/VOICES.md.
 //                    Free-tier audio is non-commercial and must be attributed to ElevenLabs.
 //
-// The on-demand route (app/api/runs/[runId]/tts) always renders with Azure, so live runs never
-// depend on the ElevenLabs quota.
+// This script is for offline preparation. At play time the stage voices each utterance lazily
+// through app/api/runs/[runId]/tts/[uttId] (ElevenLabs while quota lasts, Azure otherwise) and
+// shares this script's cache; POST app/api/runs/[runId]/tts still runs this script for a whole
+// run with Azure.
 //
 // Voices are fixed per institution so each keeps the same voice across runs (FR-S2), and the
 // speaking rate varies slightly per speaker. They are stock synthetic voices; none imitates a
@@ -49,44 +52,23 @@ import {
   pickSharpestExchange,
   showpieceSpan,
 } from "../components/stage/stage-logic.ts";
+import {
+  type AzureVoice,
+  azureSynth,
+  azureVoiceTable,
+  costMultiplier,
+  ELEVEN_ATTRIBUTION,
+  elevenQuota,
+  elevenSynth,
+  loadEnv as loadEnvFile,
+  loadVoiceTable,
+  readManifest,
+  writeManifest,
+} from "../lib/tts-providers.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, "..");
 const repoRoot = path.resolve(webRoot, "../..");
-
-/** Azure neural voice and prosody rate per speaker and language. de-AT first, then de-CH/de-DE. */
-const AZURE_VOICES: Record<string, Record<string, { voice: string; rate: string }>> = {
-  de: {
-    moderator: { voice: "de-AT-IngridNeural", rate: "+0%" },
-    gm: { voice: "de-AT-JonasNeural", rate: "+2%" },
-    sv: { voice: "de-DE-KatjaNeural", rate: "+4%" },
-    ak: { voice: "de-DE-ConradNeural", rate: "-3%" },
-    va: { voice: "de-CH-JanNeural", rate: "+5%" },
-    ka: { voice: "de-DE-AmalaNeural", rate: "-2%" },
-    pf: { voice: "de-DE-ElkeNeural", rate: "+3%" },
-    bl: { voice: "de-DE-KillianNeural", rate: "-4%" },
-    pv: { voice: "de-CH-LeniNeural", rate: "+6%" },
-    fm: { voice: "de-DE-BerndNeural", rate: "-6%" },
-    expert: { voice: "de-DE-FlorianMultilingualNeural", rate: "-1%" },
-  },
-  en: {
-    moderator: { voice: "en-GB-SoniaNeural", rate: "+0%" },
-    gm: { voice: "en-GB-RyanNeural", rate: "+2%" },
-    sv: { voice: "en-GB-LibbyNeural", rate: "+4%" },
-    ak: { voice: "en-GB-ThomasNeural", rate: "-3%" },
-    va: { voice: "en-GB-ElliotNeural", rate: "+5%" },
-    ka: { voice: "en-GB-HollieNeural", rate: "-2%" },
-    pf: { voice: "en-GB-BellaNeural", rate: "+3%" },
-    bl: { voice: "en-GB-OliverNeural", rate: "-4%" },
-    pv: { voice: "en-GB-MaisieNeural", rate: "+6%" },
-    fm: { voice: "en-GB-NoahNeural", rate: "-6%" },
-    expert: { voice: "en-GB-AlfieNeural", rate: "-1%" },
-  },
-};
-const AZURE_LOCALE: Record<string, string[]> = {
-  de: ["de-AT", "de-CH", "de-DE"],
-  en: ["en-GB"],
-};
 
 const OPENAI_VOICES: Record<string, string> = {
   moderator: "sage",
@@ -106,27 +88,6 @@ const OPENAI_STYLE: Record<string, string> = {
   en: "Speak clear, neutral English at a calm negotiation pace, as in a formal meeting.",
 };
 
-/**
- * ElevenLabs premade voices per speaker (the free tier rejects library voices over the API with
- * 402 paid_plan_required, so only premade voices are usable). All eleven are verified for German
- * (de-DE) on eleven_multilingual_v2 and none is a clone of a public figure. Speakers outside this
- * table stay on Azure. Details and the upgrade path: public/stage/VOICES.md.
- */
-const ELEVEN_VOICES: Record<string, { id: string; name: string; speed: number }> = {
-  moderator: { id: "XrExE9yKIg1WjnnlVkGX", name: "Matilda", speed: 1.0 },
-  gm: { id: "onwK4e9ZLuTAKqWW03F9", name: "Daniel", speed: 1.0 },
-  sv: { id: "pFZP5JQG7iQjIQuC4Bku", name: "Lily", speed: 1.03 },
-  ak: { id: "pqHfZKP75CvOlQylNhV4", name: "Bill", speed: 0.97 },
-  va: { id: "cjVigY5qzO86Huf0OWal", name: "Eric", speed: 1.04 },
-  ka: { id: "FGY2WhTYpPnrIDTdsKH5", name: "Laura", speed: 1.0 },
-  pf: { id: "cgSgspJ2msm6clMCkdW9", name: "Jessica", speed: 1.02 },
-  bl: { id: "CwhRBWXzGAHq8TQ4Fs17", name: "Roger", speed: 0.98 },
-  pv: { id: "TX3LPaxmHKxFdv7VOQHJ", name: "Liam", speed: 1.04 },
-  fm: { id: "nPczCjzI2devNBz1zQrb", name: "Brian", speed: 0.96 },
-  expert: { id: "bIHbv24MWmeRgasZH58o", name: "Will", speed: 0.98 },
-};
-const ELEVEN_ATTRIBUTION =
-  "Stimmen in diesem Abschnitt: ElevenLabs (elevenlabs.io), Free-Tarif, nicht kommerziell.";
 const ELEVEN_RESERVE = 500;
 
 interface Utt {
@@ -135,25 +96,9 @@ interface Utt {
   text: { lang: string; text: string; translations: Record<string, string | undefined> };
 }
 
-interface Voice {
-  voice: string;
-  rate: string;
-}
+type Voice = AzureVoice;
 
-function loadEnv(): Record<string, string> {
-  const file = path.join(repoRoot, ".env");
-  const out: Record<string, string> = {};
-  if (existsSync(file)) {
-    for (const line of readFileSync(file, "utf8").split("\n")) {
-      const m = /^([A-Z0-9_]+)=(.*)$/.exec(line.trim());
-      if (m?.[1]) out[m[1]] = (m[2] ?? "").replace(/^["']|["']$/g, "");
-    }
-  }
-  // Non-empty process values win; an empty variable inherited from a parent (for example the
-  // Next dev server) must not mask the key in the repo's .env.
-  for (const [k, v] of Object.entries(process.env)) if (v) out[k] = v;
-  return out;
-}
+const loadEnv = () => loadEnvFile(repoRoot);
 
 function args() {
   const a = process.argv.slice(2);
@@ -213,67 +158,6 @@ async function loadRecord(runId: string, from: string | undefined, env: Record<s
 const textFor = (u: Utt, lang: string) =>
   u.text.lang === lang ? u.text.text : (u.text.translations[lang] ?? u.text.text);
 
-const xml = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-
-/** Checks the configured voices against the region's list; unknown ones get an unused spare. */
-async function azureVoiceTable(
-  region: string,
-  key: string,
-  lang: string,
-  speakers: string[],
-): Promise<Record<string, Voice>> {
-  const r = await fetch(
-    `https://${region}.tts.speech.microsoft.com/cognitiveservices/voices/list`,
-    {
-      headers: { "Ocp-Apim-Subscription-Key": key },
-    },
-  );
-  if (!r.ok) throw new Error(`Azure Speech voices/list ${r.status} in ${region}`);
-  const all = (await r.json()) as Array<{ ShortName: string; Locale: string }>;
-  const locales = AZURE_LOCALE[lang] ?? [];
-  const available = all.filter((v) => locales.includes(v.Locale)).map((v) => v.ShortName);
-  const wanted = AZURE_VOICES[lang] ?? {};
-  const used = new Set<string>();
-  const table: Record<string, Voice> = {};
-  for (const sp of speakers) {
-    const w = wanted[sp];
-    if (w && available.includes(w.voice) && !used.has(w.voice)) table[sp] = w;
-  }
-  for (const v of Object.values(table)) used.add(v.voice);
-  for (const sp of speakers) {
-    if (table[sp]) continue;
-    const spare = available.find((v) => !used.has(v)) ?? available[0];
-    if (!spare) throw new Error(`no ${lang} voice in ${region}`);
-    used.add(spare);
-    table[sp] = { voice: spare, rate: "+0%" };
-  }
-  return table;
-}
-
-async function azureSynth(region: string, key: string, v: Voice, text: string): Promise<Buffer> {
-  const locale = v.voice.split("-").slice(0, 2).join("-");
-  const ssml = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${locale}"><voice name="${v.voice}"><prosody rate="${v.rate}">${xml(text)}</prosody></voice></speak>`;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const r = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
-      method: "POST",
-      headers: {
-        "Ocp-Apim-Subscription-Key": key,
-        "Content-Type": "application/ssml+xml",
-        "X-Microsoft-OutputFormat": "audio-24khz-96kbitrate-mono-mp3",
-        "User-Agent": "sv-stage-tts",
-      },
-      body: ssml,
-    });
-    if (r.ok) return Buffer.from(await r.arrayBuffer());
-    if (r.status !== 429 && r.status < 500) {
-      throw new Error(`Azure Speech ${r.status}: ${(await r.text()).slice(0, 200)}`);
-    }
-    await new Promise((res) => setTimeout(res, 1500 * (attempt + 1)));
-  }
-  throw new Error("Azure Speech: retries exhausted");
-}
-
 async function openaiSynth(
   base: string,
   key: string,
@@ -298,66 +182,6 @@ async function openaiSynth(
   return Buffer.from(await r.arrayBuffer());
 }
 
-const EL_API = "https://api.elevenlabs.io/v1";
-
-async function elevenQuota(key: string): Promise<{ used: number; limit: number; tier: string }> {
-  const r = await fetch(`${EL_API}/user/subscription`, { headers: { "xi-api-key": key } });
-  if (!r.ok) throw new Error(`ElevenLabs subscription ${r.status}`);
-  const d = (await r.json()) as { character_count: number; character_limit: number; tier: string };
-  return { used: d.character_count, limit: d.character_limit, tier: d.tier };
-}
-
-/** One utterance, one request: no previous_text/next_text or request ids (stitching off). */
-async function elevenSynth(
-  key: string,
-  model: string,
-  voiceId: string,
-  speed: number,
-  text: string,
-) {
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const r = await fetch(
-      `${EL_API}/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`,
-      {
-        method: "POST",
-        headers: { "xi-api-key": key, "Content-Type": "application/json", Accept: "audio/mpeg" },
-        body: JSON.stringify({
-          text,
-          model_id: model,
-          // calm negotiation register: steady but not flat, close to the voice, little styling
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-            style: 0.15,
-            use_speaker_boost: true,
-            speed,
-          },
-        }),
-      },
-    );
-    if (r.ok) return Buffer.from(await r.arrayBuffer());
-    // 429 is concurrency on the free tier: wait once; everything else goes to the fallback
-    if (r.status !== 429 || attempt > 0) {
-      throw new Error(`ElevenLabs ${r.status}: ${(await r.text()).slice(0, 200)}`);
-    }
-    await new Promise((res) => setTimeout(res, 3000));
-  }
-  throw new Error("ElevenLabs: retries exhausted");
-}
-
-function readManifest(file: string): AudioManifest | null {
-  if (!existsSync(file)) return null;
-  try {
-    return JSON.parse(readFileSync(file, "utf8")) as AudioManifest;
-  } catch {
-    return null;
-  }
-}
-
-function writeManifest(file: string, m: AudioManifest) {
-  writeFileSync(file, `${JSON.stringify(m, null, 2)}\n`);
-}
-
 /**
  * ElevenLabs variant for one language. Voices a span of utterances (the FR-S8 showpiece by
  * default) into <id>.el.mp3 and merges them into manifest.elevenlabs.json. An utterance that
@@ -371,7 +195,10 @@ async function renderEleven(
 ) {
   const key = env.ELEVENLABS_API_KEY ?? "";
   if (!key) throw new Error("no ELEVENLABS_API_KEY");
+  const table = loadVoiceTable(webRoot, env);
+  // offline renders favour quality; the live route uses the table's low-latency model
   const model = env.ELEVENLABS_MODEL ?? "eleven_multilingual_v2";
+  const mult = costMultiplier(model);
   const all = orderedUtterances(foldRun(events)) as unknown as Utt[];
   const chars = (i: number) => {
     const u = all[i];
@@ -383,7 +210,7 @@ async function renderEleven(
   else if ((opt.span ?? "showpiece") === "all") pick = all.map((_, i) => i);
   else pick = showpieceSpan(all, pickSharpestExchange(foldRun(events)), budget, chars);
   if (opt.limit) pick = pick.slice(0, opt.limit);
-  const planned = pick.reduce((n, i) => n + chars(i), 0);
+  const planned = Math.ceil(pick.reduce((n, i) => n + chars(i), 0) * mult);
   const ex = pickSharpestExchange(foldRun(events));
   console.log(
     `elevenlabs ${lang}: ${pick.length} utterances, ${planned} characters` +
@@ -411,7 +238,7 @@ async function renderEleven(
   for (const i of pick) {
     const u = all[i];
     if (!u) continue;
-    const v = ELEVEN_VOICES[u.speaker];
+    const v = table.voices[u.speaker];
     const name = `${u.id}.el.mp3`;
     if (!v) {
       console.log(`\n${u.id}: no ElevenLabs voice for ${u.speaker}, stays on Azure`);
@@ -423,7 +250,7 @@ async function renderEleven(
     }
     const text = textFor(u, lang);
     try {
-      writeFileSync(path.join(outDir, name), await elevenSynth(key, model, v.id, v.speed, text));
+      writeFileSync(path.join(outDir, name), await elevenSynth(key, model, v, text, lang));
       files[u.id] = name;
       spent += text.length;
       process.stdout.write(
@@ -442,7 +269,7 @@ async function renderEleven(
     provider: "elevenlabs",
     attribution: ELEVEN_ATTRIBUTION,
     voices: Object.fromEntries(
-      Object.entries(ELEVEN_VOICES).map(([k, v]) => [k, `${v.name} ${v.id}`]),
+      Object.entries(table.voices).map(([k, v]) => [k, `${v.name} ${v.id}`]),
     ),
     files,
   });
