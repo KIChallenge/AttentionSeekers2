@@ -4,6 +4,7 @@
 
 const de = {
   nav: {
+    runScreens: "Ansichten dieses Laufs",
     negotiation: "Verhandlung",
     analysis: "Analyse",
     outcome: "Ergebnis",
@@ -13,6 +14,10 @@ const de = {
   },
   live: {
     question: "Frage",
+    transcript: "Transkript",
+    roster: "Teilnehmende und Rednerfolge",
+    outline: "Gliederung der Debatte",
+    transcriptKeys: "Pfeiltasten wechseln den Beitrag, Enter öffnet ihn im Inspektor",
     round: "Runde",
     roundOf: (r: number, n: number) => `Runde ${r} von ${n}`,
     phase: "Phase",
@@ -427,6 +432,7 @@ export type RunStrings = typeof de;
 
 const en: RunStrings = {
   nav: {
+    runScreens: "Views of this run",
     negotiation: "Negotiation",
     analysis: "Analysis",
     outcome: "Outcome",
@@ -436,6 +442,10 @@ const en: RunStrings = {
   },
   live: {
     question: "Question",
+    transcript: "Transcript",
+    roster: "Participants and speaking order",
+    outline: "Debate outline",
+    transcriptKeys: "Arrow keys move between utterances, Enter opens one in the inspector",
     round: "Round",
     roundOf: (r, n) => `Round ${r} of ${n}`,
     phase: "Phase",

@@ -2,8 +2,10 @@
 
 import { type Claim, PHASES, topicStatus, type Utterance } from "@sv/contracts";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Level, usePrefs } from "@/components/shell/providers";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 import { Chip, EntityRef, Meter, Seg, Tile } from "./bits";
 import { agentLook, L } from "./helpers";
@@ -25,7 +27,7 @@ function Roster({ round }: { round: number }) {
     const inner = (
       <>
         <Tile id={id} size="md" />
-        <span className="min-w-0 flex-1">
+        <span className="min-w-0 flex-1 max-desk:sr-only">
           <span className="block truncate text-sm">{a.name}</span>
           <span className="block truncate text-xs text-muted-foreground">{sub}</span>
           <Level min="engineer">
@@ -35,7 +37,7 @@ function Roster({ round }: { round: number }) {
           </Level>
         </span>
         {active ? (
-          <span className="flex h-3 items-end gap-[2px]" title="speaking">
+          <span className="flex h-3 items-end gap-[2px] max-desk:hidden" title="speaking">
             {[0.5, 1, 0.7].map((h) => (
               <i
                 key={h}
@@ -48,12 +50,12 @@ function Roster({ round }: { round: number }) {
       </>
     );
     const cls = cn(
-      "relative flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-gray-alpha-100",
+      "relative flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-gray-alpha-100 max-desk:justify-center max-desk:px-0",
       active &&
         "bg-gray-alpha-100 before:absolute before:inset-y-1 before:-left-2 before:w-[3px] before:rounded before:bg-foreground",
     );
     return href ? (
-      <Link key={id} href={href} className={cls}>
+      <Link key={id} href={href} className={cls} title={a.name}>
         {inner}
       </Link>
     ) : (
@@ -65,17 +67,21 @@ function Roster({ round }: { round: number }) {
   return (
     <div className="space-y-4">
       <div>
-        <div className="mb-1 px-2 text-xs text-muted-foreground">{t.live.moderation}</div>
+        <div className="mb-1 px-2 text-xs text-muted-foreground max-desk:sr-only">
+          {t.live.moderation}
+        </div>
         {row("moderator", t.live.moderatorRole)}
         {row("expert", t.live.expertRole)}
       </div>
       <div>
-        <div className="mb-1 px-2 text-xs text-muted-foreground">{t.live.agentsOrder(round)}</div>
+        <div className="mb-1 px-2 text-xs text-muted-foreground max-desk:sr-only">
+          {t.live.agentsOrder(round)}
+        </div>
         {order.map((id) => row(id, agentLook(run, id, lang).unit, `/runs/${runId}/agents/${id}`))}
       </div>
       <Level min="analyst">
         {calc?.coalitions.length ? (
-          <div>
+          <div className="max-desk:hidden">
             <div className="mb-1 px-2 text-xs text-muted-foreground">
               {t.live.coalitions(calc.round)}
             </div>
@@ -106,14 +112,21 @@ function Outline({ onJump }: { onJump: (id: string) => void }) {
   return (
     <div className="space-y-3">
       {filter ? (
-        <button type="button" className="px-2 text-xs underline" onClick={() => setFilter(null)}>
+        <button
+          type="button"
+          className="px-2 text-xs underline max-desk:px-0"
+          onClick={() => setFilter(null)}
+        >
           × {filter}
         </button>
       ) : null}
       {snap.rounds.map((r) => (
         <details key={r.round} open>
-          <summary className="cursor-pointer px-2 text-xs text-muted-foreground">
-            {t.live.round} {r.round} · {r.utteranceIds.length}
+          <summary className="cursor-pointer px-2 text-xs text-muted-foreground max-desk:px-0 max-desk:text-center">
+            <span className="max-desk:hidden">
+              {t.live.round} {r.round} · {r.utteranceIds.length}
+            </span>
+            <span className="desk:hidden">R{r.round}</span>
           </summary>
           <ul className="mt-1">
             {r.utteranceIds
@@ -125,11 +138,14 @@ function Outline({ onJump }: { onJump: (id: string) => void }) {
                     type="button"
                     onClick={() => onJump(u.id)}
                     onDoubleClick={() => setFilter(u.speaker)}
-                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left text-xs hover:bg-gray-alpha-100"
+                    title={`${u.id} · ${t.kind[u.kind]}`}
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left text-xs hover:bg-gray-alpha-100 max-desk:justify-center max-desk:px-0"
                   >
                     <Tile id={u.speaker} />
-                    <span className="font-mono">{u.id}</span>
-                    <span className="truncate text-muted-foreground">{t.kind[u.kind]}</span>
+                    <span className="font-mono max-desk:sr-only">{u.id}</span>
+                    <span className="truncate text-muted-foreground max-desk:sr-only">
+                      {t.kind[u.kind]}
+                    </span>
                   </button>
                 </li>
               ))}
@@ -264,7 +280,10 @@ function ExecutiveView() {
           <div className="mt-1 font-medium">{L(binding.note, lang)}</div>
           <div className="mt-1 flex flex-wrap gap-1">
             {binding.boundBy.map((b) => (
-              <Chip key={b} className="border-warning/40 text-warning">
+              <Chip
+                key={b}
+                className="h-auto border-warning/40 py-0.5 whitespace-normal text-warning"
+              >
                 {L(evidence.redLines[b]?.text, lang) || b}
               </Chip>
             ))}
@@ -305,14 +324,19 @@ export function NegotiationView({
   initialSelected?: string | null;
 }) {
   const { snap, run, t, lang, streaming } = useRun();
-  const { level } = usePrefs();
+  const { level, projector } = usePrefs();
+  // ui-plan 7.1: three columns from 1200px; below that, and in projector mode at any
+  // width, the inspector is a right sheet opened by selecting an utterance.
+  const wide = useMediaQuery("(min-width: 1200px)");
+  const overlay = projector || !wide;
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [view, setView] = useState<View>(
     initialView ?? (level === "engineer" ? "full" : "condensed"),
   );
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const firstTrace = Object.keys(snap.traceAvailable)[0] ?? null;
   const [selected, setSelected] = useState<string | null>(initialSelected ?? firstTrace);
-  const scroller = useRef<HTMLDivElement>(null);
+  const scroller = useRef<HTMLElement>(null);
   const [seen, setSeen] = useState(snap.utteranceOrder.length);
   const [atBottom, setAtBottom] = useState(true);
   const current = snap.currentRound || 1;
@@ -340,16 +364,52 @@ export function NegotiationView({
     );
   };
 
+  const select = (id: string) => {
+    setSelected(id);
+    if (overlay) setSheetOpen(true);
+  };
+
+  // Transcript keyboard navigation: arrow keys (and j/k) move between utterance cards,
+  // Home/End jump to the first and last; Enter or Space selects (handled on the card).
+  const onTranscriptKey = (e: KeyboardEvent<HTMLElement>) => {
+    const target = e.target as HTMLElement;
+    if (!target.matches("[data-utt-card]")) return;
+    const keys: Record<string, number> = { ArrowDown: 1, j: 1, ArrowUp: -1, k: -1 };
+    const cards = [...e.currentTarget.querySelectorAll<HTMLElement>("[data-utt-card]")];
+    const i = cards.indexOf(target);
+    let next: HTMLElement | undefined;
+    if (e.key in keys) next = cards[i + (keys[e.key] ?? 0)];
+    else if (e.key === "Home") next = cards[0];
+    else if (e.key === "End") next = cards[cards.length - 1];
+    else return;
+    e.preventDefault();
+    next?.focus();
+    next?.scrollIntoView({ block: "nearest" });
+  };
+
   const pending = Object.values(snap.pending);
   const fresh = snap.utteranceOrder.length - seen;
 
   return (
-    <div className="grid h-[calc(100vh-94px)] grid-cols-1 lg:grid-cols-[248px_minmax(0,1fr)] xl:grid-cols-[248px_minmax(0,1fr)_360px]">
-      <aside className="hidden overflow-y-auto border-r p-4 lg:block">
+    <div
+      className={cn(
+        "grid h-[calc(100dvh-50px-2.75rem)] grid-cols-1 md:grid-cols-[56px_minmax(0,1fr)]",
+        projector
+          ? "desk:grid-cols-[18rem_minmax(0,1fr)]"
+          : "desk:grid-cols-[248px_minmax(0,1fr)_360px]",
+      )}
+    >
+      <aside
+        aria-label={view === "full" ? t.live.outline : t.live.roster}
+        className="hidden overflow-y-auto border-r px-1.5 py-4 md:block desk:p-4"
+      >
         {view === "full" ? <Outline onJump={jump} /> : <Roster round={current} />}
       </aside>
-      <div
+      <section
         ref={scroller}
+        aria-label={t.live.transcript}
+        aria-describedby="transcript-keys"
+        onKeyDown={onTranscriptKey}
         className="relative overflow-y-auto"
         onScroll={(e) => {
           const el = e.currentTarget;
@@ -392,6 +452,9 @@ export function NegotiationView({
           </Level>
         </div>
         <div className="mx-auto max-w-[920px] space-y-3 px-5 py-4">
+          <p id="transcript-keys" className="sr-only">
+            {t.live.transcriptKeys}
+          </p>
           <Level only="executive">
             <ExecutiveView />
           </Level>
@@ -431,11 +494,7 @@ export function NegotiationView({
                         if (!u) return null;
                         return (
                           <div key={id} className="space-y-2">
-                            <UtteranceCard
-                              u={u}
-                              selected={selected === id}
-                              onSelect={setSelected}
-                            />
+                            <UtteranceCard u={u} selected={selected === id} onSelect={select} />
                             {(notesAfter[id] ?? []).map((n) => (
                               <ExpertNote key={n.seq} note={n} />
                             ))}
@@ -491,10 +550,25 @@ export function NegotiationView({
             ↓ {t.live.newUtterances(fresh)}
           </button>
         ) : null}
-      </div>
-      <aside className="hidden min-w-0 overflow-x-hidden overflow-y-auto border-l p-4 xl:block">
-        <SidePanel id={selected} />
-      </aside>
+      </section>
+      {projector ? null : (
+        <aside
+          aria-label={t.nav.inspector}
+          className="hidden min-w-0 overflow-x-hidden overflow-y-auto border-l p-4 desk:block"
+        >
+          <SidePanel id={selected} />
+        </aside>
+      )}
+      <Sheet open={overlay && sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent
+          side="right"
+          className="w-[min(92vw,30rem)] overflow-y-auto p-4 pt-12 data-[side=right]:sm:max-w-[30rem]"
+        >
+          <SheetTitle className="sr-only">{t.nav.inspector}</SheetTitle>
+          <SheetDescription className="sr-only">{t.live.selectHint}</SheetDescription>
+          <SidePanel id={selected} />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

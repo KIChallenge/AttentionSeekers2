@@ -76,16 +76,22 @@ export function UtteranceCard({
       id={u.id}
       role="button"
       tabIndex={0}
+      data-utt-card=""
+      aria-pressed={onSelect ? !!selected : undefined}
       onClick={(e) => {
         if ((e.target as HTMLElement).closest("a,button")) return;
         onSelect?.(u.id);
       }}
       onKeyDown={(e) => {
-        if (e.key === "Enter") onSelect?.(u.id);
+        if (e.target !== e.currentTarget) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect?.(u.id);
+        }
       }}
       data-selected={selected || undefined}
       className={cn(
-        "scroll-mt-28 rounded-2xl border bg-card p-3.5 text-left transition-colors",
+        "scroll-mt-28 rounded-2xl border bg-card p-3.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         isMod && "bg-gray-alpha-50",
         selected && "border-foreground ring-1 ring-foreground",
         onSelect && "cursor-pointer hover:border-foreground/30",
