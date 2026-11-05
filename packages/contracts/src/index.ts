@@ -47,6 +47,9 @@
  * - 2026-11-05 engine: Telemetry.reasoningTokens.
  * - 2026-11-06 agent trace: RunEvent "llm.call" (one per model call) and
  *   RunSnapshot.llmCalls; older runs fold to an empty list and use deriveLlmCalls.
+ * - 2026-11-06 debate quality: Utterance.gate (turn gate decision), RunEvent
+ *   "moderation.gate" and RunSnapshot.moderationGates, QualityReport for the audit file
+ *   runs/<runId>.quality.json.
  */
 export * from "./agents.ts";
 export * from "./catalog.ts";
@@ -58,6 +61,7 @@ export * from "./llm-calls.ts";
 export * from "./outcome.ts";
 export * from "./primitives.ts";
 export * from "./proposals.ts";
+export * from "./quality.ts";
 export * from "./room.ts";
 export * from "./run.ts";
 export * from "./snapshot.ts";

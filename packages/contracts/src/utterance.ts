@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { LocalizedText, ModelId, SpeakerId, UtteranceId } from "./primitives.ts";
+import { GateDecision } from "./quality.ts";
 import { Telemetry } from "./traces.ts";
 
 // Utterances (FR-U1, A4, A5, M4, NFR-9)
@@ -48,6 +49,8 @@ export const Utterance = z.object({
   addressedTo: z.array(SpeakerId).optional(),
   /** Simulated meeting time for the timeline, from the start of the run. */
   timing: z.object({ startMin: z.number().min(0), durationMin: z.number().positive() }).optional(),
+  /** Turn quality gate (added 2026-11-06): checks run before the turn was committed. */
+  gate: GateDecision.optional(),
 });
 export type Utterance = z.infer<typeof Utterance>;
 

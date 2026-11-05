@@ -5,6 +5,7 @@ import { LlmCall } from "./llm-calls.ts";
 import { Forecast, ImpactFigure, RatificationVote } from "./outcome.ts";
 import { AgentId, Lang, LocalizedText, ModelId, SpeakerId, UtteranceId } from "./primitives.ts";
 import { Proposal, RoundSummary } from "./proposals.ts";
+import { ModerationGate } from "./quality.ts";
 import { ScheduledEvent } from "./room.ts";
 import { EndCondition, Run } from "./run.ts";
 import {
@@ -120,6 +121,8 @@ export const RunEvent = z.discriminatedUnion("type", [
   }),
   /** Added 2026-11-06 (agent trace): one model call, emitted when it finishes. */
   z.object({ ...Envelope, type: z.literal("llm.call"), call: LlmCall }),
+  /** Added 2026-11-06 (debate quality): a moderation gate decision. */
+  z.object({ ...Envelope, type: z.literal("moderation.gate"), gate: ModerationGate }),
   z.object({ ...Envelope, type: z.literal("heartbeat") }),
 ]);
 export type RunEvent = z.infer<typeof RunEvent>;
