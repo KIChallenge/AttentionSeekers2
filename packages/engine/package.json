@@ -13,7 +13,8 @@
     "smoke": "node --env-file-if-exists=../../.env --no-warnings src/smoke.ts",
     "validate": "node --no-warnings src/cli.ts validate",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "quality": "node --env-file-if-exists=../../.env --no-warnings src/quality-cli.ts"
   },
   "dependencies": {
     "@sv/contracts": "workspace:*",

@@ -216,6 +216,7 @@ export function converseBody(
   schema: Record<string, unknown>,
   maxTokens: number,
   choice: "tool" | "any" = "tool",
+  temperature: number | null = null,
 ): Record<string, unknown> {
   const system = messages.filter((m) => m.role === "system").map((m) => ({ text: m.content }));
   const turns: Array<{ role: "user" | "assistant"; content: Array<{ text: string }> }> = [];
@@ -228,7 +229,7 @@ export function converseBody(
   return {
     ...(system.length ? { system } : {}),
     messages: turns,
-    inferenceConfig: { maxTokens },
+    inferenceConfig: temperature === null ? { maxTokens } : { maxTokens, temperature },
     toolConfig: {
       tools: [
         {
@@ -339,6 +340,7 @@ async function completeBedrock(
   schema: Record<string, unknown>,
   maxTokens: number,
   timeoutMs: number,
+  temperature: number | null = null,
 ): Promise<{ content: string; meta: Omit<CallMeta, "retries"> }> {
   const key = process.env.BIFROST_SEED_BEDROCK_KEY;
   const region = process.env.BIFROST_SEED_BEDROCK_REGION;
@@ -354,7 +356,9 @@ async function completeBedrock(
           {
             method: "POST",
             headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-            body: JSON.stringify(converseBody(messages, name, schema, maxTokens, choice)),
+            body: JSON.stringify(
+              converseBody(messages, name, schema, maxTokens, choice, temperature),
+            ),
             signal: AbortSignal.timeout(timeoutMs),
           },
         );
@@ -431,6 +435,12 @@ export interface StructuredOptions {
   timeoutMs?: number;
   maxOutputTokens?: number;
   reasoningEffort?: "none" | "low" | "medium" | "high" | null;
+  /**
+   * Deterministic settings for judges (quality audit). Only sent when set; the Azure
+   * reasoning deployment accepts temperature 0 only with reasoningEffort "none".
+   */
+  temperature?: number | null;
+  seed?: number | null;
 }
 
 /**
@@ -444,7 +454,13 @@ export async function structured<T extends z.ZodType>(
   messages: Message[],
   opts: StructuredOptions = {},
 ): Promise<{ data: z.infer<T>; meta: CallMeta }> {
-  const { timeoutMs = 150_000, maxOutputTokens = 16_000, reasoningEffort = "low" } = opts;
+  const {
+    timeoutMs = 150_000,
+    maxOutputTokens = 16_000,
+    reasoningEffort = "low",
+    temperature = null,
+    seed = null,
+  } = opts;
   const json = z.toJSONSchema(schema, { target: "draft-7" }) as Record<string, unknown>;
   const response_format = {
     type: "json_schema",
@@ -484,6 +500,7 @@ export async function structured<T extends z.ZodType>(
             json,
             Math.min(maxOutputTokens, 8192),
             timeoutMs,
+            temperature,
           )
         : await complete(
             model,
@@ -492,6 +509,8 @@ export async function structured<T extends z.ZodType>(
               response_format,
               max_completion_tokens: maxOutputTokens,
               ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
+              ...(temperature !== null ? { temperature } : {}),
+              ...(seed !== null ? { seed } : {}),
             },
             timeoutMs,
             name,

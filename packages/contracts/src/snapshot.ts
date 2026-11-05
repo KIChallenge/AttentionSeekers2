@@ -5,6 +5,7 @@ import type { LlmCall } from "./llm-calls.ts";
 import type { Forecast, ImpactFigure, RatificationVote } from "./outcome.ts";
 import type { AgentId, LocalizedText, ModelId, SpeakerId } from "./primitives.ts";
 import type { OutcomeClass, Proposal, RoundSummary } from "./proposals.ts";
+import type { ModerationGate } from "./quality.ts";
 import type { ScheduledEvent } from "./room.ts";
 import type { EndCondition, Run, RunSummary } from "./run.ts";
 import type {
@@ -78,6 +79,8 @@ export interface RunSnapshot {
   degraded: Array<{ agentId: AgentId; utteranceId: string | null; reason: string }>;
   /** Model calls in completion order (RunEvent "llm.call"); empty for runs before 2026-11-06. */
   llmCalls: LlmCall[];
+  /** Moderation gate decisions (RunEvent "moderation.gate"); empty for older runs. */
+  moderationGates: ModerationGate[];
   figures: ImpactFigure[];
   forecasts: Forecast[];
   extractorVersion: string | null;
@@ -131,6 +134,7 @@ export function emptySnapshot(): RunSnapshot {
     lessonApplications: [],
     degraded: [],
     llmCalls: [],
+    moderationGates: [],
     figures: [],
     forecasts: [],
     extractorVersion: null,
@@ -372,6 +376,9 @@ export function reduceRun(s: RunSnapshot, e: RunEvent, opts: ReduceOptions = {})
 
     case "llm.call":
       return { ...base, llmCalls: [...(base.llmCalls ?? []), e.call] };
+
+    case "moderation.gate":
+      return { ...base, moderationGates: [...(base.moderationGates ?? []), e.gate] };
 
     case "heartbeat":
       return base;
