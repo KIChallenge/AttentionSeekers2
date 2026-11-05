@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { foldRun, parseNdjson, type RunEvent } from "@sv/contracts";
+import { foldRun, parseNdjson, type RunEvent, type UtteranceQuality } from "@sv/contracts";
 import { describe, expect, it } from "vitest";
 import { REPO_ROOT } from "../src/config.ts";
 import { isFlagged, prepare } from "../src/quality/audit.ts";
@@ -145,7 +145,7 @@ describe("quality audit preparation", () => {
       register: 1,
       con: 1,
     };
-    const q = {
+    const q: UtteranceQuality = {
       utteranceId: "u1-02",
       speaker: "sv",
       round: 1,
@@ -156,9 +156,9 @@ describe("quality audit preparation", () => {
       overall: 0.97,
       flags: [
         {
-          dimension: "grounding" as const,
-          source: "deterministic" as const,
-          severity: "minor" as const,
+          dimension: "grounding",
+          source: "deterministic",
+          severity: "minor",
           reason: "x",
         },
       ],
@@ -168,7 +168,9 @@ describe("quality audit preparation", () => {
     expect(
       isFlagged({
         ...q,
-        flags: [{ ...q.flags[0], severity: "major" as const } as (typeof q.flags)[number]],
+        flags: [
+          { dimension: "grounding", source: "deterministic", severity: "major", reason: "x" },
+        ],
       }),
     ).toBe(true);
   });
