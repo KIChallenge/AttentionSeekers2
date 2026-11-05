@@ -221,7 +221,7 @@
   --sidebar-ring: #171717;
   --sidebar-width: 16rem;
   --text-primary: var(--foreground);
-  --text-secondary: var(--gray-alpha-500);
+  --text-secondary: var(--gray-alpha-550);
   --text-tertiary: var(--gray-alpha-450);
   --surface: var(--gray-50);
   --raised: var(--background);
@@ -416,6 +416,29 @@
   #gp-letter [data-slot="button"] {
     display: none;
   }
+}
+
+/* ---- Accessibility: visible keyboard focus on every interactive element ---- */
+:where(a, button, summary, select, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Agent tile ink: white only where it reaches the higher contrast against the hue. */
+[data-agent] {
+  color: var(--tile-ink, #fff);
+}
+[data-agent="sv"],
+[data-agent="pf"],
+[data-agent="pv"],
+[data-agent="moderator"],
+[data-agent="expert"],
+.dark [data-agent] {
+  --tile-ink: #171717;
+}
+.dark [data-agent="moderator"],
+.dark [data-agent="expert"] {
+  --tile-ink: #fff;
 }
 
 /* ---- HealthPolicy Simulator additions (mockups/_src/base.css) ---- */
