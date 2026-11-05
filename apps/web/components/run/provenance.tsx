@@ -107,15 +107,15 @@ export function ClaimRow({ claim, dense = false }: { claim: Claim; dense?: boole
       <p className="mt-1 text-sm">„{claim.atomicText}“</p>
       {claim.citations.length ? (
         <div className="mt-1.5 flex flex-wrap gap-1">
-          {claim.citations.map((c) => (
-            <SourceChip key={c.segmentId} cite={c} />
+          {claim.citations.map((c, i) => (
+            <SourceChip key={`${c.segmentId}-${i}`} cite={c} />
           ))}
         </div>
       ) : null}
       {!dense && claim.verifyingModels.length ? (
         <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
-          {claim.verifyingModels.map((v) => (
-            <li key={v.model}>
+          {claim.verifyingModels.map((v, i) => (
+            <li key={`${v.model}-${i}`}>
               <span className="font-mono">{v.model}</span>:{" "}
               <span
                 className={cn(

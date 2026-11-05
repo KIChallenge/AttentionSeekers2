@@ -20,7 +20,9 @@ function ClaimText({ u, claims }: { u: Utterance; claims: Claim[] }) {
         {text}
         {claims.flatMap((c) => c.citations).length ? " " : null}
         {claims.flatMap((c) =>
-          c.citations.map((ref) => <SourceChip key={`${c.id}-${ref.segmentId}`} cite={ref} />),
+          c.citations.map((ref, i) => (
+            <SourceChip key={`${c.id}-${ref.segmentId}-${i}`} cite={ref} />
+          )),
         )}
       </>
     );
@@ -42,8 +44,8 @@ function ClaimText({ u, claims }: { u: Utterance; claims: Claim[] }) {
         {text.slice(c.span.start, c.span.end)}
       </span>,
     );
-    for (const ref of c.citations)
-      out.push(<SourceChip key={`${c.id}-${ref.segmentId}`} cite={ref} />);
+    for (const [i, ref] of c.citations.entries())
+      out.push(<SourceChip key={`${c.id}-${ref.segmentId}-${i}`} cite={ref} />);
     pos = c.span.end;
   }
   out.push(text.slice(pos));
