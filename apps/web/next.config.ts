@@ -7,7 +7,7 @@ const envPath = path.join(root, ".env");
 if (process.env.NODE_ENV !== "production" && existsSync(envPath)) process.loadEnvFile(envPath);
 
 const config: NextConfig = {
-  transpilePackages: ["@sv/contracts", "@sv/db"],
+  transpilePackages: ["@sv/contracts", "@sv/db", "@sv/engine"],
   serverExternalPackages: ["pg"],
   turbopack: { root },
   outputFileTracingRoot: root,
