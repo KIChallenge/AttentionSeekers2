@@ -89,8 +89,8 @@ export function SpeakerTimeline({
   const [focusId, setFocusId] = useState<string | null>(null);
   const trackRef = useRef<HTMLFieldSetElement>(null);
 
-  const rowH = compact ? 12 : 18;
-  const laneH = compact ? 16 : 20;
+  const rowH = compact ? 10 : 18;
+  const laneH = compact ? 14 : 20;
   const labelW = compact ? 40 : 172;
   const lanesH = model.lanes * laneH;
   const rowsH = model.rows.length * rowH;
@@ -106,9 +106,24 @@ export function SpeakerTimeline({
     else if (zoom !== "all")
       band = model.bands.find((b) => b.exchange.id === zoom.exchangeId) ?? null;
     if (!band) return [0, model.end];
-    const span = Math.max(4, band.end - band.start);
-    const pad = Math.max(1, span * 0.08);
-    return [Math.max(0, band.start - pad), band.end + pad];
+    let a = band.start;
+    let b = band.end;
+    // following: keep parallel exchanges and some context in view
+    if (zoom === "follow")
+      for (const o of model.bands)
+        if (o.start < band.end && o.end > band.start) {
+          a = Math.min(a, o.start);
+          b = Math.max(b, o.end);
+        }
+    const minSpan = zoom === "follow" ? 24 : 8;
+    if (b - a < minSpan) {
+      const mid = (a + b) / 2;
+      a = mid - minSpan / 2;
+      b = mid + minSpan / 2;
+    }
+    const pad = Math.max(0.5, (b - a) * 0.04);
+    a = Math.max(0, a - pad);
+    return [a, Math.max(a + minSpan, b + pad)];
   }, [zoom, activeBand, model]);
   const span = Math.max(0.001, d1 - d0);
   const x = (min: number) => ((min - d0) / span) * 100;
@@ -275,7 +290,20 @@ export function SpeakerTimeline({
             <div className="flex">
               {/* row labels */}
               <div className="shrink-0" style={{ width: labelW }}>
-                <div style={{ height: lanesH }} />
+                <div style={{ height: lanesH }} className="flex items-start">
+                  {compact ? (
+                    <button
+                      type="button"
+                      onClick={() => setZoom((z) => (z === "all" ? "follow" : "all"))}
+                      aria-pressed={zoom !== "all"}
+                      title={zoom === "all" ? t.zoomFollow : t.zoomAll}
+                      aria-label={zoom === "all" ? t.zoomFollow : t.zoomAll}
+                      className="h-3.5 rounded-[4px] border px-1 text-[9px] leading-none text-muted-foreground hover:text-foreground"
+                    >
+                      {zoom === "all" ? "⤢" : "⤡"}
+                    </button>
+                  ) : null}
+                </div>
                 {model.rows.map((id, r) => {
                   const a = look(id);
                   const st = rowState(r);
@@ -284,7 +312,7 @@ export function SpeakerTimeline({
                       key={id}
                       className={cn(
                         "flex items-center gap-1.5 overflow-hidden pr-2 transition-opacity",
-                        st === "dim" && "opacity-45",
+                        st === "dim" && "opacity-60",
                       )}
                       style={{ height: rowH }}
                       title={a.name}
@@ -293,8 +321,8 @@ export function SpeakerTimeline({
                         className={cn(
                           "inline-grid shrink-0 place-items-center rounded-[4px] font-semibold text-white",
                           compact
-                            ? "h-[10px] min-w-[18px] px-0.5 text-[7px]"
-                            : "h-3.5 min-w-6 px-0.5 text-[8px]",
+                            ? "h-[9px] min-w-[18px] px-0.5 text-[7px] leading-none"
+                            : "h-3.5 min-w-6 px-0.5 text-[8px] leading-none",
                           st === "active" &&
                             "ring-2 ring-foreground/70 ring-offset-1 ring-offset-card",
                           st === "addressed" &&
@@ -582,7 +610,10 @@ export function SpeakerTimeline({
                 </div>
 
                 {/* time axis */}
-                <div className="relative h-4 border-t" aria-hidden="true">
+                <div
+                  className={cn("relative border-t", compact ? "h-4" : "h-7")}
+                  aria-hidden="true"
+                >
                   {ticks.map((m) => (
                     <span
                       key={m}
@@ -598,7 +629,7 @@ export function SpeakerTimeline({
                         r.start >= d0 && r.start < d1 ? (
                           <span
                             key={r.round}
-                            className="absolute top-0 ml-1 font-mono text-[9px] font-medium"
+                            className="absolute top-3.5 -translate-x-1/2 font-mono text-[9px] font-medium"
                             style={{ left: `${x(r.start)}%` }}
                           >
                             R{r.round}
@@ -618,7 +649,7 @@ export function SpeakerTimeline({
                       ...(x(tip.start) > 60
                         ? { right: `${Math.max(0, 100 - x(tip.start + tip.dur))}%` }
                         : { left: `${Math.max(0, x(tip.start))}%` }),
-                      ...(tip.row > model.rows.length / 2
+                      ...(compact || tip.row > model.rows.length / 2
                         ? { bottom: `calc(100% - ${lanesH + tip.row * rowH}px + 4px)` }
                         : { top: lanesH + (tip.row + 1) * rowH + 4 }),
                     }}

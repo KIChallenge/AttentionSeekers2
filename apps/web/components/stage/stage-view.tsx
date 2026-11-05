@@ -4,9 +4,10 @@ import { type Claim, PHASES, type Utterance } from "@sv/contracts";
 import Link from "next/link";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chip, Seg } from "@/components/run/bits";
-import { agentLook, claimUnderline, fmtStance, L } from "@/components/run/helpers";
+import { agentLook, claimUnderline, delegateRole, fmtStance, L } from "@/components/run/helpers";
 import { ClaimStateBadge, SourceChip } from "@/components/run/provenance";
 import { useRun } from "@/components/run/run-context";
+import { SpeakerTimeline } from "@/components/timeline/speaker-timeline";
 import { cn } from "@/lib/utils";
 import { latestShift, orderedUtterances, pickSharpestExchange, stageSpeakers } from "./stage-logic";
 import { StageTile, type TileRole } from "./stage-tile";
@@ -148,6 +149,9 @@ export function StageView() {
 
   const speakers = useMemo(() => stageSpeakers(run), [run]);
   const replyTo = u?.respondsTo ? snap.utterances[u.respondsTo] : null;
+  // who is talked to: a bilateral exchange reads as two parties facing each other
+  const addressees = u ? (u.addressedTo ?? []).filter((a) => a !== u.speaker) : [];
+  const role = u ? delegateRole(run, u.speaker, u.delegateId, lang) : "";
   const claims = u ? u.claimIds.map((id) => snap.claims[id]).filter((c): c is Claim => !!c) : [];
   const shift = u ? latestShift(snap, u.seq) : null;
   const phase = u ? PHASES.find((ph) => ph.n === u.phase) : null;
@@ -232,8 +236,10 @@ export function StageView() {
                 label={id === "moderator" ? s.moderator : id === "expert" ? s.expert : a.name}
                 active={u?.speaker === id}
                 answered={!!replyTo && replyTo.speaker === id && u?.speaker !== id}
+                addressed={addressees.includes(id)}
                 dimmed={!!u}
                 speakingLabel={s.speaking}
+                addressedLabel={s.addressed}
               />
             );
           })}
@@ -255,7 +261,18 @@ export function StageView() {
                     : u.speaker === "expert"
                       ? s.expert
                       : look(u.speaker).name}
+                  {role ? (
+                    <span className="font-normal text-muted-foreground">, {role}</span>
+                  ) : null}
                 </span>
+                {addressees.length ? (
+                  <span className="inline-flex items-center gap-1">
+                    → {s.addressedTo}
+                    {addressees.map((a) => (
+                      <CodeBadge key={a} id={a} />
+                    ))}
+                  </span>
+                ) : null}
                 <Chip className="bg-gray-alpha-100 font-medium">{rt.kind[u.kind]}</Chip>
                 {replyTo ? (
                   <span className="inline-flex items-center gap-1">
@@ -322,6 +339,20 @@ export function StageView() {
           colorOf={(id) => look(id).color}
           scope={scope}
           setScope={setScope}
+        />
+
+        {/* Speaker timeline strip, synced with playback */}
+        <SpeakerTimeline
+          snap={snap}
+          run={run}
+          lang={lang}
+          activeId={u?.id ?? null}
+          cursorSeq={u?.seq ?? null}
+          progress={u && (p.playing || p.spoken > 0) ? p.spoken / Math.max(1, textOf(u).length) : 1}
+          onSelect={(id) => p.setIdx(indexOf(id))}
+          compact
+          defaultZoom="follow"
+          className="shrink-0"
         />
       </div>
 
