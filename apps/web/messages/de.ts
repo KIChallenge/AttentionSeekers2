@@ -6,6 +6,7 @@ export const de = {
     newRun: "Neue Verhandlung",
     archive: "Archiv",
     method: "Methode",
+    models: "Modelle",
     menu: "Menü",
     screens: "Bildschirme",
   },

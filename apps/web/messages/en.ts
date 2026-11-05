@@ -7,6 +7,7 @@ export const en = {
     newRun: "New negotiation",
     archive: "Archive",
     method: "Method",
+    models: "Models",
     menu: "Menu",
     screens: "Screens",
   },
