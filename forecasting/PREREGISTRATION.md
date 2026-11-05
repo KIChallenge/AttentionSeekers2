@@ -187,3 +187,16 @@ health laws) have no status of their own; the AUB is now resolved to its main it
 a bill back to committee). Rule now: only "Gesetzesvorschlag in zweiter/dritter Lesung abgelehnt"
 or a withdrawal of the bill itself, and never when the bill has status 5.
 The 0.75 threshold, the horizon, the classes and the forecasting rules were not touched.
+
+**Deviation 4 (2026-11-06, AFTER the first scoring run; disclosed as post hoc).** After run 1
+was scored (kept unchanged in `data/run1_before_deviation4/`), a spot check of the "lapsed"
+list found false negatives in the title-match fallback: it ignored BUA bills, required Jaccard
+>= 0.5 so an Initiativantrag whose title lists extra laws was missed (MTD-Gesetz 2024, 4095/A
+XXVII), and did not look for a successor when the identifier-linked RV died or was replaced
+(eEltern-Kind-Pass, RV 2049 replaced by 3463/A). Fix: BUA added as candidate type; a candidate
+also matches when at least 80 percent of the draft's title tokens (minimum two tokens) occur in
+the bill title; the fallback also runs when every identifier-linked bill has status 2, 3 or 4.
+Effect: 3 episodes moved from lapsed to enacted. The fix was motivated by label correctness, but
+it was made after seeing scores, so both runs are reported. Run 1 (before): forecaster A binary
+BSS -0.073, verdict "worse than status quo"; run 2 (after): BSS -0.030, verdict "inconclusive
+at this N". Neither run supports class membership beating the status-quo baseline.

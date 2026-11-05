@@ -1,0 +1,659 @@
+{
+ "fixture": "primvg-2017",
+ "note": "Backtest fixture. Forecast computed as of the first-draft date with the preregistered baseline: pool = episodes whose label was knowable (first draft + 730 days) before that date, this episode excluded. Labels from the legislative record only.",
+ "registry_record": {
+  "case_id": "XXV-ME-312",
+  "me_citation": "312/ME XXV. GP",
+  "gp": "XXV",
+  "me_inr": 312,
+  "title": "Gesundheitsreformumsetzungsgesetz 2017 – GRUG 2017",
+  "first_draft_date": "2017-04-21",
+  "begutachtung_end": "2017-05-21",
+  "ressort": "BMGF",
+  "ressort_name": "Bundesministerium für Gesundheit und Frauen",
+  "proposer_group": "health_ministry",
+  "government_id": "gov_2016-05-17",
+  "coalition": "spoe_oevp",
+  "coalition_parties": [
+   "SPÖ",
+   "ÖVP"
+  ],
+  "legislative_period": "XXV",
+  "n_stellungnahmen": 366,
+  "themen": [
+   "Gesundheit und Ernährung"
+  ],
+  "schlagworte": [
+   "Gesundheit"
+  ],
+  "scope_reasons": [
+   "health_term",
+   "pure_health_ministry"
+  ],
+  "measure_class": "structural_reform",
+  "measure_class_method": "keyword_rule_v1",
+  "me_url": "https://www.parlament.gv.at/gegenstand/XXV/ME/312",
+  "links": [
+   {
+    "bill": "XXV A 2255",
+    "doktyp": "A",
+    "method": "ris_brkons_citation",
+    "jaccard": null,
+    "title": "Gesundheitsreformumsetzungsgesetz 2017 - GRUG 2017",
+    "status": 5,
+    "einlangen": "2017-06-19",
+    "third_reading": "2017-06-28",
+    "br_date": "2017-07-06",
+    "bgbl": [
+     "BGBl. I Nr. 131/2017"
+    ],
+    "vote_text": "Dafür: S, V. Dagegen: F, G, N, T",
+    "via_report": null,
+    "changed_in_committee": true,
+    "changed_in_plenum": false,
+    "url": "https://www.parlament.gv.at/gegenstand/XXV/A/2255"
+   }
+  ],
+  "needs_human": [],
+  "text_similarity": 0.7961,
+  "text_final_doc": "Geändert im Ausschuss",
+  "vfgh_repeals": [],
+  "decision_date": "2017-06-28",
+  "outcome_record": {
+   "source": "parlament_gesetzgebungsverfahren",
+   "identifier": "GP XXV A 2255; BGBl. I Nr. 131/2017",
+   "url": "https://www.parlament.gv.at/gegenstand/XXV/A/2255"
+  },
+  "outcome": "implemented",
+  "label_basis": "text_similarity_at_least_0.75",
+  "censored": false,
+  "knowable_date": "2019-04-21",
+  "fr_j1a_label": "implemented",
+  "episode_id": "EP-XXV-ME-312"
+ },
+ "episode": {
+  "episode_id": "EP-XXV-ME-312",
+  "members": [
+   "XXV-ME-312"
+  ],
+  "lead_case": "XXV-ME-312",
+  "title": "Gesundheitsreformumsetzungsgesetz 2017 – GRUG 2017",
+  "first_draft_date": "2017-04-21",
+  "gp": "XXV",
+  "proposer_group": "health_ministry",
+  "ressort": "BMGF",
+  "coalition": "spoe_oevp",
+  "government_id": "gov_2016-05-17",
+  "n_stellungnahmen": 366,
+  "measure_class": "structural_reform",
+  "outcome": "implemented",
+  "fr_j1a_label": "implemented",
+  "censored": false,
+  "knowable_date": "2019-04-21",
+  "needs_human": [],
+  "title_link_only": false,
+  "three_class_ok": true,
+  "vote_text": "Dafür: S, V. Dagegen: F, G, N, T",
+  "text_similarity": 0.7961
+ },
+ "forecast_binary": {
+  "descriptor": {
+   "first_draft_date": "2017-04-21",
+   "proposer_group": "health_ministry",
+   "coalition": "spoe_oevp",
+   "measure_class": "structural_reform"
+  },
+  "pool_size": 72,
+  "forecast_A": {
+   "method": "A",
+   "level": "proposer+coalition",
+   "n": 54.0,
+   "probs": {
+    "enacted": 0.8090909090909091,
+    "not_enacted": 0.19090909090909092
+   },
+   "rates": [
+    {
+     "category": "enacted",
+     "k": 44.0,
+     "n": 54.0,
+     "p": 0.8090909090909091,
+     "jeffreys90": [
+      0.716627540502772,
+      0.888685225572005
+     ],
+     "wilson90": [
+      0.7136260018771728,
+      0.8859626437642162
+     ]
+    },
+    {
+     "category": "not_enacted",
+     "k": 10.0,
+     "n": 54.0,
+     "p": 0.19090909090909092,
+     "jeffreys90": [
+      0.11131477442799481,
+      0.2833724594972281
+     ],
+     "wilson90": [
+      0.1140373562357838,
+      0.2863739981228272
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "forecast_B": {
+   "method": "B",
+   "level": "weighted_analogs",
+   "n": 72,
+   "probs": {
+    "enacted": 0.8331472885505865,
+    "not_enacted": 0.16685271144941338
+   },
+   "rates": [
+    {
+     "category": "enacted",
+     "k": 82.89757995701152,
+     "n": 99.09944352348191,
+     "p": 0.8331472885505865,
+     "jeffreys90": [
+      0.768545703620729,
+      0.8901537688860002
+     ],
+     "wilson90": [
+      0.7666191934564822,
+      0.8885129210953416
+     ]
+    },
+    {
+     "category": "not_enacted",
+     "k": 16.20186356647038,
+     "n": 99.09944352348191,
+     "p": 0.16685271144941338,
+     "jeffreys90": [
+      0.10984623111399869,
+      0.23145429637927234
+     ],
+     "wilson90": [
+      0.1114870789046582,
+      0.23338080654351767
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "status_quo": {
+   "method": "status_quo",
+   "level": "all",
+   "n": 72.0,
+   "probs": {
+    "enacted": 0.815068493150685,
+    "not_enacted": 0.18493150684931506
+   },
+   "rates": [
+    {
+     "category": "enacted",
+     "k": 59.0,
+     "n": 72.0,
+     "p": 0.815068493150685,
+     "jeffreys90": [
+      0.7361489230988194,
+      0.8841220939530392
+     ],
+     "wilson90": [
+      0.7337660029958915,
+      0.8819848218176083
+     ]
+    },
+    {
+     "category": "not_enacted",
+     "k": 13.0,
+     "n": 72.0,
+     "p": 0.18493150684931506,
+     "jeffreys90": [
+      0.1158779060469608,
+      0.2638510769011805
+     ],
+     "wilson90": [
+      0.11801517818239166,
+      0.26623399700410855
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "analogs": [
+   {
+    "episode_id": "EP-XXV-ME-112",
+    "title": "Tabakgesetz, Einkommensteuergesetz 1988 u.a., Änderung",
+    "first_draft_date": "2015-04-10",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "partially_implemented",
+    "weight": 2.372
+   },
+   {
+    "episode_id": "EP-XXV-ME-74",
+    "title": "Medizinischer Masseur- und Heilmasseurgesetz (MMHG-Novelle 2015), MTD-Gesetz-Novelle 2015, Medizinisches Assitenzberufe-Gesetz (MABG-Novelle 2015), Änderung",
+    "first_draft_date": "2014-10-21",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 2.248
+   },
+   {
+    "episode_id": "EP-XXV-ME-53",
+    "title": "Ärztegesetz 1998, Änderung",
+    "first_draft_date": "2014-07-25",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "partially_implemented",
+    "weight": 2.186
+   },
+   {
+    "episode_id": "EP-XXV-ME-35",
+    "title": "Lebensmittelangaben-Durchführungsgesetz - LMA-DG; Gesundheits- und Ernährungssicherheitsgesetz, Änderung",
+    "first_draft_date": "2014-04-28",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "lapsed",
+    "weight": 2.126
+   },
+   {
+    "episode_id": "EP-XXIV-ME-540",
+    "title": "EU-Patientenmobilitätsgesetz",
+    "first_draft_date": "2013-07-05",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "partially_implemented",
+    "weight": 1.935
+   },
+   {
+    "episode_id": "EP-XXIV-ME-538",
+    "title": "Psychologengesetz 2013",
+    "first_draft_date": "2013-05-28",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.912
+   },
+   {
+    "episode_id": "EP-XXIV-ME-536",
+    "title": "Gesundheitsberuferegister-Gesetz; Gesundheits- und Krankenpflegegesetz, MTD-Gesetz, Änderung",
+    "first_draft_date": "2013-05-16",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.905
+   },
+   {
+    "episode_id": "EP-XXIV-ME-510",
+    "title": "GuKG-Gesetz-Novelle 2013 und MTD-Gesetz-Novelle 2013",
+    "first_draft_date": "2013-04-17",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "partially_implemented",
+    "weight": 1.887
+   }
+  ],
+  "note": "Historical base rate over comparable first drafts, not a verdict. Reference-class counts only, no trained model.",
+  "measure_class_rate": {
+   "method": "measure_class_descriptive",
+   "level": "measure_class",
+   "n": 16.0,
+   "probs": {
+    "enacted": 0.8529411764705882,
+    "not_enacted": 0.14705882352941177
+   },
+   "rates": [
+    {
+     "category": "enacted",
+     "k": 14.0,
+     "n": 16.0,
+     "p": 0.8529411764705882,
+     "jeffreys90": [
+      0.6949947744631961,
+      0.9631002390290635
+     ],
+     "wilson90": [
+      0.6837869315016181,
+      0.957734125047675
+     ]
+    },
+    {
+     "category": "not_enacted",
+     "k": 2.0,
+     "n": 16.0,
+     "p": 0.14705882352941177,
+     "jeffreys90": [
+      0.0368997609709365,
+      0.30500522553680376
+     ],
+     "wilson90": [
+      0.042265874952325005,
+      0.31621306849838204
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false,
+   "note": "Descriptive only: measure_class is a keyword rule (v1) and is not part of the preregistered baseline; this rate was never scored."
+  },
+  "sentence": "Drafts in this reference class (proposer+coalition) were enacted within 24 months in 44 of 54 comparable cases (90% Jeffreys interval 72 to 89%)."
+ },
+ "forecast_three_class": {
+  "descriptor": {
+   "first_draft_date": "2017-04-21",
+   "proposer_group": "health_ministry",
+   "coalition": "spoe_oevp",
+   "measure_class": "structural_reform"
+  },
+  "pool_size": 72,
+  "forecast_A": {
+   "method": "A",
+   "level": "proposer+coalition",
+   "n": 44.0,
+   "probs": {
+    "implemented": 0.42857142857142855,
+    "partially_implemented": 0.34065934065934067,
+    "not_implemented": 0.23076923076923078
+   },
+   "rates": [
+    {
+     "category": "implemented",
+     "k": 19.0,
+     "n": 44.0,
+     "p": 0.42857142857142855,
+     "jeffreys90": [
+      0.31471506911205616,
+      0.5553598842231828
+     ],
+     "wilson90": [
+      0.31648566872336037,
+      0.5550499230657149
+     ]
+    },
+    {
+     "category": "partially_implemented",
+     "k": 15.0,
+     "n": 44.0,
+     "p": 0.34065934065934067,
+     "jeffreys90": [
+      0.23314544782459284,
+      0.463692387539944
+     ],
+     "wilson90": [
+      0.23566655023725555,
+      0.4645831639372532
+     ]
+    },
+    {
+     "category": "not_implemented",
+     "k": 10.0,
+     "n": 44.0,
+     "p": 0.23076923076923078,
+     "jeffreys90": [
+      0.13784635451800736,
+      0.34242598614332
+     ],
+     "wilson90": [
+      0.14097887436669937,
+      0.34516349278960134
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "forecast_B": {
+   "method": "B",
+   "level": "weighted_analogs",
+   "n": 72,
+   "probs": {
+    "implemented": 0.3750029625199772,
+    "partially_implemented": 0.41087605913960207,
+    "not_implemented": 0.21412097834042074
+   },
+   "rates": [
+    {
+     "category": "implemented",
+     "k": 28.75097935557358,
+     "n": 76.50199539494389,
+     "p": 0.3750029625199772,
+     "jeffreys90": [
+      0.2891991036338495,
+      0.4692662147346497
+     ],
+     "wilson90": [
+      0.2904476806027807,
+      0.46967569957181776
+     ]
+    },
+    {
+     "category": "partially_implemented",
+     "k": 31.549152472899934,
+     "n": 76.50199539494389,
+     "p": 0.41087605913960207,
+     "jeffreys90": [
+      0.32331739063083553,
+      0.506290760235925
+     ],
+     "wilson90": [
+      0.324360075412257,
+      0.5064175166716233
+     ]
+    },
+    {
+     "category": "not_implemented",
+     "k": 16.20186356647038,
+     "n": 76.50199539494389,
+     "p": 0.21412097834042074,
+     "jeffreys90": [
+      0.14352406764016123,
+      0.2958739819828692
+     ],
+     "wilson90": [
+      0.14547782924417052,
+      0.29777884931455234
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "status_quo": {
+   "method": "status_quo",
+   "level": "all",
+   "n": 56.0,
+   "probs": {
+    "implemented": 0.3565217391304348,
+    "partially_implemented": 0.40869565217391307,
+    "not_implemented": 0.23478260869565218
+   },
+   "rates": [
+    {
+     "category": "implemented",
+     "k": 20.0,
+     "n": 56.0,
+     "p": 0.3565217391304348,
+     "jeffreys90": [
+      0.25878119950051515,
+      0.46616672092435707
+     ],
+     "wilson90": [
+      0.26065159109448466,
+      0.466801745360681
+     ]
+    },
+    {
+     "category": "partially_implemented",
+     "k": 23.0,
+     "n": 56.0,
+     "p": 0.40869565217391307,
+     "jeffreys90": [
+      0.30763827915832953,
+      0.5204549443581332
+     ],
+     "wilson90": [
+      0.3091352629957926,
+      0.520523072288686
+     ]
+    },
+    {
+     "category": "not_implemented",
+     "k": 13.0,
+     "n": 56.0,
+     "p": 0.23478260869565218,
+     "jeffreys90": [
+      0.15049698917165677,
+      0.3337673938488005
+     ],
+     "wilson90": [
+      0.1530136917644485,
+      0.335961314088987
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "analogs": [
+   {
+    "episode_id": "EP-XXV-ME-112",
+    "title": "Tabakgesetz, Einkommensteuergesetz 1988 u.a., Änderung",
+    "first_draft_date": "2015-04-10",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "partially_implemented",
+    "weight": 2.372
+   },
+   {
+    "episode_id": "EP-XXV-ME-74",
+    "title": "Medizinischer Masseur- und Heilmasseurgesetz (MMHG-Novelle 2015), MTD-Gesetz-Novelle 2015, Medizinisches Assitenzberufe-Gesetz (MABG-Novelle 2015), Änderung",
+    "first_draft_date": "2014-10-21",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 2.248
+   },
+   {
+    "episode_id": "EP-XXV-ME-53",
+    "title": "Ärztegesetz 1998, Änderung",
+    "first_draft_date": "2014-07-25",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "partially_implemented",
+    "weight": 2.186
+   },
+   {
+    "episode_id": "EP-XXV-ME-35",
+    "title": "Lebensmittelangaben-Durchführungsgesetz - LMA-DG; Gesundheits- und Ernährungssicherheitsgesetz, Änderung",
+    "first_draft_date": "2014-04-28",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "lapsed",
+    "weight": 2.126
+   },
+   {
+    "episode_id": "EP-XXIV-ME-540",
+    "title": "EU-Patientenmobilitätsgesetz",
+    "first_draft_date": "2013-07-05",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "partially_implemented",
+    "weight": 1.935
+   },
+   {
+    "episode_id": "EP-XXIV-ME-538",
+    "title": "Psychologengesetz 2013",
+    "first_draft_date": "2013-05-28",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.912
+   },
+   {
+    "episode_id": "EP-XXIV-ME-536",
+    "title": "Gesundheitsberuferegister-Gesetz; Gesundheits- und Krankenpflegegesetz, MTD-Gesetz, Änderung",
+    "first_draft_date": "2013-05-16",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.905
+   },
+   {
+    "episode_id": "EP-XXIV-ME-510",
+    "title": "GuKG-Gesetz-Novelle 2013 und MTD-Gesetz-Novelle 2013",
+    "first_draft_date": "2013-04-17",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "partially_implemented",
+    "weight": 1.887
+   }
+  ],
+  "note": "Historical base rate over comparable first drafts, not a verdict. Reference-class counts only, no trained model.",
+  "measure_class_rate": {
+   "method": "measure_class_descriptive",
+   "level": "measure_class",
+   "n": 12.0,
+   "probs": {
+    "implemented": 0.18518518518518517,
+    "partially_implemented": 0.6296296296296297,
+    "not_implemented": 0.18518518518518517
+   },
+   "rates": [
+    {
+     "category": "implemented",
+     "k": 2.0,
+     "n": 12.0,
+     "p": 0.18518518518518517,
+     "jeffreys90": [
+      0.049733496253377626,
+      0.38995878523885275
+     ],
+     "wilson90": [
+      0.05678055274944438,
+      0.39920691041554024
+     ]
+    },
+    {
+     "category": "partially_implemented",
+     "k": 8.0,
+     "n": 12.0,
+     "p": 0.6296296296296297,
+     "jeffreys90": [
+      0.4309402588174608,
+      0.8488736856243413
+     ],
+     "wilson90": [
+      0.4314916133433481,
+      0.8405146550741593
+     ]
+    },
+    {
+     "category": "not_implemented",
+     "k": 2.0,
+     "n": 12.0,
+     "p": 0.18518518518518517,
+     "jeffreys90": [
+      0.049733496253377626,
+      0.38995878523885275
+     ],
+     "wilson90": [
+      0.05678055274944438,
+      0.39920691041554024
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": true,
+   "note": "Descriptive only: measure_class is a keyword rule (v1) and is not part of the preregistered baseline; this rate was never scored."
+  },
+  "sentence": "Implemented as drafted in 19 of 44 comparable cases (proposer+coalition)."
+ }
+}
