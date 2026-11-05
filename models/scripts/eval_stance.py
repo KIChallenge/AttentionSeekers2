@@ -62,6 +62,8 @@ def main():
     ap.add_argument("--base-model", default="Qwen/Qwen3-8B")
     ap.add_argument("--adapter-model", default="{role}")
     ap.add_argument("--judge-model", default=os.environ.get("JUDGE_MODEL", "gpt-4.1"))
+    ap.add_argument("--judge-temperature", default=os.environ.get("JUDGE_TEMPERATURE", "0"),
+                    help="'none' omits it (reasoning judges such as gpt-6-sol only accept the default)")
     ap.add_argument("--no-classifier", action="store_true")
     ap.add_argument("--workers", type=int, default=8)
     a = ap.parse_args()
@@ -91,7 +93,8 @@ def main():
         return re.sub(r"<think>.*?</think>", "", r.choices[0].message.content or "", flags=re.S).strip()
 
     def judge_one(context, text):
-        out = judge.chat.completions.create(model=a.judge_model, temperature=0, response_format={"type": "json_object"},
+        kw = {} if a.judge_temperature == "none" else {"temperature": float(a.judge_temperature)}
+        out = judge.chat.completions.create(model=a.judge_model, response_format={"type": "json_object"}, **kw,
                                             messages=[{"role": "user", "content": JUDGE.format(context=context, text=text)}])
         j = json.loads(out.choices[0].message.content)
         return max(-2, min(2, int(j["stance"]))), j.get("demand", "")
