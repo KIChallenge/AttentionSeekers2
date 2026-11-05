@@ -5,7 +5,8 @@
 
 Model ids: sv-<role> (e.g. sv-medical_chamber, sv-social_insurance) select the institution adapter;
 sv-base (alias Qwen/Qwen3-8B) is the prompted base model. Each call is signed with SigV4 by boto3 using
-the default AWS profile (SSO) and sent to InvokeEndpoint with InferenceComponentName.
+the default AWS profile (SSO) and sent to InvokeEndpoint. SV_SM_MODE=adapters (default, the shipped
+single-model endpoint) puts "adapters": "<role>" in the body; SV_SM_MODE=ic uses InferenceComponentName.
 
 Qwen3 runs in non-thinking mode, as in training: the proxy renders the Qwen3 chat template with an empty
 think block itself and sends the LMI `inputs`/`parameters` schema. `stream: true` is answered as SSE
@@ -16,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 import uuid
@@ -27,7 +29,8 @@ from botocore.config import Config
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import BASE_IC, BASE_MODEL, ENDPOINT, ROLES, ic_name, session  # noqa: E402
 
-MODELS = {f"sv-{r}": ic_name(r) for r in ROLES} | {"sv-base": BASE_IC, BASE_MODEL: BASE_IC}
+MODE = os.environ.get("SV_SM_MODE", "adapters")
+MODELS = {f"sv-{r}": r for r in ROLES} | {"sv-base": "base", BASE_MODEL: "base"}  # model id -> target
 _rt = None
 
 
@@ -53,14 +56,20 @@ def render(messages: list[dict]) -> str:
     return "".join(out) + "<|im_start|>assistant\n<think>\n\n</think>\n\n"
 
 
-def generate(component: str, messages: list[dict], max_tokens: int = 600, temperature: float = 0.7,
+def generate(target: str, messages: list[dict], max_tokens: int = 600, temperature: float = 0.7,
              top_p: float = 0.9) -> str:
+    """target: 'base' or a role id."""
     params = {"max_new_tokens": int(max_tokens), "temperature": float(temperature), "top_p": float(top_p)}
     if params["temperature"] <= 0:
         params["temperature"] = 0.01
-    r = runtime().invoke_endpoint(EndpointName=ENDPOINT, InferenceComponentName=component,
-                                  ContentType="application/json", Accept="application/json",
-                                  Body=json.dumps({"inputs": render(messages), "parameters": params}))
+    body = {"inputs": render(messages), "parameters": params}
+    kw = {}
+    if MODE == "ic":
+        kw["InferenceComponentName"] = BASE_IC if target == "base" else ic_name(target)
+    elif target != "base":
+        body["adapters"] = target
+    r = runtime().invoke_endpoint(EndpointName=ENDPOINT, ContentType="application/json", Accept="application/json",
+                                  Body=json.dumps(body), **kw)
     body = json.loads(r["Body"].read())
     if isinstance(body, list):
         body = body[0]
@@ -97,13 +106,13 @@ class Handler(BaseHTTPRequestHandler):
         except json.JSONDecodeError:
             return self._send(400, {"error": {"message": "invalid JSON"}})
         model = req.get("model", "")
-        comp = MODELS.get(model)
-        if comp is None:
+        target = MODELS.get(model)
+        if target is None:
             return self._send(404, {"error": {"message": f"unknown model {model!r}; known: {sorted(MODELS)}",
                                               "type": "invalid_request_error"}})
         t0 = time.time()
         try:
-            text = generate(comp, req.get("messages", []),
+            text = generate(target, req.get("messages", []),
                             max_tokens=req.get("max_tokens") or req.get("max_completion_tokens") or 600,
                             temperature=req.get("temperature", 0.7), top_p=req.get("top_p", 0.9))
         except Exception as e:  # noqa: BLE001

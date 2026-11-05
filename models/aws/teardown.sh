@@ -41,7 +41,15 @@ for ic in $ics; do
 done
 for ic in $ics; do
   [ "$ic" = "sv-base" ] || continue
-  if [ "$DRY" = 0 ]; then sleep 20; fi
+  # a base component cannot be deleted while adapter components still reference it
+  if [ "$DRY" = 0 ]; then
+    for _ in $(seq 60); do
+      n="$("${SM[@]}" list-inference-components --endpoint-name-equals "$ENDPOINT" \
+          --query 'length(InferenceComponents)' --output text)"
+      [ "$n" -le 1 ] && break
+      sleep 10
+    done
+  fi
   run "${SM[@]}" delete-inference-component --inference-component-name "$ic"
 done
 if "${SM[@]}" describe-endpoint --endpoint-name "$ENDPOINT" >/dev/null 2>&1; then
