@@ -130,6 +130,14 @@
       "speed": 1,
       "gender": "male",
       "locale": "de-DE"
+    },
+    "nr": {
+      "id": "pNInz6obpgDQGcFmaJgB",
+      "name": "Adam",
+      "category": "premade",
+      "speed": 1.0,
+      "gender": "male",
+      "locale": "de-DE"
     }
   }
 }

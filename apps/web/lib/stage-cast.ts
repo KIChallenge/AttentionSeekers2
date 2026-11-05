@@ -177,11 +177,13 @@ export const CAST: Record<string, CastEntry> = {
     azure: { de: az("de-DE-BerndNeural", "-6%"), en: az("en-GB-NoahNeural", "-6%") },
   },
   // optional institutions (FR-A9)
+  // Every seat needs an ElevenLabs voice; the free tier has only seven female premade voices for
+  // eight female-cast seats, so the legislature seat is cast male with a voice no other seat uses.
   nr: {
-    gender: "female",
-    eleven: null,
+    gender: "male",
+    eleven: "pNInz6obpgDQGcFmaJgB",
     speed: 1.0,
-    azure: { de: az("de-DE-KlarissaNeural", "-1%"), en: az("en-GB-AbbiNeural", "-1%") },
+    azure: { de: az("de-DE-KasperNeural", "-1%"), en: az("en-GB-OliverNeural", "-1%") },
   },
   ph: {
     gender: "female",
