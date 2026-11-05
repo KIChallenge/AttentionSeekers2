@@ -21,6 +21,8 @@
  *   descriptor.ts  MeasureClass, OutcomeDescriptor (mirror of schema v0.1)
  *   outcome.ts     ImpactFigure, Forecast, RatificationVote, MethodNote
  *   run.ts         Mandate, RunVariant, EndCondition, Run, RunSummary
+ *   llm-calls.ts   LlmCall, LlmCallParentKind, LlmCallStatus, MODEL_PRICES (estimates),
+ *                  estimateCostUsd, providerOf, modelFamily, deriveLlmCalls (agent trace)
  *   events.ts      RunEvent (NDJSON protocol v1), parseNdjson, NdjsonBuffer
  *   snapshot.ts    RunSnapshot, emptySnapshot, reduceRun, foldRun, RunSequenceError,
  *                  positionAt, pathLength, topicStatus, summarizeRun
@@ -43,6 +45,8 @@
  *   Proposal.capacityEffect, .measureClass, .financing, .components (impact model,
  *   forecast inputs, package contents).
  * - 2026-11-05 engine: Telemetry.reasoningTokens.
+ * - 2026-11-06 agent trace: RunEvent "llm.call" (one per model call) and
+ *   RunSnapshot.llmCalls; older runs fold to an empty list and use deriveLlmCalls.
  */
 export * from "./agents.ts";
 export * from "./catalog.ts";
@@ -50,6 +54,7 @@ export * from "./claims.ts";
 export * from "./descriptor.ts";
 export * from "./events.ts";
 export * from "./evidence.ts";
+export * from "./llm-calls.ts";
 export * from "./outcome.ts";
 export * from "./primitives.ts";
 export * from "./proposals.ts";

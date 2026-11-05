@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Position } from "./agents.ts";
 import { Claim } from "./claims.ts";
+import { LlmCall } from "./llm-calls.ts";
 import { Forecast, ImpactFigure, RatificationVote } from "./outcome.ts";
 import { AgentId, Lang, LocalizedText, ModelId, SpeakerId, UtteranceId } from "./primitives.ts";
 import { Proposal, RoundSummary } from "./proposals.ts";
@@ -117,6 +118,8 @@ export const RunEvent = z.discriminatedUnion("type", [
     message: z.string(),
     retryable: z.boolean(),
   }),
+  /** Added 2026-11-06 (agent trace): one model call, emitted when it finishes. */
+  z.object({ ...Envelope, type: z.literal("llm.call"), call: LlmCall }),
   z.object({ ...Envelope, type: z.literal("heartbeat") }),
 ]);
 export type RunEvent = z.infer<typeof RunEvent>;
