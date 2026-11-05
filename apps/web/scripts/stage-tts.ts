@@ -1,7 +1,8 @@
 // Pre-renders one audio file per utterance for the avatar stage (PRD 2.15, FR-S2, FR-S3).
 //
 //   pnpm --filter @sv/web stage:tts <runId> [--lang de|en|both] [--from <url>] [--limit N]
-//                                          [--dry-run] [--force]
+//                                          [--dry-run] [--force] [--provider azure|elevenlabs]
+//                                          [--span showpiece|all] [--budget N] [--ids a,b]
 //
 // Source of the record: runs/<runId>.ndjson (SV_REPLAY_DIR), else the running app's stream
 // route (--from http://localhost:3001, speed=0). Output: apps/web/public/stage/<runId>/<lang>/
@@ -19,6 +20,19 @@
 //   openai           POST {OPENAI_COMPATIBLE_BASE_URL}/audio/speech, deployment STAGE_TTS_MODEL
 //                    (default gpt-4o-mini-tts). Probe on 2026-11-05: listed under /models but
 //                    not deployed on the team resource (404 DeploymentNotFound).
+//   elevenlabs       POST https://api.elevenlabs.io/v1/text-to-speech/{voice_id}, model
+//                    ELEVENLABS_MODEL (default eleven_multilingual_v2), mp3_44100_128, no request
+//                    stitching. Key: ELEVENLABS_API_KEY. Writes <utteranceId>.el.mp3 and
+//                    manifest.elevenlabs.json next to the Azure files; the stage prefers the
+//                    .el.mp3 per utterance and plays Azure everywhere else. Any ElevenLabs error
+//                    falls back to Azure for that utterance. Characters are capped by --budget
+//                    (default 8000) and by the account's remaining quota minus a 500 reserve;
+//                    --span showpiece (default for this provider) voices only the FR-S8 exchange
+//                    and its neighbours. Voices and the upgrade path: public/stage/VOICES.md.
+//                    Free-tier audio is non-commercial and must be attributed to ElevenLabs.
+//
+// The on-demand route (app/api/runs/[runId]/tts) always renders with Azure, so live runs never
+// depend on the ElevenLabs quota.
 //
 // Voices are fixed per institution so each keeps the same voice across runs (FR-S2), and the
 // speaking rate varies slightly per speaker. They are stock synthetic voices; none imitates a
@@ -27,6 +41,14 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { foldRun, type RunEvent } from "@sv/contracts";
+import {
+  type AudioManifest,
+  EL_MANIFEST,
+  orderedUtterances,
+  pickSharpestExchange,
+  showpieceSpan,
+} from "../components/stage/stage-logic.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, "..");
@@ -84,6 +106,29 @@ const OPENAI_STYLE: Record<string, string> = {
   en: "Speak clear, neutral English at a calm negotiation pace, as in a formal meeting.",
 };
 
+/**
+ * ElevenLabs premade voices per speaker (the free tier rejects library voices over the API with
+ * 402 paid_plan_required, so only premade voices are usable). All eleven are verified for German
+ * (de-DE) on eleven_multilingual_v2 and none is a clone of a public figure. Speakers outside this
+ * table stay on Azure. Details and the upgrade path: public/stage/VOICES.md.
+ */
+const ELEVEN_VOICES: Record<string, { id: string; name: string; speed: number }> = {
+  moderator: { id: "XrExE9yKIg1WjnnlVkGX", name: "Matilda", speed: 1.0 },
+  gm: { id: "onwK4e9ZLuTAKqWW03F9", name: "Daniel", speed: 1.0 },
+  sv: { id: "pFZP5JQG7iQjIQuC4Bku", name: "Lily", speed: 1.03 },
+  ak: { id: "pqHfZKP75CvOlQylNhV4", name: "Bill", speed: 0.97 },
+  va: { id: "cjVigY5qzO86Huf0OWal", name: "Eric", speed: 1.04 },
+  ka: { id: "FGY2WhTYpPnrIDTdsKH5", name: "Laura", speed: 1.0 },
+  pf: { id: "cgSgspJ2msm6clMCkdW9", name: "Jessica", speed: 1.02 },
+  bl: { id: "CwhRBWXzGAHq8TQ4Fs17", name: "Roger", speed: 0.98 },
+  pv: { id: "TX3LPaxmHKxFdv7VOQHJ", name: "Liam", speed: 1.04 },
+  fm: { id: "nPczCjzI2devNBz1zQrb", name: "Brian", speed: 0.96 },
+  expert: { id: "bIHbv24MWmeRgasZH58o", name: "Will", speed: 0.98 },
+};
+const ELEVEN_ATTRIBUTION =
+  "Stimmen in diesem Abschnitt: ElevenLabs (elevenlabs.io), Free-Tarif, nicht kommerziell.";
+const ELEVEN_RESERVE = 500;
+
 interface Utt {
   id: string;
   speaker: string;
@@ -112,7 +157,15 @@ function loadEnv(): Record<string, string> {
 
 function args() {
   const a = process.argv.slice(2);
-  const valued = new Set(["--lang", "--from", "--limit"]);
+  const valued = new Set([
+    "--lang",
+    "--from",
+    "--limit",
+    "--provider",
+    "--span",
+    "--budget",
+    "--ids",
+  ]);
   const get = (k: string) => {
     const i = a.indexOf(k);
     return i >= 0 ? a[i + 1] : undefined;
@@ -125,14 +178,23 @@ function args() {
     limit: Number(get("--limit") ?? "0") || 0,
     dry: a.includes("--dry-run"),
     force: a.includes("--force"),
+    provider: get("--provider"),
+    span: get("--span"),
+    budget: Number(get("--budget") ?? "0") || 0,
+    ids: get("--ids")?.split(",").filter(Boolean),
   };
 }
 
-function parseUtterances(ndjson: string): Utt[] {
+function parseEvents(ndjson: string): RunEvent[] {
+  return ndjson
+    .split("\n")
+    .filter((l) => l.trim())
+    .map((l) => JSON.parse(l) as RunEvent);
+}
+
+function utterancesOf(events: RunEvent[]): Utt[] {
   const out: Utt[] = [];
-  for (const line of ndjson.split("\n")) {
-    if (!line.trim()) continue;
-    const e = JSON.parse(line) as { type: string; utterance?: Utt };
+  for (const e of events as Array<{ type: string; utterance?: Utt }>) {
     if (e.type === "utterance.completed" && e.utterance) out.push(e.utterance);
   }
   return out;
@@ -141,11 +203,11 @@ function parseUtterances(ndjson: string): Utt[] {
 async function loadRecord(runId: string, from: string | undefined, env: Record<string, string>) {
   const dir = path.resolve(repoRoot, env.SV_REPLAY_DIR ?? "runs");
   const file = path.join(dir, `${runId}.ndjson`);
-  if (!from && existsSync(file)) return parseUtterances(readFileSync(file, "utf8"));
+  if (!from && existsSync(file)) return parseEvents(readFileSync(file, "utf8"));
   const base = from ?? "http://localhost:3001";
   const r = await fetch(`${base}/api/runs/${encodeURIComponent(runId)}/stream?speed=0`);
   if (!r.ok) throw new Error(`stream ${r.status}: run ${runId} not found at ${base}`);
-  return parseUtterances(await r.text());
+  return parseEvents(await r.text());
 }
 
 const textFor = (u: Utt, lang: string) =>
@@ -236,6 +298,200 @@ async function openaiSynth(
   return Buffer.from(await r.arrayBuffer());
 }
 
+const EL_API = "https://api.elevenlabs.io/v1";
+
+async function elevenQuota(key: string): Promise<{ used: number; limit: number; tier: string }> {
+  const r = await fetch(`${EL_API}/user/subscription`, { headers: { "xi-api-key": key } });
+  if (!r.ok) throw new Error(`ElevenLabs subscription ${r.status}`);
+  const d = (await r.json()) as { character_count: number; character_limit: number; tier: string };
+  return { used: d.character_count, limit: d.character_limit, tier: d.tier };
+}
+
+/** One utterance, one request: no previous_text/next_text or request ids (stitching off). */
+async function elevenSynth(
+  key: string,
+  model: string,
+  voiceId: string,
+  speed: number,
+  text: string,
+) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const r = await fetch(
+      `${EL_API}/text-to-speech/${encodeURIComponent(voiceId)}?output_format=mp3_44100_128`,
+      {
+        method: "POST",
+        headers: { "xi-api-key": key, "Content-Type": "application/json", Accept: "audio/mpeg" },
+        body: JSON.stringify({
+          text,
+          model_id: model,
+          // calm negotiation register: steady but not flat, close to the voice, little styling
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75,
+            style: 0.15,
+            use_speaker_boost: true,
+            speed,
+          },
+        }),
+      },
+    );
+    if (r.ok) return Buffer.from(await r.arrayBuffer());
+    // 429 is concurrency on the free tier: wait once; everything else goes to the fallback
+    if (r.status !== 429 || attempt > 0) {
+      throw new Error(`ElevenLabs ${r.status}: ${(await r.text()).slice(0, 200)}`);
+    }
+    await new Promise((res) => setTimeout(res, 3000));
+  }
+  throw new Error("ElevenLabs: retries exhausted");
+}
+
+function readManifest(file: string): AudioManifest | null {
+  if (!existsSync(file)) return null;
+  try {
+    return JSON.parse(readFileSync(file, "utf8")) as AudioManifest;
+  } catch {
+    return null;
+  }
+}
+
+function writeManifest(file: string, m: AudioManifest) {
+  writeFileSync(file, `${JSON.stringify(m, null, 2)}\n`);
+}
+
+/**
+ * ElevenLabs variant for one language. Voices a span of utterances (the FR-S8 showpiece by
+ * default) into <id>.el.mp3 and merges them into manifest.elevenlabs.json. An utterance that
+ * fails gets an Azure file instead (if it has none yet), merged into manifest.json.
+ */
+async function renderEleven(
+  opt: ReturnType<typeof args>,
+  env: Record<string, string>,
+  events: RunEvent[],
+  lang: string,
+) {
+  const key = env.ELEVENLABS_API_KEY ?? "";
+  if (!key) throw new Error("no ELEVENLABS_API_KEY");
+  const model = env.ELEVENLABS_MODEL ?? "eleven_multilingual_v2";
+  const all = orderedUtterances(foldRun(events)) as unknown as Utt[];
+  const chars = (i: number) => {
+    const u = all[i];
+    return u ? textFor(u, lang).length : 0;
+  };
+  const budget = opt.budget || 8000;
+  let pick: number[];
+  if (opt.ids) pick = all.flatMap((u, i) => (opt.ids?.includes(u.id) ? [i] : []));
+  else if ((opt.span ?? "showpiece") === "all") pick = all.map((_, i) => i);
+  else pick = showpieceSpan(all, pickSharpestExchange(foldRun(events)), budget, chars);
+  if (opt.limit) pick = pick.slice(0, opt.limit);
+  const planned = pick.reduce((n, i) => n + chars(i), 0);
+  const ex = pickSharpestExchange(foldRun(events));
+  console.log(
+    `elevenlabs ${lang}: ${pick.length} utterances, ${planned} characters` +
+      (ex ? ` (exchange ${ex.fromId} -> ${ex.toId})` : "") +
+      (pick.length
+        ? `, span ${all[pick[0] ?? 0]?.id} .. ${all[pick[pick.length - 1] ?? 0]?.id}`
+        : ""),
+  );
+  const q = await elevenQuota(key);
+  const left = q.limit - q.used;
+  console.log(`quota before: ${q.used}/${q.limit} used (${q.tier}), ${left} left`);
+  if (planned > budget) throw new Error(`planned ${planned} > --budget ${budget}`);
+  if (planned > left - ELEVEN_RESERVE) {
+    throw new Error(`planned ${planned} > remaining quota ${left} minus reserve ${ELEVEN_RESERVE}`);
+  }
+  if (opt.dry) return;
+
+  const outDir = path.join(webRoot, "public", "stage", opt.runId ?? "", lang);
+  mkdirSync(outDir, { recursive: true });
+  const elFile = path.join(outDir, EL_MANIFEST);
+  const prev = readManifest(elFile);
+  const files: Record<string, string> = { ...(prev?.files ?? {}) };
+  const failed: Utt[] = [];
+  let spent = 0;
+  for (const i of pick) {
+    const u = all[i];
+    if (!u) continue;
+    const v = ELEVEN_VOICES[u.speaker];
+    const name = `${u.id}.el.mp3`;
+    if (!v) {
+      console.log(`\n${u.id}: no ElevenLabs voice for ${u.speaker}, stays on Azure`);
+      continue;
+    }
+    if (existsSync(path.join(outDir, name)) && !opt.force) {
+      files[u.id] = name;
+      continue;
+    }
+    const text = textFor(u, lang);
+    try {
+      writeFileSync(path.join(outDir, name), await elevenSynth(key, model, v.id, v.speed, text));
+      files[u.id] = name;
+      spent += text.length;
+      process.stdout.write(
+        `\r${lang} ${Object.keys(files).length} el files, ${spent} chars ${u.id}   `,
+      );
+    } catch (e) {
+      console.log(`\n${u.id}: ${e instanceof Error ? e.message : e}; Azure fallback`);
+      delete files[u.id];
+      failed.push(u);
+    }
+  }
+  writeManifest(elFile, {
+    runId: opt.runId ?? "",
+    lang,
+    model: `elevenlabs/${model}`,
+    provider: "elevenlabs",
+    attribution: ELEVEN_ATTRIBUTION,
+    voices: Object.fromEntries(
+      Object.entries(ELEVEN_VOICES).map(([k, v]) => [k, `${v.name} ${v.id}`]),
+    ),
+    files,
+  });
+  if (failed.length) await azureFallback(opt.runId ?? "", env, lang, outDir, failed);
+  const after = await elevenQuota(key).catch(() => null);
+  console.log(
+    `\nelevenlabs ${lang}: ${spent} characters sent, ${Object.keys(files).length} files in ${EL_MANIFEST}` +
+      (after
+        ? `; quota after: ${after.used}/${after.limit} (${after.limit - after.used} left)`
+        : ""),
+  );
+}
+
+/** Azure files for utterances ElevenLabs could not voice, merged into manifest.json. */
+async function azureFallback(
+  runId: string,
+  env: Record<string, string>,
+  lang: string,
+  outDir: string,
+  utts: Utt[],
+) {
+  const key = env.STAGE_TTS_KEY ?? env.OPENAI_COMPATIBLE_API_KEY ?? "";
+  const region = env.STAGE_TTS_REGION ?? "germanywestcentral";
+  if (!key) {
+    console.log("no Azure key: failed utterances stay silent");
+    return;
+  }
+  const speakers = [...new Set(["moderator", ...utts.map((u) => u.speaker), "expert"])];
+  const table = await azureVoiceTable(region, key, lang, speakers);
+  const mFile = path.join(outDir, "manifest.json");
+  const m: AudioManifest = readManifest(mFile) ?? {
+    runId,
+    lang,
+    model: `azure-speech/${region}`,
+    voices: {},
+    files: {},
+  };
+  for (const u of utts) {
+    const name = `${u.id}.mp3`;
+    if (!existsSync(path.join(outDir, name))) {
+      const v = table[u.speaker] ?? { voice: "de-AT-IngridNeural", rate: "+0%" };
+      writeFileSync(path.join(outDir, name), await azureSynth(region, key, v, textFor(u, lang)));
+    }
+    m.files[u.id] = name;
+  }
+  writeManifest(mFile, m);
+  console.log(`azure fallback: ${utts.length} utterances in manifest.json`);
+}
+
 async function main() {
   const opt = args();
   if (!opt.runId) {
@@ -245,14 +501,23 @@ async function main() {
     process.exit(2);
   }
   const env = loadEnv();
-  const provider = env.STAGE_TTS_PROVIDER ?? "azure";
+  const provider = opt.provider ?? env.STAGE_TTS_PROVIDER ?? "azure";
+  if (provider === "elevenlabs") {
+    const events = await loadRecord(opt.runId, opt.from, env);
+    // German unless a language is asked for: the quota is too small for both
+    const explicit = process.argv.includes("--lang");
+    for (const lang of opt.lang === "both" ? (explicit ? ["de", "en"] : ["de"]) : [opt.lang]) {
+      await renderEleven(opt, env, events, lang);
+    }
+    return;
+  }
   const key = env.STAGE_TTS_KEY ?? env.OPENAI_COMPATIBLE_API_KEY ?? "";
   const region = env.STAGE_TTS_REGION ?? "germanywestcentral";
   const base = (env.OPENAI_COMPATIBLE_BASE_URL ?? "").replace(/\/$/, "");
   const model = env.STAGE_TTS_MODEL ?? "gpt-4o-mini-tts";
   if (!key) throw new Error("no TTS key: set STAGE_TTS_KEY or OPENAI_COMPATIBLE_API_KEY");
 
-  let utts = await loadRecord(opt.runId, opt.from, env);
+  let utts = utterancesOf(await loadRecord(opt.runId, opt.from, env));
   if (opt.limit) utts = utts.slice(0, opt.limit);
   const speakers = [...new Set(["moderator", ...utts.map((u) => u.speaker), "expert"])];
   const langs = opt.lang === "both" ? ["de", "en"] : [opt.lang];
