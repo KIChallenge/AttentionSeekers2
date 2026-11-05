@@ -50,6 +50,30 @@ export function agentLook(run: Run | null, id: string, lang: Lang): AgentLook {
 
 export const L = (v: LocalizedText | null | undefined, lang: Lang) => (v ? localize(v, lang) : "");
 
+/** Functional delegate role ("Verhandlungsführung") of a speaker, or "" when none is set. */
+export function delegateRole(
+  run: Run | null,
+  speaker: string,
+  delegateId: string | null | undefined,
+  lang: Lang,
+): string {
+  if (!delegateId) return "";
+  const d = run?.agents.find((a) => a.id === speaker)?.delegates?.find((x) => x.id === delegateId);
+  return d ? localize(d.role, lang) : "";
+}
+
+/** "Ärztekammer, Verhandlungsführung": institution plus delegate role when the run names one. */
+export function speakerLine(
+  run: Run | null,
+  speaker: string,
+  delegateId: string | null | undefined,
+  lang: Lang,
+): string {
+  const name = agentLook(run, speaker, lang).name;
+  const role = delegateRole(run, speaker, delegateId, lang);
+  return role ? `${name}, ${role}` : name;
+}
+
 export function fmtStance(v: number): string {
   const s = v.toFixed(1).replace("-", "−");
   return v > 0 ? `+${s}` : s;

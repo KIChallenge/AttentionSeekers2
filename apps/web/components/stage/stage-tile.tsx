@@ -102,8 +102,10 @@ export const StageTile = memo(function StageTile({
   label,
   active,
   answered,
+  addressed = false,
   dimmed,
   speakingLabel,
+  addressedLabel = "",
 }: {
   role: TileRole;
   code: string;
@@ -113,26 +115,34 @@ export const StageTile = memo(function StageTile({
   active: boolean;
   /** The utterance on screen answers this tile's earlier utterance. */
   answered: boolean;
+  /** The utterance on screen is addressed to this tile (bilateral or caucus partner). */
+  addressed?: boolean;
   dimmed: boolean;
   speakingLabel: string;
+  addressedLabel?: string;
 }) {
   return (
     <figure
-      aria-label={active ? `${label}, ${speakingLabel}` : label}
+      aria-label={
+        active ? `${label}, ${speakingLabel}` : addressed ? `${label}, ${addressedLabel}` : label
+      }
       title={label}
       data-active={active || undefined}
       className={cn(
         "relative flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border bg-card transition-[opacity,transform,box-shadow,filter] duration-300",
         active && "z-10 scale-[1.04] shadow-lg",
-        dimmed && !active && !answered && "opacity-45 saturate-50",
-        answered && !active && "opacity-90",
+        dimmed && !active && !answered && !addressed && "opacity-45 saturate-50",
+        (answered || addressed) && !active && "opacity-90",
+        addressed && !active && "scale-[1.01]",
       )}
       style={{
         boxShadow: active
           ? `0 0 0 4px ${color}, 0 12px 32px -8px color-mix(in srgb, ${color} 55%, transparent)`
-          : answered
-            ? `0 0 0 2px color-mix(in srgb, ${color} 60%, transparent)`
-            : undefined,
+          : addressed
+            ? `0 0 0 3px color-mix(in srgb, ${color} 80%, transparent)`
+            : answered
+              ? `0 0 0 2px color-mix(in srgb, ${color} 60%, transparent)`
+              : undefined,
         background: `linear-gradient(180deg, color-mix(in srgb, ${color} ${active ? 16 : 7}%, var(--card)) 0%, var(--card) 85%)`,
       }}
     >
@@ -149,6 +159,10 @@ export const StageTile = memo(function StageTile({
         {active ? (
           <span className="text-xs font-medium" style={{ color }}>
             {speakingLabel}
+          </span>
+        ) : addressed ? (
+          <span className="text-xs font-medium" style={{ color }}>
+            ← {addressedLabel}
           </span>
         ) : answered ? (
           <span className="text-xs text-muted-foreground">↩</span>

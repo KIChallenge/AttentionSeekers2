@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { laneT } from "@/components/entity/messages";
 import { AgentTile } from "@/components/run/agent-tile";
 import { usePrefs } from "@/components/shell/providers";
+import { SpeakerTimeline } from "@/components/timeline/speaker-timeline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -143,6 +144,10 @@ export function ReplayPlayer({ runId, events }: { runId: string; events: RunEven
 
   const phase = PHASES[s.currentPhase - 1];
   const total = events.at(-1)?.tMs ?? 0;
+  // the timeline draws the whole record; what lies past the scrubber is a ghost
+  const full = snaps[end] ?? s;
+  const cursorUtt = pendingId ?? lastUtt;
+  const cursorSeq = cursorUtt ? (full.utterances[cursorUtt]?.seq ?? 0) - (pendingId ? 1 : 0) : 0;
   const utterIds = marks.utterances.map((u) => u.id);
 
   return (
@@ -292,6 +297,18 @@ export function ReplayPlayer({ runId, events }: { runId: string; events: RunEven
           </Button>
         </div>
       </div>
+
+      <SpeakerTimeline
+        snap={full}
+        run={full.run}
+        lang={lang}
+        activeId={cursorUtt}
+        selectedId={lastUtt}
+        cursorSeq={cursorSeq}
+        progress={pendingId ? 0.5 : 1}
+        onSelect={seekUtterance}
+        collapsible
+      />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <Transcript s={s} lang={lang} currentUtterance={lastUtt} onSelect={seekUtterance} />
