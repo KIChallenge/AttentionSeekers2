@@ -1,0 +1,676 @@
+{
+ "fixture": "sv-og-2018",
+ "note": "Backtest fixture. Forecast computed as of the first-draft date with the preregistered baseline: pool = episodes whose label was knowable (first draft + 730 days) before that date, this episode excluded. Labels from the legislative record only.",
+ "registry_record": {
+  "case_id": "XXVI-ME-75",
+  "me_citation": "75/ME XXVI. GP",
+  "gp": "XXVI",
+  "me_inr": 75,
+  "title": "Sozialversicherungs-Organisationsgesetz – SV-OG",
+  "first_draft_date": "2018-09-14",
+  "begutachtung_end": "2018-10-19",
+  "ressort": "BMASGK",
+  "ressort_name": "Bundesministerium für Arbeit, Soziales, Gesundheit und Konsumentenschutz",
+  "proposer_group": "health_ministry",
+  "government_id": "gov_2017-12-18",
+  "coalition": "oevp_fpoe",
+  "coalition_parties": [
+   "ÖVP",
+   "FPÖ"
+  ],
+  "legislative_period": "XXVI",
+  "n_stellungnahmen": 75,
+  "themen": [
+   "Soziales"
+  ],
+  "schlagworte": [
+   "Sozialversicherung VI. Sonstiges"
+  ],
+  "scope_reasons": [
+   "social_insurance_term"
+  ],
+  "measure_class": "structural_reform",
+  "measure_class_method": "keyword_rule_v1",
+  "me_url": "https://www.parlament.gv.at/gegenstand/XXVI/ME/75",
+  "links": [
+   {
+    "bill": "XXVI I 329",
+    "doktyp": "RV",
+    "method": "me_stage_link",
+    "jaccard": null,
+    "title": "Sozialversicherungs-Organisationsgesetz – SV-OG",
+    "status": 5,
+    "einlangen": "2018-10-24",
+    "third_reading": "2018-12-13",
+    "br_date": "2018-12-20",
+    "bgbl": [
+     "BGBl. I Nr. 100/2018"
+    ],
+    "vote_text": "Dafür: V, F. Dagegen: S, N, J",
+    "via_report": null,
+    "changed_in_committee": true,
+    "changed_in_plenum": true,
+    "url": "https://www.parlament.gv.at/gegenstand/XXVI/I/329"
+   }
+  ],
+  "needs_human": [],
+  "text_similarity": 0.9138,
+  "text_final_doc": "Geändert im Plenum",
+  "vfgh_repeals": [
+   {
+    "kundmachung": "BGBl. I Nr. 5/2020",
+    "date": "2020-01-02",
+    "title": "Aufhebung von Bestimmungen des Allgemeinen Sozialversicherungsgesetzes und des Bundesgesetzes über die Prüfung lohnabhängiger Abgaben und Beiträge durch den Verfassungsgerichtshof"
+   },
+   {
+    "kundmachung": "BGBl. I Nr. 4/2020",
+    "date": "2020-01-02",
+    "title": "Aufhebung des § 133 des Beamten-Kranken- und Unfallversicherungsgesetzes durch den Verfassungsgerichtshof"
+   },
+   {
+    "kundmachung": "BGBl. I Nr. 3/2020",
+    "date": "2020-01-02",
+    "title": "Aufhebung einer Wortfolge in § 420 Abs. 6 sowie des § 420 Abs. 7 des Allgemeinen Sozialversicherungsgesetzes durch den Verfassungsgerichtshof"
+   }
+  ],
+  "decision_date": "2018-12-13",
+  "outcome_record": {
+   "source": "parlament_gesetzgebungsverfahren",
+   "identifier": "GP XXVI RV 329; BGBl. I Nr. 100/2018",
+   "url": "https://www.parlament.gv.at/gegenstand/XXVI/I/329"
+  },
+  "outcome": "partially_implemented",
+  "label_basis": "vfgh_repeal_within_horizon",
+  "censored": false,
+  "knowable_date": "2020-09-13",
+  "fr_j1a_label": "implemented_modified",
+  "episode_id": "EP-XXVI-ME-75"
+ },
+ "episode": {
+  "episode_id": "EP-XXVI-ME-75",
+  "members": [
+   "XXVI-ME-75",
+   "XXVI-ME-76",
+   "XXVI-ME-88"
+  ],
+  "lead_case": "XXVI-ME-75",
+  "title": "Sozialversicherungs-Organisationsgesetz – SV-OG",
+  "first_draft_date": "2018-09-14",
+  "gp": "XXVI",
+  "proposer_group": "health_ministry",
+  "ressort": "BMASGK",
+  "coalition": "oevp_fpoe",
+  "government_id": "gov_2017-12-18",
+  "n_stellungnahmen": 118,
+  "measure_class": "structural_reform",
+  "outcome": "partially_implemented",
+  "fr_j1a_label": "implemented_modified",
+  "censored": false,
+  "knowable_date": "2020-09-13",
+  "needs_human": [],
+  "title_link_only": false,
+  "three_class_ok": true,
+  "vote_text": "Dafür: V, F. Dagegen: S, N, J",
+  "text_similarity": 0.9138
+ },
+ "forecast_binary": {
+  "descriptor": {
+   "first_draft_date": "2018-09-14",
+   "proposer_group": "health_ministry",
+   "coalition": "oevp_fpoe",
+   "measure_class": "structural_reform"
+  },
+  "pool_size": 86,
+  "forecast_A": {
+   "method": "A",
+   "level": "proposer",
+   "n": 65.0,
+   "probs": {
+    "enacted": 0.8257575757575758,
+    "not_enacted": 0.17424242424242425
+   },
+   "rates": [
+    {
+     "category": "enacted",
+     "k": 54.0,
+     "n": 65.0,
+     "p": 0.8257575757575758,
+     "jeffreys90": [
+      0.7442173715198321,
+      0.8960125424286545
+     ],
+     "wilson90": [
+      0.7414410058742643,
+      0.8936620862256336
+     ]
+    },
+    {
+     "category": "not_enacted",
+     "k": 11.0,
+     "n": 65.0,
+     "p": 0.17424242424242425,
+     "jeffreys90": [
+      0.10398745757134531,
+      0.255782628480168
+     ],
+     "wilson90": [
+      0.10633791377436641,
+      0.25855899412573563
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "forecast_B": {
+   "method": "B",
+   "level": "weighted_analogs",
+   "n": 86,
+   "probs": {
+    "enacted": 0.8510022439816851,
+    "not_enacted": 0.148997756018315
+   },
+   "rates": [
+    {
+     "category": "enacted",
+     "k": 61.572630245269124,
+     "n": 71.94061876363868,
+     "p": 0.8510022439816851,
+     "jeffreys90": [
+      0.7777598920481787,
+      0.9132555985454718
+     ],
+     "wilson90": [
+      0.7748858891400227,
+      0.9110789375250327
+     ]
+    },
+    {
+     "category": "not_enacted",
+     "k": 10.367988518369565,
+     "n": 71.94061876363868,
+     "p": 0.148997756018315,
+     "jeffreys90": [
+      0.08674440145452866,
+      0.22224010795182075
+     ],
+     "wilson90": [
+      0.08892106247496744,
+      0.22511411085997746
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "status_quo": {
+   "method": "status_quo",
+   "level": "all",
+   "n": 86.0,
+   "probs": {
+    "enacted": 0.8333333333333334,
+    "not_enacted": 0.16666666666666666
+   },
+   "rates": [
+    {
+     "category": "enacted",
+     "k": 72.0,
+     "n": 86.0,
+     "p": 0.8333333333333334,
+     "jeffreys90": [
+      0.7638471443683601,
+      0.8940715993074158
+     ],
+     "wilson90": [
+      0.7616352783673321,
+      0.8922133734930182
+     ]
+    },
+    {
+     "category": "not_enacted",
+     "k": 14.0,
+     "n": 86.0,
+     "p": 0.16666666666666666,
+     "jeffreys90": [
+      0.10592840069258452,
+      0.2361528556316394
+     ],
+     "wilson90": [
+      0.10778662650698187,
+      0.23836472163266795
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "analogs": [
+   {
+    "episode_id": "EP-XXV-ME-234",
+    "title": "Dokugesetz-Novelle 2016",
+    "first_draft_date": "2016-09-01",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "lapsed",
+    "weight": 1.581
+   },
+   {
+    "episode_id": "EP-XXV-ME-232",
+    "title": "Gewebesicherheitsgesetz, Änderung",
+    "first_draft_date": "2016-08-30",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.58
+   },
+   {
+    "episode_id": "EP-XXV-ME-229",
+    "title": "Ärztegesetz 1998, Änderung",
+    "first_draft_date": "2016-08-11",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.571
+   },
+   {
+    "episode_id": "EP-XXV-ME-194",
+    "title": "Tuberkulose- und Epidemiegesetz 1950, Änderung",
+    "first_draft_date": "2016-04-06",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.509
+   },
+   {
+    "episode_id": "EP-XXV-ME-179",
+    "title": "Novelle des Tabakgesetzes zur Implementierung der TPD II",
+    "first_draft_date": "2016-01-08",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.467
+   },
+   {
+    "episode_id": "EP-XXV-ME-168",
+    "title": "Bundesgesetz über die Gesundheit Österreich GmbH",
+    "first_draft_date": "2015-11-03",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.437
+   },
+   {
+    "episode_id": "EP-XXV-ME-161",
+    "title": "2. EU-Berufsanerkennungsgesetz Gesundheitsberufe 2016",
+    "first_draft_date": "2015-10-28",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.434
+   },
+   {
+    "episode_id": "EP-XXV-ME-158",
+    "title": "Allgemeines Sozialversicherungsgesetz, Änderung",
+    "first_draft_date": "2015-10-19",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "partially_implemented",
+    "weight": 1.43
+   }
+  ],
+  "note": "Historical base rate over comparable first drafts, not a verdict. Reference-class counts only, no trained model.",
+  "measure_class_rate": {
+   "method": "measure_class_descriptive",
+   "level": "measure_class",
+   "n": 19.0,
+   "probs": {
+    "enacted": 0.875,
+    "not_enacted": 0.125
+   },
+   "rates": [
+    {
+     "category": "enacted",
+     "k": 17.0,
+     "n": 19.0,
+     "p": 0.875,
+     "jeffreys90": [
+      0.7379962364961239,
+      0.9690811478290646
+     ],
+     "wilson90": [
+      0.7265355491661817,
+      0.9645321511990811
+     ]
+    },
+    {
+     "category": "not_enacted",
+     "k": 2.0,
+     "n": 19.0,
+     "p": 0.125,
+     "jeffreys90": [
+      0.030918852170935353,
+      0.262003763503876
+     ],
+     "wilson90": [
+      0.03546784880091888,
+      0.2734644508338183
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false,
+   "note": "Descriptive only: measure_class is a keyword rule (v1) and is not part of the preregistered baseline; this rate was never scored."
+  },
+  "sentence": "Drafts in this reference class (proposer) were enacted within 24 months in 54 of 65 comparable cases (90% Jeffreys interval 74 to 90%)."
+ },
+ "forecast_three_class": {
+  "descriptor": {
+   "first_draft_date": "2018-09-14",
+   "proposer_group": "health_ministry",
+   "coalition": "oevp_fpoe",
+   "measure_class": "structural_reform"
+  },
+  "pool_size": 86,
+  "forecast_A": {
+   "method": "A",
+   "level": "proposer",
+   "n": 52.0,
+   "probs": {
+    "implemented": 0.4392523364485981,
+    "partially_implemented": 0.34579439252336447,
+    "not_implemented": 0.21495327102803738
+   },
+   "rates": [
+    {
+     "category": "implemented",
+     "k": 23.0,
+     "n": 52.0,
+     "p": 0.4392523364485981,
+     "jeffreys90": [
+      0.3333017441133581,
+      0.5559435901744365
+     ],
+     "wilson90": [
+      0.3346727191486375,
+      0.5556491820489124
+     ]
+    },
+    {
+     "category": "partially_implemented",
+     "k": 18.0,
+     "n": 52.0,
+     "p": 0.34579439252336447,
+     "jeffreys90": [
+      0.24559539378134138,
+      0.4590563181824244
+     ],
+     "wilson90": [
+      0.24768971135014234,
+      0.45983535850999085
+     ]
+    },
+    {
+     "category": "not_implemented",
+     "k": 11.0,
+     "n": 52.0,
+     "p": 0.21495327102803738,
+     "jeffreys90": [
+      0.13111385967797395,
+      0.31508778132774273
+     ],
+     "wilson90": [
+      0.1338679815045528,
+      0.31774152448319704
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "forecast_B": {
+   "method": "B",
+   "level": "weighted_analogs",
+   "n": 86,
+   "probs": {
+    "implemented": 0.43129260672128916,
+    "partially_implemented": 0.37757839346263034,
+    "not_implemented": 0.1911289998160802
+   },
+   "rates": [
+    {
+     "category": "implemented",
+     "k": 24.024185771992393,
+     "n": 55.36205928366508,
+     "p": 0.43129260672128916,
+     "jeffreys90": [
+      0.32866056344807393,
+      0.5442191235523237
+     ],
+     "wilson90": [
+      0.32999898284401397,
+      0.5440497569892853
+     ]
+    },
+    {
+     "category": "partially_implemented",
+     "k": 20.969884993303108,
+     "n": 55.36205928366508,
+     "p": 0.37757839346263034,
+     "jeffreys90": [
+      0.27781927196197564,
+      0.48888502919976584
+     ],
+     "wilson90": [
+      0.27956604601565743,
+      0.4892845924776284
+     ]
+    },
+    {
+     "category": "not_implemented",
+     "k": 10.367988518369565,
+     "n": 55.36205928366508,
+     "p": 0.1911289998160802,
+     "jeffreys90": [
+      0.11372093012421303,
+      0.284407081325471
+     ],
+     "wilson90": [
+      0.11638374858254048,
+      0.2873098668866387
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "status_quo": {
+   "method": "status_quo",
+   "level": "all",
+   "n": 67.0,
+   "probs": {
+    "implemented": 0.40145985401459855,
+    "partially_implemented": 0.38686131386861317,
+    "not_implemented": 0.2116788321167883
+   },
+   "rates": [
+    {
+     "category": "implemented",
+     "k": 27.0,
+     "n": 67.0,
+     "p": 0.40145985401459855,
+     "jeffreys90": [
+      0.3087707920046947,
+      0.5032740537022085
+     ],
+     "wilson90": [
+      0.3100431046127384,
+      0.5034580983645953
+     ]
+    },
+    {
+     "category": "partially_implemented",
+     "k": 26.0,
+     "n": 67.0,
+     "p": 0.38686131386861317,
+     "jeffreys90": [
+      0.29493469876149714,
+      0.4881938037645345
+     ],
+     "wilson90": [
+      0.29630049161411026,
+      0.4885085887443516
+     ]
+    },
+    {
+     "category": "not_implemented",
+     "k": 14.0,
+     "n": 67.0,
+     "p": 0.2116788321167883,
+     "jeffreys90": [
+      0.1371513679230228,
+      0.298968276434188
+     ],
+     "wilson90": [
+      0.13936129184259083,
+      0.3011423170894097
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "analogs": [
+   {
+    "episode_id": "EP-XXV-ME-234",
+    "title": "Dokugesetz-Novelle 2016",
+    "first_draft_date": "2016-09-01",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "lapsed",
+    "weight": 1.581
+   },
+   {
+    "episode_id": "EP-XXV-ME-232",
+    "title": "Gewebesicherheitsgesetz, Änderung",
+    "first_draft_date": "2016-08-30",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.58
+   },
+   {
+    "episode_id": "EP-XXV-ME-229",
+    "title": "Ärztegesetz 1998, Änderung",
+    "first_draft_date": "2016-08-11",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.571
+   },
+   {
+    "episode_id": "EP-XXV-ME-194",
+    "title": "Tuberkulose- und Epidemiegesetz 1950, Änderung",
+    "first_draft_date": "2016-04-06",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.509
+   },
+   {
+    "episode_id": "EP-XXV-ME-179",
+    "title": "Novelle des Tabakgesetzes zur Implementierung der TPD II",
+    "first_draft_date": "2016-01-08",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.467
+   },
+   {
+    "episode_id": "EP-XXV-ME-168",
+    "title": "Bundesgesetz über die Gesundheit Österreich GmbH",
+    "first_draft_date": "2015-11-03",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.437
+   },
+   {
+    "episode_id": "EP-XXV-ME-161",
+    "title": "2. EU-Berufsanerkennungsgesetz Gesundheitsberufe 2016",
+    "first_draft_date": "2015-10-28",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "implemented",
+    "weight": 1.434
+   },
+   {
+    "episode_id": "EP-XXV-ME-158",
+    "title": "Allgemeines Sozialversicherungsgesetz, Änderung",
+    "first_draft_date": "2015-10-19",
+    "proposer_group": "health_ministry",
+    "coalition": "spoe_oevp",
+    "outcome": "partially_implemented",
+    "weight": 1.43
+   }
+  ],
+  "note": "Historical base rate over comparable first drafts, not a verdict. Reference-class counts only, no trained model.",
+  "measure_class_rate": {
+   "method": "measure_class_descriptive",
+   "level": "measure_class",
+   "n": 15.0,
+   "probs": {
+    "implemented": 0.21212121212121213,
+    "partially_implemented": 0.6363636363636364,
+    "not_implemented": 0.15151515151515152
+   },
+   "rates": [
+    {
+     "category": "implemented",
+     "k": 3.0,
+     "n": 15.0,
+     "p": 0.21212121212121213,
+     "jeffreys90": [
+      0.07601237814944539,
+      0.4023870586154116
+     ],
+     "wilson90": [
+      0.08289830182588703,
+      0.408786320940197
+     ]
+    },
+    {
+     "category": "partially_implemented",
+     "k": 10.0,
+     "n": 15.0,
+     "p": 0.6363636363636364,
+     "jeffreys90": [
+      0.45541214865180724,
+      0.8342189906638329
+     ],
+     "wilson90": [
+      0.45517214734563866,
+      0.8272252844509811
+     ]
+    },
+    {
+     "category": "not_implemented",
+     "k": 2.0,
+     "n": 15.0,
+     "p": 0.15151515151515152,
+     "jeffreys90": [
+      0.03944365849657268,
+      0.322619550112765
+     ],
+     "wilson90": [
+      0.045150886757578446,
+      0.3335747632898577
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false,
+   "note": "Descriptive only: measure_class is a keyword rule (v1) and is not part of the preregistered baseline; this rate was never scored."
+  },
+  "sentence": "Implemented as drafted in 23 of 52 comparable cases (proposer)."
+ }
+}

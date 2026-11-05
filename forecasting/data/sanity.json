@@ -110,5 +110,20 @@
    "not_passed": 3,
    "rate": 0.9770992366412213
   }
+ },
+ "episode_counts": {
+  "episodes_total": 155,
+  "episodes_labelled_uncensored": 145,
+  "label_distribution": {
+   "implemented": 82,
+   "partially_implemented": 45,
+   "superseded": 3,
+   "lapsed": 15
+  },
+  "not_enacted_or_modified": 63,
+  "enacted_with_any_vote_against": 121,
+  "with_50_or_more_stellungnahmen": 30,
+  "contested_proxy_vote_against_and_ge_50_sn": 22,
+  "health_ministry_or_sv_titled": 130
  }
 }
