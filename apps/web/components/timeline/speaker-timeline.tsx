@@ -1,7 +1,7 @@
 "use client";
 
 import type { Lang, Run, RunSnapshot } from "@sv/contracts";
-import { type KeyboardEvent, useId, useMemo, useRef, useState } from "react";
+import { type KeyboardEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import { agentLook, L, speakerLine } from "@/components/run/helpers";
 import { runStrings } from "@/components/run/strings";
 import { cn } from "@/lib/utils";
@@ -57,7 +57,7 @@ export interface SpeakerTimelineProps {
   progress?: number;
   onSelect?: (id: string) => void;
   compact?: boolean;
-  /** Header with a show/hide toggle. */
+  /** Header with a show/hide toggle; hidden means a compact strip, not nothing. */
   collapsible?: boolean;
   defaultOpen?: boolean;
   defaultZoom?: "all" | "follow";
@@ -88,12 +88,30 @@ export function SpeakerTimeline({
   const [hover, setHover] = useState<string | null>(null);
   const [focusId, setFocusId] = useState<string | null>(null);
   const trackRef = useRef<HTMLFieldSetElement>(null);
+  const trackBox = useRef<HTMLDivElement>(null);
+  const [trackW, setTrackW] = useState(900);
 
-  const rowH = compact ? 10 : 18;
-  const laneH = compact ? 14 : 20;
-  const labelW = compact ? 40 : 172;
-  const lanesH = model.lanes * laneH;
+  // A collapsed collapsible timeline is a strip: the bars stay readable as an overview,
+  // the exchange lanes and names go. The explicit compact prop (stage) keeps its lanes.
+  const strip = collapsible && !open;
+  const dense = compact || strip;
+  const rowH = dense ? 10 : 18;
+  const laneH = dense ? 14 : 20;
+  const labelW = dense ? 40 : 172;
+  const lanesH = strip ? 0 : model.lanes * laneH;
   const rowsH = model.rows.length * rowH;
+
+  // Track width in px decides whether an exchange label has room for its text; a label
+  // is shown whole or not at all (the band keeps its tooltip), never as a fragment.
+  useEffect(() => {
+    const el = trackBox.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(([e]) => {
+      if (e) setTrackW(e.contentRect.width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const active = activeId ? (model.byId.get(activeId) ?? null) : null;
   const focus = focusOf(snap, activeId);
@@ -211,15 +229,22 @@ export function SpeakerTimeline({
   };
 
   const header = compact ? null : (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 pt-2.5 pb-1.5">
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3",
+        strip ? "pt-1.5 pb-0.5" : "pt-2.5 pb-1.5",
+      )}
+    >
       <div className="min-w-0">
-        <h2 id={`${uid}-title`} className="text-sm font-semibold">
+        <h2 id={`${uid}-title`} className={cn("font-semibold", strip ? "text-xs" : "text-sm")}>
           {t.title}
         </h2>
-        <p className="text-[11px] text-muted-foreground">
-          {t.sub}
-          {derived ? ` · ${t.derived}` : ""}
-        </p>
+        {strip ? null : (
+          <p className="text-[11px] text-muted-foreground">
+            {t.sub}
+            {derived ? ` · ${t.derived}` : ""}
+          </p>
+        )}
       </div>
       <span className="flex-1" />
       {open ? (
@@ -279,8 +304,8 @@ export function SpeakerTimeline({
       className={cn("rounded-2xl border bg-card", className)}
     >
       {header}
-      {open ? (
-        <div id={`${uid}-body`} className={cn("relative", compact ? "px-2 py-1.5" : "px-3 pb-2")}>
+      {open || strip ? (
+        <div id={`${uid}-body`} className={cn("relative", dense ? "px-2 py-1.5" : "px-3 pb-2")}>
           <p id={`${uid}-keys`} className="sr-only">
             {t.keys}
           </p>
@@ -320,7 +345,7 @@ export function SpeakerTimeline({
                       <span
                         className={cn(
                           "inline-grid shrink-0 place-items-center rounded-[4px] font-semibold text-white",
-                          compact
+                          dense
                             ? "h-[9px] min-w-[18px] px-0.5 text-[7px] leading-none"
                             : "h-3.5 min-w-6 px-0.5 text-[8px] leading-none",
                           st === "active" &&
@@ -332,7 +357,7 @@ export function SpeakerTimeline({
                       >
                         {a.code}
                       </span>
-                      {compact ? null : (
+                      {dense ? null : (
                         <span
                           className={cn(
                             "min-w-0 truncate text-[11px]",
@@ -342,7 +367,7 @@ export function SpeakerTimeline({
                           {a.name}
                         </span>
                       )}
-                      {!compact && st === "addressed" ? (
+                      {!dense && st === "addressed" ? (
                         <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
                           ← {t.addressedRow}
                         </span>
@@ -353,7 +378,7 @@ export function SpeakerTimeline({
               </div>
 
               {/* track */}
-              <div className="relative min-w-0 flex-1">
+              <div ref={trackBox} className="relative min-w-0 flex-1">
                 <div className="relative overflow-hidden" style={{ height: lanesH + rowsH }}>
                   {/* row backgrounds */}
                   {model.rows.map((id, r) => {
@@ -473,7 +498,7 @@ export function SpeakerTimeline({
                         l.to === selectedId ||
                         l.to === hover ||
                         l.to === focusId;
-                      if (compact && !hot) return null;
+                      if (dense && !hot) return null;
                       const x1 = x(a.start + a.dur) * 10;
                       const x2 = x(b.start) * 10;
                       const y1 = a.row * rowH + rowH / 2;
@@ -494,46 +519,57 @@ export function SpeakerTimeline({
                     })}
                   </svg>
 
-                  {/* exchange labels (zoom buttons) */}
-                  {model.bands.map((b) => {
-                    if (!visible(b.start, b.end)) return null;
-                    const key = exchangeKindKey(b.exchange);
-                    const left = Math.max(0, x(b.start));
-                    const right = Math.min(100, x(b.end));
-                    const label = bandLabel(b);
-                    const zoomed = typeof zoom === "object" && zoom.exchangeId === b.exchange.id;
-                    return (
-                      <button
-                        key={b.exchange.id}
-                        type="button"
-                        onClick={() => setZoom(zoomed ? "all" : { exchangeId: b.exchange.id })}
-                        aria-label={t.zoomTo(label)}
-                        aria-pressed={zoomed}
-                        title={[
-                          label,
-                          `${t.trigger}: ${L(b.exchange.trigger, lang)}`,
-                          b.exchange.outcome
-                            ? `${t.outcome}: ${L(b.exchange.outcome, lang)}`
-                            : t.open,
-                          `${fmtMin(b.start)} - ${fmtMin(b.end)}`,
-                        ].join("\n")}
-                        className={cn(
-                          "absolute flex items-center truncate rounded-[5px] border px-1 text-left leading-none hover:border-foreground/50 focus-visible:outline-2 focus-visible:outline-ring",
-                          compact ? "text-[9px]" : "text-[10px]",
-                          KIND_STYLE[key]?.label,
-                          zoomed && "ring-1 ring-foreground",
-                        )}
-                        style={{
-                          left: `${left}%`,
-                          width: `calc(${right - left}% - 2px)`,
-                          top: b.lane * laneH + 2,
-                          height: laneH - 4,
-                        }}
-                      >
-                        <span className="truncate">{label}</span>
-                      </button>
-                    );
-                  })}
+                  {/* exchange labels (zoom buttons); none in the strip */}
+                  {strip
+                    ? null
+                    : model.bands.map((b) => {
+                        if (!visible(b.start, b.end)) return null;
+                        const key = exchangeKindKey(b.exchange);
+                        const left = Math.max(0, x(b.start));
+                        const right = Math.min(100, x(b.end));
+                        const label = bandLabel(b);
+                        const zoomed =
+                          typeof zoom === "object" && zoom.exchangeId === b.exchange.id;
+                        // whole label, kind only, or a bare pill: never a cut-off fragment
+                        const px = ((right - left) / 100) * trackW;
+                        const text =
+                          px >= label.length * (dense ? 5.2 : 5.8) + 10
+                            ? label
+                            : px >= 52
+                              ? t.kind[key]
+                              : "";
+                        return (
+                          <button
+                            key={b.exchange.id}
+                            type="button"
+                            onClick={() => setZoom(zoomed ? "all" : { exchangeId: b.exchange.id })}
+                            aria-label={t.zoomTo(label)}
+                            aria-pressed={zoomed}
+                            title={[
+                              label,
+                              `${t.trigger}: ${L(b.exchange.trigger, lang)}`,
+                              b.exchange.outcome
+                                ? `${t.outcome}: ${L(b.exchange.outcome, lang)}`
+                                : t.open,
+                              `${fmtMin(b.start)} - ${fmtMin(b.end)}`,
+                            ].join("\n")}
+                            className={cn(
+                              "absolute flex items-center overflow-hidden rounded-[5px] border px-1 text-left leading-none whitespace-nowrap hover:border-foreground/50 focus-visible:outline-2 focus-visible:outline-ring",
+                              dense ? "text-[9px]" : "text-[10px]",
+                              KIND_STYLE[key]?.label,
+                              zoomed && "ring-1 ring-foreground",
+                            )}
+                            style={{
+                              left: `${left}%`,
+                              width: `calc(${right - left}% - 2px)`,
+                              top: b.lane * laneH + 2,
+                              height: laneH - 4,
+                            }}
+                          >
+                            {text}
+                          </button>
+                        );
+                      })}
 
                   {/* utterance bars */}
                   <fieldset
@@ -587,8 +623,8 @@ export function SpeakerTimeline({
                             left: `${x(it.start)}%`,
                             width: `${Math.max(0.25, x(it.start + it.dur) - x(it.start))}%`,
                             minWidth: 3,
-                            top: lanesH + it.row * rowH + (compact ? 2 : 3),
-                            height: rowH - (compact ? 4 : 6),
+                            top: lanesH + it.row * rowH + (dense ? 2 : 3),
+                            height: rowH - (dense ? 4 : 6),
                             background: future ? "transparent" : a.color,
                             border: future ? `1px dashed ${a.color}` : undefined,
                             opacity,
@@ -610,10 +646,7 @@ export function SpeakerTimeline({
                 </div>
 
                 {/* time axis */}
-                <div
-                  className={cn("relative border-t", compact ? "h-4" : "h-7")}
-                  aria-hidden="true"
-                >
+                <div className={cn("relative border-t", dense ? "h-4" : "h-7")} aria-hidden="true">
                   {ticks.map((m) => (
                     <span
                       key={m}
@@ -623,7 +656,7 @@ export function SpeakerTimeline({
                       {fmtMin(m)}
                     </span>
                   ))}
-                  {compact
+                  {dense
                     ? null
                     : model.rounds.map((r) =>
                         r.start >= d0 && r.start < d1 ? (
@@ -649,7 +682,7 @@ export function SpeakerTimeline({
                       ...(x(tip.start) > 60
                         ? { right: `${Math.max(0, 100 - x(tip.start + tip.dur))}%` }
                         : { left: `${Math.max(0, x(tip.start))}%` }),
-                      ...(compact || tip.row > model.rows.length / 2
+                      ...(dense || tip.row > model.rows.length / 2
                         ? { bottom: `calc(100% - ${lanesH + tip.row * rowH}px + 4px)` }
                         : { top: lanesH + (tip.row + 1) * rowH + 4 }),
                     }}
