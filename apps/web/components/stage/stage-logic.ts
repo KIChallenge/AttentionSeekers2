@@ -121,4 +121,75 @@ export interface AudioManifest {
   model: string;
   voices: Record<string, string>;
   files: Record<string, string>;
+  /** Voice provider of every file in `files` (absent: the provider in `model`, Azure so far). */
+  provider?: AudioProvider;
+  /** Attribution line the provider's terms require, shown in the audio chip tooltip. */
+  attribution?: string;
+}
+
+export type AudioProvider = "azure" | "elevenlabs";
+
+/** File name of the ElevenLabs variant next to the Azure file of the same utterance. */
+export const EL_MANIFEST = "manifest.elevenlabs.json";
+
+/**
+ * Which file voices utterance `id`: the ElevenLabs variant where one was rendered, else the
+ * Azure file, else none (silent playback). Both manifests share the utterance ids.
+ */
+export function audioFileFor(
+  id: string,
+  azure: AudioManifest | null,
+  eleven: AudioManifest | null,
+): { file: string; provider: AudioProvider } | null {
+  const el = eleven?.files[id];
+  if (el) return { file: el, provider: "elevenlabs" };
+  const az = azure?.files[id];
+  if (az) return { file: az, provider: azure?.provider ?? "azure" };
+  return null;
+}
+
+/**
+ * Contiguous span of utterance indices around the FR-S8 exchange whose characters fit
+ * `budget`: the statement and the rebuttal first, then what lies between them (nearest to the
+ * rebuttal first), then alternately the next utterance after and the one before, so the
+ * showpiece the stage opens on is voiced end to end. Stops at the first neighbour that would
+ * overflow, so the span stays contiguous. Returns [] if even the exchange does not fit.
+ */
+export function showpieceSpan(
+  utts: readonly { id: string }[],
+  exchange: { fromId: string; toId: string } | null,
+  budget: number,
+  charsOf: (i: number) => number,
+): number[] {
+  if (!exchange) return [];
+  const from = utts.findIndex((u) => u.id === exchange.fromId);
+  const to = utts.findIndex((u) => u.id === exchange.toId);
+  if (from < 0 || to < 0) return [];
+  let lo = Math.min(from, to);
+  let hi = Math.max(from, to);
+  let used = charsOf(from) + (to !== from ? charsOf(to) : 0);
+  if (used > budget) return [];
+  const picked = new Set([from, to]);
+  // between statement and rebuttal: the stage plays both, the middle fills the "whole run" view
+  for (let i = hi - 1; i > lo; i--) {
+    if (used + charsOf(i) > budget) return [...picked].sort((a, b) => a - b);
+    used += charsOf(i);
+    picked.add(i);
+  }
+  let after = true;
+  let blockedAfter = false;
+  let blockedBefore = false;
+  while (!(blockedAfter && blockedBefore)) {
+    const i = after ? hi + 1 : lo - 1;
+    const inRange = i >= 0 && i < utts.length;
+    if (inRange && used + charsOf(i) <= budget) {
+      used += charsOf(i);
+      picked.add(i);
+      if (after) hi = i;
+      else lo = i;
+    } else if (after) blockedAfter = true;
+    else blockedBefore = true;
+    if (!(after ? blockedBefore : blockedAfter)) after = !after;
+  }
+  return [...picked].sort((a, b) => a - b);
 }
