@@ -5,7 +5,7 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import type { Segment, Source, SourceKind } from "@sv/contracts";
+import type { RedLine, Segment, Source, SourceKind, StanceProfile } from "@sv/contracts";
 import { replayDir } from "@/lib/runs";
 
 export const MASK_TOKEN = "[...]";
@@ -107,10 +107,7 @@ export function isPress(s: Source): boolean {
 // ---------------- database access ----------------
 
 type Pool = {
-  query: <R = Record<string, unknown>>(
-    text: string,
-    params?: unknown[],
-  ) => Promise<{ rows: R[] }>;
+  query: <R = Record<string, unknown>>(text: string, params?: unknown[]) => Promise<{ rows: R[] }>;
 };
 
 async function pool(): Promise<Pool | null> {
@@ -128,7 +125,7 @@ async function pool(): Promise<Pool | null> {
 
 function asSource(data: unknown): Source | null {
   const s = data as Source;
-  if (!s || s.personFiltered !== true) return null;
+  if (s?.personFiltered !== true) return null;
   return s;
 }
 
@@ -167,7 +164,10 @@ function highlight(text: string, q: string): string {
     .map((t) => t.replace(/[^\p{L}\p{N}]/gu, ""))
     .filter((t) => t.length > 2);
   if (!terms.length) return text;
-  const re = new RegExp(`(${terms.map((t) => t.slice(0, Math.max(4, t.length - 2))).join("|")})`, "giu");
+  const re = new RegExp(
+    `(${terms.map((t) => t.slice(0, Math.max(4, t.length - 2))).join("|")})`,
+    "giu",
+  );
   return text.replace(re, "\u0001$1\u0002");
 }
 
@@ -205,7 +205,9 @@ function finish(cands: Candidate[], query: ArchiveQuery, backend: ArchiveResult[
       (c.draftLaw !== null && query.draftLaws.includes(c.draftLaw))) &&
     (skip === "licence" || !query.licences.length || query.licences.includes(c.licenceLabel)) &&
     (!query.hideAfter || !c.afterAsOf);
-  const names = new Map(enrich.map((c) => [c.source.institution.code, c.source.institution.nameDe]));
+  const names = new Map(
+    enrich.map((c) => [c.source.institution.code, c.source.institution.nameDe]),
+  );
   const facets = {
     kind: facetCount(
       enrich.filter((c) => pass(c, "kind")),
@@ -233,17 +235,15 @@ function finish(cands: Candidate[], query: ArchiveQuery, backend: ArchiveResult[
   const filtered = enrich.filter((c) => pass(c, ""));
   const dates = enrich.map((c) => c.source.date).sort();
   const page = Math.max(1, query.page);
-  const hits: ArchiveHit[] = filtered
-    .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-    .map((c) => ({
-      source: c.source,
-      snippet: clipPress(c.source, c.snippet),
-      segmentId: c.segmentId,
-      rank: c.rank,
-      afterAsOf: c.afterAsOf,
-      draftLaw: c.draftLaw,
-      licenceLabel: c.licenceLabel,
-    }));
+  const hits: ArchiveHit[] = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((c) => ({
+    source: c.source,
+    snippet: clipPress(c.source, c.snippet),
+    segmentId: c.segmentId,
+    rank: c.rank,
+    afterAsOf: c.afterAsOf,
+    draftLaw: c.draftLaw,
+    licenceLabel: c.licenceLabel,
+  }));
   return {
     hits,
     total: filtered.length,
@@ -286,7 +286,7 @@ export async function searchArchive(query: ArchiveQuery): Promise<ArchiveResult>
          limit ${CANDIDATE_LIMIT}`,
         [q],
       );
-      const cands = rows.flatMap((r) => {
+      const cands: Candidate[] = rows.flatMap((r) => {
         const source = asSource(r.data);
         return source
           ? [{ source, snippet: r.snippet, segmentId: r.segment_id, rank: Number(r.rank) }]
@@ -294,7 +294,11 @@ export async function searchArchive(query: ArchiveQuery): Promise<ArchiveResult>
       });
       // Title and institution matches that FTS on segment text misses.
       const seen = new Set(cands.map((c) => c.source.id));
-      const { rows: extra } = await db.query<{ data: unknown; segment_id: string | null; text: string | null }>(
+      const { rows: extra } = await db.query<{
+        data: unknown;
+        segment_id: string | null;
+        text: string | null;
+      }>(
         `select s.data, g.id as segment_id, g.text from sources s
          left join lateral (select id, text from segments where source_id = s.id order by ordinal limit 1) g on true
          where s.person_filtered = true
@@ -310,7 +314,11 @@ export async function searchArchive(query: ArchiveQuery): Promise<ArchiveResult>
       }
       return finish(cands, query, "postgres");
     }
-    const { rows } = await db.query<{ data: unknown; segment_id: string | null; text: string | null }>(
+    const { rows } = await db.query<{
+      data: unknown;
+      segment_id: string | null;
+      text: string | null;
+    }>(
       `select s.data, g.id as segment_id, g.text from sources s
        left join lateral (
          select id, text from segments where source_id = s.id and length(text) > 60
@@ -321,9 +329,7 @@ export async function searchArchive(query: ArchiveQuery): Promise<ArchiveResult>
     return finish(
       rows.flatMap((r) => {
         const source = asSource(r.data);
-        return source
-          ? [{ source, snippet: r.text ?? "", segmentId: r.segment_id, rank: 0 }]
-          : [];
+        return source ? [{ source, snippet: r.text ?? "", segmentId: r.segment_id, rank: 0 }] : [];
       }),
       query,
       "postgres",
@@ -336,11 +342,11 @@ export async function searchArchive(query: ArchiveQuery): Promise<ArchiveResult>
   for (const source of fs.sources) {
     const segs = fs.segments.filter((g) => g.sourceId === source.id);
     const hit = lower
-      ? segs.find((g) => g.text.toLowerCase().includes(lower)) ??
+      ? (segs.find((g) => g.text.toLowerCase().includes(lower)) ??
         ((source.title ?? "").toLowerCase().includes(lower) ||
         source.institution.nameDe.toLowerCase().includes(lower)
           ? segs[0]
-          : undefined)
+          : undefined))
       : segs[0];
     if (lower && !hit) continue;
     cands.push({
@@ -579,4 +585,23 @@ export async function institutions(): Promise<InstitutionRow[]> {
     m.set(s.institution.code, row);
   }
   return [...m.values()];
+}
+
+/** Red lines and stance profiles for one role (W-47). Empty when the tables are not loaded. */
+export async function shelfFor(role: string) {
+  const db = await pool();
+  if (!db) return { redLines: [] as RedLine[], stances: [] as StanceProfile[] };
+  const [rl, sp] = await Promise.all([
+    db.query<{ data: unknown }>("select data from red_lines where role = $1 order by tier, id", [
+      role,
+    ]),
+    db.query<{ data: unknown }>(
+      "select data from stance_profiles where role = $1 order by topic_key, year nulls first",
+      [role],
+    ),
+  ]);
+  return {
+    redLines: rl.rows.map((r) => r.data as RedLine),
+    stances: sp.rows.map((r) => r.data as StanceProfile),
+  };
 }

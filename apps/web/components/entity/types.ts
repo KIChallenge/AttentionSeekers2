@@ -53,7 +53,7 @@ export function entityHref(type: EntityType, id: string, extra?: { utteranceId?:
     case "institution":
       return `/archive?institution=${enc(id)}`;
     case "draft_law":
-      return `/archive?draftLaw=${enc(id)}`;
+      return `/archive/draft-laws/${enc(id)}`;
     case "episode":
       return `/archive/episodes/${enc(id)}`;
     case "statistic":

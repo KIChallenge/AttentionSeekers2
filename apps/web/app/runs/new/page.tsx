@@ -1,66 +1,35 @@
-import { AGENT_CATALOG, TEMPLATES } from "@sv/contracts";
-import Link from "next/link";
-import { AgentTile } from "@/components/run/agent-tile";
-import { Page, PageHead, StubNote } from "@/components/shell/page";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { CommandPalette } from "@/components/entity/command-palette";
+import { type AgentDefaults, SetupRoom } from "@/components/setup/setup-room";
+import { Page, PageHead } from "@/components/shell/page";
+import { listRuns, loadRunSnapshot } from "@/lib/runs";
 import { serverPrefs } from "@/lib/server-prefs";
 
-// Setup room (FR-U9, FR-U10, ticket W-50). Stub: lists templates and the roster from
-// the catalog; the RoomConfig form and mandate streaming land with W-50 and W-28.
+export const dynamic = "force-dynamic";
+
+const DEFAULT_MODELS = ["azure/gpt-5-mini", "mistral/mistral-medium-3"];
+
+// Setup room (W-50, FR-U9, FR-U10, FR-M1). Defaults for reasons, temperament and models come
+// from the reference run's recorded RoomConfig, so a fresh room starts where the demo did.
 export default async function SetupRoomPage() {
-  const { t, lang } = await serverPrefs();
+  const { t } = await serverPrefs();
+  const runs = await listRuns();
+  const ref = runs.find((r) => r.isReference) ?? runs[0];
+  const defaults: Record<string, AgentDefaults> = {};
+  const models = new Set<string>(DEFAULT_MODELS);
+  for (const r of runs) for (const m of r.models) models.add(m);
+  if (ref) {
+    const snap = await loadRunSnapshot(ref.id);
+    for (const a of snap?.run?.room.agents ?? [])
+      defaults[a.agentId] = { reason: a.reason, temperament: a.temperament, model: a.model };
+  }
   return (
     <Page>
-      <PageHead
-        title={t.setup.title}
-        sub={t.setup.sub}
-        actions={
-          <>
-            <Button asChild variant="outline">
-              <Link href="/replay/fixture-wartezeiten">{t.setup.replayReference}</Link>
-            </Button>
-            <Button disabled>{t.setup.start}</Button>
-          </>
-        }
+      <PageHead title={t.setup.title} sub={t.setup.sub} actions={<CommandPalette />} />
+      <SetupRoom
+        defaults={defaults}
+        models={[...models].sort()}
+        asOf={new Date().toISOString().slice(0, 10)}
       />
-      <div className="grid gap-4 lg:grid-cols-3">
-        <section className="rounded-2xl border p-4">
-          <h2 className="mb-3 text-base">{t.setup.templates}</h2>
-          <ul className="space-y-2 text-sm">
-            {TEMPLATES.map((x) => (
-              <li key={x.id}>
-                <b className="font-medium">{lang === "de" ? x.de : x.en}</b>
-                <p className="text-muted-foreground">{x.question}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-        <section className="rounded-2xl border p-4">
-          <h2 className="mb-3 text-base">{t.setup.parties}</h2>
-          <ul className="space-y-1.5 text-sm">
-            {AGENT_CATALOG.map((a) => (
-              <li key={a.id} className="flex items-center gap-2">
-                <AgentTile agentId={a.id} withName lang={lang} />
-                <span className="flex-1" />
-                <Badge variant="outline" className="text-muted-foreground">
-                  {a.origin}
-                </Badge>
-                <Badge variant="outline" className="text-muted-foreground">
-                  {a.mode}
-                </Badge>
-              </li>
-            ))}
-          </ul>
-        </section>
-        <section className="rounded-2xl border p-4">
-          <h2 className="mb-3 text-base">{t.setup.rules}</h2>
-          <StubNote>
-            {t.stub.soon} RoomConfig: decisionRule, roundLimit, budgetCeiling, asOf, climate,
-            pressures, scheduledEvents.
-          </StubNote>
-        </section>
-      </div>
     </Page>
   );
 }

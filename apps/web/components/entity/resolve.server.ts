@@ -14,13 +14,7 @@ import {
 } from "@/components/archive/data.server";
 import { registry, statsCatalogue } from "@/components/archive/registry.server";
 import { laneT } from "./messages";
-import {
-  type EntityPreview,
-  type EntityType,
-  entityHref,
-  scopedId,
-  splitScoped,
-} from "./types";
+import { type EntityPreview, type EntityType, entityHref, scopedId, splitScoped } from "./types";
 import { snapshotOf, usageIndex, usesOfSource } from "./usage.server";
 
 function clip(text: string | null | undefined, n = 220): string | null {
@@ -92,7 +86,16 @@ export async function getPreview(
     case "draft_law": {
       const c = (await registry()).cases.get(id);
       const label = draftLawLabel(id);
-      if (!c) return { type, id, title: label, subtitle: null, meta: [], snippet: null, href: entityHref(type, id) };
+      if (!c)
+        return {
+          type,
+          id,
+          title: label,
+          subtitle: null,
+          meta: [],
+          snippet: null,
+          href: entityHref(type, id),
+        };
       return {
         type,
         id,
@@ -345,7 +348,17 @@ export async function backlinksFor(
       items: runs.flatMap((r) => {
         const run = idx.snapshots.get(r)?.run;
         return run
-          ? [{ type: "run" as const, id: r, title: run.mandate.question, subtitle: r, meta: [], snippet: null, href: entityHref("run", r) }]
+          ? [
+              {
+                type: "run" as const,
+                id: r,
+                title: run.mandate.question,
+                subtitle: r,
+                meta: [],
+                snippet: null,
+                href: entityHref("run", r),
+              },
+            ]
           : [];
       }),
     });
@@ -396,7 +409,8 @@ export async function backlinksFor(
     });
     const positions = uses.filter((u) => u.kind === "position");
     const byAgent = new Map<string, number>();
-    for (const p of positions) if (p.agentId) byAgent.set(p.agentId, (byAgent.get(p.agentId) ?? 0) + 1);
+    for (const p of positions)
+      if (p.agentId) byAgent.set(p.agentId, (byAgent.get(p.agentId) ?? 0) + 1);
     add({
       type: "agent",
       items: [...byAgent.entries()].flatMap(([a, count]) => {
@@ -463,7 +477,15 @@ export async function backlinksFor(
       type: "run",
       items: idx.runs
         .filter((r) => r.agents.includes(id))
-        .map((r) => ({ type: "run" as const, id: r.id, title: r.question, subtitle: r.id, meta: [], snippet: null, href: entityHref("run", r.id) })),
+        .map((r) => ({
+          type: "run" as const,
+          id: r.id,
+          title: r.question,
+          subtitle: r.id,
+          meta: [],
+          snippet: null,
+          href: entityHref("run", r.id),
+        })),
     });
     if (a) {
       const srcs = await sourcesFor({ role: a.role }, 12);
@@ -514,7 +536,17 @@ export async function backlinksFor(
           .filter((s) => s.run?.variant.kind === "backtest" && s.run.variant.episodeId === id)
           .flatMap((s) =>
             s.run
-              ? [{ type: "run" as const, id: s.run.id, title: s.run.mandate.question, subtitle: s.run.id, meta: [], snippet: null, href: entityHref("run", s.run.id) }]
+              ? [
+                  {
+                    type: "run" as const,
+                    id: s.run.id,
+                    title: s.run.mandate.question,
+                    subtitle: s.run.id,
+                    meta: [],
+                    snippet: null,
+                    href: entityHref("run", s.run.id),
+                  },
+                ]
               : [],
           ),
       });
@@ -529,7 +561,17 @@ export async function backlinksFor(
         .filter((s) => s.run && "baseRunId" in s.run.variant && s.run.variant.baseRunId === id)
         .flatMap((s) =>
           s.run
-            ? [{ type: "run" as const, id: s.run.id, title: s.run.mandate.question, subtitle: `${s.run.variant.kind} · ${s.run.id}`, meta: [], snippet: null, href: entityHref("run", s.run.id) }]
+            ? [
+                {
+                  type: "run" as const,
+                  id: s.run.id,
+                  title: s.run.mandate.question,
+                  subtitle: `${s.run.variant.kind} · ${s.run.id}`,
+                  meta: [],
+                  snippet: null,
+                  href: entityHref("run", s.run.id),
+                },
+              ]
             : [],
         ),
     });

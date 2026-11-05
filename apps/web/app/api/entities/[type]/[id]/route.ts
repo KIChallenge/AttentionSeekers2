@@ -1,6 +1,6 @@
-import { parseLocale } from "@/lib/prefs";
 import { getPreview } from "@/components/entity/resolve.server";
 import { isEntityType } from "@/components/entity/types";
+import { parseLocale } from "@/lib/prefs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

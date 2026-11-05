@@ -3,7 +3,11 @@ import type { ArchiveQuery } from "./data.server";
 type Params = Record<string, string | string[] | undefined> | URLSearchParams;
 
 function all(p: Params, key: string): string[] {
-  if (p instanceof URLSearchParams) return p.getAll(key).flatMap((v) => v.split(",")).filter(Boolean);
+  if (p instanceof URLSearchParams)
+    return p
+      .getAll(key)
+      .flatMap((v) => v.split(","))
+      .filter(Boolean);
   const v = p[key];
   return (Array.isArray(v) ? v : v ? [v] : []).flatMap((x) => x.split(",")).filter(Boolean);
 }

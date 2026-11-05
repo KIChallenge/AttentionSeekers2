@@ -116,7 +116,7 @@ export function EntityLink({
       </HoverCardTrigger>
       <HoverCardContent className="w-80" align="start">
         {!state.done ? (
-          <div className="space-y-2" aria-label={t.entity.loading}>
+          <div className="space-y-2" role="status" aria-label={t.entity.loading}>
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-3 w-1/2" />
             <Skeleton className="h-10 w-full" />

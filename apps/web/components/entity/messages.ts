@@ -51,7 +51,12 @@ const de = {
     forkUnavailable: "Die Abzweig-Route der Engine ist noch nicht verfügbar.",
     forkFailed: "Abzweigung fehlgeschlagen",
     cancel: "Abbrechen",
-    stats: { runs: "Läufe", consensus: "mit Konsens", topics: "Themen geeinigt", models: "Modelle" },
+    stats: {
+      runs: "Läufe",
+      consensus: "mit Konsens",
+      topics: "Themen geeinigt",
+      models: "Modelle",
+    },
     status: { running: "läuft", completed: "abgeschlossen", failed: "fehlgeschlagen" },
     endCondition: {
       convergence: "Konvergenz",
@@ -92,7 +97,14 @@ const de = {
     of: "von",
     claims: "Aussagen",
     expert: "Prüfnotiz",
-    statusLabels: { open: "offen", accepted: "angenommen", rejected: "abgelehnt", withdrawn: "zurückgezogen" },
+    redLine: "Rote Linie berührt",
+    perTopic: "Stand je Thema",
+    statusLabels: {
+      open: "offen",
+      accepted: "angenommen",
+      rejected: "abgelehnt",
+      withdrawn: "zurückgezogen",
+    },
     kinds: {
       round_opening: "Rundeneröffnung",
       position: "Position",
@@ -364,7 +376,8 @@ const en: LaneMessages = {
     outcome: "Outcome",
     actions: "Actions",
     forkTitle: "Fork from round",
-    forkBody: "Starts a new run that keeps the first rounds and renegotiates from the chosen round.",
+    forkBody:
+      "Starts a new run that keeps the first rounds and renegotiates from the chosen round.",
     forkRound: "From round",
     forkStart: "Start fork",
     forkUnavailable: "The engine's fork route is not available yet.",
@@ -411,7 +424,14 @@ const en: LaneMessages = {
     of: "of",
     claims: "Claims",
     expert: "Check note",
-    statusLabels: { open: "open", accepted: "accepted", rejected: "rejected", withdrawn: "withdrawn" },
+    redLine: "Red line touched",
+    perTopic: "Status per topic",
+    statusLabels: {
+      open: "open",
+      accepted: "accepted",
+      rejected: "rejected",
+      withdrawn: "withdrawn",
+    },
     kinds: {
       round_opening: "Round opening",
       position: "Position",
@@ -464,7 +484,11 @@ const en: LaneMessages = {
     asOf: "Source as-of date",
     asOfHint: "Agents only see documents up to this date (FR-H2).",
     climate: "Climate",
-    climates: { cooperative: "cooperative", neutral: "neutral", confrontational: "confrontational" },
+    climates: {
+      cooperative: "cooperative",
+      neutral: "neutral",
+      confrontational: "confrontational",
+    },
     pressures: "Pressure",
     pressureTime: "Time pressure",
     pressureBudget: "Budget pressure",
@@ -538,7 +562,8 @@ const en: LaneMessages = {
     licenceLine: {
       stellungnahme:
         "Statement in the consultation procedure. Rights remain with the institution; only extracted, name-masked text for search is shown here, original on parlament.gv.at.",
-      press: "Press release. Rights remain with the outlet; only metadata and short snippets are shown.",
+      press:
+        "Press release. Rights remain with the outlet; only metadata and short snippets are shown.",
       statute: "Statute, official work (§ 7 UrhG).",
       parliament: "Parliamentary material, official work (§ 7 UrhG).",
       open_data: "Open government data, licence per dataset.",
@@ -546,7 +571,8 @@ const en: LaneMessages = {
       unknown: "Licence not stated, quote only with attribution.",
     },
     asOf: "As of",
-    asOfHint: "Documents after the cutoff are greyed out: this is what an agent could see on that date.",
+    asOfHint:
+      "Documents after the cutoff are greyed out: this is what an agent could see on that date.",
     asOfOff: "no cutoff",
     hideAfter: "Hide later ones",
     afterAsOf: "after cutoff",
@@ -613,7 +639,8 @@ const en: LaneMessages = {
       inArchive: "in archive",
       vote: "Vote",
       list: "Episodes",
-      listSub: "Ministerial drafts traced to the Federal Law Gazette, basis of the reference-class forecast.",
+      listSub:
+        "Ministerial drafts traced to the Federal Law Gazette, basis of the reference-class forecast.",
       reuse: "Text reuse from statements into the law arrives with the reuse track.",
       knowable: "knowable from",
       censored: "censored (outcome open at cutoff)",

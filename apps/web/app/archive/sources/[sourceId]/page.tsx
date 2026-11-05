@@ -1,0 +1,227 @@
+import { AGENT_CATALOG } from "@sv/contracts";
+import Link from "next/link";
+import { ArchiveNav } from "@/components/archive/archive-nav";
+import { draftLawLabel, getSource } from "@/components/archive/data.server";
+import { MaskedText } from "@/components/archive/masked-text";
+import { caseForDraftLaw } from "@/components/archive/registry.server";
+import { Backlinks } from "@/components/entity/backlinks";
+import { EntityLink } from "@/components/entity/entity-link";
+import { laneT, pick } from "@/components/entity/messages";
+import { scopedId } from "@/components/entity/types";
+import { usesOfSource } from "@/components/entity/usage.server";
+import { AgentTile } from "@/components/run/agent-tile";
+import { Page, StubNote } from "@/components/shell/page";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { serverPrefs } from "@/lib/server-prefs";
+
+export const dynamic = "force-dynamic";
+
+// Source detail (W-46, FR-P1, FR-P3, FR-T2, CON-1/2): metadata, licence line, link out to the
+// original, name-masked text with masked spans marked, "used in" backlinks. No raw PDF, no download.
+export default async function SourcePage({ params }: { params: Promise<{ sourceId: string }> }) {
+  const id = decodeURIComponent((await params).sourceId);
+  const { lang } = await serverPrefs();
+  const t = laneT(lang);
+  const d = await getSource(id);
+  if (!d)
+    return (
+      <Page>
+        <ArchiveNav lang={lang} active={null} />
+        <StubNote>
+          {t.entity.notFound}: <span className="font-mono">{id}</span>.{" "}
+          <Link href="/archive" className="underline">
+            {t.archive.detail.back}
+          </Link>
+        </StubNote>
+      </Page>
+    );
+  const s = d.source;
+  const agent = AGENT_CATALOG.find((a) => a.role === s.institution.role);
+  const uses = await usesOfSource(s.id);
+  const reg = d.draftLaw ? await caseForDraftLaw(d.draftLaw) : null;
+  const licenceKey = d.licenceLabel in t.archive.licenceLine ? d.licenceLabel : "unknown";
+  return (
+    <Page>
+      <ArchiveNav lang={lang} active={null} />
+      <Link
+        href="/archive"
+        className="mb-3 inline-block text-sm text-muted-foreground hover:text-foreground"
+      >
+        ← {t.archive.detail.back}
+      </Link>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <article className="min-w-0 space-y-4">
+          <header className="space-y-2">
+            <div className="flex flex-wrap items-center gap-1.5 text-sm">
+              {agent ? <AgentTile agentId={agent.id} /> : null}
+              <EntityLink type="institution" id={s.institution.code} className="font-medium">
+                {s.institution.nameDe}
+              </EntityLink>
+              <span className="text-muted-foreground">{s.institution.glossEn}</span>
+              <Badge variant="outline" className="text-muted-foreground">
+                {pick(t.archive.kinds, s.kind)}
+              </Badge>
+            </div>
+            <h1 className="text-2xl leading-snug">{s.title ?? s.legalRef ?? s.id}</h1>
+            <div className="font-mono text-xs text-muted-foreground">
+              {s.id} · {s.date}
+              {s.outlet ? ` · ${s.outlet}` : ""}
+              {s.legalRef ? ` · ${s.legalRef}` : ""}
+            </div>
+          </header>
+
+          <div className="rounded-2xl border border-info/30 bg-info/5 p-4 text-sm">
+            <div className="mb-1 text-xs font-medium text-info">{t.archive.detail.licence}</div>
+            <p>{t.archive.licenceLine[licenceKey as keyof typeof t.archive.licenceLine]}</p>
+            {s.licence ? <p className="mt-1 font-mono text-xs">{s.licence}</p> : null}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {s.url ? (
+                <Button asChild size="sm">
+                  <a href={s.url} target="_blank" rel="noreferrer noopener">
+                    {t.archive.detail.original} ↗
+                  </a>
+                </Button>
+              ) : (
+                <span className="text-xs text-muted-foreground">{t.archive.detail.noOriginal}</span>
+              )}
+              <span className="text-xs text-muted-foreground">{t.archive.detail.noBulk}</span>
+            </div>
+          </div>
+
+          <section className="rounded-2xl border bg-card p-4 sm:p-5">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <h2 className="text-base">{t.archive.detail.text}</h2>
+              <span className="flex-1" />
+              <span className="num text-xs text-muted-foreground">
+                {d.segments.length} {t.archive.detail.segments}
+              </span>
+              <Badge
+                variant="outline"
+                className="border-dashed text-muted-foreground"
+                title={t.archive.detail.maskedNote}
+              >
+                ▒ {d.maskedCount} {t.archive.detail.maskedCount}
+              </Badge>
+            </div>
+            <p className="mb-3 text-xs text-muted-foreground">{t.archive.detail.maskedNote}</p>
+            {d.clipped ? (
+              <p className="mb-3 text-xs text-warning">{t.archive.detail.pressClip}</p>
+            ) : null}
+            {d.segments.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t.archive.detail.noText}</p>
+            ) : (
+              <ol className="space-y-2">
+                {d.segments.map((g) => {
+                  const cited = uses.filter((u) => u.segmentId === g.id);
+                  return (
+                    <li
+                      key={g.id}
+                      id={`seg-${g.id}`}
+                      className={`grid grid-cols-[3rem_minmax(0,1fr)] gap-3 rounded-lg px-1 py-1 text-[15px] leading-relaxed ${cited.length ? "bg-warning/10" : ""}`}
+                    >
+                      <span className="pt-1 text-right font-mono text-[10px] text-muted-foreground">
+                        {g.ordinal}
+                      </span>
+                      <div>
+                        <MaskedText text={g.text} maskedLabel={t.archive.detail.masked} />
+                        {cited.length ? (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {[
+                              ...new Map(
+                                cited.map((u) => [
+                                  u.claimId ?? u.utteranceId ?? `${u.agentId}-${u.round}`,
+                                  u,
+                                ]),
+                              ).entries(),
+                            ]
+                              .slice(0, 8)
+                              .map(([k, u]) => (
+                                <EntityLink
+                                  key={`${u.runId}-${k}`}
+                                  type={u.claimId ? "claim" : u.utteranceId ? "utterance" : "run"}
+                                  id={
+                                    u.claimId
+                                      ? scopedId(u.runId, u.claimId)
+                                      : u.utteranceId
+                                        ? scopedId(u.runId, u.utteranceId)
+                                        : u.runId
+                                  }
+                                  className="rounded-[5px] border bg-background px-1.5 font-mono text-[10px] no-underline"
+                                >
+                                  {u.claimId ?? u.utteranceId ?? `${u.agentId} R${u.round}`}
+                                  {u.recencyWeight !== null
+                                    ? ` · w ${u.recencyWeight.toFixed(2)}`
+                                    : ""}
+                                </EntityLink>
+                              ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </section>
+        </article>
+
+        <aside className="space-y-4 lg:sticky lg:top-[66px] lg:self-start">
+          <section className="rounded-2xl border bg-card p-4">
+            <h2 className="mb-3 text-sm font-medium">{t.archive.detail.meta}</h2>
+            <dl className="grid grid-cols-[7rem_1fr] gap-y-1.5 text-sm">
+              <dt className="text-muted-foreground">{t.archive.detail.date}</dt>
+              <dd className="font-mono text-xs">
+                {s.date} ({s.datePrecision})
+              </dd>
+              {s.outlet ? (
+                <>
+                  <dt className="text-muted-foreground">{t.archive.detail.outlet}</dt>
+                  <dd>{s.outlet}</dd>
+                </>
+              ) : null}
+              {s.legalRef ? (
+                <>
+                  <dt className="text-muted-foreground">{t.archive.detail.legalRef}</dt>
+                  <dd className="font-mono text-xs">{s.legalRef}</dd>
+                </>
+              ) : null}
+              {d.draftLaw ? (
+                <>
+                  <dt className="text-muted-foreground">{t.archive.detail.draftLaw}</dt>
+                  <dd>
+                    <EntityLink type="draft_law" id={d.draftLaw}>
+                      {reg?.title ?? draftLawLabel(d.draftLaw)}
+                    </EntityLink>
+                    {reg ? (
+                      <div>
+                        <EntityLink
+                          type="episode"
+                          id={reg.episode_id}
+                          className="font-mono text-[11px]"
+                        >
+                          {reg.episode_id}
+                        </EntityLink>
+                      </div>
+                    ) : null}
+                  </dd>
+                </>
+              ) : null}
+              <dt className="text-muted-foreground">{t.archive.facets.licence}</dt>
+              <dd>{pick(t.archive.licences, d.licenceLabel)}</dd>
+              <dt className="text-muted-foreground">{t.archive.detail.corpusRevision}</dt>
+              <dd className="font-mono text-xs">{s.corpusRevision}</dd>
+              <dt className="text-muted-foreground">CON-1/2</dt>
+              <dd className="text-xs">personFiltered: true</dd>
+            </dl>
+          </section>
+          <section className="rounded-2xl border bg-card p-4">
+            <h2 className="mb-1 text-sm font-medium">{t.archive.detail.trainedOn}</h2>
+            <p className="text-sm text-muted-foreground">{t.archive.detail.trainedOnNone}</p>
+          </section>
+          <Backlinks type="source" id={s.id} lang={lang} title={t.archive.detail.usedIn} />
+        </aside>
+      </div>
+    </Page>
+  );
+}
