@@ -89,8 +89,9 @@ export default async function ArchivePage({ searchParams }: { searchParams: Prom
             return (
               <div key={key}>
                 <div className="mb-1.5 text-xs font-medium">{t.archive.facets[key]}</div>
-                <ul className="max-h-64 space-y-0.5 overflow-y-auto pr-1">
-                  {list.slice(0, 40).map((f) => {
+                {/* Eight facets open; the rest fold so the result list owns the fold. */}
+                {(() => {
+                  const item = (f: Facet) => {
                     const on = selected[key]?.includes(f.value);
                     return (
                       <li key={f.value}>
@@ -116,8 +117,23 @@ export default async function ArchivePage({ searchParams }: { searchParams: Prom
                         </Link>
                       </li>
                     );
-                  })}
-                </ul>
+                  };
+                  return (
+                    <>
+                      <ul className="space-y-0.5 pr-1">{list.slice(0, 8).map(item)}</ul>
+                      {list.length > 8 ? (
+                        <details className="mt-0.5">
+                          <summary className="cursor-pointer px-1.5 py-1 text-xs text-muted-foreground hover:text-foreground">
+                            + {list.length - 8}
+                          </summary>
+                          <ul className="max-h-64 space-y-0.5 overflow-y-auto pr-1">
+                            {list.slice(8, 40).map(item)}
+                          </ul>
+                        </details>
+                      ) : null}
+                    </>
+                  );
+                })()}
               </div>
             );
           })}

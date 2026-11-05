@@ -7,6 +7,7 @@ import { statusLabel } from "@/components/analysis/consensus-matrix";
 import { Chip, Tile, UttRef } from "@/components/run/bits";
 import { agentLook, fmtStance, L } from "@/components/run/helpers";
 import { useRun } from "@/components/run/run-context";
+import { Level } from "@/components/shell/providers";
 
 function Section({ n, title, children }: { n: number; title: string; children: ReactNode }) {
   return (
@@ -118,9 +119,11 @@ export function ResultDocument() {
                       </Link>
                     </td>
                     <td className="py-1.5 text-muted-foreground">{L(a.reason, lang)}</td>
-                    <td className="hidden py-1.5 pl-2 font-mono text-[11px] text-muted-foreground sm:table-cell">
-                      {run.modelAssignment[a.agentId] ?? ""}
-                    </td>
+                    <Level min="engineer">
+                      <td className="hidden py-1.5 pl-2 font-mono text-[11px] text-muted-foreground sm:table-cell">
+                        {run.modelAssignment[a.agentId] ?? ""}
+                      </td>
+                    </Level>
                   </tr>
                 );
               })}
@@ -310,11 +313,9 @@ export function ResultDocument() {
           {snap.expertNotes.length ? (
             <p className="text-xs text-muted-foreground">
               {t.live.expert}: {snap.expertNotes.map((n) => L(n.note, lang)).join("; ")} (
-              {snap.expertNotes
-                .flatMap((n) => n.utteranceIds)
-                .map((id) => (
-                  <UttRef key={id} id={id} className="mr-1" />
-                ))}
+              {[...new Set(snap.expertNotes.flatMap((n) => n.utteranceIds))].map((id) => (
+                <UttRef key={id} id={id} className="mr-1" />
+              ))}
               )
             </p>
           ) : null}
