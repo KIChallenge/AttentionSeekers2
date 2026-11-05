@@ -4,6 +4,7 @@
 
 const de = {
   nav: {
+    runScreens: "Ansichten dieses Laufs",
     negotiation: "Verhandlung",
     analysis: "Analyse",
     outcome: "Ergebnis",
@@ -14,6 +15,10 @@ const de = {
   },
   live: {
     question: "Frage",
+    transcript: "Transkript",
+    roster: "Teilnehmende und Rednerfolge",
+    outline: "Gliederung der Debatte",
+    transcriptKeys: "Pfeiltasten wechseln den Beitrag, Enter öffnet ihn im Inspektor",
     round: "Runde",
     roundOf: (r: number, n: number) => `Runde ${r} von ${n}`,
     phase: "Phase",
@@ -413,6 +418,19 @@ const de = {
     recEvidence: "Annahmen mit Kennzeichnung vor Umsetzung empirisch prüfen",
     endCondition: "Endbedingung",
     roundLine: (r: number) => `Runde ${r}`,
+    exportLabel: "Export",
+    exportDe: "HTML Deutsch",
+    exportEn: "HTML Englisch",
+    exportHint: "Eigenständige HTML-Datei, offline lesbar",
+    bundle: "Lauf-Bundle",
+    bundleHint: "Ereignisse (NDJSON), Traces, verwendete Quellen und Modellzuordnung als ZIP",
+    exportedAt: "Exportiert",
+    exportNote:
+      "Abgeleitet aus dem gespeicherten Lauf, nicht neu generiert. Links führen zur laufenden Anwendung.",
+    run: "Lauf",
+    noProposals: "Keine Vorschläge eingebracht.",
+    noConflicts: "Keine offenen Konflikte.",
+    noSummaries: "Noch keine Rundenzusammenfassung.",
   },
   common: {
     round: "Runde",
@@ -428,6 +446,7 @@ export type RunStrings = typeof de;
 
 const en: RunStrings = {
   nav: {
+    runScreens: "Views of this run",
     negotiation: "Negotiation",
     analysis: "Analysis",
     outcome: "Outcome",
@@ -438,6 +457,10 @@ const en: RunStrings = {
   },
   live: {
     question: "Question",
+    transcript: "Transcript",
+    roster: "Participants and speaking order",
+    outline: "Debate outline",
+    transcriptKeys: "Arrow keys move between utterances, Enter opens one in the inspector",
     round: "Round",
     roundOf: (r, n) => `Round ${r} of ${n}`,
     phase: "Phase",
@@ -823,6 +846,18 @@ const en: RunStrings = {
     recEvidence: "Check flagged assumptions empirically before implementation",
     endCondition: "End condition",
     roundLine: (r) => `Round ${r}`,
+    exportLabel: "Export",
+    exportDe: "HTML German",
+    exportEn: "HTML English",
+    exportHint: "Self-contained HTML file, readable offline",
+    bundle: "Run bundle",
+    bundleHint: "Events (NDJSON), traces, sources used and model assignment as a zip",
+    exportedAt: "Exported",
+    exportNote: "Derived from the stored run, never newly generated. Links open the running app.",
+    run: "Run",
+    noProposals: "No proposals tabled.",
+    noConflicts: "No open conflicts.",
+    noSummaries: "No round summary yet.",
   },
   common: {
     round: "Round",

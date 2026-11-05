@@ -37,7 +37,7 @@ export function ResultDocument() {
   const figs = snap.figures;
 
   return (
-    <main className="mx-auto max-w-[920px] px-6 pt-6 pb-16 print:max-w-none print:pt-0">
+    <main className="mx-auto max-w-[920px] px-4 sm:px-6 pt-6 pb-16 print:max-w-none print:pt-0">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{t.result.title}</h1>
@@ -46,15 +46,45 @@ export function ResultDocument() {
             {run.createdAt.slice(0, 10)}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="rounded-control border px-3 py-1.5 text-sm hover:border-foreground/40 print:hidden"
-        >
-          {t.result.print}
-        </button>
+        <div className="flex flex-wrap items-center gap-2 print:hidden">
+          <fieldset
+            className="m-0 inline-flex items-center rounded-control border p-0.5"
+            title={t.result.exportHint}
+          >
+            <legend className="sr-only">{t.result.exportLabel}</legend>
+            <span className="px-2 text-xs text-muted-foreground" aria-hidden>
+              {t.result.exportLabel}
+            </span>
+            {(["de", "en"] as const).map((l) => (
+              <a
+                key={l}
+                href={`/api/runs/${encodeURIComponent(runId)}/export?lang=${l}&download=1`}
+                download={`ergebnis-${runId}-${l}.html`}
+                aria-label={l === "de" ? t.result.exportDe : t.result.exportEn}
+                className="rounded-[8px] px-2.5 py-1 text-sm hover:bg-gray-alpha-100"
+              >
+                {l.toUpperCase()}
+              </a>
+            ))}
+          </fieldset>
+          <a
+            href={`/api/runs/${encodeURIComponent(runId)}/bundle`}
+            download
+            title={t.result.bundleHint}
+            className="rounded-control border px-3 py-1.5 text-sm hover:border-foreground/40"
+          >
+            {t.result.bundle}
+          </a>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="rounded-control border px-3 py-1.5 text-sm hover:border-foreground/40"
+          >
+            {t.result.print}
+          </button>
+        </div>
       </div>
-      <article className="rounded-2xl border bg-card px-6 print:border-0 print:px-0">
+      <article className="rounded-2xl border bg-card px-4 sm:px-6 print:border-0 print:px-0">
         <Section n={1} title={t.result.s1}>
           <p className="text-base font-medium">{m.question}</p>
           <p>
@@ -79,7 +109,7 @@ export function ResultDocument() {
                 const look = agentLook(run, a.agentId, lang);
                 return (
                   <tr key={a.agentId} className="border-b align-top last:border-0">
-                    <td className="py-1.5 pr-3 whitespace-nowrap">
+                    <td className="py-1.5 pr-3 sm:whitespace-nowrap">
                       <Link
                         href={`/runs/${runId}/agents/${a.agentId}`}
                         className="inline-flex items-center gap-1.5 hover:underline"
@@ -88,7 +118,7 @@ export function ResultDocument() {
                       </Link>
                     </td>
                     <td className="py-1.5 text-muted-foreground">{L(a.reason, lang)}</td>
-                    <td className="py-1.5 pl-2 font-mono text-[11px] text-muted-foreground">
+                    <td className="hidden py-1.5 pl-2 font-mono text-[11px] text-muted-foreground sm:table-cell">
                       {run.modelAssignment[a.agentId] ?? ""}
                     </td>
                   </tr>
@@ -126,7 +156,10 @@ export function ResultDocument() {
                     <Tile key={a} id={a} />
                   ))}
                   {c.boundBy.map((id) => (
-                    <Chip key={id} className="border-destructive/30 text-destructive">
+                    <Chip
+                      key={id}
+                      className="h-auto border-destructive/30 py-0.5 whitespace-normal text-destructive"
+                    >
                       {evidence.redLines[id] ? L(evidence.redLines[id].text, lang) : id}
                     </Chip>
                   ))}
@@ -154,7 +187,7 @@ export function ResultDocument() {
         </Section>
 
         <Section n={6} title={t.result.s6}>
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             {(
               [
                 ["consensus", t.result.consensus],

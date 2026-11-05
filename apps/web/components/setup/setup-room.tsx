@@ -366,7 +366,7 @@ export function SetupRoom({
           </Button>
         </div>
         {expanded ? (
-          <div className="grid gap-3 border-t p-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 border-t p-3 sm:grid-cols-2">
             <div className="space-y-2">
               <div className="text-xs text-muted-foreground">{t.setup.model}</div>
               <Select value={a.model} onValueChange={(v) => setAgent(a.agentId, { model: v })}>
@@ -546,7 +546,7 @@ export function SetupRoom({
                 </div>
               ) : null}
             </div>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <label className="block">
                 <span className="mb-1 block text-xs text-muted-foreground">
                   {t.setup.roundLimit}
@@ -620,7 +620,7 @@ export function SetupRoom({
                 onChange={(c) => set("climate", c)}
               />
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {(
                 [
                   ["time", t.setup.pressureTime],

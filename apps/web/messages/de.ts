@@ -1,12 +1,22 @@
 // Source dictionary (German). en.ts must satisfy the same shape.
 export const de = {
   brand: "HealthPolicy Simulator",
-  nav: { dashboard: "Übersicht", newRun: "Neue Verhandlung", archive: "Archiv", method: "Methode" },
+  nav: {
+    dashboard: "Übersicht",
+    newRun: "Neue Verhandlung",
+    archive: "Archiv",
+    method: "Methode",
+    menu: "Menü",
+    screens: "Bildschirme",
+  },
   prefs: {
     language: "Sprache",
     level: "Detailgrad",
     theme: "Farbschema",
     levels: { executive: "Executive", analyst: "Analyst", engineer: "Engineer" },
+    projector: "Projektormodus",
+    projectorHint: "Große Schrift, Inspektor als Overlay, kein Schreibcursor",
+    settings: "Einstellungen",
     themes: { system: "Auto", light: "Hell", dark: "Dunkel" },
   },
   dashboard: {
@@ -47,6 +57,16 @@ export const de = {
   },
   stub: {
     soon: "Gerüst. Diese Ansicht wird in den Lane-Tickets gebaut.",
+  },
+  states: {
+    loading: "Wird geladen",
+    notFound: "Nicht gefunden",
+    notFoundBody: "Diese Seite oder dieser Lauf existiert nicht (mehr).",
+    back: "Zur Übersicht",
+    error: "Diese Ansicht konnte nicht geladen werden",
+    errorBody:
+      "Der Lauf oder die Datenbank war nicht lesbar. Der Referenzlauf funktioniert auch offline.",
+    retry: "Erneut versuchen",
   },
   setup: {
     title: "Verhandlungsraum einrichten",

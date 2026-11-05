@@ -17,16 +17,17 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const { lang, level } = await serverPrefs();
+  const { lang, level, projector } = await serverPrefs();
   return (
     <html
       lang={lang}
       data-level={level}
+      data-projector={projector ? "" : undefined}
       className={cn(inter.variable, GeistMono.variable, "font-sans")}
       suppressHydrationWarning
     >
       <body className="min-h-screen bg-background">
-        <Providers lang={lang} level={level}>
+        <Providers lang={lang} level={level} projector={projector}>
           <TopBar />
           <CommandPalette showTrigger={false} />
           {children}

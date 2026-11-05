@@ -2,10 +2,10 @@
 
 import type { Claim, ClaimState, Utterance } from "@sv/contracts";
 import type { ReactNode } from "react";
-import { Level } from "@/components/shell/providers";
+import { Level, usePrefs } from "@/components/shell/providers";
 import { cn } from "@/lib/utils";
 import { Chip, EntityRef, Tile } from "./bits";
-import { agentLook, claimUnderline, L } from "./helpers";
+import { agentLook, claimUnderline, L, withKeys } from "./helpers";
 import { ClaimStateBadge, SourceChip } from "./provenance";
 import { useRun } from "./run-context";
 
@@ -20,7 +20,9 @@ function ClaimText({ u, claims }: { u: Utterance; claims: Claim[] }) {
         {text}
         {claims.flatMap((c) => c.citations).length ? " " : null}
         {claims.flatMap((c) =>
-          c.citations.map((ref) => <SourceChip key={`${c.id}-${ref.segmentId}`} cite={ref} />),
+          withKeys(c.citations, (ref) => `${c.id}-${ref.segmentId}`).map(([key, ref]) => (
+            <SourceChip key={key} cite={ref} />
+          )),
         )}
       </>
     );
@@ -42,8 +44,8 @@ function ClaimText({ u, claims }: { u: Utterance; claims: Claim[] }) {
         {text.slice(c.span.start, c.span.end)}
       </span>,
     );
-    for (const ref of c.citations)
-      out.push(<SourceChip key={`${c.id}-${ref.segmentId}`} cite={ref} />);
+    for (const [key, ref] of withKeys(c.citations, (r) => `${c.id}-${r.segmentId}`))
+      out.push(<SourceChip key={key} cite={ref} />);
     pos = c.span.end;
   }
   out.push(text.slice(pos));
@@ -76,16 +78,22 @@ export function UtteranceCard({
       id={u.id}
       role="button"
       tabIndex={0}
+      data-utt-card=""
+      aria-pressed={onSelect ? !!selected : undefined}
       onClick={(e) => {
         if ((e.target as HTMLElement).closest("a,button")) return;
         onSelect?.(u.id);
       }}
       onKeyDown={(e) => {
-        if (e.key === "Enter") onSelect?.(u.id);
+        if (e.target !== e.currentTarget) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect?.(u.id);
+        }
       }}
       data-selected={selected || undefined}
       className={cn(
-        "scroll-mt-28 rounded-2xl border bg-card p-3.5 text-left transition-colors",
+        "scroll-mt-28 rounded-2xl border bg-card p-3.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         isMod && "bg-gray-alpha-50",
         selected && "border-foreground ring-1 ring-foreground",
         onSelect && "cursor-pointer hover:border-foreground/30",
@@ -195,6 +203,7 @@ export function PendingCard({
   text: string;
 }) {
   const { run, lang, t } = useRun();
+  const { projector } = usePrefs();
   const a = agentLook(run, speaker, lang);
   return (
     <article className="rounded-2xl border border-foreground bg-card p-3.5">
@@ -216,7 +225,9 @@ export function PendingCard({
         {text ? (
           <>
             {text}
-            <span className="ml-0.5 inline-block h-4 w-1.5 translate-y-0.5 bg-foreground" />
+            {projector ? null : (
+              <span className="ml-0.5 inline-block h-4 w-1.5 translate-y-0.5 bg-foreground" />
+            )}
           </>
         ) : (
           <div className="space-y-2 pt-1">

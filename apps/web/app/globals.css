@@ -124,6 +124,7 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  --breakpoint-desk: 75rem;
   --radius-control: 0.625rem;
   --radius-sm: 0.125rem;
   --radius-md: 0.375rem;
@@ -220,7 +221,7 @@
   --sidebar-ring: #171717;
   --sidebar-width: 16rem;
   --text-primary: var(--foreground);
-  --text-secondary: var(--gray-alpha-500);
+  --text-secondary: var(--gray-alpha-550);
   --text-tertiary: var(--gray-alpha-450);
   --surface: var(--gray-50);
   --raised: var(--background);
@@ -392,7 +393,7 @@
     --card-foreground: black;
     --muted-foreground: #444;
   }
-  body * {
+  :where(body:has(#gp-letter)) * {
     visibility: hidden;
   }
   #gp-letter,
@@ -415,6 +416,29 @@
   #gp-letter [data-slot="button"] {
     display: none;
   }
+}
+
+/* ---- Accessibility: visible keyboard focus on every interactive element ---- */
+:where(a, button, summary, select, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Agent tile ink: white only where it reaches the higher contrast against the hue. */
+[data-agent] {
+  color: var(--tile-ink, #fff);
+}
+[data-agent="sv"],
+[data-agent="pf"],
+[data-agent="pv"],
+[data-agent="moderator"],
+[data-agent="expert"],
+.dark [data-agent] {
+  --tile-ink: #171717;
+}
+.dark [data-agent="moderator"],
+.dark [data-agent="expert"] {
+  --tile-ink: #fff;
 }
 
 /* ---- HealthPolicy Simulator additions (mockups/_src/base.css) ---- */
@@ -459,4 +483,39 @@
 }
 .num {
   font-variant-numeric: tabular-nums;
+}
+
+/* ---- Projector mode (W-34, NFR-7) ----
+   One root scale lifts every rem-based size; the few fixed pixel sizes are re-expressed in
+   rem so they scale too. Layout changes (sheet inspector, larger tiles, no typing cursor)
+   are made in the components from the same preference. */
+html[data-projector] {
+  font-size: 125%;
+}
+html[data-projector] .text-\[8px\] {
+  font-size: 0.5rem;
+}
+html[data-projector] .text-\[9px\] {
+  font-size: 0.5625rem;
+}
+html[data-projector] .text-\[10px\] {
+  font-size: 0.6875rem;
+}
+html[data-projector] .text-\[11px\] {
+  font-size: 0.75rem;
+}
+html[data-projector] .text-\[12px\] {
+  font-size: 0.75rem;
+}
+html[data-projector] .text-\[13px\] {
+  font-size: 0.8125rem;
+}
+html[data-projector] .text-\[15px\] {
+  font-size: 0.9375rem;
+}
+html[data-projector] [data-matrix-secondary] {
+  display: none;
+}
+html[data-projector] .animate-pulse {
+  animation: none;
 }

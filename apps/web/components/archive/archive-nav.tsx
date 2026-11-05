@@ -19,7 +19,10 @@ export function ArchiveNav({
   ] as const;
   return (
     <div className="mb-5 flex flex-wrap items-center gap-2">
-      <nav className="inline-flex rounded-control border p-0.5" aria-label="Archive">
+      <nav
+        className="inline-flex rounded-control border p-0.5"
+        aria-label={lang === "de" ? "Archivbereiche" : "Archive sections"}
+      >
         {tabs.map((x) => (
           <Link
             key={x.key}

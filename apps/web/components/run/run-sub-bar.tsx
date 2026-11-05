@@ -36,26 +36,32 @@ export function RunSubBar() {
           ? { cls: "border-destructive/40 text-destructive", label: t.live.failed }
           : { cls: "text-muted-foreground", label: t.live.waiting };
   return (
-    <div className="sticky top-[50px] z-10 flex h-11 items-center gap-3 border-b bg-surface/95 px-6 backdrop-blur print:hidden">
-      <Chip className="shrink-0 bg-gray-alpha-100">{t.live.question}</Chip>
-      <span className="min-w-0 flex-1 truncate text-sm" title={run.mandate.question}>
+    <div className="sticky top-[50px] z-10 flex h-11 items-center gap-2 border-b bg-surface/95 px-3 backdrop-blur sm:gap-3 sm:px-6 print:hidden">
+      <Chip className="hidden shrink-0 bg-gray-alpha-100 xl:inline-flex">{t.live.question}</Chip>
+      <span
+        className="hidden min-w-0 flex-1 truncate text-sm md:block"
+        title={run.mandate.question}
+      >
         {run.mandate.question}
       </span>
-      <Chip className={cn("shrink-0", status.cls)}>
+      <Chip className={cn("hidden shrink-0 sm:inline-flex", status.cls)}>
         {snap.status === "running" ? (
           <span className="size-1.5 animate-pulse rounded-full bg-current" />
         ) : null}
         {snap.source === "replay" && streaming ? `${t.live.replay} · ` : ""}
         {status.label}
       </Chip>
-      <nav className="flex shrink-0 items-center gap-0.5" aria-label="Run">
+      <nav
+        className="-my-1 flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto py-1 md:flex-none md:shrink-0"
+        aria-label={t.nav.runScreens}
+      >
         {links.map((l) => (
           <Link
             key={l.href}
             href={l.href}
             aria-current={l.active ? "page" : undefined}
             className={cn(
-              "rounded-control px-2.5 py-1 text-xs text-muted-foreground hover:bg-gray-alpha-100 hover:text-foreground",
+              "shrink-0 rounded-control px-2.5 py-1 text-xs whitespace-nowrap text-muted-foreground hover:bg-gray-alpha-100 hover:text-foreground",
               l.active && "bg-gray-alpha-150 text-foreground",
             )}
           >
@@ -63,9 +69,10 @@ export function RunSubBar() {
           </Link>
         ))}
       </nav>
-      <span className="h-5 w-px bg-border" />
+      <span className="hidden h-5 w-px bg-border lg:block" />
       <Seg
         label={t.live.speed}
+        className="hidden lg:inline-flex"
         value={speed}
         onChange={setSpeed}
         options={[1, 4, 16].map((s) => ({ value: s, label: `${s}x` }))}

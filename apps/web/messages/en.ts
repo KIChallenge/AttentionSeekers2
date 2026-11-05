@@ -2,12 +2,22 @@ import type { Messages } from "./de";
 
 export const en = {
   brand: "HealthPolicy Simulator",
-  nav: { dashboard: "Overview", newRun: "New negotiation", archive: "Archive", method: "Method" },
+  nav: {
+    dashboard: "Overview",
+    newRun: "New negotiation",
+    archive: "Archive",
+    method: "Method",
+    menu: "Menu",
+    screens: "Screens",
+  },
   prefs: {
     language: "Language",
     level: "Disclosure level",
     theme: "Theme",
     levels: { executive: "Executive", analyst: "Analyst", engineer: "Engineer" },
+    projector: "Projector mode",
+    projectorHint: "Large type, inspector as overlay, no typing cursor",
+    settings: "Settings",
     themes: { system: "Auto", light: "Light", dark: "Dark" },
   },
   dashboard: {
@@ -47,6 +57,15 @@ export const en = {
   },
   stub: {
     soon: "Scaffold. This view is built in the lane tickets.",
+  },
+  states: {
+    loading: "Loading",
+    notFound: "Not found",
+    notFoundBody: "This page or run does not exist (any more).",
+    back: "Back to overview",
+    error: "This view could not be loaded",
+    errorBody: "The run or the database could not be read. The reference run also works offline.",
+    retry: "Try again",
   },
   setup: {
     title: "Set up the negotiation room",

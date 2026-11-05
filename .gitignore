@@ -11,6 +11,10 @@ models/**/checkpoints
 models/**/*.bin
 models/**/*.pt
 models/**/*.gguf
+models/**/*.joblib
+models/out/classifier/model/
+# raw LLM generations before the person-name guard
+models/out/dpo_cache/
 *.parquet
 # monorepo (added by app foundation)
 .turbo/
@@ -30,3 +34,4 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .claude/
+apps/web/AGENTS.md

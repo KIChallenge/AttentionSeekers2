@@ -131,7 +131,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ episod
           {e.gp}. GP · {e.ressort} · {e.coalition}
         </div>
       </header>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="min-w-0 space-y-5">
           {cases.map((c) => (
             <section
@@ -206,7 +206,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ episod
             {statements.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t.archive.agent.none}</p>
             ) : (
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 {statements.map(({ s, text }) => {
                   const agent = AGENT_CATALOG.find((a) => a.role === s.institution.role);
                   return (
