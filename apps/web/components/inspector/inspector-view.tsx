@@ -373,7 +373,17 @@ export function InspectorView({
               <dd className="font-mono text-xs">{tel?.gatewayRequestId ?? "-"}</dd>
             </dl>
           </Panel>
-          <Panel title={t.inspector.telemetry}>
+          <Panel
+            title={t.inspector.telemetry}
+            aside={
+              <Link
+                href={`/runs/${runId}/trace?u=${u.id}`}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Trace →
+              </Link>
+            }
+          >
             {tel ? (
               <dl className="grid grid-cols-2 gap-3 text-sm">
                 {(

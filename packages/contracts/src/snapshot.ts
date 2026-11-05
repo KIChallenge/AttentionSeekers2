@@ -1,6 +1,7 @@
 import type { Position } from "./agents.ts";
 import type { Claim } from "./claims.ts";
 import type { RunEvent } from "./events.ts";
+import type { LlmCall } from "./llm-calls.ts";
 import type { Forecast, ImpactFigure, RatificationVote } from "./outcome.ts";
 import type { AgentId, LocalizedText, ModelId, SpeakerId } from "./primitives.ts";
 import type { OutcomeClass, Proposal, RoundSummary } from "./proposals.ts";
@@ -75,6 +76,8 @@ export interface RunSnapshot {
   exchanges: Exchange[];
   lessonApplications: LessonApplication[];
   degraded: Array<{ agentId: AgentId; utteranceId: string | null; reason: string }>;
+  /** Model calls in completion order (RunEvent "llm.call"); empty for runs before 2026-11-06. */
+  llmCalls: LlmCall[];
   figures: ImpactFigure[];
   forecasts: Forecast[];
   extractorVersion: string | null;
@@ -127,6 +130,7 @@ export function emptySnapshot(): RunSnapshot {
     exchanges: [],
     lessonApplications: [],
     degraded: [],
+    llmCalls: [],
     figures: [],
     forecasts: [],
     extractorVersion: null,
@@ -365,6 +369,9 @@ export function reduceRun(s: RunSnapshot, e: RunEvent, opts: ReduceOptions = {})
         status: e.retryable ? base.status : "failed",
         error: { message: e.message, retryable: e.retryable },
       };
+
+    case "llm.call":
+      return { ...base, llmCalls: [...(base.llmCalls ?? []), e.call] };
 
     case "heartbeat":
       return base;
