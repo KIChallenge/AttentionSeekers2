@@ -1,0 +1,114 @@
+{
+ "rv_pass_rates": {
+  "XX": {
+   "rv_status": {
+    "5": 419,
+    "2": 17,
+    "4": 7
+   },
+   "health_rv_status": {
+    "5": 24,
+    "2": 1,
+    "4": 1
+   }
+  },
+  "XXI": {
+   "rv_status": {
+    "5": 254,
+    "1": 6,
+    "2": 21,
+    "4": 10
+   },
+   "health_rv_status": {
+    "1": 1,
+    "5": 21,
+    "2": 1
+   }
+  },
+  "XXII": {
+   "rv_status": {
+    "5": 370,
+    "2": 4
+   },
+   "health_rv_status": {
+    "5": 37
+   }
+  },
+  "XXIII": {
+   "rv_status": {
+    "2": 14,
+    "5": 162
+   },
+   "health_rv_status": {
+    "5": 18,
+    "2": 2
+   }
+  },
+  "XXIV": {
+   "rv_status": {
+    "5": 482,
+    "2": 13,
+    "3": 1
+   },
+   "health_rv_status": {
+    "5": 40,
+    "2": 2
+   }
+  },
+  "XXV": {
+   "rv_status": {
+    "5": 326,
+    "4": 1,
+    "2": 4
+   },
+   "health_rv_status": {
+    "5": 22
+   }
+  },
+  "XXVI": {
+   "rv_status": {
+    "5": 116,
+    "2": 1
+   },
+   "health_rv_status": {
+    "5": 6
+   }
+  },
+  "XXVII": {
+   "rv_status": {
+    "5": 362,
+    "2": 2,
+    "3": 1
+   },
+   "health_rv_status": {
+    "5": 60,
+    "3": 1
+   }
+  },
+  "XXVIII": {
+   "rv_status": {
+    "5": 123,
+    "2": 5,
+    "1": 1
+   },
+   "health_rv_status": {
+    "5": 14
+   }
+  },
+  "closed_GP_XX_XXVII": {
+   "passed": 2491,
+   "not_passed": 96,
+   "rate": 0.9628913799768071
+  },
+  "closed_GP_XXIII_XXVII": {
+   "passed": 1448,
+   "not_passed": 37,
+   "rate": 0.9750841750841751
+  },
+  "health_tagged_GP_XXIV_XXVII": {
+   "passed": 128,
+   "not_passed": 3,
+   "rate": 0.9770992366412213
+  }
+ }
+}

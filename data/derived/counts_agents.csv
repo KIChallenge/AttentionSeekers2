@@ -1,0 +1,12 @@
+agent,n_all,n_health_core,n_health_broad,n_mes_all,n_mes_health_core,years
+bmsgpk,346,4,24,341,4,2007-2026
+sv,589,131,270,458,111,2007-2026
+aerztekammer,252,96,114,239,91,2007-2026
+contract_physicians,17,15,15,8,6,2012-2024
+elective_physicians,0,0,0,0,0,
+hospitals,148,114,114,72,54,2007-2025
+nursing,96,79,84,50,37,2007-2025
+patients,86,50,61,69,35,2007-2026
+laender,9370,1026,1530,1749,167,2006-2026
+bmf,963,91,147,956,91,2006-2026
+other,9721,1331,2038,1756,167,2006-2026

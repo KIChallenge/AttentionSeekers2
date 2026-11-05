@@ -1,0 +1,32 @@
+{
+  "name": "@sv/db",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node scripts/migrate.ts",
+    "db:import": "node scripts/import-jsonl.ts",
+    "runs:load": "node scripts/load-runs.ts"
+  },
+  "dependencies": {
+    "@sv/contracts": "workspace:*",
+    "drizzle-orm": "^0.44.0",
+    "pg": "^8.16.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@sv/tsconfig": "workspace:*",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.15.0",
+    "drizzle-kit": "^0.31.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

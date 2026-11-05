@@ -1,0 +1,27 @@
+{
+  "name": "sv-ki-challenge",
+  "private": true,
+  "packageManager": "pnpm@10.18.0",
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev --filter=@sv/web",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:generate": "pnpm --filter @sv/db db:generate",
+    "db:migrate": "pnpm --filter @sv/db db:migrate",
+    "db:import": "pnpm --filter @sv/db db:import",
+    "runs:load": "pnpm --filter @sv/db runs:load",
+    "contracts:schema": "pnpm --filter @sv/contracts schema",
+    "fixture": "pnpm --filter @sv/contracts fixture"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.4",
+    "turbo": "^2.5.0",
+    "typescript": "^5.9.0"
+  }
+}

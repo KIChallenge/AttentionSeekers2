@@ -1,0 +1,29 @@
+{
+  "name": "@sv/engine",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "run:once": "node --env-file-if-exists=../../.env --no-warnings src/cli.ts run",
+    "mandate": "node --env-file-if-exists=../../.env --no-warnings src/cli.ts mandate",
+    "smoke": "node --env-file-if-exists=../../.env --no-warnings src/smoke.ts",
+    "validate": "node --no-warnings src/cli.ts validate",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@sv/contracts": "workspace:*",
+    "@sv/db": "workspace:*",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@sv/tsconfig": "workspace:*",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

@@ -1,0 +1,40 @@
+[project]
+name = "sv-models"
+version = "0.1.0"
+description = "Persona models for the HealthPolicy Simulator: SFT/DPO data, in-character classifiers, LoRA kit"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "torch>=2.4",
+    "sentence-transformers>=3.3",
+    "setfit>=1.1",
+    "transformers>=4.46,<5",
+    "datasets>=3.0",
+    "scikit-learn>=1.5",
+    "numpy",
+    "pyyaml>=6",
+    "openai>=1.60",
+    "spacy>=3.8.18",
+    "de-core-news-lg",
+]
+
+[project.optional-dependencies]
+# GPU VM only (CUDA). Not installed on the laptop.
+gpu = [
+    "peft>=0.13",
+    "trl>=0.12",
+    "bitsandbytes>=0.44",
+    "accelerate>=1.0",
+]
+
+[tool.uv]
+# CPU torch on the laptop; on a GPU VM run `uv sync --extra gpu --no-sources`
+# (or see README) so the default CUDA wheel is used instead.
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+de-core-news-lg = { url = "https://github.com/explosion/spacy-models/releases/download/de_core_news_lg-3.8.0/de_core_news_lg-3.8.0-py3-none-any.whl" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

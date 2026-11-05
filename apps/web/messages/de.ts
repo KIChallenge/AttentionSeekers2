@@ -1,0 +1,86 @@
+// Source dictionary (German). en.ts must satisfy the same shape.
+export const de = {
+  brand: "HealthPolicy Simulator",
+  nav: { dashboard: "Übersicht", newRun: "Neue Verhandlung", archive: "Archiv", method: "Methode" },
+  prefs: {
+    language: "Sprache",
+    level: "Detailgrad",
+    theme: "Farbschema",
+    levels: { executive: "Executive", analyst: "Analyst", engineer: "Engineer" },
+    themes: { system: "Auto", light: "Hell", dark: "Dunkel" },
+  },
+  dashboard: {
+    title: "Verhandlungen",
+    sub: "Alle simulierten Verhandlungen mit Ergebnis, Zustimmung und Bewegung. Der Referenzlauf ist angeheftet.",
+    newQuestion: "Neue Frage",
+    reference: "Referenzlauf",
+    replay: "Abspielen",
+    open: "Öffnen",
+    fork: "Abzweigen",
+    agreement: "Zustimmung",
+    movedMost: "Größte Bewegung",
+    duration: "Dauer",
+    rounds: "Runden",
+    proposals: "Vorschläge",
+    accepted: "angenommen",
+    rejected: "abgelehnt",
+    empty:
+      "Noch keine Läufe. Lege unter runs/ eine NDJSON-Datei ab oder starte eine neue Verhandlung.",
+    filters: { all: "Alle", baseline: "Basislauf", variants: "Varianten" },
+  },
+  outcome: {
+    consensus: "Konsens",
+    majority: "Mehrheit",
+    minority: "Minderheit",
+    no_result: "Kein Ergebnis",
+    running: "läuft",
+    failed: "fehlgeschlagen",
+  },
+  variant: {
+    baseline: "Basislauf",
+    permutation: "Permutation",
+    ablation_remove: "Ablation",
+    ablation_constraint: "Ablation (Restriktion)",
+    no_peer_control: "Kontrolllauf",
+    fork: "Abzweigung",
+    backtest: "Backtest",
+  },
+  stub: {
+    soon: "Gerüst. Diese Ansicht wird in den Lane-Tickets gebaut.",
+  },
+  setup: {
+    title: "Verhandlungsraum einrichten",
+    sub: "Frage, Parteien, Regeln und Klima. Alles wird ins Mandat geschrieben und ist beim Abspielen reproduzierbar.",
+    templates: "Vorlagen",
+    parties: "Parteien",
+    rules: "Regeln und Klima",
+    start: "Verhandlung starten",
+    replayReference: "Referenzlauf abspielen",
+  },
+  run: {
+    round: "Runde",
+    phase: "Phase",
+    utterances: "Beiträge",
+    openConflicts: "Offene Konflikte",
+    consensus: "Zustimmung",
+    analysis: "Analyse",
+    outcome: "Ergebnis",
+  },
+  replay: {
+    title: "Wiedergabe",
+    speed: "Tempo",
+    play: "Abspielen",
+    pause: "Pause",
+    restart: "Neu starten",
+    events: "Ereignisse",
+    live: "live",
+    replay: "Wiedergabe",
+  },
+  archive: {
+    title: "Evidenzarchiv",
+    sub: "Eine Suche über alles, woraus die Agenten argumentieren, mit Stichtag-Regler (FR-H2).",
+  },
+} as const;
+
+type Widen<T> = T extends string ? string : { [K in keyof T]: Widen<T[K]> };
+export type Messages = Widen<typeof de>;

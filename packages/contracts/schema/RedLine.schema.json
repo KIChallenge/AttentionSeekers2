@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "ministry_health",
+        "social_insurance",
+        "medical_chamber",
+        "contract_physicians",
+        "elective_physicians",
+        "hospitals",
+        "nursing",
+        "patients",
+        "legislature",
+        "ministry_finance",
+        "laender",
+        "public_health",
+        "chamber_commerce",
+        "chamber_labour",
+        "chamber_agriculture",
+        "industry_pharma",
+        "other"
+      ]
+    },
+    "text": {
+      "type": "object",
+      "properties": {
+        "lang": {
+          "type": "string",
+          "enum": [
+            "de",
+            "en"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "translations": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "de": {
+              "type": "string"
+            },
+            "en": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": [
+        "lang",
+        "text"
+      ]
+    },
+    "basis": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "sourceId": {
+              "type": "string"
+            },
+            "segmentId": {
+              "type": "string"
+            },
+            "start": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "end": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "recencyWeight": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "required": [
+            "sourceId",
+            "segmentId",
+            "start",
+            "end",
+            "recencyWeight"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "deep_core",
+        "policy_core",
+        "secondary"
+      ]
+    },
+    "topicKeys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "role",
+    "text",
+    "basis",
+    "tier",
+    "topicKeys"
+  ]
+}

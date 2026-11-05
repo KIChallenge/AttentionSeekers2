@@ -1,0 +1,56 @@
+institution_id,institution,agent,n_all,n_health_core,n_health_broad,n_mes_all,n_mes_health_core,years
+land_tirol,Land Tirol,laender,1676,168,255,1654,165,2006-2026
+land_noe,Land Niederösterreich,laender,1709,165,260,1676,163,2006-2026
+land_vbg,Land Vorarlberg,laender,1664,163,256,1637,161,2006-2026
+land_sbg,Land Salzburg,laender,1474,155,231,1439,150,2006-2026
+ak,Arbeiterkammer (BAK und Länderkammern),other,1474,152,236,1405,144,2006-2026
+wko,Wirtschaftskammer (WKÖ und Landeskammern),other,1276,126,212,1241,123,2007-2026
+mtd_hebammen,"Gesundheitsberufe (MTD-Austria, Hebammengremium, Physio Austria, Ergotherapie)",other,171,126,134,73,41,2007-2025
+land_wien,Land Wien,laender,908,123,181,892,122,2006-2026
+rechnungshof,Rechnungshof,other,1265,118,182,1242,118,2006-2026
+sv_dachverband,Hauptverband/Dachverband der Sozialversicherungsträger,sv,429,114,182,424,111,2007-2026
+bka_vd,Bundeskanzleramt-Verfassungsdienst,other,1087,113,181,1072,111,2007-2026
+free_welfare,"Freie Wohlfahrt (Caritas, Diakonie, Hilfswerk, Volkshilfe, Rotes Kreuz, Samariterbund)",other,433,96,145,213,44,2007-2026
+hospitals_land,"Landes-Spitalsträger (KAGes, KABEG, Tirol Kliniken, SALK, NÖ LGA, OÖG/gespag, KRAGES, KHBG, WIGEV)",hospitals,124,95,95,67,51,2007-2025
+oeak,Österreichische Ärztekammer,aerztekammer,241,92,110,238,91,2007-2026
+bmf,Finanzministerium (BMF),bmf,963,91,147,956,91,2006-2026
+land_bgld,Land Burgenland,laender,807,81,130,794,80,2006-2026
+land_stmk,Land Steiermark,laender,475,81,101,446,76,2007-2026
+land_ktn,Land Kärnten,laender,498,79,96,476,73,2007-2026
+meduni,Medizinische Universitäten,other,203,62,63,93,38,2007-2026
+oegb,Österreichischer Gewerkschaftsbund,other,702,56,122,680,54,2007-2026
+datenschutz,Datenschutzbehörde / Datenschutzrat,other,456,49,84,352,37,2007-2026
+staedtebund,Österreichischer Städtebund,other,407,48,68,397,48,2006-2026
+apothekerkammer,Österreichische Apothekerkammer,other,97,45,54,95,44,2007-2026
+patients_pa,Patientenanwaltschaften (ARGE und Länder),patients,66,40,47,55,31,2007-2026
+seniorenrat,Österreichischer Seniorenrat,other,175,38,77,174,38,2007-2026
+psych_professions,"Psychotherapie- und Psychologenverbände (ÖBVP, BÖP)",other,99,37,41,80,25,2007-2026
+gemeindebund,Österreichischer Gemeindebund,other,420,36,57,394,34,2007-2026
+disability,Behindertenrat / ÖAR / KOBV,other,243,34,78,177,28,2007-2026
+zahnaerztekammer,Österreichische Zahnärztekammer,other,58,32,37,57,31,2007-2025
+nursing_oegkv,Österreichischer Gesundheits- und Krankenpflegeverband (ÖGKV),nursing,45,32,36,40,27,2007-2025
+care_providers,"Pflegeheim- und Sozialträgerverbände (Lebenswelt Heim, Sozialwirtschaft)",other,88,32,40,76,26,2008-2026
+nursing_other,"Sonstige Pflege-Berufsverbände (BKKÖ, Pflegekonferenz, Pflegedirektionen, Pflegewissenschaft)",nursing,34,31,32,14,12,2008-2024
+iv,Industriellenvereinigung,other,478,30,77,459,29,2007-2026
+lwk,Landwirtschaftskammer Österreich,other,373,27,63,367,27,2007-2026
+goeg,Gesundheit Österreich GmbH,other,33,25,27,31,23,2007-2026
+pharma_industry,"Pharmaindustrie (Pharmig, FOPI, Generikaverband)",other,30,22,24,26,19,2008-2023
+hospitals_other,"Ordens- und Privatspitäler (konfessionelle Spitalserhalter, Privatkrankenanstalten)",hospitals,24,19,19,20,16,2007-2025
+nursing_union,ÖGB-Fachgruppenvereinigung Gesundheits- und Sozialberufe,nursing,17,16,16,17,16,2007-2018
+contract_physicians,"Kassenärztliche Vertretungen (Bundeskurie niedergelassene Ärzte, Hausärzte, Allgemeinmedizin, PVE)",contract_physicians,17,15,15,8,6,2012-2024
+volksanwaltschaft,Volksanwaltschaft,other,101,14,19,101,14,2007-2026
+land_ooe,Land Oberösterreich,laender,147,9,17,147,9,2007-2026
+sv_auva,Allgemeine Unfallversicherungsanstalt,sv,72,8,18,70,8,2007-2025
+patients_selbsthilfe,Selbsthilfe-Dachverbände,patients,8,8,8,8,8,2009-2024
+ages,AGES,other,13,7,7,13,7,2007-2023
+sv_oegk_gkk,ÖGK und Gebiets-/Betriebskrankenkassen,sv,44,6,39,13,2,2008-2025
+union_health,Gewerkschaften vida / younion / GPA,other,27,6,9,26,6,2007-2024
+bmsgpk,Gesundheitsministerium (BMGFJ/BMG/BMGF/BMASGK/BMSGPK/BMASGPK),bmsgpk,346,4,24,341,4,2007-2026
+aek_land,Landesärztekammern,aerztekammer,11,4,4,8,3,2008-2026
+patients_vertretungsnetz,VertretungsNetz (Patientenanwaltschaft Psychiatrie),patients,12,2,6,12,2,2008-2026
+laender_vst,Verbindungsstelle der Bundesländer,laender,12,2,3,11,2,2009-2024
+sv_svs,SVS / SVA der gewerblichen Wirtschaft / SVB,sv,9,1,8,8,1,2007-2018
+sv_bvaeb,BVAEB / BVA / VAEB,sv,12,1,6,11,1,2007-2024
+sv_pva,Pensionsversicherungsanstalt,sv,8,1,6,8,1,2008-2018
+sv_other,"Sonstige SV-Träger (VA Notariat, KFA)",sv,15,0,11,15,0,2007-2018
+vki,Verein für Konsumenteninformation,other,12,0,1,12,0,2007-2026

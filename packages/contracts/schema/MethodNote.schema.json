@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "brier": {
+      "type": "object",
+      "properties": {
+        "model": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "statusQuo": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "n": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "model",
+        "statusQuo",
+        "n"
+      ]
+    },
+    "classSizes": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": -9007199254740991,
+        "maximum": 9007199254740991
+      }
+    },
+    "ablationVerdict": {
+      "type": "object",
+      "properties": {
+        "lang": {
+          "type": "string",
+          "enum": [
+            "de",
+            "en"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "translations": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "de": {
+              "type": "string"
+            },
+            "en": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": [
+        "lang",
+        "text"
+      ]
+    },
+    "regimeCaveat": {
+      "type": "object",
+      "properties": {
+        "lang": {
+          "type": "string",
+          "enum": [
+            "de",
+            "en"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "translations": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "de": {
+              "type": "string"
+            },
+            "en": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": [
+        "lang",
+        "text"
+      ]
+    },
+    "extractorVersion": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "version",
+    "brier",
+    "classSizes",
+    "ablationVerdict",
+    "regimeCaveat",
+    "extractorVersion"
+  ]
+}

@@ -1,0 +1,982 @@
+{
+ "$comment": "Agent profiles (FR-A1, FR-C3, FR-C4, NFR-3). Institutions only, never a person. Edit here, no code change needed (FR-A7). temperament = [concession, assertiveness, coalitionAppetite, riskTolerance].",
+ "agents": {
+  "gm": {
+   "unit": "Sektion Gesundheitssystem",
+   "vetoStatus": "co_decider",
+   "vetoBasis": {
+    "de": "Gesetzesinitiative und Zielsteuerung, braucht aber eine parlamentarische Mehrheit",
+    "en": "Legislative initiative and target governance, but needs a parliamentary majority"
+   },
+   "goals": [
+    {
+     "de": "Messbare Wartezeitreduktion bis 2030",
+     "en": "Measurable waiting-time reduction by 2030"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Steuerung über Zielsteuerung-Gesundheit",
+     "en": "Steering via target-based governance"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "Gesetzgebung braucht parlamentarische Mehrheit",
+     "en": "Legislation needs a parliamentary majority"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Bundesmittel nur über Finanzausgleich",
+     "en": "Federal funds only via fiscal equalisation"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Zugang",
+     "en": "Access",
+     "weight": 0.4
+    },
+    {
+     "de": "Steuerbarkeit",
+     "en": "Steerability",
+     "weight": 0.35
+    },
+    {
+     "de": "Kosten",
+     "en": "Cost",
+     "weight": 0.25
+    }
+   ],
+   "temperament": [
+    0.55,
+    0.6,
+    0.7,
+    0.5
+   ],
+   "register": "sachlich-steuernd, spricht von Zielsteuerung, Versorgungsauftrag, Patientenlenkung, Gesundheitshotline 1450",
+   "keywords": "Zielsteuerung Gesundheitsreform Terminservice 1450 Patientenlenkung Versorgung",
+   "redLineIds": []
+  },
+  "sv": {
+   "unit": "Dachverband und ÖGK",
+   "vetoStatus": "formal_veto",
+   "vetoBasis": {
+    "de": "Vertragspartner im Gesamtvertrag (ASVG § 342), Kostenträger",
+    "en": "Party to the collective contract (ASVG § 342), payer"
+   },
+   "goals": [
+    {
+     "de": "Versorgung in Mangelregionen sichern",
+     "en": "Secure care in shortage regions"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Beitragsstabilität",
+     "en": "Stable contribution rates"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "Gesamtvertrag mit der Ärztekammer",
+     "en": "Collective contract with the Medical Chamber"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Ausgaben im Rahmen der Gebarungsvorschau",
+     "en": "Spending within the financial forecast"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Kosten",
+     "en": "Cost",
+     "weight": 0.45
+    },
+    {
+     "de": "Versorgungsdichte",
+     "en": "Coverage",
+     "weight": 0.35
+    },
+    {
+     "de": "Digitalisierung",
+     "en": "Digitalisation",
+     "weight": 0.2
+    }
+   ],
+   "temperament": [
+    0.5,
+    0.55,
+    0.6,
+    0.45
+   ],
+   "register": "kostenträgerorientiert, spricht von Versichertengemeinschaft, Kassenstellen, Gebarung, Beitragsstabilität, Versorgungswirksamkeit",
+   "keywords": "Sozialversicherung ÖGK Kassenstellen Gebarung Gesamtvertrag Beitrag",
+   "redLineIds": [
+    "rl-sv-1"
+   ]
+  },
+  "ak": {
+   "unit": "Kurie niedergelassene Ärzte",
+   "vetoStatus": "formal_veto",
+   "vetoBasis": {
+    "de": "Vertragspartner im Gesamtvertrag, Stellenplan nur mit Zustimmung",
+    "en": "Party to the collective contract, post plan only with its consent"
+   },
+   "goals": [
+    {
+     "de": "Attraktive Kassentarife",
+     "en": "Attractive insurance fees"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Stellenplanung im Gesamtvertrag halten",
+     "en": "Keep post planning in the collective contract"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "Berufsrecht und Kammerautonomie",
+     "en": "Professional law and chamber autonomy"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Keine Honorarkürzungen",
+     "en": "No fee cuts"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Honorar",
+     "en": "Fees",
+     "weight": 0.5
+    },
+    {
+     "de": "Kompetenz",
+     "en": "Competence",
+     "weight": 0.3
+    },
+    {
+     "de": "Arbeitslast",
+     "en": "Workload",
+     "weight": 0.2
+    }
+   ],
+   "temperament": [
+    0.3,
+    0.8,
+    0.4,
+    0.4
+   ],
+   "register": "standespolitisch-pointiert, spricht von Kassenmedizin, Attraktivität, Bürokratieabbau, ärztlicher Verantwortung, Arztvorbehalt",
+   "keywords": "Ärztekammer Kassenvertrag Honorar Tarif Attraktivität Arztvorbehalt Stellenplan",
+   "redLineIds": [
+    "rl-ak-1",
+    "rl-ak-2"
+   ]
+  },
+  "va": {
+   "unit": "Vertretung der Kassenordinationen",
+   "vetoStatus": "consultative",
+   "vetoBasis": {
+    "de": "Wirkt über die Kurie in der Ärztekammer, eigene Unterschrift unter Einzelverträge",
+    "en": "Acts through the chamber section, signs individual contracts"
+   },
+   "goals": [
+    {
+     "de": "Planbare Arbeitslast",
+     "en": "Predictable workload"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Tarifposition für neue Leistungen",
+     "en": "Fee item for new services"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "Haftungsfragen bei Telemedizin",
+     "en": "Liability for telemedicine"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Ordinationskosten gedeckt",
+     "en": "Practice costs covered"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Honorar",
+     "en": "Fees",
+     "weight": 0.4
+    },
+    {
+     "de": "Arbeitslast",
+     "en": "Workload",
+     "weight": 0.4
+    },
+    {
+     "de": "Rechtssicherheit",
+     "en": "Legal certainty",
+     "weight": 0.2
+    }
+   ],
+   "temperament": [
+    0.5,
+    0.6,
+    0.5,
+    0.45
+   ],
+   "register": "praxisnah, spricht von Ordinationsalltag, Patientenfrequenz, Tarifposition, Haftung, Wahlarztabwanderung",
+   "keywords": "Vertragsärzte Ordination Telemedizin Tarif Haftung Wahlarzt",
+   "redLineIds": [
+    "rl-va-1"
+   ]
+  },
+  "ka": {
+   "unit": "Spitalsträger",
+   "vetoStatus": "consultative",
+   "vetoBasis": {
+    "de": "Träger der Spitalsambulanzen, aber Finanzierung über die Länder",
+    "en": "Run hospital outpatient departments, financed via the Länder"
+   },
+   "goals": [
+    {
+     "de": "Entlastung der Spitalsambulanzen",
+     "en": "Relieve hospital outpatient departments"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Planbare Budgets",
+     "en": "Predictable budgets"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "Landesfinanzierung der Spitäler",
+     "en": "Länder financing of hospitals"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Keine Kürzung ohne messbare Entlastung",
+     "en": "No cuts without measurable relief"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Arbeitslast",
+     "en": "Workload",
+     "weight": 0.5
+    },
+    {
+     "de": "Kosten",
+     "en": "Cost",
+     "weight": 0.3
+    },
+    {
+     "de": "Qualität",
+     "en": "Quality",
+     "weight": 0.2
+    }
+   ],
+   "temperament": [
+    0.55,
+    0.45,
+    0.6,
+    0.4
+   ],
+   "register": "betriebswirtschaftlich-versorgungsorientiert, spricht von Ambulanzfrequenzen, Fehlversorgung, Best Point of Service, LKF",
+   "keywords": "Spitalsambulanz Krankenanstalten Ambulanz Entlastung Spital",
+   "redLineIds": []
+  },
+  "pf": {
+   "unit": "Berufsverband Pflege",
+   "vetoStatus": "consultative",
+   "vetoBasis": {
+    "de": "Keine Vertragspartei, Einfluss über Gesetzgebung zum Berufsrecht",
+    "en": "Not a contract party, influence via professional law"
+   },
+   "goals": [
+    {
+     "de": "Erweiterte Pflegekompetenzen",
+     "en": "Extended nursing scope"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Community Nursing verankern",
+     "en": "Establish community nursing"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "Berufsrechtliche Abgrenzung zur Ärzteschaft",
+     "en": "Professional boundary to physicians"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Finanzierung über PVE-Verträge",
+     "en": "Funding through primary care contracts"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Kompetenz",
+     "en": "Competence",
+     "weight": 0.5
+    },
+    {
+     "de": "Zugang",
+     "en": "Access",
+     "weight": 0.3
+    },
+    {
+     "de": "Arbeitslast",
+     "en": "Workload",
+     "weight": 0.2
+    }
+   ],
+   "temperament": [
+    0.6,
+    0.55,
+    0.75,
+    0.55
+   ],
+   "register": "professionspolitisch, spricht von Kompetenzerweiterung, Community Nursing, Skill-Mix, GuKG",
+   "keywords": "Pflege Community Nursing Kompetenz GuKG Primärversorgung",
+   "redLineIds": []
+  },
+  "bl": {
+   "unit": "Landes-Zielsteuerungskommissionen",
+   "vetoStatus": "co_decider",
+   "vetoBasis": {
+    "de": "Partner der 15a-Vereinbarung und Spitalsträger",
+    "en": "Party to the 15a agreement and hospital owner"
+   },
+   "goals": [
+    {
+     "de": "Mitentscheidung bei Versorgungsplanung",
+     "en": "Co-decision on care planning"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Spitalsbudgets entlasten",
+     "en": "Relieve hospital budgets"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "15a-Vereinbarung",
+     "en": "15a agreement"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Keine Kostenverschiebung auf Länder",
+     "en": "No cost shift to the Länder"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Planung",
+     "en": "Planning",
+     "weight": 0.45
+    },
+    {
+     "de": "Kosten",
+     "en": "Cost",
+     "weight": 0.35
+    },
+    {
+     "de": "Zugang",
+     "en": "Access",
+     "weight": 0.2
+    }
+   ],
+   "temperament": [
+    0.5,
+    0.6,
+    0.65,
+    0.5
+   ],
+   "register": "föderal, spricht von Landes-Zielsteuerung, RSG, 15a-Vereinbarung, Finanzausgleich, regionaler Versorgung",
+   "keywords": "Länder Landes-Zielsteuerung 15a Finanzausgleich Primärversorgung Planung",
+   "redLineIds": [
+    "rl-bl-1"
+   ]
+  },
+  "pv": {
+   "unit": "Patientenanwaltschaften",
+   "vetoStatus": "consultative",
+   "vetoBasis": {
+    "de": "Keine formale Entscheidungsmacht, öffentlicher Druck",
+    "en": "No formal decision power, public pressure"
+   },
+   "goals": [
+    {
+     "de": "Verbindliche Terminzusagen",
+     "en": "Binding appointment guarantees"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Transparenz über Wartezeiten",
+     "en": "Transparency on waiting times"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "Keine formale Entscheidungsmacht",
+     "en": "No formal decision power"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Keine Selbstbehalte",
+     "en": "No co-payments"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Zugang",
+     "en": "Access",
+     "weight": 0.6
+    },
+    {
+     "de": "Transparenz",
+     "en": "Transparency",
+     "weight": 0.3
+    },
+    {
+     "de": "Kosten",
+     "en": "Cost",
+     "weight": 0.1
+    }
+   ],
+   "temperament": [
+    0.4,
+    0.75,
+    0.55,
+    0.6
+   ],
+   "register": "betroffenennah, spricht von Patient:innen, Zwei-Klassen-Medizin, Wartezeit, Rechtsanspruch, Transparenz",
+   "keywords": "Patienten Wartezeit Termin Zwei-Klassen Patientenanwaltschaft",
+   "redLineIds": [
+    "rl-pv-1"
+   ]
+  },
+  "fm": {
+   "unit": "Budgetsektion",
+   "vetoStatus": "formal_veto",
+   "vetoBasis": {
+    "de": "Budgethoheit des Bundes, Zustimmung zu Mehrausgaben",
+    "en": "Federal budget authority, consent to extra spending"
+   },
+   "goals": [
+    {
+     "de": "Ausgabendeckel einhalten",
+     "en": "Keep the spending cap"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Keine Dauerbelastung ohne Gegenfinanzierung",
+     "en": "No permanent burden without offset"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "Haushaltsrecht",
+     "en": "Budget law"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Deckel +5 % für das Gesamtpaket",
+     "en": "Cap +5 % for the whole package"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Kosten",
+     "en": "Cost",
+     "weight": 0.7
+    },
+    {
+     "de": "Evaluierbarkeit",
+     "en": "Evaluability",
+     "weight": 0.2
+    },
+    {
+     "de": "Zugang",
+     "en": "Access",
+     "weight": 0.1
+    }
+   ],
+   "temperament": [
+    0.35,
+    0.65,
+    0.4,
+    0.3
+   ],
+   "register": "fiskalisch, spricht von Ausgabenpfad, Gegenfinanzierung, Evaluierung, Kostendämpfungspfad, Stabilitätspakt",
+   "keywords": "Finanzministerium Budget Gegenfinanzierung Ausgabenobergrenze Finanzrahmen",
+   "redLineIds": [
+    "rl-fm-1"
+   ]
+  },
+  "nr": {
+   "unit": "Gesundheitsausschuss",
+   "vetoStatus": "formal_veto",
+   "vetoBasis": {
+    "de": "Ohne Beschluss keine Gesetzesänderung",
+    "en": "No statutory change without its vote"
+   },
+   "goals": [
+    {
+     "de": "Mehrheitsfähige, sichtbare Reform",
+     "en": "A visible reform that can win a majority"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Politischer Erfolg vor der nächsten Wahl",
+     "en": "Political credit before the next election"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "Koalitionsdisziplin",
+     "en": "Coalition discipline"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Bundesfinanzrahmen",
+     "en": "Federal financial framework"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Umsetzbarkeit",
+     "en": "Feasibility",
+     "weight": 0.4
+    },
+    {
+     "de": "Öffentliche Wirkung",
+     "en": "Public impact",
+     "weight": 0.4
+    },
+    {
+     "de": "Kosten",
+     "en": "Cost",
+     "weight": 0.2
+    }
+   ],
+   "temperament": [
+    0.5,
+    0.5,
+    0.6,
+    0.5
+   ],
+   "register": "parlamentarisch, spricht von Mehrheiten, Begutachtung, Initiativantrag, Wirkungsorientierung",
+   "keywords": "Nationalrat Gesundheitsausschuss Gesetz Novelle Begutachtung",
+   "redLineIds": [
+    "rl-nr-1"
+   ]
+  },
+  "ph": {
+   "unit": "Public-Health-Fachstellen",
+   "vetoStatus": "consultative",
+   "vetoBasis": {
+    "de": "Fachliche Autorität, keine Entscheidungsmacht",
+    "en": "Expert authority, no decision power"
+   },
+   "goals": [
+    {
+     "de": "Evidenzbasierte Versorgungssteuerung",
+     "en": "Evidence-based steering of care"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Daten und Evaluierung",
+     "en": "Data and evaluation"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "Keine Entscheidungsbefugnis",
+     "en": "No decision authority"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Mittel für Monitoring",
+     "en": "Funds for monitoring"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Evidenz",
+     "en": "Evidence",
+     "weight": 0.5
+    },
+    {
+     "de": "Gerechtigkeit",
+     "en": "Equity",
+     "weight": 0.3
+    },
+    {
+     "de": "Kosten",
+     "en": "Cost",
+     "weight": 0.2
+    }
+   ],
+   "temperament": [
+    0.6,
+    0.5,
+    0.6,
+    0.5
+   ],
+   "register": "wissenschaftlich, spricht von Evidenz, Versorgungsforschung, Outcome, Monitoring",
+   "keywords": "Public Health Evidenz Versorgungsforschung Monitoring",
+   "redLineIds": []
+  },
+  "wk": {
+   "unit": "Sparte Gewerbe und Gesundheitsberufe",
+   "vetoStatus": "consultative",
+   "vetoBasis": {
+    "de": "Sozialpartner, Begutachtungsrecht",
+    "en": "Social partner, right to comment on drafts"
+   },
+   "goals": [
+    {
+     "de": "Lohnnebenkosten stabil",
+     "en": "Stable non-wage labour costs"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Effizienz im System",
+     "en": "Efficiency in the system"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "Sozialpartnerschaftliche Abstimmung",
+     "en": "Social partnership coordination"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Keine Beitragserhöhung für Dienstgeber",
+     "en": "No contribution increase for employers"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Kosten",
+     "en": "Cost",
+     "weight": 0.6
+    },
+    {
+     "de": "Effizienz",
+     "en": "Efficiency",
+     "weight": 0.3
+    },
+    {
+     "de": "Zugang",
+     "en": "Access",
+     "weight": 0.1
+    }
+   ],
+   "temperament": [
+    0.45,
+    0.6,
+    0.5,
+    0.4
+   ],
+   "register": "wirtschaftsnah, spricht von Lohnnebenkosten, Effizienz, Standortqualität",
+   "keywords": "Wirtschaftskammer Lohnnebenkosten Effizienz Dienstgeber",
+   "redLineIds": []
+  },
+  "abk": {
+   "unit": "Abteilung Sozialversicherung",
+   "vetoStatus": "consultative",
+   "vetoBasis": {
+    "de": "Sozialpartner, Begutachtungsrecht",
+    "en": "Social partner, right to comment on drafts"
+   },
+   "goals": [
+    {
+     "de": "Gleicher Zugang für Versicherte",
+     "en": "Equal access for the insured"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Keine Zwei-Klassen-Medizin",
+     "en": "No two-tier medicine"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "Sozialpartnerschaftliche Abstimmung",
+     "en": "Social partnership coordination"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Keine Selbstbehalte",
+     "en": "No co-payments"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Zugang",
+     "en": "Access",
+     "weight": 0.5
+    },
+    {
+     "de": "Gerechtigkeit",
+     "en": "Equity",
+     "weight": 0.35
+    },
+    {
+     "de": "Kosten",
+     "en": "Cost",
+     "weight": 0.15
+    }
+   ],
+   "temperament": [
+    0.45,
+    0.7,
+    0.55,
+    0.5
+   ],
+   "register": "arbeitnehmernah, spricht von Versicherten, Kassenmedizin statt Wahlarzt, Gerechtigkeit",
+   "keywords": "Arbeiterkammer Versicherte Wahlarzt Selbstbehalt Zugang",
+   "redLineIds": []
+  },
+  "lk": {
+   "unit": "Abteilung Soziales",
+   "vetoStatus": "consultative",
+   "vetoBasis": {
+    "de": "Begutachtungsrecht",
+    "en": "Right to comment on drafts"
+   },
+   "goals": [
+    {
+     "de": "Versorgung im ländlichen Raum",
+     "en": "Care in rural areas"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Erreichbarkeit",
+     "en": "Accessibility"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "Kleine Versichertengruppe",
+     "en": "Small insured group"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Keine Mehrbelastung der Versicherten",
+     "en": "No extra burden on the insured"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Erreichbarkeit",
+     "en": "Accessibility",
+     "weight": 0.6
+    },
+    {
+     "de": "Kosten",
+     "en": "Cost",
+     "weight": 0.4
+    }
+   ],
+   "temperament": [
+    0.5,
+    0.5,
+    0.55,
+    0.45
+   ],
+   "register": "ländlich, spricht von Erreichbarkeit, Landarzt, Wegzeiten",
+   "keywords": "Landwirtschaftskammer ländlich Landarzt Erreichbarkeit",
+   "redLineIds": []
+  },
+  "ind": {
+   "unit": "Branchenverbände Industrie und Pharma",
+   "vetoStatus": "consultative",
+   "vetoBasis": {
+    "de": "Begutachtungsrecht, Marktmacht bei Produkten",
+    "en": "Right to comment, market power on products"
+   },
+   "goals": [
+    {
+     "de": "Innovation im Leistungskatalog",
+     "en": "Innovation in the benefit catalogue"
+    }
+   ],
+   "interests": [
+    {
+     "de": "Planbare Erstattung",
+     "en": "Predictable reimbursement"
+    }
+   ],
+   "restrictions": [
+    {
+     "de": "Preisregulierung",
+     "en": "Price regulation"
+    }
+   ],
+   "budget": [
+    {
+     "de": "Keine Rabattzwänge",
+     "en": "No forced rebates"
+    }
+   ],
+   "priorities": [
+    {
+     "de": "Innovation",
+     "en": "Innovation",
+     "weight": 0.5
+    },
+    {
+     "de": "Erstattung",
+     "en": "Reimbursement",
+     "weight": 0.4
+    },
+    {
+     "de": "Kosten",
+     "en": "Cost",
+     "weight": 0.1
+    }
+   ],
+   "temperament": [
+    0.5,
+    0.6,
+    0.5,
+    0.55
+   ],
+   "register": "innovationsorientiert, spricht von Standort, Innovation, Erstattung, digitale Gesundheitsanwendungen",
+   "keywords": "Pharma Industrie Innovation Erstattung digitale Gesundheitsanwendung",
+   "redLineIds": []
+  }
+ },
+ "redLines": [
+  {
+   "id": "rl-ak-1",
+   "agentId": "ak",
+   "role": "medical_chamber",
+   "tier": "deep_core",
+   "de": "Keine Stellenplanung außerhalb des Gesamtvertrags",
+   "en": "No post planning outside the collective contract",
+   "topicKeys": [
+    "pve_planning",
+    "contract_posts"
+   ],
+   "basisSourceId": "s-asvg-342"
+  },
+  {
+   "id": "rl-ak-2",
+   "agentId": "ak",
+   "role": "medical_chamber",
+   "tier": "policy_core",
+   "de": "Keine Substitution der ärztlichen Erstdiagnose",
+   "en": "No substitution of the medical first diagnosis",
+   "topicKeys": [
+    "nursing_first_contact",
+    "telemedicine"
+   ],
+   "basisSourceId": "p-19544"
+  },
+  {
+   "id": "rl-va-1",
+   "agentId": "va",
+   "role": "contract_physicians",
+   "tier": "policy_core",
+   "de": "Keine Terminpflicht ohne Honorierung",
+   "en": "No appointment obligation without remuneration",
+   "topicKeys": [
+    "appointment_guarantee"
+   ],
+   "basisSourceId": "p-20877"
+  },
+  {
+   "id": "rl-fm-1",
+   "agentId": "fm",
+   "role": "ministry_finance",
+   "tier": "deep_core",
+   "de": "Mehrausgaben nur innerhalb des Deckels und mit Gegenfinanzierung",
+   "en": "Extra spending only within the cap and with offsetting finance",
+   "topicKeys": [
+    "fee_indexation",
+    "contract_posts"
+   ],
+   "basisSourceId": "p-23118"
+  },
+  {
+   "id": "rl-bl-1",
+   "agentId": "bl",
+   "role": "laender",
+   "tier": "policy_core",
+   "de": "Keine Kostenverschiebung auf Länderbudgets ohne 15a-Ausgleich",
+   "en": "No cost shift onto Länder budgets without a 15a settlement",
+   "topicKeys": [
+    "pve_planning"
+   ],
+   "basisSourceId": "p-24002"
+  },
+  {
+   "id": "rl-sv-1",
+   "agentId": "sv",
+   "role": "social_insurance",
+   "tier": "deep_core",
+   "de": "Beitragssätze bleiben stabil",
+   "en": "Contribution rates stay stable",
+   "topicKeys": [
+    "fee_indexation"
+   ],
+   "basisSourceId": "p-25001"
+  },
+  {
+   "id": "rl-pv-1",
+   "agentId": "pv",
+   "role": "patients",
+   "tier": "policy_core",
+   "de": "Keine neuen Selbstbehalte für Patient:innen",
+   "en": "No new co-payments for patients",
+   "topicKeys": [],
+   "basisSourceId": null
+  },
+  {
+   "id": "rl-nr-1",
+   "agentId": "nr",
+   "role": "legislature",
+   "tier": "policy_core",
+   "de": "Keine Reform ohne gesicherte Mehrheit im Nationalrat",
+   "en": "No reform without a secured majority in the National Council",
+   "topicKeys": [],
+   "basisSourceId": null
+  }
+ ]
+}
