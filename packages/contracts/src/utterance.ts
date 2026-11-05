@@ -40,5 +40,35 @@ export const Utterance = z.object({
     .nullable(),
   /** NFR-9 visible marker. */
   degraded: z.object({ reason: z.string() }).nullable(),
+  /** Exchange this utterance belongs to (bilateral, caucus or plenary sequence). */
+  exchangeId: z.string().optional(),
+  /** Which delegate of the institution speaks: a fictional, unnamed functional role (CON-1). */
+  delegateId: z.string().optional(),
+  /** Speakers this utterance is addressed to; empty means the whole table. */
+  addressedTo: z.array(SpeakerId).optional(),
+  /** Simulated meeting time for the timeline, from the start of the run. */
+  timing: z.object({ startMin: z.number().min(0), durationMin: z.number().positive() }).optional(),
 });
 export type Utterance = z.infer<typeof Utterance>;
+
+/**
+ * An exchange is a focused back-and-forth inside a round: two or three institutions on one
+ * conflict (bilateral), a coalition preparing a joint line (caucus), or the full table
+ * (plenary). The moderator opens it from a conflict or proposal and closes it with an outcome.
+ */
+export const ExchangeKind = z.enum(["plenary", "bilateral", "caucus"]);
+export const Exchange = z.object({
+  id: z.string(),
+  round: z.number().int().min(1),
+  phase: z.number().int().min(1).max(5),
+  kind: ExchangeKind,
+  participants: z.array(SpeakerId).min(1),
+  topicId: z.string().nullable(),
+  /** Why the moderator opened it: conflict id, proposal id or free text. */
+  trigger: LocalizedText,
+  utteranceIds: z.array(UtteranceId),
+  outcome: LocalizedText.nullable(),
+  startMin: z.number().min(0).optional(),
+  endMin: z.number().min(0).optional(),
+});
+export type Exchange = z.infer<typeof Exchange>;
