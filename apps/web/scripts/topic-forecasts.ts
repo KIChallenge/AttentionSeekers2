@@ -88,9 +88,24 @@ function cli(measureClass: string): CliOut {
   return JSON.parse(stdout);
 }
 
+/**
+ * The engine's measure classes are finer than the registry's keyword rule v1, which never
+ * assigns these six. Each gets the nearest registry class, shown on the page as a mapping
+ * ("via"), never silently.
+ */
+const NEAREST: Record<string, string> = {
+  capacity_expansion: "workforce",
+  scope_of_practice: "workforce",
+  fee_change: "financing_rule",
+  capacity_reduction: "structural_reform",
+  service_restriction: "access_rule",
+  new_service: "access_rule",
+};
+
 const classes: Record<string, unknown> = {};
 let overall: { k: number; n: number; low: number; high: number } | null = null;
-for (const mc of MeasureClass.options) {
+for (const own of MeasureClass.options) {
+  const mc = NEAREST[own] ?? own;
   const res = cli(mc);
   const sq = enacted(res.status_quo);
   if (sq && !overall) overall = { k: sq.k, n: sq.n, low: sq.jeffreys90[0], high: sq.jeffreys90[1] };
@@ -98,7 +113,8 @@ for (const mc of MeasureClass.options) {
   const members = episodes
     .filter((e) => e.measure_class === mc && !e.censored && e.knowable_date <= date)
     .sort((a, b) => b.first_draft_date.localeCompare(a.first_draft_date));
-  classes[mc] = {
+  classes[own] = {
+    via: mc === own ? null : mc,
     n: r?.n ?? 0,
     k: r?.k ?? 0,
     low: r?.jeffreys90[0] ?? null,
@@ -112,7 +128,7 @@ for (const mc of MeasureClass.options) {
       outcome: e.outcome,
     })),
   };
-  process.stdout.write(`${mc.padEnd(22)} ${r ? `${r.k}/${r.n}` : "n=0"}\n`);
+  process.stdout.write(`${own.padEnd(22)} ${mc.padEnd(22)} ${r ? `${r.k}/${r.n}` : "n=0"}\n`);
 }
 
 writeFileSync(

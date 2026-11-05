@@ -13,51 +13,164 @@
   "baselineVerdict": "inconclusive at this N",
   "classes": {
     "capacity_expansion": {
-      "n": 0,
-      "k": 0,
-      "low": 0,
-      "high": 1,
-      "smallN": true,
-      "modified": 0,
-      "analogs": []
+      "via": "workforce",
+      "n": 40,
+      "k": 33,
+      "low": 0.7106888470756569,
+      "high": 0.9057157194358254,
+      "smallN": false,
+      "modified": 10,
+      "analogs": [
+        {
+          "episodeId": "EP-XXVII-ME-348",
+          "title": "GuKG-Novelle 2024",
+          "date": "2024-06-13",
+          "outcome": "lapsed"
+        },
+        {
+          "episodeId": "EP-XXVII-ME-343",
+          "title": "MTD-Gesetz 2024 – MTDG",
+          "date": "2024-05-15",
+          "outcome": "implemented"
+        },
+        {
+          "episodeId": "EP-XXVII-ME-309",
+          "title": "Psychotherapiegesetz; Musiktherapiegesetz, Psychologengesetz u.a., Änderung",
+          "date": "2024-01-12",
+          "outcome": "implemented"
+        },
+        {
+          "episodeId": "EP-XXVII-ME-301",
+          "title": "Apothekengesetz, Apothekerkammergesetz u.a., Änderung",
+          "date": "2023-10-23",
+          "outcome": "implemented"
+        },
+        {
+          "episodeId": "EP-XXVII-ME-298",
+          "title": "Ärztegesetz-Novelle 2023",
+          "date": "2023-10-05",
+          "outcome": "implemented"
+        }
+      ]
     },
     "capacity_reduction": {
-      "n": 0,
-      "k": 0,
-      "low": 0,
-      "high": 1,
-      "smallN": true,
-      "modified": 0,
-      "analogs": []
+      "via": "structural_reform",
+      "n": 32,
+      "k": 29,
+      "low": 0.7953085460046976,
+      "high": 0.9653513362846755,
+      "smallN": false,
+      "modified": 15,
+      "analogs": [
+        {
+          "episodeId": "EP-XXVII-ME-335",
+          "title": "Sozialversicherungs-Änderungsgesetz 2024 - SVÄG 2024",
+          "date": "2024-05-03",
+          "outcome": "implemented"
+        },
+        {
+          "episodeId": "EP-XXVII-ME-290",
+          "title": "Gesundheits-Zielsteuerungsgesetz, Änderung",
+          "date": "2023-08-25",
+          "outcome": "implemented"
+        },
+        {
+          "episodeId": "EP-XXVII-ME-252",
+          "title": "Primärversorgungsgesetz, Allgemeine Sozialversicherungsgesetz, Änderung",
+          "date": "2023-03-02",
+          "outcome": "implemented"
+        },
+        {
+          "episodeId": "EP-XXVII-ME-34",
+          "title": "Allgemeines Sozialversicherungsgesetz, Gewerbliches Sozialversicherungsgesetz u.a., Änderung",
+          "date": "2020-06-23",
+          "outcome": "implemented"
+        },
+        {
+          "episodeId": "EP-XXVI-ME-164",
+          "title": "Bundesgesetz über Krankenanstalten und Kuranstalten (KAKuG), Änderung",
+          "date": "2019-08-02",
+          "outcome": "lapsed"
+        }
+      ]
     },
     "fee_change": {
-      "n": 0,
-      "k": 0,
-      "low": 0,
-      "high": 1,
-      "smallN": true,
-      "modified": 0,
-      "analogs": []
+      "via": "financing_rule",
+      "n": 7,
+      "k": 6,
+      "low": 0.559582614947528,
+      "high": 0.974242925796345,
+      "smallN": false,
+      "modified": 1,
+      "analogs": [
+        {
+          "episodeId": "EP-XXVII-ME-151",
+          "title": "Hospiz- und Palliativfondsgesetz – HosPalFG",
+          "date": "2021-10-23",
+          "outcome": "implemented"
+        },
+        {
+          "episodeId": "EP-XXVII-ME-101",
+          "title": "IVF-Fonds-Gesetz, Änderung",
+          "date": "2021-03-19",
+          "outcome": "implemented"
+        },
+        {
+          "episodeId": "EP-XXIV-ME-507",
+          "title": "Pflegefondsgesetz, Änderung",
+          "date": "2013-04-08",
+          "outcome": "implemented"
+        },
+        {
+          "episodeId": "EP-XXIV-ME-355",
+          "title": "Allgemeines Sozialversicherungsgesetz, Gewerbliches Sozialversicherungsgesetz u.a., Änderung (BMG-Beitrag zum Stabilitätsgesetz 2012)",
+          "date": "2012-02-17",
+          "outcome": "partially_implemented"
+        },
+        {
+          "episodeId": "EP-XXIV-ME-284",
+          "title": "Finanzausgleichsgesetz 2008, Gesundheits- und Sozialbereich-Beihilfengesetz u.a., Änderung; Pflegefondsgesetz",
+          "date": "2011-05-16",
+          "outcome": "implemented"
+        }
+      ]
     },
     "new_service": {
-      "n": 0,
-      "k": 0,
-      "low": 0,
+      "via": "access_rule",
+      "n": 1,
+      "k": 1,
+      "low": 0.22851981380632863,
       "high": 1,
       "smallN": true,
-      "modified": 0,
-      "analogs": []
+      "modified": 1,
+      "analogs": [
+        {
+          "episodeId": "EP-XXIV-ME-540",
+          "title": "EU-Patientenmobilitätsgesetz",
+          "date": "2013-07-05",
+          "outcome": "partially_implemented"
+        }
+      ]
     },
     "service_restriction": {
-      "n": 0,
-      "k": 0,
-      "low": 0,
+      "via": "access_rule",
+      "n": 1,
+      "k": 1,
+      "low": 0.22851981380632863,
       "high": 1,
       "smallN": true,
-      "modified": 0,
-      "analogs": []
+      "modified": 1,
+      "analogs": [
+        {
+          "episodeId": "EP-XXIV-ME-540",
+          "title": "EU-Patientenmobilitätsgesetz",
+          "date": "2013-07-05",
+          "outcome": "partially_implemented"
+        }
+      ]
     },
     "digitalisation": {
+      "via": null,
       "n": 4,
       "k": 4,
       "low": 0.6375131872355069,
@@ -92,6 +205,7 @@
       ]
     },
     "structural_reform": {
+      "via": null,
       "n": 32,
       "k": 29,
       "low": 0.7953085460046976,
@@ -132,15 +246,48 @@
       ]
     },
     "scope_of_practice": {
-      "n": 0,
-      "k": 0,
-      "low": 0,
-      "high": 1,
-      "smallN": true,
-      "modified": 0,
-      "analogs": []
+      "via": "workforce",
+      "n": 40,
+      "k": 33,
+      "low": 0.7106888470756569,
+      "high": 0.9057157194358254,
+      "smallN": false,
+      "modified": 10,
+      "analogs": [
+        {
+          "episodeId": "EP-XXVII-ME-348",
+          "title": "GuKG-Novelle 2024",
+          "date": "2024-06-13",
+          "outcome": "lapsed"
+        },
+        {
+          "episodeId": "EP-XXVII-ME-343",
+          "title": "MTD-Gesetz 2024 – MTDG",
+          "date": "2024-05-15",
+          "outcome": "implemented"
+        },
+        {
+          "episodeId": "EP-XXVII-ME-309",
+          "title": "Psychotherapiegesetz; Musiktherapiegesetz, Psychologengesetz u.a., Änderung",
+          "date": "2024-01-12",
+          "outcome": "implemented"
+        },
+        {
+          "episodeId": "EP-XXVII-ME-301",
+          "title": "Apothekengesetz, Apothekerkammergesetz u.a., Änderung",
+          "date": "2023-10-23",
+          "outcome": "implemented"
+        },
+        {
+          "episodeId": "EP-XXVII-ME-298",
+          "title": "Ärztegesetz-Novelle 2023",
+          "date": "2023-10-05",
+          "outcome": "implemented"
+        }
+      ]
     },
     "access_rule": {
+      "via": null,
       "n": 1,
       "k": 1,
       "low": 0.22851981380632863,
@@ -157,6 +304,7 @@
       ]
     },
     "prevention_program": {
+      "via": null,
       "n": 16,
       "k": 15,
       "low": 0.7801882117965202,
@@ -197,6 +345,7 @@
       ]
     },
     "workforce": {
+      "via": null,
       "n": 40,
       "k": 33,
       "low": 0.7106888470756569,
@@ -237,6 +386,7 @@
       ]
     },
     "drug_reimbursement": {
+      "via": null,
       "n": 18,
       "k": 18,
       "low": 0.9001238203634174,
@@ -277,6 +427,7 @@
       ]
     },
     "financing_rule": {
+      "via": null,
       "n": 7,
       "k": 6,
       "low": 0.559582614947528,
@@ -317,6 +468,7 @@
       ]
     },
     "monitoring_reporting": {
+      "via": null,
       "n": 2,
       "k": 1,
       "low": 0.0973081817399401,
@@ -339,6 +491,7 @@
       ]
     },
     "other": {
+      "via": null,
       "n": 25,
       "k": 20,
       "low": 0.6472622642538153,
