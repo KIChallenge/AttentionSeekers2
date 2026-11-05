@@ -7,6 +7,19 @@ import { type AudioManifest, silentDurationMs, syntheticAmplitude } from "./stag
 export type AudioState = "loading" | "rendering" | "on" | "off";
 
 /**
+ * Per-frame playback state for renderers that animate outside React (the 3D stage): playback
+ * fraction of the current utterance and the voice amplitude, written by the player's own
+ * animation frame, read by the consumer's. Never triggers a render.
+ */
+export interface StageLive {
+  /** Playback fraction of the current utterance, 0..1. */
+  p: number;
+  /** Voice amplitude 0..1 (analyser RMS, or the synthetic envelope when silent). */
+  amp: number;
+  playing: boolean;
+}
+
+/**
  * Plays utterances one after another. With a pre-rendered manifest (FR-S3) each utterance is
  * an audio file routed through a Web Audio analyser whose RMS drives the mouth bars; without
  * one, playback is silent and timed by text length with a synthetic envelope. Amplitude goes
@@ -45,6 +58,7 @@ export function useStagePlayer({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ctxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
+  const liveRef = useRef<StageLive>({ p: 0, amp: 0, playing: false });
 
   const current = utterances[idx] ?? null;
   const last = utterances.length - 1;
@@ -132,7 +146,10 @@ export function useStagePlayer({
   }, []);
 
   const writeAmp = useCallback(
-    (a: number) => rootRef.current?.style.setProperty("--amp", a.toFixed(3)),
+    (a: number) => {
+      liveRef.current.amp = a;
+      rootRef.current?.style.setProperty("--amp", a.toFixed(3));
+    },
     [rootRef],
   );
 
@@ -140,6 +157,7 @@ export function useStagePlayer({
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset on index/lang change only
   useEffect(() => {
     elapsedRef.current = 0;
+    liveRef.current.p = 0;
     setSpoken(0);
     const file = fileFor(current);
     const el = audioRef.current;
@@ -160,6 +178,7 @@ export function useStagePlayer({
   }, [last]);
 
   useEffect(() => {
+    liveRef.current.playing = playing && !!current;
     if (!playing || !current) {
       audioRef.current?.pause();
       writeAmp(0);
@@ -217,11 +236,13 @@ export function useStagePlayer({
           amp = syntheticAmplitude(text, p, now);
         }
         writeAmp(amp);
+        liveRef.current.p = p;
         setSpokenAt(p);
       } else {
         elapsedRef.current += dt * speed;
         const p = elapsedRef.current / duration;
         writeAmp(syntheticAmplitude(text, Math.min(1, p * 1.08), now));
+        liveRef.current.p = Math.min(1, p * 1.08);
         setSpokenAt(Math.min(1, p * 1.08));
         if (p >= 1) {
           done = true;
@@ -239,6 +260,7 @@ export function useStagePlayer({
         el.onended = null;
         el.pause();
       }
+      liveRef.current.playing = false;
       writeAmp(0);
     };
   }, [playing, current, speed, runId, lang, textOf, fileFor, ensureAudio, advance, writeAmp]);
@@ -263,5 +285,6 @@ export function useStagePlayer({
     spoken,
     audioState,
     manifest,
+    liveRef,
   };
 }

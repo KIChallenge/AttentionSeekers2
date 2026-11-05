@@ -9,8 +9,11 @@ import { ClaimStateBadge, SourceChip } from "@/components/run/provenance";
 import { useRun } from "@/components/run/run-context";
 import { SpeakerTimeline } from "@/components/timeline/speaker-timeline";
 import { cn } from "@/lib/utils";
+import { type AvatarSeat, AvatarStage } from "./avatar/avatar-stage";
+import { stageColumns } from "./avatar/figure-style";
 import { latestShift, orderedUtterances, pickSharpestExchange, stageSpeakers } from "./stage-logic";
 import { StageTile, type TileRole } from "./stage-tile";
+import { useStageViewMode } from "./stage-view-mode";
 import { type StageStrings, stageStrings } from "./strings";
 import { useStagePlayer } from "./use-stage-player";
 
@@ -181,7 +184,48 @@ export function StageView() {
     return () => window.removeEventListener("keydown", onKey);
   }, [toggle, setIdx, idx, jumpSharpest]);
 
-  const cols = speakers.length <= 6 ? 3 : speakers.length <= 12 ? 4 : 5;
+  const cols = stageColumns(speakers.length);
+
+  // View mode: tiles by default; 3D opt-in, falling back to tiles on any 3D failure.
+  const [view, setView] = useStageViewMode();
+  const [failed3d, setFailed3d] = useState<string | null>(null);
+  const changeView = useCallback(
+    (v: "grid" | "3d") => {
+      if (v === "3d") setFailed3d(null);
+      setView(v);
+    },
+    [setView],
+  );
+  const show3d = view === "3d" && !failed3d;
+  const seats: AvatarSeat[] = speakers.map((id) => {
+    const a = look(id);
+    const kind: TileRole = id === "moderator" ? "moderator" : id === "expert" ? "expert" : "agent";
+    const firstRole = run.agents.find((x) => x.id === id)?.delegates?.[0]?.role;
+    return {
+      id,
+      kind,
+      code: a.code,
+      color: a.color,
+      name: id === "moderator" ? s.moderator : id === "expert" ? s.expert : a.name,
+      // delegate role when the run names one, otherwise the seat's generic function
+      role:
+        u?.speaker === id && role
+          ? role
+          : firstRole
+            ? L(firstRole, lang)
+            : kind === "moderator"
+              ? s.roleModerator
+              : kind === "expert"
+                ? s.roleExpert
+                : s.roleDelegation,
+    };
+  });
+  const listeners = [
+    ...addressees,
+    ...(replyTo && replyTo.speaker !== u?.speaker && !addressees.includes(replyTo.speaker)
+      ? [replyTo.speaker]
+      : []),
+  ];
   const shiftLook = shift ? look(shift.position.agentId) : null;
   const topic = shift ? run.mandate.topics.find((x) => x.id === shift.position.topicId) : null;
 
@@ -197,6 +241,20 @@ export function StageView() {
           <h1 className="text-lg font-semibold">{s.stageLabel}</h1>
           <span className="text-xs text-muted-foreground">{s.disclaimer}</span>
           <span className="flex-1" />
+          {failed3d && view === "3d" ? (
+            <Chip className="border-warning/40 bg-warning/10 text-warning" title={failed3d}>
+              {s.view3dFallback}
+            </Chip>
+          ) : null}
+          <Seg
+            label={s.view}
+            value={view}
+            onChange={changeView}
+            options={[
+              { value: "grid" as const, label: s.viewGrid },
+              { value: "3d" as const, label: s.view3d, title: s.view3dHint },
+            ]}
+          />
           <Chip
             className={cn(
               p.audioState === "on" && "border-success/30 bg-success/10 text-success",
@@ -215,35 +273,55 @@ export function StageView() {
           </Chip>
         </div>
 
-        <section
-          aria-label={s.stageLabel}
-          className="grid min-h-0 flex-1 gap-3"
-          style={{
-            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-            gridAutoRows: "minmax(0, 1fr)",
-          }}
-        >
-          {speakers.map((id) => {
-            const a = look(id);
-            const role: TileRole =
-              id === "moderator" ? "moderator" : id === "expert" ? "expert" : "agent";
-            return (
-              <StageTile
-                key={id}
-                role={role}
-                code={a.code}
-                color={a.color}
-                label={id === "moderator" ? s.moderator : id === "expert" ? s.expert : a.name}
-                active={u?.speaker === id}
-                answered={!!replyTo && replyTo.speaker === id && u?.speaker !== id}
-                addressed={addressees.includes(id)}
-                dimmed={!!u}
-                speakingLabel={s.speaking}
-                addressedLabel={s.addressed}
-              />
-            );
-          })}
-        </section>
+        {show3d ? (
+          <AvatarStage
+            seats={seats}
+            cols={cols}
+            cue={{
+              key: u?.id ?? null,
+              speaker: u?.speaker ?? null,
+              listeners,
+              text: u ? textOf(u) : "",
+              kind: u?.kind ?? "",
+            }}
+            addressees={addressees}
+            answeredId={replyTo && replyTo.speaker !== u?.speaker ? replyTo.speaker : null}
+            liveRef={p.liveRef}
+            lang={lang}
+            s={s}
+            onFail={setFailed3d}
+          />
+        ) : (
+          <section
+            aria-label={s.stageLabel}
+            className="grid min-h-0 flex-1 gap-3"
+            style={{
+              gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+              gridAutoRows: "minmax(0, 1fr)",
+            }}
+          >
+            {speakers.map((id) => {
+              const a = look(id);
+              const role: TileRole =
+                id === "moderator" ? "moderator" : id === "expert" ? "expert" : "agent";
+              return (
+                <StageTile
+                  key={id}
+                  role={role}
+                  code={a.code}
+                  color={a.color}
+                  label={id === "moderator" ? s.moderator : id === "expert" ? s.expert : a.name}
+                  active={u?.speaker === id}
+                  answered={!!replyTo && replyTo.speaker === id && u?.speaker !== id}
+                  addressed={addressees.includes(id)}
+                  dimmed={!!u}
+                  speakingLabel={s.speaking}
+                  addressedLabel={s.addressed}
+                />
+              );
+            })}
+          </section>
+        )}
 
         {/* Subtitles (FR-S9) */}
         <section
@@ -590,7 +668,7 @@ function Transport({
         />
         {roundStarts.map(({ i, r }) => (
           <span
-            key={r}
+            key={`${r}-${i}`}
             className="pointer-events-none absolute -bottom-1 font-mono text-[10px] text-muted-foreground"
             style={{ left: `${(i / n) * 100}%` }}
           >
