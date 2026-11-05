@@ -1302,25 +1302,33 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     // Bilateral and trilateral exchanges on the conflicts.
     if (!final) await runFocused(bilaterals, false);
 
-    // Emit the assessments once the first stage has spoken; caucuses use them.
-    for (const a of agentIds) {
-      const r = await strategies.get(a);
-      if (!r || r instanceof Error) {
-        w.emit({
-          type: "agent.degraded",
-          agentId: a,
-          utteranceId: null,
-          reason: `strategic assessment failed: ${r instanceof Error ? r.message.slice(0, 160) : "no result"}`,
-        });
-        continue;
+    // Emit the assessments once they are needed: before the caucuses (partner affinity),
+    // otherwise after the plenary statements, which do not wait for them.
+    let assessed = false;
+    const emitAssessments = async () => {
+      if (assessed) return;
+      assessed = true;
+      for (const a of agentIds) {
+        const r = await strategies.get(a);
+        if (!r || r instanceof Error) {
+          w.emit({
+            type: "agent.degraded",
+            agentId: a,
+            utteranceId: null,
+            reason: `strategic assessment failed: ${r instanceof Error ? r.message.slice(0, 160) : "no result"}`,
+          });
+          continue;
+        }
+        s.assessments.set(a, r.assessment);
+        w.emit({ type: "strategy.assessed", assessment: r.assessment });
       }
-      s.assessments.set(a, r.assessment);
-      w.emit({ type: "strategy.assessed", assessment: r.assessment });
-    }
+    };
 
     // Caucuses of coalition partners, in parallel.
-    if (phase >= 2 && phase <= 4)
+    if (phase >= 2 && phase <= 4) {
+      await emitAssessments();
       await runFocused(selectCaucuses(planInput(), affinity, MAX_CAUCUSES), true);
+    }
 
     // ---------- closing plenary: tabling, votes, check, summary ----------
     let plenary = opening;
@@ -1358,6 +1366,8 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
       );
     }
     if (phase >= 2) await plenaryTurns("plenary", atPlenary);
+    // The calculus below reads the assessments' payoffs.
+    await emitAssessments();
 
     // Proposal tallies, coalition calculus (FR-A11), rejections with reasons (FR-R4).
     const vetoPlayers = agentIds.filter((a) => profileOf(a).vetoStatus === "formal_veto");

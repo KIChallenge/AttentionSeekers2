@@ -174,10 +174,18 @@ export async function summarizeRound(
     .map((t) => ({ t, x: topicTally(s, t.id) }))
     .filter(({ x }) => x.of > 0 && x.oppose === 0 && x.support >= x.of - 1);
   try {
-    const r = await structured(model, "round_summary", SummaryOut, [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ]);
+    // Interim summaries are bookkeeping and sit on the critical path of every round;
+    // only the final one (with recommendations) gets reasoning.
+    const r = await structured(
+      model,
+      "round_summary",
+      SummaryOut,
+      [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+      { reasoningEffort: final ? "low" : "none" },
+    );
     const o = r.data;
     const notes = new Map(o.consensusNotes.map((c) => [c.topicId, c.note]));
     const summary: RoundSummary = {
