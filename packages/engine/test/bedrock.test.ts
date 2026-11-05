@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { converseBody, isBedrock, redact, toolSchema } from "../src/llm.ts";
+import { z } from "zod";
+import { converseBody, isBedrock, redact, repairToSchema, toolSchema } from "../src/llm.ts";
 
 describe("Bedrock Converse adapter", () => {
   const schema = {
@@ -51,6 +52,35 @@ describe("Bedrock Converse adapter", () => {
     expect(converseBody([], "x", schema, 10, "any").toolConfig).toMatchObject({
       toolChoice: { any: {} },
     });
+  });
+
+  it("repairs omitted empty fields but never invents numbers or enum values", () => {
+    const S = z.object({
+      stances: z.array(
+        z.object({
+          topicId: z.string(),
+          stance: z.number(),
+          rationaleEn: z.string(),
+          changedBecauseOf: z.string().nullable(),
+        }),
+      ),
+      claims: z.array(z.object({ atomic: z.string() })),
+      kind: z.enum(["position", "rebuttal"]),
+    });
+    const json = z.toJSONSchema(S, { target: "draft-7" }) as Parameters<typeof repairToSchema>[1];
+    const omitted = { stances: [{ topicId: "t-tss", stance: "0.75" }], kind: "position" };
+    const fixed = S.parse(repairToSchema(omitted, json));
+    expect(fixed.stances[0]).toEqual({
+      topicId: "t-tss",
+      stance: 0.75,
+      rationaleEn: "",
+      changedBecauseOf: null,
+    });
+    expect(fixed.claims).toEqual([]);
+    const noNumber = { stances: [{ topicId: "t-tss" }], claims: [], kind: "position" };
+    expect(S.safeParse(repairToSchema(noNumber, json)).success).toBe(false);
+    const noKind = { stances: [], claims: [] };
+    expect(S.safeParse(repairToSchema(noKind, json)).success).toBe(false);
   });
 
   it("redacts the Bedrock key from error text", () => {

@@ -151,10 +151,10 @@ export const isBedrock = (model: string) => model.startsWith(BEDROCK_PREFIX);
 /** Structured-output reliability per model: calls, invalid outputs, final failures. */
 export const structuredStats: Record<
   string,
-  { calls: number; attempts: number; invalid: number; failed: number }
+  { calls: number; attempts: number; invalid: number; failed: number; repaired: number }
 > = {};
 const statOf = (model: string) => {
-  structuredStats[model] ??= { calls: 0, attempts: 0, invalid: 0, failed: 0 };
+  structuredStats[model] ??= { calls: 0, attempts: 0, invalid: 0, failed: 0, repaired: 0 };
   return structuredStats[model];
 };
 
@@ -205,6 +205,64 @@ export function converseBody(
       toolChoice: choice === "tool" ? { tool: { name } } : { any: {} },
     },
   };
+}
+
+type JsonSchema = {
+  type?: string | string[];
+  properties?: Record<string, JsonSchema>;
+  items?: JsonSchema;
+  anyOf?: JsonSchema[];
+  enum?: unknown[];
+};
+
+/**
+ * Schema-guided repair for tool-use output: models behind Converse often omit fields they
+ * were told to leave empty. Fills a missing string with "", a missing nullable with null,
+ * a missing array with [], a missing boolean with false, and turns numeric strings into
+ * numbers. Never invents numbers or enum values, so those still fail validation.
+ */
+export function repairToSchema(data: unknown, schema: JsonSchema): unknown {
+  // Nullable comes as anyOf [..., {type: "null"}] or as type: ["string", "null"].
+  const typeList = Array.isArray(schema.type) ? schema.type : null;
+  const nullable =
+    Boolean(schema.anyOf?.some((s) => s.type === "null")) || Boolean(typeList?.includes("null"));
+  const inner: JsonSchema = typeList
+    ? { ...schema, type: typeList.find((t) => t !== "null") }
+    : (schema.anyOf?.find((s) => s.type !== "null") ?? schema);
+  if (data === undefined || data === null) {
+    if (nullable) return null;
+    if (inner.enum) return data;
+    if (inner.type === "string") return "";
+    if (inner.type === "array") return [];
+    if (inner.type === "boolean") return false;
+    if (inner.type === "object") return repairToSchema({}, inner);
+    return data;
+  }
+  if (inner.type === "object" && typeof data === "object" && !Array.isArray(data)) {
+    const out: Record<string, unknown> = { ...(data as Record<string, unknown>) };
+    for (const [k, s] of Object.entries(inner.properties ?? {})) {
+      const v = repairToSchema(out[k], s);
+      if (v !== undefined) out[k] = v;
+    }
+    return out;
+  }
+  if (inner.type === "array") {
+    let arr = data;
+    if (typeof arr === "string") {
+      try {
+        arr = JSON.parse(arr);
+      } catch {
+        arr = [];
+      }
+    }
+    if (!Array.isArray(arr)) return [];
+    return inner.items ? arr.map((x) => repairToSchema(x, inner.items as JsonSchema)) : arr;
+  }
+  if ((inner.type === "number" || inner.type === "integer") && typeof data === "string") {
+    const n = Number(data.replace(",", "."));
+    return Number.isFinite(n) ? n : data;
+  }
+  return data;
 }
 
 /** Models that refuse a named toolChoice fall back to "any" (one tool, same effect). */
@@ -382,7 +440,17 @@ export async function structured<T extends z.ZodType>(
       continue;
     }
     try {
-      return { data: schema.parse(JSON.parse(content)), meta: { ...meta, retries: attempt } };
+      const raw: unknown = JSON.parse(content);
+      const direct = schema.safeParse(raw);
+      if (direct.success) return { data: direct.data, meta: { ...meta, retries: attempt } };
+      if (isBedrock(model)) {
+        const fixed = schema.safeParse(repairToSchema(raw, json as JsonSchema));
+        if (fixed.success) {
+          stat.repaired++;
+          return { data: fixed.data, meta: { ...meta, retries: attempt } };
+        }
+      }
+      throw direct.error;
     } catch (error) {
       stat.invalid++;
       console.warn(
