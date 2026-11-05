@@ -2,6 +2,8 @@
 // FR-T1), strategic assessment (FR-A10) and round lesson (FR-R8). Prompts are German.
 import {
   catalogAgent,
+  type GateCheck,
+  type GateDecision,
   type PromptBlock,
   type RoundLesson,
   type StrategicAssessment,
@@ -12,6 +14,7 @@ import { findPersonNames } from "./guard.ts";
 import { DEFAULT_BASELINE_EUR_BN } from "./impact.ts";
 import { type CallMeta, estimateTokens, type Message, structured } from "./llm.ts";
 import { PHASE_NAMES } from "./phases.ts";
+import { failedGated, gateFeedback } from "./quality/checks.ts";
 import type { Passage } from "./retrieval.ts";
 import { lastUtteranceOf, type RunState } from "./state.ts";
 
@@ -218,6 +221,9 @@ export function systemPrompt(s: RunState, agentId: string, delegateRole?: string
     "- Kein Konsens um jeden Preis: Wenn ein Vorschlag deinen Interessen widerspricht, sag es.",
     "- Ein Beschluss in dieser Verhandlung ist eine politische Grundsatzeinigung mit Umsetzungsauftrag (Kostenrahmen, Finanzierungsquelle, Zuständigkeit); Detailpläne, Verordnungen und Verträge folgen danach. Fordere keine Unterlagen, die in einer Verhandlungsrunde nicht entstehen können, sondern verhandle die Eckpunkte.",
     "- Kein Gedankenstrich-Zeichen; nutze Kommas, Doppelpunkte oder Punkte.",
+    "- Bleib beim Mandat und beim Thema des Gesprächs. Punkte außerhalb der Verhandlungsfrage nimmt die Moderation nicht auf.",
+    "- Wiederhole dich nicht: jeder Beitrag bringt ein neues Argument, eine neue Bedingung, ein Zugeständnis oder eine klare Antwort auf das Gegenüber.",
+    "- Im gesprochenen Text keine internen Kennungen von Äußerungen, Themen, Aussagen oder roten Linien (wie u2-03, t-4wo, rl-ak-1, E3); nenne Institution oder Thema beim Namen. Vorschlagskennungen (p-01) sind erlaubt.",
   ];
   return lines.filter(Boolean).join("\n");
 }
@@ -277,9 +283,9 @@ function phaseInstruction(phase: number, round: number, roundLimit: number): str
     case 2:
       return "Phase Diskussion: Reagiere auf ein konkretes Gegenargument einer Vorrednerin, eines Vorredners. Du darfst einen konkreten Vorschlag einbringen, wenn er eine neue Option ist (sonst proposal = null). Stimme über offene Vorschläge ab.";
     case 3:
-      return "Phase Verhandlung: Stimme über jeden offenen Vorschlag ab. Du kannst einen eigenen Vorschlag zurückziehen oder eine verbesserte Alternative einbringen (alternativeTo setzen), die die konkreten Bedingungen der Vetospieler (Finanzierung, Zuständigkeit, Honorierung) ausdrücklich erfüllt.";
+      return "Phase Verhandlung: Jeder Beitrag enthält einen konkreten Vorschlag (Betrag, Frist, Umfang oder erfüllbare Bedingung) oder einen begründeten Einwand; bloße Bekenntnisse weist die Moderation zurück. Stimme über jeden offenen Vorschlag ab. Du kannst einen eigenen Vorschlag zurückziehen oder eine verbesserte Alternative einbringen (alternativeTo setzen), die die konkreten Bedingungen der Vetospieler (Finanzierung, Zuständigkeit, Honorierung) ausdrücklich erfüllt.";
     case 4:
-      return "Phase Kompromissfindung: Konzentriere dich auf den von der Moderation auf den Tisch gelegten Vorschlag. Biete Zugeständnisse an, soweit deine roten Linien es erlauben, oder begründe, warum nicht. Neue Vorschläge nur als Alternative zu einem bestehenden (alternativeTo); ein Kompromisspaket darf mehrere Bausteine bündeln (components), die gemeinsam dem 20-%-Ziel näherkommen und den Deckel einhalten. Jetzt muss sich entscheiden, was tragfähig ist: stimme zu, wenn deine Kernbedingungen im Vorschlag erfüllt sind, auch wenn nicht alle Wünsche erfüllt sind.";
+      return "Phase Kompromissfindung: Jeder Beitrag enthält einen konkreten Vorschlag oder ein Zugeständnis (Betrag, Frist, Umfang oder erfüllbare Bedingung) oder einen begründeten Einwand; bloße Bekenntnisse weist die Moderation zurück. Konzentriere dich auf den von der Moderation auf den Tisch gelegten Vorschlag. Biete Zugeständnisse an, soweit deine roten Linien es erlauben, oder begründe, warum nicht. Neue Vorschläge nur als Alternative zu einem bestehenden (alternativeTo); ein Kompromisspaket darf mehrere Bausteine bündeln (components), die gemeinsam dem 20-%-Ziel näherkommen und den Deckel einhalten. Jetzt muss sich entscheiden, was tragfähig ist: stimme zu, wenn deine Kernbedingungen im Vorschlag erfüllt sind, auch wenn nicht alle Wünsche erfüllt sind.";
     default:
       return `Phase Ergebnisdarstellung (Runde ${round} von ${roundLimit}, letzte Runde): Abschlusserklärung. Gib deine endgültige Stimme zu jedem offenen Vorschlag mit Begründung ab. Keine neuen Vorschläge (proposal = null). Benenne, was offen bleibt.`;
   }
@@ -340,6 +346,60 @@ export interface TurnContext {
   /** opening = short phase-1 statement, plenary = vote statement after the exchanges. */
   mode?: "opening" | "plenary";
   delegateRole?: string;
+  /** Turn quality gate: deterministic checks on a draft (see quality/checks.ts). */
+  gate?: TurnGate;
+}
+
+/** Checks a draft's German text; kind is the agent's own utterance kind when known. */
+export type TurnGate = (textDe: string, kind?: string) => GateCheck[];
+
+/**
+ * Quality gate (prevent, not only measure): when a gated check fails, the turn is
+ * regenerated once with the reasons in the prompt; the second draft is then accepted,
+ * flagged if it still fails. A retry that names a person falls back to the first draft.
+ */
+async function applyGate<
+  T extends { textDe: string; textEn: string; claims: Array<{ atomic: string }> },
+>(
+  gate: TurnGate | undefined,
+  first: { data: T; meta: CallMeta },
+  kindOf: (d: T) => string | undefined,
+  regenerate: (feedback: string) => Promise<{ data: T; meta: CallMeta }>,
+): Promise<{ r: { data: T; meta: CallMeta }; decision: GateDecision | undefined; extra: number }> {
+  if (!gate) return { r: first, decision: undefined, extra: 0 };
+  const checks = gate(first.data.textDe, kindOf(first.data));
+  const failed = failedGated(checks);
+  if (failed.length === 0)
+    return { r: first, decision: { action: "accepted", first: checks }, extra: 0 };
+  console.warn("quality_gate_regenerate", JSON.stringify({ checks: failed.map((c) => c.check) }));
+  let second: { data: T; meta: CallMeta };
+  try {
+    second = await regenerate(gateFeedback(failed));
+  } catch {
+    return {
+      r: first,
+      decision: { action: "flagged", first: checks, retry: [] },
+      extra: 0,
+    };
+  }
+  const named = [
+    ...findPersonNames(second.data.textDe),
+    ...findPersonNames(second.data.textEn),
+    ...second.data.claims.flatMap((x) => findPersonNames(x.atomic)),
+  ];
+  if (named.length)
+    return { r: first, decision: { action: "flagged", first: checks, retry: [] }, extra: 1 };
+  const retry = gate(second.data.textDe, kindOf(second.data));
+  return {
+    r: second,
+    decision: {
+      action: failedGated(retry).length ? "flagged" : "regenerated",
+      first: checks,
+      retry,
+      rejectedText: first.data.textDe,
+    },
+    extra: 1,
+  };
 }
 
 export function turnMessages(
@@ -439,7 +499,13 @@ export async function runTurn(
   s: RunState,
   c: TurnContext,
   model: string,
-): Promise<{ out: TurnOut; meta: CallMeta; blocks: PromptBlock[]; guardRetries: number }> {
+): Promise<{
+  out: TurnOut;
+  meta: CallMeta;
+  blocks: PromptBlock[];
+  guardRetries: number;
+  gate?: GateDecision;
+}> {
   const { messages, blocks } = turnMessages(s, c);
   let guardRetries = 0;
   let r = await structured(model, "agent_turn", TurnOut, messages);
@@ -463,11 +529,24 @@ export async function runTurn(
       },
     ]);
   }
+  const g = await applyGate(
+    c.gate,
+    r,
+    (d) => d.kind,
+    (feedback) =>
+      structured(model, "agent_turn", TurnOut, [
+        ...messages,
+        { role: "assistant", content: JSON.stringify({ textDe: r.data.textDe }) },
+        { role: "user", content: feedback },
+      ]),
+  );
+  r = g.r;
   return {
     out: r.data,
-    meta: { ...r.meta, retries: r.meta.retries + guardRetries },
+    meta: { ...r.meta, retries: r.meta.retries + guardRetries + g.extra },
     blocks,
     guardRetries,
+    gate: g.decision,
   };
 }
 
@@ -512,6 +591,7 @@ export interface ExchangeTurnContext {
   delegateRole?: string;
   /** Interjection: the red line that was touched. */
   redLine?: { id: string; text: string };
+  gate?: TurnGate;
 }
 
 export function exchangeTurnMessages(
@@ -555,10 +635,15 @@ export function exchangeTurnMessages(
       : c.kind === "caucus"
         ? `Das ist eine interne Abstimmung von Koalitionspartnern (${c.participants.map(nameOf).join(", ")}) vor dem Plenum. Anlass: ${c.trigger}\nArbeitet eine gemeinsame Linie für das Plenum aus: was ihr gemeinsam fordert, was ihr anbietet, wo eure Grenze liegt. Sprich offen mit deinen Partnern.`
         : `Du sitzt nicht in diesem Gespräch (${c.participants.map(nameOf).join(", ")}), aber deine rote Linie ${c.redLine?.id} (${c.redLine?.text}) wurde berührt. Kurzer Einwurf an ${others.map(nameOf).join(" und ")}: sag klar, wo deine Grenze liegt.`;
+  const negotiation =
+    c.phase >= 3 && c.phase <= 4 && c.kind === "bilateral"
+      ? "Verhandlungsphase: dein Zug enthält ein konkretes Angebot oder eine erfüllbare Bedingung (Betrag, Frist, Umfang) oder einen begründeten Einwand; wiederhole nicht, was du schon gesagt hast."
+      : "";
   const user = [
     `Gesprächsverlauf:\n${history}`,
     "",
     task,
+    negotiation,
     `textDe: ${c.kind === "interjection" ? "1 bis 2 Sätze, höchstens 45 Wörter" : "2 bis 4 Sätze, 35 bis 80 Wörter"}, gesprochene Sprache, kein Aufzählungsstil, sprich dein Gegenüber als Institution an und nenne keine Zug-, Äußerungs- oder Rote-Linien-Kennungen; textEn = sinngemäße englische Übersetzung.`,
     "claims: höchstens zwei, nur Zahlen und überprüfbare Tatsachen aus textDe; quote = exakter kurzer Ausschnitt; atomic = die Aussage als kurzer deutscher Satz; evidence = Belegkennungen (leer = Annahme).",
     `stance: deine Haltung zu ${topic?.id ?? "dem Hauptthema des Vorschlags"} nach diesem Zug (Viertelschritte); wenn das Gespräch dich bewegt hat, ändere sie und nenne in changeNote den Anlass, sonst changeNote null. strength 0..1, rationaleDe höchstens 12 Wörter.`,
@@ -589,7 +674,7 @@ export async function runExchangeTurn(
   s: RunState,
   c: ExchangeTurnContext,
   model: string,
-): Promise<{ out: ExchangeTurnOut; meta: CallMeta; blocks: PromptBlock[] }> {
+): Promise<{ out: ExchangeTurnOut; meta: CallMeta; blocks: PromptBlock[]; gate?: GateDecision }> {
   const { messages, blocks } = exchangeTurnMessages(s, c);
   let guardRetries = 0;
   let r = await structured(model, "exchange_turn", ExchangeTurnOut, messages, {
@@ -621,7 +706,30 @@ export async function runExchangeTurn(
       { maxOutputTokens: 6000 },
     );
   }
-  return { out: r.data, meta: { ...r.meta, retries: r.meta.retries + guardRetries }, blocks };
+  const g = await applyGate(
+    c.gate,
+    r,
+    () => undefined,
+    (feedback) =>
+      structured(
+        model,
+        "exchange_turn",
+        ExchangeTurnOut,
+        [
+          ...messages,
+          { role: "assistant", content: JSON.stringify({ textDe: r.data.textDe }) },
+          { role: "user", content: feedback },
+        ],
+        { maxOutputTokens: 6000 },
+      ),
+  );
+  r = g.r;
+  return {
+    out: r.data,
+    meta: { ...r.meta, retries: r.meta.retries + guardRetries + g.extra },
+    blocks,
+    gate: g.decision,
+  };
 }
 
 export async function runStrategy(

@@ -28,7 +28,15 @@ import {
   type Utterance,
   type UtteranceTrace,
 } from "@sv/contracts";
-import { nameOf, runExchangeTurn, runLesson, runStrategy, runTurn, type TurnOut } from "./agent.ts";
+import {
+  nameOf,
+  runExchangeTurn,
+  runLesson,
+  runStrategy,
+  runTurn,
+  type TurnGate,
+  type TurnOut,
+} from "./agent.ts";
 import { computeCalculus, outcomeClassOf, type Vote } from "./coalition.ts";
 import {
   agentConfigOf,
@@ -61,6 +69,7 @@ import { DEFAULT_BASELINE_EUR_BN, packageFigures, proposalFigures } from "./impa
 import { type CallMeta, usage } from "./llm.ts";
 import { exchangeOutcome, summarizeRound } from "./moderator.ts";
 import { PHASE_NAMES, phaseFor, shuffle } from "./phases.ts";
+import { gateChecks, noveltyOf, vocabularyOf } from "./quality/checks.ts";
 import { type Passage, retrieve } from "./retrieval.ts";
 import { buildMandate } from "./room.ts";
 import type { RunState } from "./state.ts";
@@ -99,6 +108,10 @@ const MAX_OPEN_PROPOSALS = 8;
 const SHIFT = 0.25;
 const MAX_BILATERALS = 2;
 const MAX_CAUCUSES = 2;
+/** Turn quality gate on by default; SV_QUALITY_GATE=0 switches it off (A/B runs). */
+const GATE_ON = () => process.env.SV_QUALITY_GATE !== "0";
+/** An exchange turn below this novelty is stale (no new content stems, quality/checks.ts). */
+const STALE_NOVELTY = 0.2;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -347,6 +360,43 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     ex.endMin = r2(Math.max(ex.startMin ?? 0, clk.end));
     w.emit({ type: "exchange.closed", exchange: { ...ex, utteranceIds: [...ex.utteranceIds] } });
   };
+
+  // ---------- quality gates ----------
+  const vocab = vocabularyOf(mandate);
+  const topicIds = new Set(mandate.topics.map((t) => t.id));
+  const moderationGate = (g: {
+    round: number;
+    kind: "agenda_refused" | "exchange_closed_early" | "concrete_demand";
+    exchangeId?: string | null;
+    topicId?: string | null;
+    utteranceId?: string | null;
+    de: string;
+    en: string;
+  }) =>
+    w.emit({
+      type: "moderation.gate",
+      gate: {
+        round: g.round,
+        kind: g.kind,
+        exchangeId: g.exchangeId ?? null,
+        topicId: g.topicId ?? null,
+        utteranceId: g.utteranceId ?? null,
+        reason: L(g.de, g.en),
+      },
+    });
+  /** The moderation keeps the agenda on the mandate: plans on other topics are refused. */
+  const onMandate = (round: number, plans: ExchangePlan[]): ExchangePlan[] =>
+    plans.filter((p) => {
+      if (p.topicId === null || topicIds.has(p.topicId)) return true;
+      moderationGate({
+        round,
+        kind: "agenda_refused",
+        topicId: p.topicId,
+        de: `Moderation lehnt das Gespräch ${p.participants.map(nameOf).join(" und ")} zu "${p.topicId}" ab: kein Thema des Mandats.`,
+        en: `Moderation refuses the talk ${p.participants.join("/")} on "${p.topicId}": not a mandate topic.`,
+      });
+      return false;
+    });
 
   const pushUtterance = (u: Utterance, claims: Claim[], at: At) => {
     u.exchangeId = at.ex.id;
@@ -656,9 +706,42 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
         })
         .join("; ");
 
+    /** Turn gate for one speaker in one setting (deterministic, no model call). */
+    const gateFor = (
+      a: string,
+      topicId: string | null,
+      exchangeKind: "plenary" | "bilateral" | "caucus" | "interjection",
+    ): TurnGate | undefined =>
+      GATE_ON()
+        ? (text, kind) =>
+            gateChecks({
+              text,
+              speaker: a,
+              phase,
+              vocab,
+              topicId,
+              ownPrior: s.utterances.filter((u) => u.speaker === a).map((u) => u.text.text),
+              exchangeKind,
+              kind: final ? "closing" : kind,
+            })
+        : undefined;
+    /** A turn the gate sent back for lacking a proposal or objection is a moderation demand. */
+    const noteDemand = (u: Utterance) => {
+      const neg = u.gate?.first.find((c) => c.check === "negotiation" && !c.passed);
+      if (!neg) return;
+      moderationGate({
+        round,
+        kind: "concrete_demand",
+        exchangeId: u.exchangeId ?? null,
+        utteranceId: u.id,
+        de: `Moderation verlangt von ${nameOf(u.speaker)} einen konkreten Vorschlag oder einen begründeten Einwand${u.gate?.action === "regenerated" ? "; der neue Beitrag erfüllt das" : "; auch der neue Beitrag bleibt unkonkret"}.`,
+        en: `Moderation asks ${u.speaker} for a concrete proposal or a justified objection${u.gate?.action === "regenerated" ? "; the new turn meets it" : "; the new turn is still vague"}.`,
+      });
+    };
+
     // ---------- opening plenary ----------
     let bilaterals: ExchangePlan[] =
-      round > 1 && !final ? selectBilaterals(planInput(), MAX_BILATERALS) : [];
+      round > 1 && !final ? onMandate(round, selectBilaterals(planInput(), MAX_BILATERALS)) : [];
     const opening = openExchange(
       round,
       phase,
@@ -846,6 +929,18 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
         }
       }
       const openCount = [...s.proposals.values()].filter((p) => p.status === "open").length;
+      // Off-topic agenda items are refused: a motion must touch at least one mandate topic.
+      let offMandate: string | null = null;
+      if (
+        out.proposal &&
+        GATE_ON() &&
+        phase >= 2 &&
+        phase <= 4 &&
+        !out.proposal.topicIds.some((t) => topicIds.has(t))
+      ) {
+        offMandate = out.proposal.titleDe;
+        out.proposal = null;
+      }
       if (
         out.proposal &&
         phase >= 2 &&
@@ -987,8 +1082,18 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
         telemetry: { ...telemetry(meta, room.seed), fallbackFrom: res.fallbackFrom ?? null },
         deliberationSummary: { read: d.read, weighed: d.weighed, wouldMoveIt: d.wouldMoveIt },
         degraded: null,
+        ...(res.gate ? { gate: res.gate } : {}),
       };
       pushUtterance(utterance, claims, at);
+      noteDemand(utterance);
+      if (offMandate)
+        moderationGate({
+          round,
+          kind: "agenda_refused",
+          utteranceId: uttId,
+          de: `Moderation nimmt den Antrag "${offMandate}" nicht auf die Tagesordnung: er betrifft kein Thema des Mandats.`,
+          en: `Moderation does not table the motion "${offMandate}": it touches no mandate topic.`,
+        });
       const trace = buildTrace({
         a,
         round,
@@ -1049,6 +1154,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
                   injected,
                   mode: final ? undefined : mode,
                   delegateRole: delegatesOf(a)[0]?.role.de,
+                  gate: gateFor(a, null, "plenary"),
                 },
                 m,
               ),
@@ -1168,8 +1274,10 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
         telemetry: { ...telemetry(meta, room.seed, 6000), fallbackFrom: res.fallbackFrom ?? null },
         deliberationSummary: { read: d.read, weighed: d.weighed, wouldMoveIt: d.wouldMoveIt },
         degraded: null,
+        ...(res.gate ? { gate: res.gate } : {}),
       };
       pushUtterance(u, claims, o.at);
+      noteDemand(u);
       const trace = buildTrace({
         a,
         round,
@@ -1283,6 +1391,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
                     passages: (evidence.get(a)?.passages ?? []).slice(0, 5),
                     delegateRole,
                     redLine,
+                    gate: gateFor(a, plan.topicId, tkind),
                   },
                   m,
                 ),
@@ -1305,13 +1414,45 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
             });
             return res;
           };
-          for (const a of plan.turns) {
+          const novelty: number[] = [];
+          const moved: boolean[] = [];
+          for (const [k, a] of plan.turns.entries()) {
+            // Moderation closes a bilateral that stopped producing new arguments: two stale
+            // turns in a row (or one full repeat) and no stance moved in them.
+            if (GATE_ON() && kind === "bilateral" && k >= 3) {
+              const n1 = novelty.at(-1) ?? 1;
+              const n2 = novelty.at(-2) ?? 1;
+              const still = !moved.at(-1) && !moved.at(-2);
+              if (still && (n1 <= 0.05 || (n1 < STALE_NOVELTY && n2 < 0.4))) {
+                const left = plan.turns.length - k;
+                lane.do(() =>
+                  moderationGate({
+                    round,
+                    kind: "exchange_closed_early",
+                    exchangeId: ref.ex?.id ?? null,
+                    topicId: plan.topicId,
+                    de: `Moderation schließt das Gespräch: die letzten Beiträge bringen kaum neue Argumente (Neuheit ${Math.round(n2 * 100)} % und ${Math.round(n1 * 100)} %), keine Haltung hat sich bewegt; ${left} geplante Beiträge entfallen.`,
+                    en: `Moderation closes the talk: the last turns add hardly any new arguments (novelty ${Math.round(n2 * 100)}% and ${Math.round(n1 * 100)}%), no stance moved; ${left} planned turns dropped.`,
+                  }),
+                );
+                break;
+              }
+            }
             const addressedTo =
               kind === "bilateral" && prevSpeaker && prevSpeaker !== a
                 ? [prevSpeaker]
                 : plan.participants.filter((x) => x !== a);
+            const before0 = local.get(a) ?? null;
+            const earlier = transcript.map((t) => t.text);
             const res = await turn(a, kind, addressedTo);
             prevSpeaker = a;
+            if (!(res instanceof Error)) {
+              novelty.push(noveltyOf(res.out.textDe, earlier));
+              const after0 = local.get(a) ?? null;
+              moved.push(
+                before0 !== null && after0 !== null && Math.abs(after0 - before0) >= SHIFT,
+              );
+            }
             // Interjection rule: at most one, only by the holder of a touched red line.
             if (kind !== "bilateral" || res instanceof Error) continue;
             const ij = pickInterjector({
@@ -1365,7 +1506,8 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
 
     // Phase 1: short opening statements, one per institution, in the plenary.
     if (phase === 1) await plenaryTurns("opening", atOpening);
-    if (round === 1 && !final) bilaterals = selectBilaterals(planInput(), MAX_BILATERALS);
+    if (round === 1 && !final)
+      bilaterals = onMandate(round, selectBilaterals(planInput(), MAX_BILATERALS));
     if (!final) {
       const agenda = describePlans(bilaterals);
       closeExchange(
@@ -1415,7 +1557,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     // Caucuses of coalition partners, in parallel.
     if (phase >= 2 && phase <= 4) {
       await emitAssessments();
-      await runFocused(selectCaucuses(planInput(), affinity, MAX_CAUCUSES), true);
+      await runFocused(onMandate(round, selectCaucuses(planInput(), affinity, MAX_CAUCUSES)), true);
     }
 
     // ---------- closing plenary: tabling, votes, check, summary ----------
