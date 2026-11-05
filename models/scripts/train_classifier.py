@@ -96,7 +96,7 @@ def main():
 
     ds = Dataset.from_list([{"text": r["text"], "label": r["role"]} for r in sample])
     targs = TrainingArguments(batch_size=16, num_epochs=1, num_iterations=args.iterations, seed=args.seed,
-                              body_learning_rate=2e-5, show_progress_bar=False)
+                              output_dir=str(OUT / "checkpoints"), save_strategy="no", body_learning_rate=2e-5, show_progress_bar=True, logging_steps=10)
     trainer = Trainer(model=model, args=targs, train_dataset=ds)
     t0 = time.time()
     trainer.train()

@@ -40,12 +40,23 @@ class Scorer:
         from setfit import SetFitModel
         self.model = SetFitModel.from_pretrained(str(model_dir))
         meta = json.loads((Path(model_dir) / "persona_labels.json").read_text())
+        # "char" | "ensemble" | "setfit"; set by add_char_head.py to the best held-out macro F1
+        self.mode = meta.get("mode", "setfit")
         self.model.model_body.max_seq_length = meta["max_seq_length"]
         self.labels = [str(x) for x in self.model.model_head.classes_]
+        ch = Path(model_dir) / "char_head.joblib"
+        self.char = None
+        if ch.exists():
+            import joblib
+            self.char = joblib.load(ch)
+            assert [str(x) for x in self.char.classes_] == self.labels
 
     def scores_many(self, texts: list[str]) -> list[dict[str, float]]:
-        emb = self.model.model_body.encode([mask_institutions(t) for t in texts], batch_size=32)
-        P = self.model.model_head.predict_proba(emb)
+        xs = [mask_institutions(t) for t in texts]
+        P = self.model.model_head.predict_proba(self.model.model_body.encode(xs, batch_size=32))
+        if self.char is not None:
+            Pc = self.char.predict_proba(xs)
+            P = Pc if self.mode == "char" else (P + Pc) / 2 if self.mode == "ensemble" else P
         return [{l: float(p) for l, p in zip(self.labels, row)} for row in P]
 
     def scores(self, text: str) -> dict[str, float]:

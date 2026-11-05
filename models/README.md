@@ -15,6 +15,7 @@ models/
     gen_dpo.py                   1b. steadfastness DPO pairs (`--azure --model gpt-6-sol`, or OPENAI_COMPATIBLE_*)
     envfile.py                   reads ../.env (Foundry endpoint + key), never prints values
     train_classifier.py          2. SetFit "which institution wrote this", time-split report
+    add_char_head.py             2. char n-gram TF-IDF head + ensemble; picks the scorer mode
     persona_score.py             2. score(text, institution) -> probability; CLI and HTTP
     train_lora.py                3a. PEFT/TRL LoRA per institution (+ optional DPO stage)
     serve_vllm.sh                3a. vLLM multi-LoRA server, one model name per role
@@ -32,7 +33,8 @@ All Python that reads downloaded/derived data runs with `python -I`.
 ```sh
 cd models && uv sync
 uv run python -I scripts/build_datasets.py      # rerun whenever data/derived/stellungnahmen*.jsonl grows
-uv run python -I scripts/train_classifier.py    # ~10 to 30 min on CPU depending on data size
+uv run python -I scripts/train_classifier.py --per-class 32 --iterations 5 --max-seq 192   # ~15 min CPU
+uv run python -I scripts/add_char_head.py       # ~1 min
 uv run python -I scripts/gen_dpo.py --azure --model gpt-6-sol   # DPO pairs via the team Foundry endpoint
 ```
 
@@ -46,7 +48,7 @@ uv run python -I scripts/gen_dpo.py --azure --model gpt-6-sol   # DPO pairs via 
 - `data/classifier/paragraphs.jsonl`: every usable paragraph (max 8 per statement), institution names
   replaced by `[INSTITUTION]`, duplicate or cross-institution identical paragraphs removed.
 - `data/backtest/sft.bt_train.jsonl` (dated before 2018-09-14) and `sft.bt_eval.jsonl` (statements on
-  the SV-OG draft, 75/ME XXVI. GP; empty until the data track has fetched those PDFs).
+  the SV-OG draft, 75/ME XXVI. GP; empty: SV-OG is flagged `health_broad`, not `health_core`, so its PDFs are only fetched by the data track with `04_fetch_pdfs.py --broad`).
 - `data/dpo/`: written by `gen_dpo.py` only.
 - `data/stats.json`: per-role counts, guard counters, adapter eligibility.
 
@@ -61,9 +63,26 @@ survives. The same guard runs on DPO generations and on eval generations.
 
 ## In-character classifier (2)
 
-SetFit on `paraphrase-multilingual-mpnet-base-v2`: contrastive fine-tune on a class-balanced sample, then a
-class-weighted logistic-regression head on all train paragraphs. Report with per-institution F1, the
-frozen-embedding baseline and the confusion matrix: `out/classifier/report.md`.
+Three heads on the same person- and name-masked paragraphs, same out-of-time split (train before
+2023-01-01: 5,812 paragraphs; held-out after: 1,421 paragraphs; 10 classes with enough data, i.e. all
+roles except ministry_health and elective_physicians):
+
+| head | macro F1 held-out (10 classes, chance 0.10) |
+|---|---:|
+| SetFit (`paraphrase-multilingual-mpnet-base-v2`, contrastive step + LR head) | 0.22 |
+| frozen embeddings + LR | 0.24 |
+| char_wb 2-5 gram TF-IDF + LR (**shipped**, `mode: char`) | 0.38 |
+| mean of SetFit and char | 0.32 |
+
+Per institution (char head, F1): laender 0.72, nursing 0.49, social_insurance 0.43,
+contract_physicians 0.43, chamber_labour 0.42, medical_chamber 0.39, ministry_finance 0.36,
+chamber_commerce 0.31, patients 0.15, hospitals 0.12. Main confusions: everything with laender (largest
+class, generic administrative register), hospitals with laender and AK, patients with AK. On the interim
+5-class corpus the same char head reached 0.60. Register (spelling, abbreviations, legal phrasing)
+carries more signal than sentence semantics here; single paragraphs are a hard unit. The head was
+chosen on the held-out split, so its F1 is slightly optimistic. Use the score as a relative signal
+(compare adapter vs baseline, or flag out-of-character drift), not as a gate. Full report and confusion
+matrices: `out/classifier/report.md`.
 
 ### Interface for the engine
 
@@ -72,7 +91,7 @@ Role ids are the `Role` enum of `packages/contracts/src/primitives.ts`.
 ```python
 # from models/ (or add models/scripts to sys.path)
 from persona_score import Scorer
-s = Scorer()                                 # loads out/classifier/model once
+s = Scorer()                                 # loads out/classifier/model once (mode from persona_labels.json)
 s.score(text, "medical_chamber")             # float in [0,1]; None if the role is not a classifier class
 s.scores(text)                               # {role: probability} over all classes (sums to 1)
 ```
@@ -140,21 +159,27 @@ any method billed per training hour (RFT is about 80 USD/h). DPO only if the mod
 pairs are for the open-weights path (`train_lora.py --dpo`) until that changes.
 
 **Cost estimate** (Qwen tokenizer, all tokens of every training example x epochs, 3.3 USD per 1M
-training tokens; interim corpus of 300 statements, rerun `cost` after the data track finishes):
+training tokens; corpus of 2,667 statements as of 20:31; rerun `cost` after any rebuild):
 
 | model | examples | tokens/epoch | epochs | billed tokens | USD |
 |---|---:|---:|---:|---:|---:|
-| medical_chamber | 110 | 54,008 | 3 | 162,024 | 0.53 |
+| social_insurance | 247 | 112,469 | 3 | 337,407 | 1.11 |
+| medical_chamber | 139 | 67,425 | 3 | 202,275 | 0.67 |
+| hospitals | 151 | 58,841 | 3 | 176,523 | 0.58 |
 | nursing | 156 | 65,240 | 3 | 195,720 | 0.65 |
 | patients | 136 | 54,050 | 3 | 162,150 | 0.54 |
-| ministry_finance | 147 | 55,667 | 3 | 167,001 | 0.55 |
-| joint (all roles) | 574 | 238,046 | 3 | 714,138 | 2.36 |
+| laender | 1381 | 575,520 | 3 | 1,726,560 | 5.70 |
+| ministry_finance | 145 | 55,207 | 3 | 165,621 | 0.55 |
+| chamber_labour | 211 | 96,359 | 3 | 289,077 | 0.95 |
+| chamber_commerce | 140 | 58,571 | 3 | 175,713 | 0.58 |
+| joint (all roles) | 2731 | 1,152,763 | 3 | 3,458,289 | 11.41 |
 
-Training for all four per-role adapters: about 2.3 USD. Hosting dominates: about 0.3 USD per hour per
-fine-tuned deployment, so 5 deployments from tonight to tomorrow 13:00 (about 17 h) are about 25 USD.
-Recommendation: at most 5 to 6 deployments for the demo (the four adapters plus optionally the joint
-model), and **delete every fine-tuned deployment after the event** (hosting keeps billing while idle).
-Even if the full corpus grows the data tenfold, training stays below 25 USD.
+Training all nine per-role adapters: about 11.3 USD (the joint model alone: 11.4 USD). Hosting
+dominates: about 0.3 USD per hour per fine-tuned deployment, so 5 deployments from tonight to tomorrow
+13:00 (about 17 h) are about 25 USD; 6 are about 31 USD. Recommendation: at most 5 to 6 deployments for
+the demo (for example social_insurance, medical_chamber, laender, ministry_finance, nursing, patients,
+or the joint model plus four), and **delete every fine-tuned deployment after the event** (hosting
+keeps billing while idle). Worst case for this track: about 45 USD, under the 100 USD cap.
 
 **Status 2026-11-05 evening: job creation is blocked server-side.** File upload works
 (`purpose=fine-tune`, files reach `processed`). Every `POST /fine_tuning/jobs` for an `FW-*` model with
