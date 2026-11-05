@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Delete every AWS resource of the SageMaker persona path (Project=sv-ki-challenge):
 #   running training jobs (stopped), inference components, endpoint, endpoint configs, models,
-#   S3 bucket contents and bucket, IAM execution role, budget.
+#   S3 bucket contents and bucket, IAM execution role, invoke-only IAM user and its key, budget.
 # Default is a DRY RUN that only prints what it would delete. Pass --execute to delete.
 #   models/aws/teardown.sh             # dry run
 #   models/aws/teardown.sh --execute   # really delete (irreversible: adapters in S3 are gone too)
@@ -97,6 +97,21 @@ if aws iam get-role --role-name "$ROLE" >/dev/null 2>&1; then
   run aws iam delete-role --role-name "$ROLE"
 else
   echo "role $ROLE: not found"
+fi
+
+# 5b. invoke-only IAM user for the proxy (access keys and inline policy first)
+INVOKE_USER="$PROJECT-invoke"
+if aws iam get-user --user-name "$INVOKE_USER" >/dev/null 2>&1; then
+  for k in $(aws iam list-access-keys --user-name "$INVOKE_USER" --query 'AccessKeyMetadata[].AccessKeyId' --output text); do
+    run aws iam delete-access-key --user-name "$INVOKE_USER" --access-key-id "$k"
+  done
+  for p in $(aws iam list-user-policies --user-name "$INVOKE_USER" --query 'PolicyNames' --output text); do
+    run aws iam delete-user-policy --user-name "$INVOKE_USER" --policy-name "$p"
+  done
+  run aws iam delete-user --user-name "$INVOKE_USER"
+  echo "remove SV_SAGEMAKER_ACCESS_KEY_ID / SV_SAGEMAKER_SECRET_ACCESS_KEY from the repo .env afterwards"
+else
+  echo "user $INVOKE_USER: not found"
 fi
 
 # 6. budget

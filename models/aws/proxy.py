@@ -5,7 +5,9 @@
 
 Model ids: sv-<role> (e.g. sv-medical_chamber, sv-social_insurance) select the institution adapter;
 sv-base (alias Qwen/Qwen3-8B) is the prompted base model. Each call is signed with SigV4 by boto3 using
-the default AWS profile (SSO) and sent to InvokeEndpoint. SV_SM_MODE=adapters (default, the shipped
+the invoke-only IAM user key from the repo .env (SV_SAGEMAKER_ACCESS_KEY_ID / SV_SAGEMAKER_SECRET_ACCESS_KEY,
+written by invoke_user.py; SV_ENV_FILE overrides the path) or, without it, the default AWS profile, and sent
+to InvokeEndpoint. SV_SM_MODE=adapters (default, the shipped
 single-model endpoint) puts "adapters": "<role>" in the body; SV_SM_MODE=ic uses InferenceComponentName.
 
 Qwen3 runs in non-thinking mode, as in training: the proxy renders the Qwen3 chat template with an empty
@@ -24,20 +26,44 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+import boto3
 from botocore.config import Config
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import BASE_IC, BASE_MODEL, ENDPOINT, ROLES, ic_name, session  # noqa: E402
+from common import BASE_IC, BASE_MODEL, ENDPOINT, REGION, ROLES, ic_name, session  # noqa: E402
 
 MODE = os.environ.get("SV_SM_MODE", "adapters")
 MODELS = {f"sv-{r}": r for r in ROLES} | {"sv-base": "base", BASE_MODEL: "base"}  # model id -> target
 _rt = None
+ENV_FILE = Path(os.environ.get("SV_ENV_FILE", Path(__file__).resolve().parents[2] / ".env"))
+
+
+def load_env_file(path: Path = ENV_FILE) -> None:
+    """Read KEY=VALUE lines of the repo .env into os.environ (existing variables win). Never prints values."""
+    if not path.exists():
+        return
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            k, v = line.split("=", 1)
+            os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+
+
+def credential_source() -> str:
+    load_env_file()
+    return "invoke-only IAM user (SV_SAGEMAKER_*)" if os.environ.get("SV_SAGEMAKER_ACCESS_KEY_ID") \
+        and os.environ.get("SV_SAGEMAKER_SECRET_ACCESS_KEY") else "default AWS profile"
 
 
 def runtime():
+    """Prefer the long-lived invoke-only key (no SSO expiry during the demo); fall back to the profile."""
     global _rt
     if _rt is None:
-        _rt = session().client("sagemaker-runtime", config=Config(
+        load_env_file()
+        kid, sec = os.environ.get("SV_SAGEMAKER_ACCESS_KEY_ID"), os.environ.get("SV_SAGEMAKER_SECRET_ACCESS_KEY")
+        sess = boto3.Session(aws_access_key_id=kid, aws_secret_access_key=sec, region_name=REGION) \
+            if kid and sec else session()
+        _rt = sess.client("sagemaker-runtime", config=Config(
             read_timeout=180, connect_timeout=10, retries={"max_attempts": 4, "mode": "adaptive"},
             max_pool_connections=32))
     return _rt
@@ -141,8 +167,8 @@ def main():
     ap.add_argument("--port", type=int, default=8790)
     a = ap.parse_args()
     srv = ThreadingHTTPServer((a.host, a.port), Handler)
-    print(f"proxy on http://{a.host}:{a.port}/v1 -> SageMaker endpoint {ENDPOINT}; models: {', '.join(MODELS)}",
-          flush=True)
+    print(f"proxy on http://{a.host}:{a.port}/v1 -> SageMaker endpoint {ENDPOINT} ({credential_source()}); "
+          f"models: {', '.join(MODELS)}", flush=True)
     srv.serve_forever()
 
 
