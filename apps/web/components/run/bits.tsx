@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { EntityLink } from "@/components/entity/entity-link";
+import { scopedId } from "@/components/entity/types";
 import { cn } from "@/lib/utils";
 import { agentLook } from "./helpers";
 import { useRun } from "./run-context";
@@ -128,9 +130,14 @@ export function EntityRef({
 export function UttRef({ id, className }: { id: string; className?: string }) {
   const { runId } = useRun();
   return (
-    <EntityRef href={`/runs/${runId}/inspect/${id}`} className={cn("font-mono text-xs", className)}>
+    <EntityLink
+      type="utterance"
+      id={scopedId(runId, id)}
+      href={`/runs/${runId}/inspect/${id}`}
+      className={cn("font-mono text-xs", className)}
+    >
       {id}
-    </EntityRef>
+    </EntityLink>
   );
 }
 
