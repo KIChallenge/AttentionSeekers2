@@ -1,0 +1,80 @@
+{
+  "$comment": "Measured values for /method (apps/web/app/method). null renders as 'not measured yet'. Engine track fills palette and referenceRun (pnpm --filter @sv/engine smoke), forecasting track fills forecast and backtest. Schema: apps/web/components/method/note.server.ts. Institutions only, no person names, no keys.",
+  "version": "0.1",
+  "updatedAt": "2026-11-05",
+  "palette": [
+    {
+      "model": "azure/gpt-6-sol",
+      "family": "OpenAI",
+      "roles": ["agents", "moderator", "expert"],
+      "smoke": {
+        "streaming": null,
+        "structuredOutput": null,
+        "reasoningField": null,
+        "latencyMs": null,
+        "checkedAt": null
+      },
+      "concessionBaseline": null
+    },
+    {
+      "model": null,
+      "family": null,
+      "roles": ["verifier"],
+      "smoke": {
+        "streaming": null,
+        "structuredOutput": null,
+        "reasoningField": null,
+        "latencyMs": null,
+        "checkedAt": null
+      },
+      "concessionBaseline": null
+    }
+  ],
+  "referenceRun": {
+    "runId": "reference-wartezeiten",
+    "models": ["azure/gpt-6-sol"],
+    "rounds": null,
+    "utterances": null,
+    "claims": {
+      "verified": null,
+      "partial": null,
+      "unverified": null,
+      "contradicted": null,
+      "assumption": null
+    }
+  },
+  "forecast": {
+    "registry": {
+      "asOf": "2026-11-05",
+      "drafts": 165,
+      "episodes": 156,
+      "labels": {
+        "implemented": 74,
+        "partially_implemented": 42,
+        "lapsed": 34,
+        "superseded": 4,
+        "rejected": 1,
+        "unknown": 10
+      }
+    },
+    "brier": {
+      "referenceClass": null,
+      "statusQuo": null,
+      "nEpisodes": null
+    },
+    "ablationVerdict": null,
+    "regimeCaveat": {
+      "de": "Die Kassenfusion 2019/2020 hat die Akteure selbst verändert. Basisraten aus der Zeit davor gelten danach nur mit Vorsicht.",
+      "en": "The 2019-2020 carrier merger changed the actors themselves. Base rates from before it apply afterwards only with caution."
+    }
+  },
+  "backtest": {
+    "case": "SV-OG 2018 (ME 75/XXVI. GP)",
+    "status": "pending",
+    "hypothesis": {
+      "de": "Die SV-OG wurde einseitig gegen den Großteil der 75 Stellungnahmen beschlossen. Ein kompromissorientierter Simulator fällt daher erwartbar weicher aus als das Gesetz.",
+      "en": "The SV-OG was adopted unilaterally against most of the 75 Stellungnahmen. A compromise-seeking simulator is therefore expected to come out softer than the law."
+    },
+    "result": null
+  }
+}
