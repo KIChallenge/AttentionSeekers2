@@ -221,7 +221,11 @@ async function main() {
     runId: values.id,
     isReference: values.reference ?? false,
     variant: ensemble
-      ? { kind: "model_ensemble", label: values.variant ?? "custom", baseRunId: values.base ?? null }
+      ? {
+          kind: "model_ensemble",
+          label: values.variant ?? "custom",
+          baseRunId: values.base ?? null,
+        }
       : undefined,
     outDir: values["out-dir"],
     db: !values["no-db"],
