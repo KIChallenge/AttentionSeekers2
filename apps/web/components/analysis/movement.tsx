@@ -105,9 +105,8 @@ export function OpenConflicts() {
                   ? c.boundBy.map((id) => {
                       const rl = evidence.redLines[id];
                       return (
-                        <div key={id}>
-                          <span className="font-mono text-destructive">{id}</span>{" "}
-                          {rl ? L(rl.text, lang) : null}
+                        <div key={id} className="border-l-2 border-warning pl-2" title={id}>
+                          {rl ? L(rl.text, lang) : id}
                         </div>
                       );
                     })

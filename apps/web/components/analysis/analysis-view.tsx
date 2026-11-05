@@ -18,14 +18,14 @@ export function AnalysisView() {
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{t.analysis.title}</h1>
-          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{t.analysis.sub}</p>
+          {/* The end condition is the one sentence that frames every chart below. */}
+          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+            {snap.endCondition
+              ? `${t.analysis.endCondition}: ${L(snap.endCondition.note, lang)}`
+              : t.analysis.sub}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {snap.endCondition ? (
-            <Chip className="h-auto py-0.5 whitespace-normal text-muted-foreground">
-              {t.analysis.endCondition}: {L(snap.endCondition.note, lang)}
-            </Chip>
-          ) : null}
           <Link
             href={`/runs/${runId}/outcome`}
             className="rounded-control border px-3 py-1.5 text-sm hover:border-foreground/40"
@@ -42,9 +42,18 @@ export function AnalysisView() {
           <Panel title={t.analysis.matrix}>
             <ConsensusMatrix />
           </Panel>
-          <Panel title={t.analysis.incentiveMatrix} sub={t.analysis.incentiveSub}>
-            <IncentiveMatrix />
-          </Panel>
+          <details className="group rounded-2xl border bg-card p-4 shadow-xs">
+            <summary className="cursor-pointer marker:content-none">
+              <span className="mr-1.5 inline-block text-xs text-muted-foreground transition-transform group-open:rotate-90">
+                ▸
+              </span>
+              <span className="text-base font-semibold">{t.analysis.incentiveMatrix}</span>
+              <span className="ml-2 text-xs text-muted-foreground">{t.analysis.incentiveSub}</span>
+            </summary>
+            <div className="mt-3">
+              <IncentiveMatrix />
+            </div>
+          </details>
           <Panel title={t.analysis.proposals} sub={t.analysis.proposalsSub}>
             <ProposalList />
           </Panel>
