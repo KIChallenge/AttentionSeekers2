@@ -25,6 +25,7 @@ export function RunSubBar() {
     },
     { href: `${base}/outcome`, label: t.nav.outcome, active: path.startsWith(`${base}/outcome`) },
     { href: `${base}/result`, label: t.nav.result, active: path.startsWith(`${base}/result`) },
+    { href: `${base}/stage`, label: t.nav.stage, active: path.startsWith(`${base}/stage`) },
   ];
   const status =
     snap.status === "running"
