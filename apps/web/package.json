@@ -11,7 +11,8 @@
     "test": "vitest run --passWithNoTests",
     "lint": "biome check .",
     "stage:tts": "node scripts/stage-tts.ts",
-    "avatar:asset": "node scripts/avatar-asset.ts"
+    "avatar:asset": "node scripts/avatar-asset.ts",
+    "stage:voices": "node scripts/stage-voices.ts"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.4.0",
