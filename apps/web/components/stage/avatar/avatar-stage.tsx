@@ -1,7 +1,17 @@
 "use client";
 
-import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { cn } from "@/lib/utils";
+import type { Rect } from "../meeting-logic";
 import type { TileRole } from "../stage-tile";
 import type { StageStrings } from "../strings";
 import type { StageLive } from "../use-stage-player";
@@ -76,6 +86,26 @@ export function hasWebGL2(): boolean {
   }
 }
 
+export interface SeatState {
+  active: boolean;
+  addressed: boolean;
+  answered: boolean;
+}
+
+/** Free layout instead of the grid: one rect per seat (CSS px in the section), plus the frame. */
+export interface AvatarLayout {
+  rects: Record<string, Rect>;
+  /** Seat background mix toward the seat colour: idle and speaking. */
+  tint?: [number, number];
+  /** Camera framing factor, see SceneOptions.frameScale. */
+  frameScale?: number;
+  frameClass?: (seat: AvatarSeat, st: SeatState) => string;
+  frameStyle?: (seat: AvatarSeat, st: SeatState) => CSSProperties;
+  plate: (seat: AvatarSeat, st: SeatState) => ReactNode;
+}
+
+const TRANSITION_MS = 450;
+
 export function AvatarStage({
   seats,
   cols,
@@ -86,6 +116,8 @@ export function AvatarStage({
   lang,
   s,
   onFail,
+  layout,
+  className,
 }: {
   seats: AvatarSeat[];
   cols: number;
@@ -96,6 +128,8 @@ export function AvatarStage({
   lang: "de" | "en";
   s: StageStrings;
   onFail: (why: string) => void;
+  layout?: AvatarLayout;
+  className?: string;
 }) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -106,6 +140,10 @@ export function AvatarStage({
   const failRef = useRef(onFail);
   failRef.current = onFail;
   const [progress, setProgress] = useState<[number, number]>([0, seats.length]);
+  const tintRef = useRef(layout?.tint);
+  tintRef.current = layout?.tint;
+  const free = !!layout;
+  const frameScale = layout?.frameScale;
 
   const seatKey = seats.map((x) => `${x.id}:${x.color}`).join("|");
   // biome-ignore lint/correctness/useExhaustiveDependencies: rebuilt only when the seats change
@@ -132,8 +170,9 @@ export function AvatarStage({
     const resolve = makeResolver(host);
     const card = resolve("var(--card)");
     const bg = new Map<string, string>();
+    const [idle, speaking] = tintRef.current ?? [0.08, 0.2];
     for (const seat of seatList) {
-      const t = seat.id === cueRef.current.speaker ? 0.2 : 0.08;
+      const t = seat.id === cueRef.current.speaker ? speaking : idle;
       bg.set(seat.id, hex(mix(card, resolve(seat.color), t)));
     }
     scene.setBackgrounds(bg);
@@ -171,6 +210,8 @@ export function AvatarStage({
           url: ASSET,
           lang,
           cols,
+          gazeFromRects: free,
+          frameScale,
           live: liveRef,
           onLost: fail,
         });
@@ -208,7 +249,25 @@ export function AvatarStage({
       scene?.dispose();
       sceneRef.current = null;
     };
-  }, [seatList, lang, cols, liveRef, measure, paintBackgrounds]);
+  }, [seatList, lang, cols, free, frameScale, liveRef, measure, paintBackgrounds]);
+
+  // Free layout: frames glide to their new rects; follow them frame by frame while they move.
+  const rectKey = layout
+    ? Object.entries(layout.rects)
+        .map(([id, r]) => `${id}:${r.x},${r.y},${r.w},${r.h}`)
+        .join("|")
+    : "";
+  useEffect(() => {
+    if (!rectKey) return;
+    let raf = 0;
+    const until = performance.now() + TRANSITION_MS + 150;
+    const step = () => {
+      measure();
+      if (performance.now() < until) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [rectKey, measure]);
 
   // Layout: follow the section's size.
   useEffect(() => {
@@ -243,17 +302,55 @@ export function AvatarStage({
     <section
       ref={sectionRef}
       aria-label={s.stageLabel}
-      className="relative grid min-h-0 flex-1 gap-3"
-      style={{
-        gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-        gridAutoRows: "minmax(0, 1fr)",
-      }}
+      className={cn("relative min-h-0 flex-1", !layout && "grid gap-3", className)}
+      style={
+        layout
+          ? undefined
+          : {
+              gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+              gridAutoRows: "minmax(0, 1fr)",
+            }
+      }
     >
       <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
       {seats.map((seat) => {
         const active = cue.speaker === seat.id;
         const addressed = !active && addressees.includes(seat.id);
         const answered = !active && !addressed && answeredId === seat.id;
+        if (layout) {
+          const st = { active, addressed, answered };
+          const r = layout.rects[seat.id];
+          return (
+            <figure
+              key={seat.id}
+              ref={(el) => {
+                if (el) tileRefs.current.set(seat.id, el);
+                else tileRefs.current.delete(seat.id);
+              }}
+              aria-label={
+                active
+                  ? `${seat.name}, ${s.speaking}`
+                  : addressed
+                    ? `${seat.name}, ${s.addressed}`
+                    : seat.name
+              }
+              data-active={active || undefined}
+              data-seat={seat.id}
+              className={cn("absolute z-10 m-0 overflow-hidden", layout.frameClass?.(seat, st))}
+              style={{
+                left: r?.x ?? 0,
+                top: r?.y ?? 0,
+                width: r?.w ?? 0,
+                height: r?.h ?? 0,
+                visibility: r ? undefined : "hidden",
+                transition: `left ${TRANSITION_MS}ms ease, top ${TRANSITION_MS}ms ease, width ${TRANSITION_MS}ms ease, height ${TRANSITION_MS}ms ease, box-shadow 250ms ease`,
+                ...layout.frameStyle?.(seat, st),
+              }}
+            >
+              {layout.plate(seat, st)}
+            </figure>
+          );
+        }
         return (
           <figure
             key={seat.id}

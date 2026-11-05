@@ -10,7 +10,7 @@ import { LipsyncDe } from "@met4citizen/talkinghead/modules/lipsync-de.mjs";
 import { LipsyncEn } from "@met4citizen/talkinghead/modules/lipsync-en.mjs";
 import * as THREE from "three";
 import type { StageLive } from "../use-stage-player";
-import { type FigureStyle, hashId, seatPosition } from "./figure-style";
+import { type FigureStyle, seatPosition } from "./figure-style";
 import {
   ampGate,
   buildTrack,
@@ -53,12 +53,17 @@ interface Seat {
   rect: { x: number; y: number; w: number; h: number } | null;
   zoom: number;
   mouthOpen: boolean;
+  frame: HeadFrame;
 }
 
 export interface SceneOptions {
   url: string;
   lang: "de" | "en";
   cols: number;
+  /** Take each seat's gaze frame from its on-screen rect instead of the grid (free layouts). */
+  gazeFromRects?: boolean;
+  /** Visible height factor over frameHeight(): above 1 frames wider, like a webcam. */
+  frameScale?: number;
   live: { current: StageLive };
   onLost: (why: string) => void;
 }
@@ -95,7 +100,7 @@ function restyle(root: THREE.Object3D, st: FigureStyle, grad: THREE.Texture) {
     if (name.includes("body")) m.material = toon(st.skin);
     else if (name.includes("casualsuit")) m.material = toon(st.suit);
     else if (name.includes("ponytail")) {
-      if (!st.hair) m.visible = false;
+      if (!st.hair || st.hairCut !== "long") m.visible = false;
       else m.material = toon(st.hair, { side: THREE.DoubleSide });
     } else if (name.includes("eyebrows") || name.includes("eyelashes")) m.material = toon(st.brows);
     else if (name.includes("teeth")) m.material = toon("#efe9df");
@@ -125,6 +130,124 @@ function addGlasses(head: TalkingHead, grad: THREE.Texture) {
   g.position.copy(l).add(r).multiplyScalar(0.5);
   g.position.z += half * 0.75;
   head.objectHead.attach(g);
+}
+
+/** Shell over the skull: sphere cap proportions in units of half the eye distance. */
+export interface HairShell {
+  r: number;
+  /** Polar extent from `from`, in units of pi. */
+  theta: number;
+  /** Polar start (pi units); above 0 the shell is a band, not a cap. */
+  from: number;
+  /** Width of the opening at the face (radians, 0 = closed). */
+  face: number;
+  sx: number;
+  sy: number;
+  sz: number;
+  rx: number;
+  y: number;
+  z: number;
+}
+
+const shell = (p: Partial<HairShell>): HairShell => ({
+  r: 3.05,
+  theta: 0.66,
+  from: 0,
+  face: 0,
+  sx: 1.05,
+  sy: 0.88,
+  sz: 1.12,
+  rx: -0.75,
+  y: 0.95,
+  z: -1.7,
+  ...p,
+});
+
+/**
+ * Hair built at runtime, in toon colour like the rest of the figure. Seats cast as men get a
+ * short cut (one cap, hairline lifted at the front) instead of the model's ponytail; seats cast
+ * as women keep the ponytail and get a jaw-length fall at the back and sides, open at the face,
+ * so the two read apart even in a small gallery tile.
+ */
+export const HAIR: Record<"short" | "long", HairShell[]> = {
+  short: [shell({})],
+  long: [
+    shell({ r: 3.1, theta: 0.62, sx: 1.06, sy: 0.92, rx: -0.85, y: 1.0 }),
+    shell({
+      r: 3.15,
+      theta: 0.42,
+      from: 0.4,
+      face: 2.3,
+      sx: 1.08,
+      sy: 1.5,
+      sz: 1.08,
+      rx: -0.1,
+      y: -0.3,
+      z: -1.6,
+    }),
+  ],
+};
+
+/** The head in its loading pose (upright, facing +z): the frame the hair is built in. */
+interface HeadFrame {
+  mid: THREE.Vector3;
+  half: number;
+  /** World to head-bone local, at loading time. */
+  inv: THREE.Matrix4;
+}
+
+function headFrame(head: TalkingHead): HeadFrame {
+  head.objectHead.updateWorldMatrix(true, false);
+  const l = head.objectLeftEye.getWorldPosition(new THREE.Vector3());
+  const r = head.objectRightEye.getWorldPosition(new THREE.Vector3());
+  return {
+    mid: l.clone().add(r).multiplyScalar(0.5),
+    half: l.distanceTo(r) / 2,
+    inv: head.objectHead.matrixWorld.clone().invert(),
+  };
+}
+
+function addHair(
+  head: TalkingHead,
+  frame: HeadFrame,
+  color: string,
+  grad: THREE.Texture,
+  shells: HairShell[],
+) {
+  const { half } = frame;
+  const mat = new THREE.MeshToonMaterial({
+    color: new THREE.Color(color),
+    gradientMap: grad,
+    side: THREE.DoubleSide,
+  });
+  const group = new THREE.Group();
+  group.name = "stage-hair";
+  for (const p of shells) {
+    // the face opening is centred on +z (phi = pi/2 in three's sphere parametrisation)
+    const phiStart = p.face ? Math.PI / 2 + p.face / 2 : 0;
+    const phiLength = Math.PI * 2 - p.face;
+    const m = new THREE.Mesh(
+      new THREE.SphereGeometry(
+        half * p.r,
+        32,
+        14,
+        phiStart,
+        phiLength,
+        Math.PI * p.from,
+        Math.PI * p.theta,
+      ),
+      mat,
+    );
+    m.scale.set(p.sx, p.sy, p.sz);
+    m.rotation.x = p.rx;
+    m.position.copy(frame.mid);
+    m.position.y += half * p.y;
+    m.position.z += half * p.z;
+    group.add(m);
+  }
+  group.updateMatrix();
+  group.applyMatrix4(frame.inv);
+  head.objectHead.add(group);
 }
 
 export class AvatarScene {
@@ -214,9 +337,12 @@ export class AvatarScene {
         avatarSpeakingEyeContact: 0.55,
         avatarSpeakingHeadMove: 0.6,
       });
-      const h = hashId(spec.id);
       await head.showAvatar(
-        { url: this.opts.url, body: h % 2 ? "M" : "F", lipsyncLang: this.opts.lang },
+        {
+          url: this.opts.url,
+          body: spec.style.gender === "male" ? "M" : "F",
+          lipsyncLang: this.opts.lang,
+        },
         null,
         (gltf: GltfLike) => restyle(gltf.scene, spec.style, this.grad),
       );
@@ -227,6 +353,9 @@ export class AvatarScene {
       head.armature.position.set(i * SPACING, 0, 0);
       head.armature.scale.set(spec.style.width, spec.style.height, spec.style.width);
       head.armature.updateMatrixWorld(true);
+      const frame = headFrame(head);
+      if (spec.style.hair)
+        addHair(head, frame, spec.style.hair, this.grad, HAIR[spec.style.hairCut]);
       if (spec.style.glasses) addGlasses(head, this.grad);
       const eyes = head.objectLeftEye
         .getWorldPosition(new THREE.Vector3())
@@ -246,6 +375,7 @@ export class AvatarScene {
         rect: null,
         zoom: 1,
         mouthOpen: false,
+        frame,
       };
       this.seats.set(spec.id, seat);
       this.placeCamera(seat, 1);
@@ -256,8 +386,19 @@ export class AvatarScene {
     }
   }
 
+  /** Dev aid: rebuild the hair of every seat with other proportions (see HAIR). */
+  tuneHair(cut: "short" | "long", shells: Partial<HairShell>[]) {
+    HAIR[cut] = shells.map(shell);
+    for (const seat of this.seats.values()) {
+      const st = seat.spec.style;
+      if (st.hairCut !== cut) continue;
+      seat.head.objectHead.getObjectByName("stage-hair")?.removeFromParent();
+      if (st.hair) addHair(seat.head, seat.frame, st.hair, this.grad, HAIR[cut]);
+    }
+  }
+
   private placeCamera(seat: Seat, zoom: number) {
-    const fh = frameHeight(seat.camera.aspect);
+    const fh = frameHeight(seat.camera.aspect) * (this.opts.frameScale ?? 1);
     const dist = fh / 2 / Math.tan(THREE.MathUtils.degToRad(FOV / 2));
     const e = seat.eyes;
     const cy = e.y - fh * 0.16;
@@ -278,6 +419,9 @@ export class AvatarScene {
   private rects = new Map<string, DOMRect>();
 
   private applyRects() {
+    // free layouts: screen offsets in units of a quarter of the canvas width ~ one grid step
+    const unit = Math.max(1, this.size.w / 4);
+    let moved = false;
     for (const [id, r] of this.rects) {
       const seat = this.seats.get(id);
       if (!seat) continue;
@@ -285,7 +429,16 @@ export class AvatarScene {
       seat.camera.aspect = r.width / Math.max(1, r.height);
       seat.camera.updateProjectionMatrix();
       this.placeCamera(seat, seat.zoom);
+      if (this.opts.gazeFromRects) {
+        const x = ((r.x + r.width / 2 - this.size.w / 2) / unit) * 1.4;
+        const y = (-(r.y + r.height / 2 - this.size.h / 2) / unit) * 1.4;
+        if (Math.abs(x - seat.grid.x) > 0.01 || Math.abs(y - seat.grid.y) > 0.01) {
+          seat.grid = { x, y };
+          moved = true;
+        }
+      }
     }
+    if (moved) this.applyCue(false);
   }
 
   setBackgrounds(bg: Map<string, string>) {
@@ -443,6 +596,13 @@ export class AvatarScene {
     }
     this.seats.clear();
     this.renderer.dispose();
-    void this.audioCtx?.close().catch(() => {});
+    const ctx = this.audioCtx;
+    if (ctx) {
+      // TalkingHead's visibility observers may still call stop()/start() on a disposed head;
+      // on a closed context those reject, so make them no-ops first.
+      ctx.suspend = () => Promise.resolve();
+      ctx.resume = () => Promise.resolve();
+      void ctx.close().catch(() => {});
+    }
   }
 }

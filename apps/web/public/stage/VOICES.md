@@ -71,31 +71,55 @@ The script uses listing endpoints only and never spends characters.
 ### Free tier (current): premade voices
 
 The free tier rejects every library voice over the API, also after adding it to the account
-(`402 paid_plan_required`, probed 2026-11-05). The eleven ElevenLabs **premade** voices verified
-for German (`de-DE`) are exactly the eleven speakers. They are designed by ElevenLabs, not clones
-of public figures, and their ids are the same on every account. No voice clones were created.
+(`402 paid_plan_required`, probed 2026-11-05), so only the 21 ElevenLabs **premade** voices are
+usable. They are designed by ElevenLabs, not clones of public figures, and their ids are the same
+on every account. No voice clones were created.
 
-| Speaker | Institution | Voice | Voice id | Category | Gender, age | Speed |
-| --- | --- | --- | --- | --- | --- | --- |
-| moderator | Moderation | Matilda | `XrExE9yKIg1WjnnlVkGX` | premade | female, middle-aged, professional alto | 1.00 |
-| gm | Gesundheitsministerium | Daniel | `onwK4e9ZLuTAKqWW03F9` | premade | male, middle-aged, steady broadcaster | 1.00 |
-| sv | Sozialversicherung | Lily | `pFZP5JQG7iQjIQuC4Bku` | premade | female, middle-aged, warm and clear | 1.03 |
-| ak | Ärztekammer | Bill | `pqHfZKP75CvOlQylNhV4` | premade | male, older, mature and balanced | 0.97 |
-| va | Vertragsärzt:innen | Eric | `cjVigY5qzO86Huf0OWal` | premade | male, middle-aged, smooth tenor | 1.04 |
-| ka | Krankenanstalten | Laura | `FGY2WhTYpPnrIDTdsKH5` | premade | female, young, lively | 1.00 |
-| pf | Pflegevertretung | Jessica | `cgSgspJ2msm6clMCkdW9` | premade | female, young, bright and warm | 1.02 |
-| bl | Bundesländer | Roger | `CwhRBWXzGAHq8TQ4Fs17` | premade | male, middle-aged, resonant, laid-back | 0.98 |
-| pv | Patientenvertretung | Liam | `TX3LPaxmHKxFdv7VOQHJ` | premade | male, young, energetic | 1.04 |
-| fm | Finanzministerium | Brian | `nPczCjzI2devNBz1zQrb` | premade | male, middle-aged, deep | 0.96 |
-| expert | Experte | Will | `bIHbv24MWmeRgasZH58o` | premade | male, young, relaxed | 0.98 |
+**One source of truth: `lib/stage-cast.ts`.** Every seat has one presentation gender there, and
+the 3D figure (body pose set and hair: short cut for men, ponytail with a jaw-length fall for
+women), the ElevenLabs voice and the Azure voices (de and en) all follow it.
+`lib/stage-cast.test.ts` fails if any of them disagree, and `stage:voices --write` writes this
+table from the cast. The 2D tile emblem is deliberately abstract and has no gender. The mix is
+5 women and 6 men on the eleven core seats, 8 and 9 over all 17 seats.
 
-Speakers outside this table (other catalog institutions) are voiced by Azure.
+| Speaker | Institution | Gender | ElevenLabs | Voice id | German verified | Azure de | Azure en |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| moderator | Moderation | female | Matilda | `XrExE9yKIg1WjnnlVkGX` | yes | de-AT-Ingrid | en-GB-Sonia |
+| expert | Experte | male | Will | `bIHbv24MWmeRgasZH58o` | yes | de-DE-FlorianMultilingual | en-GB-Alfie |
+| gm | Gesundheitsministerium | male | Daniel | `onwK4e9ZLuTAKqWW03F9` | yes | de-AT-Jonas | en-GB-Ryan |
+| sv | Sozialversicherung | female | Lily | `pFZP5JQG7iQjIQuC4Bku` | yes | de-DE-Katja | en-GB-Libby |
+| ak | Ärztekammer | male | Bill | `pqHfZKP75CvOlQylNhV4` | yes | de-DE-Conrad | en-GB-Thomas |
+| va | Vertragsärzt:innen | male | Eric | `cjVigY5qzO86Huf0OWal` | yes | de-CH-Jan | en-GB-Elliot |
+| ka | Krankenanstalten | female | Laura | `FGY2WhTYpPnrIDTdsKH5` | yes | de-DE-Amala | en-GB-Hollie |
+| pf | Pflegevertretung | female | Jessica | `cgSgspJ2msm6clMCkdW9` | yes | de-DE-Elke | en-GB-Bella |
+| bl | Bundesländer | male | Roger | `CwhRBWXzGAHq8TQ4Fs17` | yes | de-DE-Killian | en-GB-Oliver |
+| pv | Patientenvertretung | female | Sarah | `EXAVITQu4vr4xnSDxMaL` | no, multilingual | de-CH-Leni | en-GB-Olivia |
+| fm | Finanzministerium | male | Brian | `nPczCjzI2devNBz1zQrb` | yes | de-DE-Bernd | en-GB-Noah |
+| nr | Gesetzgeber (optional) | female | (Azure only) | | | de-DE-Klarissa | en-GB-Abbi |
+| ph | Public-Health-Expertise (optional) | female | Alice | `Xb7hH8MSUJpSbSDYk0k2` | no, multilingual | de-DE-SeraphinaMultilingual | en-GB-AdaMultilingual |
+| abk | Arbeiterkammer (optional) | female | Bella | `hpp4J3VqNfWAUOO0d1Us` | no, multilingual | de-DE-Tanja | en-GB-Abbi |
+| wk | Wirtschaftskammer (optional) | male | Liam | `TX3LPaxmHKxFdv7VOQHJ` | yes | de-DE-Klaus | en-GB-OllieMultilingual |
+| lk | Landwirtschaftskammer (optional) | male | George | `JBFqnCBsd6RMkjVDRZzb` | no, multilingual | de-DE-Ralf | en-GB-Ethan |
+| ind | Industrie/Pharma (optional) | male | Chris | `iP95p4xoKVk53GoZ742B` | no, multilingual | de-DE-Christoph | en-GB-Ethan |
+
+Azure voices are `<name>Neural`. Only four premade voices are female and verified for German, so
+pv and the optional women use premade voices that speak German through the multilingual models;
+a 2026-11-06 check (one German sentence each on `eleven_turbo_v2_5`, transcribed back with Azure
+speech-to-text) came back word for word at 0.93 to 0.95 confidence. en-GB has fewer adult
+voices than seats: optional seats share some English voices, and `pickAzureVoices` swaps in an
+unused voice of the same gender when two of them meet in one run.
+
+**2026-11-06 change (gender bug):** pv looked and sounded female on Azure but spoke with a male
+ElevenLabs voice (Liam); it now has Sarah, and its English Azure voice moved from a child voice
+(Maisie) to Olivia. Every figure with hair used to wear the ponytail and the body pose set was a
+coin flip per seat; both now follow the cast. The cached `<uttId>.el.mp3` (de) and `<uttId>.mp3`
+(en) of pv were deleted from the cache and the manifests, so they re-render on the next play.
 
 ### Paid plan: library voices
 
 With a paid plan the script picks native German library voices, Austrian (`de-AT`) first for
 moderator, ministry, social insurance, chamber of physicians and federal states, one distinct
-voice per institution, same gender as the premade seat, conversational, educational or
+voice per institution, the gender from `lib/stage-cast.ts`, conversational, educational or
 narration registers only. Library voices are recordings of consenting speakers (categories
 `professional` and `high_quality`; the German library had no voice-design voices on
 2026-11-06, so `--designed-only` falls back to premade). The filter drops every voice whose name

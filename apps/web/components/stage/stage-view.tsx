@@ -11,9 +11,10 @@ import { SpeakerTimeline } from "@/components/timeline/speaker-timeline";
 import { cn } from "@/lib/utils";
 import { type AvatarSeat, AvatarStage } from "./avatar/avatar-stage";
 import { stageColumns } from "./avatar/figure-style";
+import { MeetingView } from "./meeting-view";
 import { latestShift, orderedUtterances, pickSharpestExchange, stageSpeakers } from "./stage-logic";
 import { StageTile, type TileRole } from "./stage-tile";
-import { useStageViewMode } from "./stage-view-mode";
+import { type StageViewMode, useStageViewMode } from "./stage-view-mode";
 import { type StageStrings, stageStrings } from "./strings";
 import { useStagePlayer } from "./use-stage-player";
 
@@ -189,13 +190,17 @@ export function StageView() {
   // View mode: tiles by default; 3D opt-in, falling back to tiles on any 3D failure.
   const [view, setView] = useStageViewMode();
   const [failed3d, setFailed3d] = useState<string | null>(null);
+  // leaving the meeting view returns to the mode it was opened from
+  const lastPlain = useRef<"grid" | "3d">("grid");
+  if (view !== "meeting") lastPlain.current = view;
   const changeView = useCallback(
-    (v: "grid" | "3d") => {
-      if (v === "3d") setFailed3d(null);
+    (v: StageViewMode) => {
+      if (v !== "grid") setFailed3d(null);
       setView(v);
     },
     [setView],
   );
+  const exitMeeting = useCallback(() => setView(lastPlain.current), [setView]);
   const show3d = view === "3d" && !failed3d;
   const seats: AvatarSeat[] = speakers.map((id) => {
     const a = look(id);
@@ -229,6 +234,43 @@ export function StageView() {
   const shiftLook = shift ? look(shift.position.agentId) : null;
   const topic = shift ? run.mandate.topics.find((x) => x.id === shift.position.topicId) : null;
 
+  const cue = {
+    key: u?.id ?? null,
+    speaker: u?.speaker ?? null,
+    listeners,
+    text: u ? textOf(u) : "",
+    kind: u?.kind ?? "",
+  };
+
+  if (view === "meeting") {
+    return (
+      <main ref={rootRef} style={{ ["--amp" as string]: 0 }}>
+        <MeetingView
+          seats={seats}
+          cue={cue}
+          addressees={addressees}
+          player={{
+            idx: p.idx,
+            total: utterances.length,
+            setIdx: p.setIdx,
+            playing: p.playing,
+            toggle: p.toggle,
+            speed: p.speed,
+            setSpeed: p.setSpeed,
+            spoken: p.spoken,
+            liveRef: p.liveRef,
+          }}
+          lang={lang}
+          s={s}
+          use3d={!failed3d}
+          onFail3d={setFailed3d}
+          onExit={exitMeeting}
+          round={u?.round ?? null}
+        />
+      </main>
+    );
+  }
+
   return (
     <main
       ref={rootRef}
@@ -253,6 +295,7 @@ export function StageView() {
             options={[
               { value: "grid" as const, label: s.viewGrid },
               { value: "3d" as const, label: s.view3d, title: s.view3dHint },
+              { value: "meeting" as const, label: s.viewMeeting, title: s.viewMeetingHint },
             ]}
           />
           <Chip
@@ -304,13 +347,7 @@ export function StageView() {
           <AvatarStage
             seats={seats}
             cols={cols}
-            cue={{
-              key: u?.id ?? null,
-              speaker: u?.speaker ?? null,
-              listeners,
-              text: u ? textOf(u) : "",
-              kind: u?.kind ?? "",
-            }}
+            cue={cue}
             addressees={addressees}
             answeredId={replyTo && replyTo.speaker !== u?.speaker ? replyTo.speaker : null}
             liveRef={p.liveRef}
