@@ -171,16 +171,17 @@ function HistoryCell({
     );
   return (
     <div className="flex flex-col gap-1 text-xs">
-      <span className="num font-medium">
-        {rate.k}/{rate.n}
+      <span className="leading-snug">
+        {t.histShort(rate.k, rate.n)}
         {rate.low !== null && rate.high !== null ? (
-          <span className="font-normal text-muted-foreground">
-            {` (${pct(rate.low)} ${lang === "de" ? "bis" : "to"} ${pct(rate.high)})`}
+          <span className="num text-muted-foreground">
+            {` (90 %: ${pct(rate.low)} ${lang === "de" ? "bis" : "to"} ${pct(rate.high)})`}
           </span>
         ) : null}
       </span>
       <span className="text-muted-foreground">
-        <span className="font-mono">{cls}</span>
+        <span className="font-mono">{rate.via ?? cls}</span>
+        {rate.via ? <span>{` ${t.via(cls)}`}</span> : null}
         {rate.smallN ? <span className="ml-1 text-warning">{t.smallN}</span> : null}
       </span>
     </div>
@@ -456,6 +457,9 @@ export function TopicView({
                 <th className="px-3 py-2 font-medium">{t.col.wait}</th>
                 <th className="px-3 py-2 font-medium">{t.col.cost}</th>
                 <th className="px-3 py-2 font-medium">{t.col.duration}</th>
+                <Level min="engineer">
+                  <th className="px-3 py-2 font-medium">{t.col.tokens}</th>
+                </Level>
               </tr>
             </thead>
             <tbody>
@@ -502,6 +506,11 @@ export function TopicView({
                         ))}
                       </div>
                     </Level>
+                    {r.fallbackCalls > 0 ? (
+                      <div className="mt-1 text-[11px] text-warning">
+                        {t.fallback(r.fallbackCalls, r.seatCalls)}
+                      </div>
+                    ) : null}
                   </td>
                   <td className="num px-3 py-2.5">
                     {r.agreed}/{r.of}
@@ -518,6 +527,13 @@ export function TopicView({
                   <td className="num px-3 py-2.5 text-muted-foreground">
                     {formatDuration(r.durationMs)}
                   </td>
+                  <Level min="engineer">
+                    <td className="num px-3 py-2.5 text-xs text-muted-foreground">
+                      {r.costUsd === null
+                        ? "–"
+                        : `${Math.round(r.tokensIn / 1000)}k / ${Math.round(r.tokensOut / 1000)}k · ~${r.costUsd.toFixed(1)} USD`}
+                    </td>
+                  </Level>
                 </tr>
               ))}
             </tbody>

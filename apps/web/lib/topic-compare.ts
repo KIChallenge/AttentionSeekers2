@@ -54,6 +54,13 @@ export interface RunColumn {
   /** Package figures summed over accepted measures (null when none was modelled). */
   waitChangePct: number | null;
   costEurMio: number | null;
+  /** Seat calls recorded (llm.call with an agent), and those served by the fallback model. */
+  seatCalls: number;
+  fallbackCalls: number;
+  tokensIn: number;
+  tokensOut: number;
+  /** Estimate from the engine's price table; null for runs without call records. */
+  costUsd: number | null;
 }
 
 export interface ProposalCell {
@@ -146,6 +153,7 @@ export function compareRuns(
     }
     const ps = snap.proposalOrder.map((id) => snap.proposals[id]).filter((p) => p !== undefined);
     const acc = new Set(ps.filter((p) => p.status === "accepted").map((p) => p.id));
+    const seatCalls = snap.llmCalls.filter((c) => c.agentId !== null && c.agentId in seatModels);
     return {
       id: summary.id,
       isReference: summary.isReference,
@@ -161,6 +169,13 @@ export function compareRuns(
       durationMs: summary.durationMs,
       waitChangePct: figureSum(snap, acc, "wait_change_pct"),
       costEurMio: figureSum(snap, acc, "cost_eur_pa"),
+      seatCalls: seatCalls.length,
+      fallbackCalls: seatCalls.filter((c) => c.fallbackFrom).length,
+      tokensIn: snap.llmCalls.reduce((a, c) => a + c.tokensIn, 0),
+      tokensOut: snap.llmCalls.reduce((a, c) => a + c.tokensOut + c.tokensReasoning, 0),
+      costUsd: snap.llmCalls.length
+        ? snap.llmCalls.reduce((a, c) => a + (c.costUsd ?? 0), 0)
+        : null,
     };
   });
 

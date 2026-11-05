@@ -26,6 +26,7 @@ const de = {
     wait: "Wartezeit",
     cost: "Kosten p.a.",
     duration: "Dauer",
+    tokens: "Tokens ein/aus, Kosten (Schätzung)",
     topic: "Thema",
     history: "Historisch",
     institution: "Institution",
@@ -74,6 +75,8 @@ const de = {
   hist: (k: number, n: number, lo: string, hi: string) =>
     `historisch: ${k} von ${n} vergleichbaren Entwürfen umgesetzt (90 %-Intervall ${lo} bis ${hi})`,
   histNone: "keine vergleichbare Klasse im Register",
+  histShort: (k: number, n: number) => `historisch ${k} von ${n} umgesetzt`,
+  via: (c: string) => `(nächste Klasse zu ${c})`,
   smallN: "kleines n: keine Wahrscheinlichkeit",
   modified: (m: number) => `davon ${m} mit wesentlichen Änderungen`,
   analogs: "Vergleichsfälle",
@@ -100,6 +103,8 @@ const de = {
     round_limit: "anderes Rundenlimit",
   } as Record<string, string>,
   compare: "Themenvergleich",
+  fallback: (k: number, n: number) =>
+    `${k} von ${n} Sitz-Aufrufen liefen wegen Drosselung über das Moderatormodell (GPT)`,
   models: "Modelle je Sitz",
 };
 
@@ -130,6 +135,7 @@ const en: TopicMessages = {
     wait: "Waiting time",
     cost: "Cost p.a.",
     duration: "Duration",
+    tokens: "Tokens in/out, cost (estimate)",
     topic: "Topic",
     history: "Historically",
     institution: "Institution",
@@ -172,6 +178,8 @@ const en: TopicMessages = {
   hist: (k, n, lo, hi) =>
     `historically: ${k} of ${n} comparable drafts implemented (90 % interval ${lo} to ${hi})`,
   histNone: "no comparable class in the registry",
+  histShort: (k, n) => `historically ${k} of ${n} implemented`,
+  via: (c) => `(nearest class to ${c})`,
   smallN: "small n: not a probability",
   modified: (m) => `${m} of them with material changes`,
   analogs: "Analogs",
@@ -195,6 +203,7 @@ const en: TopicMessages = {
   excluded: "Not compared",
   excludedReason: { fixture: "hand-written fixture", round_limit: "different round limit" },
   compare: "Topic comparison",
+  fallback: (k, n) => `${k} of ${n} seat calls ran on the moderator model (GPT) after throttling`,
   models: "Models per seat",
 };
 
