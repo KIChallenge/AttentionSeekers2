@@ -13,6 +13,7 @@ import {
   type CitationRef,
   type Claim,
   type CoalitionCalculus,
+  type Exchange,
   foldRun,
   type LocalizedText,
   type PayoffSign,
@@ -536,6 +537,54 @@ const agentText: Record<Ag, AgentText> = {
   },
 };
 
+/**
+ * Delegates per institution: fictional, unnamed functional roles (CON-1/CON-2). The first is
+ * always the lead negotiator; specialists take rebuttals and caucus work.
+ */
+const DELEGATES: Record<Ag, Array<[string, string]>> = {
+  gm: [
+    ["Verhandlungsführung", "Lead negotiator"],
+    ["Rechtsabteilung", "Legal department"],
+    ["Zielsteuerungsreferat", "Target governance desk"],
+  ],
+  sv: [
+    ["Verhandlungsführung", "Lead negotiator"],
+    ["Finanzreferat", "Finance desk"],
+    ["Vertragspartnerabteilung", "Contract partner department"],
+  ],
+  ak: [
+    ["Verhandlungsführung", "Lead negotiator"],
+    ["Kurienreferat", "Section desk"],
+    ["Rechtsabteilung", "Legal department"],
+  ],
+  va: [
+    ["Verhandlungsführung", "Lead negotiator"],
+    ["Tarifreferat", "Fee desk"],
+  ],
+  ka: [
+    ["Verhandlungsführung", "Lead negotiator"],
+    ["Ambulanzmanagement", "Outpatient management"],
+  ],
+  pf: [
+    ["Verhandlungsführung", "Lead negotiator"],
+    ["Fachreferat Community Nursing", "Community nursing desk"],
+  ],
+  bl: [
+    ["Verhandlungsführung", "Lead negotiator"],
+    ["Versorgungsplanung", "Care planning"],
+  ],
+  pv: [
+    ["Verhandlungsführung", "Lead negotiator"],
+    ["Fallreferat", "Case desk"],
+  ],
+  fm: [
+    ["Verhandlungsführung", "Lead negotiator"],
+    ["Budgetreferat", "Budget desk"],
+    ["Evaluierungsstelle", "Evaluation unit"],
+  ],
+};
+const delegateId = (ag: Ag, i: number) => `${ag}-d${i + 1}`;
+
 const agents: AgentConfig[] = AG.map((id) => {
   const c = AGENT_CATALOG.find((a) => a.id === id);
   const t = agentText[id];
@@ -563,6 +612,7 @@ const agents: AgentConfig[] = AG.map((id) => {
     },
     color: c.color,
     code: c.code,
+    delegates: DELEGATES[id].map(([de, en], i) => ({ id: delegateId(id, i), role: L(de, en) })),
   };
 });
 
@@ -693,9 +743,11 @@ type ClaimSpec = {
   contradicts?: string;
 };
 
+type Speaker = Ag | "moderator" | "expert";
+
 type UttSpec = {
   id: string;
-  sp: Ag | "moderator" | "expert";
+  sp: Speaker;
   kind: UtteranceKind;
   re: string | null;
   de: string;
@@ -703,7 +755,79 @@ type UttSpec = {
   claims?: ClaimSpec[];
   rl?: string[];
   props?: string[];
+  /** Exchange override, needed while two caucuses run in parallel. */
+  x?: string;
+  /** Addressees override; default derives from the exchange and respondsTo. */
+  to?: Speaker[];
+  /** Delegate index override (0 = lead negotiator). */
+  dl?: number;
 };
+
+// ---------- exchanges and simulated meeting time ----------
+
+/** Simulated meeting clock in minutes since the run opened. */
+let clock = 0;
+let currentX: string | null = null;
+const openXs = new Map<string, { x: Exchange; cursor: number }>();
+const speakerOf = new Map<string, Speaker>();
+
+type XSpec = {
+  id: string;
+  kind: Exchange["kind"];
+  participants: Speaker[];
+  topicId: TopicId | null;
+  trigger: [string, string];
+};
+
+/** Opens an exchange at the current clock (or `at` for a parallel caucus). */
+function openX(round: number, spec: XSpec, at = clock) {
+  const x: Exchange = {
+    id: spec.id,
+    round,
+    phase: round,
+    kind: spec.kind,
+    participants: spec.participants,
+    topicId: spec.topicId,
+    trigger: L(...spec.trigger),
+    utteranceIds: [],
+    outcome: null,
+    startMin: at,
+  };
+  openXs.set(spec.id, { x, cursor: at });
+  currentX = spec.id;
+  emit("exchange.opened", { exchange: x }, 120);
+}
+
+function closeX(id: string, de: string, en: string) {
+  const o = openXs.get(id);
+  if (!o) throw new Error(`exchange not open: ${id}`);
+  // the cursor sits after the trailing pause of the last utterance
+  const endMin = Math.round(Math.max(o.x.startMin ?? 0, o.cursor - 0.5) * 10) / 10;
+  emit("exchange.closed", { exchange: { ...o.x, outcome: L(de, en), endMin } }, 120);
+  openXs.delete(id);
+  if (currentX === id) currentX = null;
+  // a short hand-over before the next exchange
+  clock = Math.max(clock, endMin + 1);
+}
+
+/** Break between rounds, in simulated minutes. */
+function pause(min: number) {
+  clock += min;
+}
+
+/** Spoken length in simulated minutes: the texts are condensed statements, not transcripts. */
+function minutesFor(text: string): number {
+  const words = text.split(/\s+/).length;
+  return Math.round((1 + words / 22) * 2) / 2;
+}
+
+function addresseesFor(u: UttSpec, x: Exchange | null): Speaker[] {
+  if (u.to) return u.to;
+  if (x && x.kind !== "plenary") return x.participants.filter((p) => p !== u.sp) as Speaker[];
+  const target = u.re ? speakerOf.get(u.re) : undefined;
+  if (target && target !== u.sp && target !== "moderator") return [target];
+  return [];
+}
 
 function speak(round: number, u: UttSpec) {
   const model =
@@ -804,7 +928,31 @@ function speak(round: number, u: UttSpec) {
       : null,
     degraded: null,
   };
+  const xid = u.x ?? currentX;
+  const slot = xid ? openXs.get(xid) : undefined;
+  if (xid && !slot) throw new Error(`${u.id}: exchange ${xid} is not open`);
+  const durationMin = minutesFor(u.de);
+  const startMin = slot ? slot.cursor : clock;
+  if (slot) {
+    slot.x.utteranceIds.push(u.id);
+    slot.cursor = startMin + durationMin + 0.5;
+  } else {
+    clock = startMin + durationMin + 0.5;
+  }
+  if (xid) utterance.exchangeId = xid;
+  if (isAgent) utterance.delegateId = delegateId(u.sp as Ag, u.dl ?? defaultDelegate(u));
+  utterance.addressedTo = addresseesFor(u, slot?.x ?? null);
+  utterance.timing = { startMin: Math.round(startMin * 10) / 10, durationMin };
+  speakerOf.set(u.id, u.sp);
   emit("utterance.completed", { utterance, claims }, latency);
+}
+
+function defaultDelegate(u: UttSpec): number {
+  if (u.sp === "moderator" || u.sp === "expert") return 0;
+  const count = DELEGATES[u.sp].length;
+  // leads table positions and proposals; specialists argue rebuttals
+  if (u.kind === "rebuttal" || u.kind === "justification_demand") return Math.min(1, count - 1);
+  return 0;
 }
 
 function trace(
@@ -1840,6 +1988,13 @@ emit("round.started", {
   phase: 1,
   speakingOrder: ["sv", "pv", "ak", "gm", "fm", "bl", "va", "ka", "pf"],
 });
+openX(1, {
+  id: "x1-1",
+  kind: "plenary",
+  participants: [...AG],
+  topicId: null,
+  trigger: ["Mandat und Ausgangspositionen", "Mandate and opening positions"],
+});
 speak(1, {
   id: "u1-01",
   sp: "moderator",
@@ -2014,6 +2169,11 @@ speak(1, {
   de: "Offene Konflikte zuerst: Ursache unbesetzter Stellen (Honorar gegen Verteilung), Terminzusage, Planungshoheit PVE. Breite Zustimmung zu Telemedizin und Terminservice, aber nicht bei der Ärzteseite.",
   en: "Open conflicts first: cause of vacant posts (fees versus distribution), appointment guarantee, PVE planning authority. Broad support for telemedicine and the appointment service, but not from the physicians.",
 });
+closeX(
+  "x1-1",
+  "Neun Ausgangspositionen mit Quellen; drei Konflikte gehen in bilaterale Runden",
+  "Nine opening positions with sources; three conflicts go to bilateral talks",
+);
 summary(
   1,
   [
@@ -2033,6 +2193,14 @@ emit(
   { round: 2, phase: 2, speakingOrder: ["ak", "fm", "pv", "va", "sv", "bl", "ka", "pf", "gm"] },
   1200,
 );
+pause(6);
+openX(2, {
+  id: "x2-1",
+  kind: "plenary",
+  participants: [...AG],
+  topicId: null,
+  trigger: ["Eröffnung Runde 2", "Round 2 opening"],
+});
 speak(2, {
   id: "u2-01",
   sp: "moderator",
@@ -2040,6 +2208,21 @@ speak(2, {
   re: "u1-11",
   de: "Runde 2: Diskussion. Beiträge beziehen sich auf eine konkrete Vorgängeräußerung. Offene Fragen: Ursache unbesetzter Stellen, Finanzierung, Terminzusage.",
   en: "Round 2: discussion. Contributions must refer to a specific prior utterance. Open questions: cause of vacancies, financing, appointment guarantee.",
+});
+closeX(
+  "x2-1",
+  "Konflikte zugeteilt: Honorar an ÄK, FM und SV; Terminzusage an PV und VÄ",
+  "Conflicts assigned: fees to ÄK, FM and SV; guarantee to PV and VÄ",
+);
+openX(2, {
+  id: "x2-2",
+  kind: "bilateral",
+  participants: ["ak", "fm", "sv"],
+  topicId: T.hon,
+  trigger: [
+    "Konflikt: Ursache unbesetzter Stellen, Honorar gegen Deckel",
+    "Conflict: cause of vacancies, fees versus the cap",
+  ],
 });
 speak(2, {
   id: "u2-02",
@@ -2071,23 +2254,21 @@ speak(2, {
   en: "An across-the-board increase uses up a large part of the cap without guaranteeing a single extra post. The Ministry of Finance rejects it.",
 });
 speak(2, {
-  id: "u2-04",
-  sp: "pv",
-  kind: "proposal",
-  re: "u1-08",
-  props: ["p-01"],
-  de: "Wir legen die verbindliche 4-Wochen-Terminzusage formal vor, mit Kostenerstattung für Wahlarzttermine, wenn die Frist überschritten wird.",
-  en: "We formally table the binding 4-week appointment guarantee, with reimbursement for elective-physician appointments if the deadline is missed.",
-});
-proposal("p-01", open(["pv", "gm"], ["ak", "va", "fm"], ["pf"], 0.3));
-speak(2, {
-  id: "u2-05",
-  sp: "va",
+  id: "u2-08",
+  sp: "sv",
   kind: "rebuttal",
-  re: "u2-04",
-  rl: ["rl-va-1"],
-  de: "Eine Terminpflicht ohne zusätzliche Kapazität verschiebt nur die Warteschlange. Sanktionen gegen Ordinationen lehnen wir ab.",
-  en: "An appointment duty without extra capacity only moves the queue. We reject sanctions against practices.",
+  re: "u2-02",
+  de: "Höhere Tarife allein lösen das Verteilungsproblem nicht: Unbesetzt sind vor allem Stellen in ländlichen Regionen. Wir prüfen Zuschläge nur in Mangelregionen.",
+  en: "Higher fees alone do not solve the distribution problem: vacancies are mostly rural. We are examining supplements in shortage regions only.",
+  claims: [
+    {
+      quote: "Unbesetzt sind vor allem Stellen in ländlichen Regionen",
+      atomic: "Zwei Drittel der unbesetzten Stellen liegen in ländlichen Regionen.",
+      kind: "factual",
+      state: "verified",
+      cites: ["p-18821"],
+    },
+  ],
 });
 speak(2, {
   id: "u2-06",
@@ -2124,30 +2305,57 @@ if (c104)
       },
     },
   });
+closeX(
+  "x2-2",
+  "Lineare Erhöhung ohne Mehrheit; Zahl unbesetzter Stellen strittig; neue Option regionale Zuschläge",
+  "Across-the-board rise without a majority; vacancy figure disputed; new option regional supplements",
+);
+openX(2, {
+  id: "x2-3",
+  kind: "bilateral",
+  participants: ["pv", "va"],
+  topicId: T.wo4,
+  trigger: ["Konflikt: Terminzusage gegen Kapazität", "Conflict: guarantee versus capacity"],
+});
+speak(2, {
+  id: "u2-04",
+  sp: "pv",
+  kind: "proposal",
+  re: "u1-08",
+  props: ["p-01"],
+  de: "Wir legen die verbindliche 4-Wochen-Terminzusage formal vor, mit Kostenerstattung für Wahlarzttermine, wenn die Frist überschritten wird.",
+  en: "We formally table the binding 4-week appointment guarantee, with reimbursement for elective-physician appointments if the deadline is missed.",
+});
+proposal("p-01", open(["pv", "gm"], ["ak", "va", "fm"], ["pf"], 0.3));
+speak(2, {
+  id: "u2-05",
+  sp: "va",
+  kind: "rebuttal",
+  re: "u2-04",
+  rl: ["rl-va-1"],
+  de: "Eine Terminpflicht ohne zusätzliche Kapazität verschiebt nur die Warteschlange. Sanktionen gegen Ordinationen lehnen wir ab.",
+  en: "An appointment duty without extra capacity only moves the queue. We reject sanctions against practices.",
+});
 speak(2, {
   id: "u2-07",
   sp: "moderator",
   kind: "justification_demand",
   re: "u1-08",
+  to: ["va"],
   de: "Die Vertragsärzt:innen werden gebeten, die Zahl von 15 % Nichterscheinen zu belegen. Ohne Quelle wird sie als Annahme geführt.",
   en: "Contracted physicians are asked to substantiate the 15 % no-show figure. Without a source it is recorded as an assumption.",
 });
-speak(2, {
-  id: "u2-08",
-  sp: "sv",
-  kind: "rebuttal",
-  re: "u2-02",
-  de: "Höhere Tarife allein lösen das Verteilungsproblem nicht: Unbesetzt sind vor allem Stellen in ländlichen Regionen. Wir prüfen Zuschläge nur in Mangelregionen.",
-  en: "Higher fees alone do not solve the distribution problem: vacancies are mostly rural. We are examining supplements in shortage regions only.",
-  claims: [
-    {
-      quote: "Unbesetzt sind vor allem Stellen in ländlichen Regionen",
-      atomic: "Zwei Drittel der unbesetzten Stellen liegen in ländlichen Regionen.",
-      kind: "factual",
-      state: "verified",
-      cites: ["p-18821"],
-    },
-  ],
+closeX(
+  "x2-3",
+  "Terminzusage ohne Kapazität blockiert; VÄ müssen die 15 % Nichterscheinen belegen",
+  "Guarantee without capacity blocked; VÄ must substantiate the 15 % no-shows",
+);
+openX(2, {
+  id: "x2-4",
+  kind: "plenary",
+  participants: [...AG],
+  topicId: T.stellen,
+  trigger: ["Zwischenstand aus den Gesprächen", "Report back from the talks"],
 });
 speak(2, {
   id: "u2-09",
@@ -2182,6 +2390,11 @@ speak(2, {
   de: "Offen: Honorar gegen Budgetdeckel, Terminzusage gegen Kapazität. Widerspruch bei der Zahl unbesetzter Stellen ungeklärt. Neue Option: Zuschläge nur in Mangelregionen.",
   en: "Open: fees versus the cap, guarantee versus capacity. Contradiction on vacant posts unresolved. New option: supplements in shortage regions only.",
 });
+closeX(
+  "x2-4",
+  "Länder tragen regionale Zuschläge mit, wenn sie mitplanen",
+  "Länder back regional supplements if they co-plan",
+);
 summary(
   2,
   [
@@ -2201,6 +2414,14 @@ emit(
   { round: 3, phase: 3, speakingOrder: ["sv", "ak", "va", "fm", "bl", "pv", "pf", "ka", "gm"] },
   1200,
 );
+pause(6);
+openX(3, {
+  id: "x3-1",
+  kind: "plenary",
+  participants: [...AG],
+  topicId: T.stellen,
+  trigger: ["Vorschlag p-03 der Sozialversicherung", "Proposal p-03 by social insurance"],
+});
 speak(3, {
   id: "u3-01",
   sp: "moderator",
@@ -2309,6 +2530,34 @@ speak(3, {
   en: "Staggering over four years and the reallocation make the proposal fiscally feasible. The Ministry of Finance requires a yearly evaluation as a condition.",
 });
 speak(3, {
+  id: "u3-07",
+  sp: "pv",
+  kind: "rebuttal",
+  re: "u3-05",
+  de: "Ohne Terminzusage wird der Erfolg nicht sichtbar. Mindestens ein öffentliches Wartezeiten-Dashboard ist Bedingung für unsere Zustimmung.",
+  en: "Without a guarantee success stays invisible. A public waiting-time dashboard is at least a condition for our consent.",
+});
+speak(3, {
+  id: "u3-09",
+  sp: "ka",
+  kind: "rebuttal",
+  re: "u3-02",
+  de: "Die Umschichtung aus den Ambulanzen tragen wir nur mit, wenn die Entlastung messbar eintritt; sonst braucht es eine Rückfallklausel.",
+  en: "We accept reallocation from outpatient departments only if relief measurably materialises; otherwise a fallback clause is needed.",
+});
+closeX(
+  "x3-1",
+  "p-03 trägt bei SV, GM, BL und PV; ÄK lehnt ab, VÄ bewegen sich bei Telemedizin",
+  "p-03 carries SV, GM, BL and PV; ÄK rejects, VÄ move on telemedicine",
+);
+openX(3, {
+  id: "x3-2",
+  kind: "bilateral",
+  participants: ["bl", "ak"],
+  topicId: T.pve,
+  trigger: ["Konflikt: Planungshoheit für PVE", "Conflict: planning authority for PVE"],
+});
+speak(3, {
   id: "u3-06",
   sp: "bl",
   kind: "proposal",
@@ -2320,12 +2569,37 @@ speak(3, {
 });
 proposal("p-04", open(["bl", "gm", "pf"], ["ak", "va"], ["sv", "pv"], 0.45));
 speak(3, {
-  id: "u3-07",
-  sp: "pv",
+  id: "u3-11",
+  sp: "ak",
   kind: "rebuttal",
-  re: "u3-05",
-  de: "Ohne Terminzusage wird der Erfolg nicht sichtbar. Mindestens ein öffentliches Wartezeiten-Dashboard ist Bedingung für unsere Zustimmung.",
-  en: "Without a guarantee success stays invisible. A public waiting-time dashboard is at least a condition for our consent.",
+  re: "u3-06",
+  rl: ["rl-ak-1"],
+  dl: 2,
+  de: "Planung außerhalb des Gesamtvertrags lehnt die Ärztekammer ab. Primärversorgungseinheiten brauchen Kassenverträge; wer plant, muss auch finanzieren.",
+  en: "The Medical Chamber rejects planning outside the collective contract. Primary care units need insurance contracts; whoever plans must also pay.",
+});
+speak(3, {
+  id: "u3-12",
+  sp: "bl",
+  kind: "rebuttal",
+  re: "u3-11",
+  de: "Die Länder finanzieren die Spitalsambulanzen mit. Ohne Mitsprache bei der Planung bleibt jede Entlastung Zufall.",
+  en: "The Länder co-finance the hospital outpatient departments. Without a say in planning any relief is a matter of chance.",
+});
+closeX(
+  "x3-2",
+  "Kein Kompromiss: Planungshoheit bleibt offener Konflikt",
+  "No compromise: planning authority stays an open conflict",
+);
+openX(3, {
+  id: "x3-3",
+  kind: "bilateral",
+  participants: ["pf", "ak"],
+  topicId: T.pfl,
+  trigger: [
+    "Konflikt: pflegerischer Erstkontakt gegen ärztliche Erstdiagnose",
+    "Conflict: nursing first contact versus medical first diagnosis",
+  ],
 });
 speak(3, {
   id: "u3-08",
@@ -2349,12 +2623,25 @@ speak(3, {
 });
 proposal("p-05", open(["pf", "gm", "sv", "ka", "bl", "pv"], ["ak"], ["fm", "va"], 0.62));
 speak(3, {
-  id: "u3-09",
-  sp: "ka",
+  id: "u3-13",
+  sp: "ak",
   kind: "rebuttal",
-  re: "u3-02",
-  de: "Die Umschichtung aus den Ambulanzen tragen wir nur mit, wenn die Entlastung messbar eintritt; sonst braucht es eine Rückfallklausel.",
-  en: "We accept reallocation from outpatient departments only if relief measurably materialises; otherwise a fallback clause is needed.",
+  re: "u3-08",
+  rl: ["rl-ak-2"],
+  de: "Pflegerischer Erstkontakt darf die ärztliche Erstdiagnose nicht ersetzen. Als Ergänzung für Routinekontrollen ist die Ärztekammer gesprächsbereit.",
+  en: "Nursing first contact must not replace the medical first diagnosis. As a supplement for routine checks the Medical Chamber is open to talks.",
+});
+closeX(
+  "x3-3",
+  "Annäherung: Pflege-Erstkontakt als Ergänzung denkbar, Erstdiagnose bleibt ärztlich",
+  "Rapprochement: nursing first contact conceivable as a supplement, first diagnosis stays medical",
+);
+openX(3, {
+  id: "x3-4",
+  kind: "plenary",
+  participants: [...AG],
+  topicId: null,
+  trigger: ["Abstimmung offener Vorschläge", "Vote on open proposals"],
 });
 proposal("p-01", {
   status: "rejected",
@@ -2405,6 +2692,11 @@ speak(3, {
   de: "Offene Konflikte: Planungshoheit PVE (Länder gegen Gesamtvertrag), Honorarindexierung, Terminzusage. Abgelehnt: 4-Wochen-Zusage mit Sanktionen und lineare Honorarerhöhung. Bewegung: Vertragsärzt:innen tragen Telemedizin unter Bedingungen mit.",
   en: "Open conflicts: PVE planning authority (Länder versus contract), fee indexation, guarantee. Rejected: 4-week guarantee with sanctions and across-the-board fee rise. Movement: contracted physicians support telemedicine under conditions.",
 });
+closeX(
+  "x3-4",
+  "p-01 und p-02 abgelehnt; Evaluierung mit Stopp-Klausel als neue Option",
+  "p-01 and p-02 rejected; evaluation with a stop clause as a new option",
+);
 summary(
   3,
   [
@@ -2430,6 +2722,17 @@ emit(
   { round: 4, phase: 4, speakingOrder: ["gm", "ak", "sv", "fm", "pv", "va", "bl", "ka", "pf"] },
   1200,
 );
+pause(6);
+openX(4, {
+  id: "x4-1",
+  kind: "plenary",
+  participants: [...AG],
+  topicId: T.tss,
+  trigger: [
+    "Neue Wartezeiten-Erhebung und Paket des Ministeriums",
+    "New waiting-time survey and the ministry package",
+  ],
+});
 const ev1 = room.scheduledEvents[0];
 if (ev1) emit("room.event_injected", { round: 4, event: ev1 });
 speak(4, {
@@ -2479,6 +2782,106 @@ proposal("p-03", {
   conditional: ["va", "fm", "ka"],
   acceptance: 0.55,
 });
+closeX(
+  "x4-1",
+  "Paket p-06 liegt vor; die Lager beraten getrennt",
+  "Package p-06 is tabled; the camps confer separately",
+);
+// two caucuses in parallel: the package coalition and the physicians' side
+const caucusAt = clock;
+openX(
+  4,
+  {
+    id: "x4-2",
+    kind: "caucus",
+    participants: ["gm", "sv", "pv"],
+    topicId: T.tss,
+    trigger: ["Paketkoalition: Bedingungen bündeln", "Package coalition: bundle conditions"],
+  },
+  caucusAt,
+);
+openX(
+  4,
+  {
+    id: "x4-3",
+    kind: "caucus",
+    participants: ["ak", "va"],
+    topicId: T.hon,
+    trigger: [
+      "Ärzteseite: gemeinsame Linie zu Stellen und Honorar",
+      "Physicians' side: joint line on posts and fees",
+    ],
+  },
+  caucusAt,
+);
+speak(4, {
+  id: "u4-09",
+  sp: "sv",
+  kind: "position",
+  re: "u4-02",
+  x: "x4-2",
+  dl: 2,
+  de: "Die Sozialversicherung trägt das Paket, wenn die Tarifposition für Telemedizin im Gesamtvertrag verhandelt wird und nicht per Verordnung kommt.",
+  en: "Social insurance backs the package if the telemedicine fee item is negotiated in the collective contract rather than set by decree.",
+});
+speak(4, {
+  id: "u4-10",
+  sp: "va",
+  kind: "position",
+  re: "u4-02",
+  x: "x4-3",
+  dl: 1,
+  de: "Mit einer fixen Tarifposition für Telemedizin können die Vertragsärzt:innen mit dem Paket leben. Die Stellenfrage sollte das nicht kippen.",
+  en: "With a fixed telemedicine fee item contracted physicians can live with the package. The posts question should not topple it.",
+});
+speak(4, {
+  id: "u4-11",
+  sp: "pv",
+  kind: "rebuttal",
+  re: "u4-09",
+  x: "x4-2",
+  de: "Die Patientenvertretung verlangt, dass das Dashboard Wartezeiten je Fach und Region ausweist. Sonst bleibt der Erfolg unsichtbar.",
+  en: "Patient advocacy demands that the dashboard shows waiting times per specialty and region. Otherwise success stays invisible.",
+});
+speak(4, {
+  id: "u4-12",
+  sp: "ak",
+  kind: "rebuttal",
+  re: "u4-10",
+  x: "x4-3",
+  dl: 0,
+  de: "Die Ärztekammer bringt die volle Wahlarzt-Erstattung als Alternative ein. Lehnt der Tisch ab, bleibt nur Zustimmung unter Vorbehalt.",
+  en: "The Medical Chamber tables full elective reimbursement as an alternative. If the table refuses, only consent with a reservation remains.",
+});
+speak(4, {
+  id: "u4-13",
+  sp: "gm",
+  kind: "position",
+  re: "u4-11",
+  x: "x4-2",
+  de: "Das Ministerium nimmt das Dashboard je Fach und Region ins Paket. Linie für den Tisch: Paket als Ganzes, Tarifposition im Gesamtvertrag.",
+  en: "The ministry adds the dashboard per specialty and region to the package. Line for the table: the package as a whole, fee item in the collective contract.",
+});
+closeX(
+  "x4-3",
+  "Ärzteseite: Wahlarzt-Erstattung als Alternative, sonst Zustimmung unter Vorbehalt",
+  "Physicians' side: elective reimbursement as the alternative, otherwise consent with a reservation",
+);
+closeX(
+  "x4-2",
+  "Gemeinsame Linie: Paket als Ganzes, Dashboard je Fach und Region, Tarif im Gesamtvertrag",
+  "Joint line: the package as a whole, dashboard per specialty and region, fee in the collective contract",
+);
+openX(4, {
+  id: "x4-4",
+  kind: "bilateral",
+  participants: ["ak", "sv"],
+  topicId: T.stellen,
+  trigger: [
+    "Konflikt: Wahlarzt-Erstattung statt neuer Stellen",
+    "Conflict: elective reimbursement instead of new posts",
+  ],
+});
 speak(4, {
   id: "u4-03",
   sp: "ak",
@@ -2496,6 +2899,14 @@ speak(4, {
   re: "u4-03",
   de: "Höhere Wahlarzt-Erstattung verlagert Versorgung zu jenen, die vorleisten können. Die Sozialversicherung lehnt ab und unterstützt das Paket.",
   en: "Higher elective reimbursement shifts care to those who can pay up front. Social insurance rejects it and supports the package.",
+});
+closeX("x4-4", "SV lehnt ab; p-07 findet keine Mehrheit", "SV refuses; p-07 finds no majority");
+openX(4, {
+  id: "x4-5",
+  kind: "plenary",
+  participants: [...AG],
+  topicId: T.tss,
+  trigger: ["Paket p-06 vor dem ganzen Tisch", "Package p-06 before the whole table"],
 });
 speak(4, {
   id: "u4-05",
@@ -2582,6 +2993,11 @@ speak(4, {
   de: "Offen bleiben Honorarindexierung, Planungshoheit PVE und Terminzusage. Das Paket p-06 hat alle Vetospieler an Bord, die Ärztekammer unter Vorbehalt. Abgelehnt: Wahlarzt-Erstattung statt Stellen.",
   en: "Fee indexation, PVE planning authority and the guarantee stay open. Package p-06 has all veto players on board, the chamber with a reservation. Rejected: elective reimbursement instead of posts.",
 });
+closeX(
+  "x4-5",
+  "p-06 mit allen Vetospielern, ÄK unter Vorbehalt",
+  "p-06 with all veto players, ÄK with a reservation",
+);
 summary(
   4,
   [
@@ -2601,6 +3017,14 @@ emit(
   { round: 5, phase: 5, speakingOrder: ["bl", "va", "ka", "sv", "gm", "pf", "fm", "ak", "pv"] },
   1200,
 );
+pause(6);
+openX(5, {
+  id: "x5-1",
+  kind: "plenary",
+  participants: [...AG],
+  topicId: null,
+  trigger: ["Abschlusserklärungen", "Closing statements"],
+});
 speak(5, {
   id: "u5-01",
   sp: "moderator",
@@ -2634,6 +3058,17 @@ speak(5, {
   de: "Die Sozialversicherung setzt das Paket über Gesamtvertrag und Terminservice um und berichtet jährlich im Dashboard.",
   en: "Social insurance implements the package via the collective contract and the appointment service and reports yearly on the dashboard.",
 });
+closeX("x5-1", "Länder, VÄ und SV tragen das Paket", "Länder, VÄ and SV back the package");
+openX(5, {
+  id: "x5-2",
+  kind: "bilateral",
+  participants: ["pf", "ak"],
+  topicId: T.pfl,
+  trigger: [
+    "Angebot an die Ärztekammer: Erstkontakt nach Erstdiagnose",
+    "Offer to the chamber: first contact after first diagnosis",
+  ],
+});
 speak(5, {
   id: "u5-05",
   sp: "pf",
@@ -2651,6 +3086,18 @@ speak(5, {
   re: "u5-05",
   de: "Zustimmung unter Vorbehalt. Pflegerischen Erstkontakt nach ärztlicher Erstdiagnose tragen wir mit. Die Indexierung im Gesamtvertrag ist ungelöst; das ist ein offener Konflikt, kein Konsens.",
   en: "Consent with a reservation. We support nursing first contact after a medical first diagnosis. Indexation in the collective contract is unresolved; that is an open conflict, not consensus.",
+});
+closeX(
+  "x5-2",
+  "Einigung: pflegerischer Erstkontakt nach ärztlicher Erstdiagnose; Indexierung bleibt offen",
+  "Agreement: nursing first contact after a medical first diagnosis; indexation stays open",
+);
+openX(5, {
+  id: "x5-3",
+  kind: "plenary",
+  participants: [...AG],
+  topicId: null,
+  trigger: ["Ergebnis und offene Konflikte", "Result and open conflicts"],
 });
 proposal("p-06", {
   status: "accepted",
@@ -2703,6 +3150,11 @@ speak(5, {
   de: "Ergebnis: Konsens mit Vorbehalt der Ärztekammer für das Wartezeiten-Paket p-06; Mehrheit für pflegerischen Erstkontakt p-05. Offene Konflikte: Honorarindexierung, Planungshoheit PVE, 4-Wochen-Terminzusage. Das Ziel von minus 20 % wird nach dem Wirkungsmodell nicht sicher erreicht.",
   en: "Result: consensus with the chamber's reservation on waiting-time package p-06; majority for nursing first contact p-05. Open conflicts: fee indexation, PVE planning authority, 4-week guarantee. According to the impact model the minus 20 % target is not reliably reached.",
 });
+closeX(
+  "x5-3",
+  "Konsens mit Vorbehalt für p-06, Mehrheit für p-05, drei Konflikte offen",
+  "Consensus with reservation on p-06, majority for p-05, three conflicts open",
+);
 summary(
   5,
   [
@@ -2908,5 +3360,5 @@ writeFileSync(
 );
 const snap = foldRun(events);
 console.log(
-  `wrote ${events.length} events, ${snap.utteranceOrder.length} utterances, duration ${Math.round(t / 1000)} s`,
+  `wrote ${events.length} events, ${snap.utteranceOrder.length} utterances, ${snap.exchanges.length} exchanges, duration ${Math.round(t / 1000)} s, meeting ${Math.round(clock)} min`,
 );
