@@ -35,6 +35,9 @@ importers:
       '@sv/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@sv/engine':
+        specifier: workspace:*
+        version: link:../../packages/engine
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1

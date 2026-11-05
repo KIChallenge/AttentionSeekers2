@@ -214,17 +214,9 @@ Delete with `models/aws/teardown.sh --execute` right after the jury (hosting bil
 Download the adapters first if they should outlive the bucket:
 `aws s3 sync s3://<bucket>/adapters/ out/lora-sagemaker/ --exclude "summary.json"`.
 
-**Publishing the adapters to Hugging Face later (not done):**
-1. Download as above; each `out/lora-sagemaker/<role>/` is a standard PEFT adapter whose
-   `adapter_config.json` already names `Qwen/Qwen3-8B` as base (rewritten from the container path).
-2. Re-check the licence position first: Qwen3-8B is Apache-2.0 (redistribution with the licence notice is
-   fine), but the training text is the institutions' Stellungnahmen (see `cards/DATASET_CARD.md`); publish
-   adapters only, never the SFT data, and keep the person masking statement in the card.
-3. Fill `cards/MODEL_CARD.md` per adapter (base, rank, epochs, `train_meta.json` losses, the held-out
-   numbers from `out/eval_sagemaker.md`, limitations, intended use: simulation, not real positions).
-4. `huggingface-cli login` with a write token kept outside the repo, then
-   `huggingface-cli upload <org>/sv-persona-<role> out/lora-sagemaker/<role> . --private` (start private,
-   flip to public after review). Do not upload `train_meta.json` if it is not wanted public.
+**Publishing the adapters to Hugging Face (prepared, not done):** see "Hugging Face prep (4)" below;
+`models/hf/fetch_adapters.sh` downloads the adapters, `models/hf/publish.py` writes the cards and uploads
+to private repos only with `--execute`.
 
 ### Azure Foundry fine-tuning (blocked server-side, see status below)
 
@@ -311,4 +303,22 @@ Formats: SFT `{"messages":[...]}`, DPO `{"input":{"messages":[...]}, "preferred_
 ## Hugging Face prep (4)
 
 `cards/MODEL_CARD.md`, `cards/DATASET_CARD.md`: drafts with licence notes, masking procedure, intended
-use, limitations. Nothing is published; text of the Stellungnahmen belongs to the institutions.
+use, limitations. Nothing is published yet; text of the Stellungnahmen belongs to the institutions.
+
+```sh
+aws sso login                                   # the SSO session expires after about an hour
+models/hf/fetch_adapters.sh                     # s3://<bucket>/adapters/<role>/ -> models/out/lora-sagemaker/<role>/
+python3 -I models/hf/publish.py                 # DRY RUN (default): cards in models/out/hf/<role>/, plan printed
+uv run --with huggingface_hub python -I models/hf/publish.py --execute   # private repos + upload
+```
+
+- Repos: `Aryt3/sv-persona-<role>-qwen3-8b-lora` (`--hf-user` to change), always created with
+  `private=True`; `--execute` refuses the whole run if any target repo already exists and is public, or if
+  any selected adapter is missing. `HF_TOKEN` is read from the repo `.env` (`SV_ENV_FILE` overrides) and
+  never printed.
+- Uploaded per repo, by allowlist only: `adapter_config.json`, `adapter_model.safetensors`, `README.md`
+  (model card with YAML metadata: base_model Qwen/Qwen3-8B, library peft, licence apache-2.0, language de;
+  the held-out numbers from `out/eval_sagemaker.md` and `out/persona_fidelity.json`; limitations incl. the
+  loop behaviour and that the adapters underperform the base overall; masking procedure; intended use:
+  research demo only, not for representing real institutions), `LICENSE-NOTICE.md`. **No training data,
+  no `train_meta.json`, no jsonl is ever uploaded.**

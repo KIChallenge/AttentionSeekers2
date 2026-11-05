@@ -79,6 +79,7 @@ export function TopBar() {
     { href: "/", label: t.nav.dashboard },
     { href: "/runs/new", label: t.nav.newRun },
     { href: "/archive", label: t.nav.archive },
+    { href: "/models", label: t.nav.models },
     { href: "/method", label: t.nav.method },
   ];
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
