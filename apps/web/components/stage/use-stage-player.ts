@@ -4,7 +4,7 @@ import type { Utterance } from "@sv/contracts";
 import { type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { type AudioManifest, silentDurationMs, syntheticAmplitude } from "./stage-logic";
 
-export type AudioState = "loading" | "rendering" | "on" | "off";
+export type AudioState = "loading" | "waiting" | "rendering" | "on" | "off";
 
 /**
  * Per-frame playback state for renderers that animate outside React (the 3D stage): playback
@@ -71,7 +71,7 @@ export function useStagePlayer({
   useEffect(() => {
     let alive = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const started = Date.now();
+    let started = Date.now();
     const base = `/stage/${encodeURIComponent(runId)}/${lang}/manifest.json`;
     const load = async (): Promise<boolean> => {
       const r = await fetch(base, { cache: "no-store" }).catch(() => null);
@@ -95,19 +95,27 @@ export function useStagePlayer({
     };
     setAudioState("loading");
     setManifest(null);
-    void (async () => {
-      if (await load()) return;
+    const request = async () => {
+      if (!alive) return;
       const res = await fetch(`/api/runs/${encodeURIComponent(runId)}/tts?lang=${lang}`, {
         method: "POST",
       }).catch(() => null);
       const body = (await res?.json().catch(() => null)) as { state?: string } | null;
       if (!alive) return;
       if (body?.state === "rendering" || body?.state === "ready") {
+        started = Date.now();
         setAudioState("rendering");
         timer = setTimeout(poll, 4000);
+      } else if (body?.state === "waiting") {
+        setAudioState("waiting");
+        timer = setTimeout(request, 15000);
       } else {
         setAudioState("off");
       }
+    };
+    void (async () => {
+      if (await load()) return;
+      await request();
     })();
     return () => {
       alive = false;

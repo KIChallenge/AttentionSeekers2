@@ -1,6 +1,15 @@
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, openSync, statSync, writeFileSync } from "node:fs";
+import {
+  closeSync,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
+import { replayDir } from "@/lib/runs";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -29,6 +38,17 @@ function state(runId: string, lang: string): "ready" | "rendering" | "none" {
   return "none";
 }
 
+function runCompleted(runId: string): boolean {
+  const file = path.join(/*turbopackIgnore: true*/ replayDir(), `${runId}.ndjson`);
+  if (!existsSync(file)) return true;
+  const size = statSync(file).size;
+  const fd = openSync(file, "r");
+  const buf = Buffer.alloc(Math.min(size, 64 * 1024));
+  readSync(fd, buf, 0, buf.length, size - buf.length);
+  closeSync(fd);
+  return buf.toString("utf8").includes('"run.completed"');
+}
+
 function parse(req: Request, runId: string) {
   const lang = new URL(req.url).searchParams.get("lang") === "en" ? "en" : "de";
   return RUN_ID.test(runId) ? { lang } : null;
@@ -47,6 +67,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ runId: string 
   if (!p) return Response.json({ error: "bad run id" }, { status: 400 });
   const now = state(runId, p.lang);
   if (now !== "none") return Response.json({ state: now });
+  // A run that is still being computed would get voices only for the lines written so far;
+  // the stage polls again and rendering starts once run.completed is in the record.
+  if (!runCompleted(runId)) return Response.json({ state: "waiting" }, { status: 202 });
   const d = dirs(runId, p.lang);
   mkdirSync(d.out, { recursive: true });
   writeFileSync(d.lock, new Date().toISOString());

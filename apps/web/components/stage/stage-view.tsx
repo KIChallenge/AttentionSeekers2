@@ -269,7 +269,9 @@ export function StageView() {
                 ? s.audioOff
                 : p.audioState === "rendering"
                   ? s.audioRendering
-                  : s.audioLoading}
+                  : p.audioState === "waiting"
+                    ? s.audioWaiting
+                    : s.audioLoading}
           </Chip>
         </div>
 
