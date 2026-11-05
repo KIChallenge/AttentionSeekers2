@@ -128,6 +128,14 @@ function summarySentences(cmp: TopicComparison, lang: Lang, t: TopicMessages): s
         ? "Keine Institution wechselt ihre Haltung messbar mit dem Modell."
         : "No institution measurably changes its stance with the model.",
   );
+  const measured = cmp.seats.filter((s) => s.betweenFamilies !== null && s.withinFamily !== null);
+  const noisy = measured.filter((s) => (s.withinFamily ?? 0) >= (s.betweenFamilies ?? 0));
+  if (measured.length)
+    out.push(
+      de
+        ? `Bei ${noisy.length} von ${measured.length} Institutionen streut die Haltung zwischen zwei Läufen mit demselben Modell mindestens so stark wie zwischen den Modellfamilien: Ein Teil der Unterschiede ist Laufrauschen, nicht Modelleffekt.`
+        : `For ${noisy.length} of ${measured.length} institutions the stance varies at least as much between two runs with the same model as between model families: part of the difference is run-to-run noise, not a model effect.`,
+    );
   return out;
 }
 
@@ -209,7 +217,7 @@ function StanceStrip({
         return (
           <div
             key={agentId}
-            className="grid grid-cols-[minmax(0,10rem)_1fr_3.5rem] items-center gap-2"
+            className="grid grid-cols-[minmax(0,13rem)_1fr_3rem] items-center gap-2"
           >
             <AgentTile
               agentId={agentId}
@@ -250,7 +258,7 @@ function StanceStrip({
           </div>
         );
       })}
-      <div className="grid grid-cols-[minmax(0,10rem)_1fr_3.5rem] gap-2 text-[10px] text-muted-foreground">
+      <div className="grid grid-cols-[minmax(0,13rem)_1fr_3rem] gap-2 text-[10px] text-muted-foreground">
         <span />
         <span className="flex justify-between">
           <span>−2</span>
