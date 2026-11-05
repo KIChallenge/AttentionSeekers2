@@ -1,136 +1,136 @@
 {
- "leak_hits": 0,
- "personFiltered": true,
- "corpusRevision": "press-v1",
- "rewrites": 1406,
- "not_relevant": 762,
- "about_replaced": 27,
- "dropped_guard": 8,
- "exported": 636,
- "per_role": {
-  "chamber_labour": {
-   "rows": 79,
-   "support": 46,
-   "pre_2018_09_14": 31,
-   "train": 56,
-   "heldout": 23,
-   "oppose": 29,
-   "conditional": 1,
-   "neutral": 3
-  },
-  "ministry_finance": {
-   "rows": 24,
-   "support": 17,
-   "pre_2018_09_14": 9,
-   "train": 12,
-   "heldout": 12,
-   "oppose": 2,
-   "neutral": 4,
-   "conditional": 1
-  },
-  "industry_pharma": {
-   "rows": 70,
-   "support": 34,
-   "pre_2018_09_14": 39,
-   "train": 50,
-   "heldout": 20,
-   "oppose": 34,
-   "conditional": 1,
-   "neutral": 1
-  },
-  "contract_physicians": {
-   "rows": 15,
-   "support": 9,
-   "pre_2018_09_14": 10,
-   "train": 12,
-   "heldout": 3,
-   "oppose": 6
-  },
-  "chamber_commerce": {
-   "rows": 58,
-   "support": 41,
-   "pre_2018_09_14": 22,
-   "train": 38,
-   "heldout": 20,
-   "oppose": 15,
-   "neutral": 2
-  },
-  "medical_chamber": {
-   "rows": 92,
-   "neutral": 4,
-   "pre_2018_09_14": 56,
-   "train": 72,
-   "heldout": 20,
-   "support": 35,
-   "oppose": 52,
-   "conditional": 1
-  },
-  "laender": {
-   "rows": 62,
-   "support": 46,
-   "pre_2018_09_14": 37,
-   "train": 47,
-   "heldout": 15,
-   "oppose": 11,
-   "conditional": 3,
-   "neutral": 2
-  },
-  "nursing": {
-   "rows": 23,
-   "support": 15,
-   "pre_2018_09_14": 10,
-   "train": 19,
-   "heldout": 4,
-   "oppose": 6,
-   "conditional": 1,
-   "neutral": 1
-  },
-  "patients": {
-   "rows": 69,
-   "support": 39,
-   "pre_2018_09_14": 32,
-   "train": 47,
-   "heldout": 22,
-   "oppose": 23,
-   "conditional": 3,
-   "neutral": 4
-  },
-  "social_insurance": {
-   "rows": 51,
-   "support": 30,
-   "pre_2018_09_14": 34,
-   "train": 41,
-   "heldout": 10,
-   "oppose": 18,
-   "neutral": 3
-  },
-  "hospitals": {
-   "rows": 53,
-   "neutral": 4,
-   "pre_2018_09_14": 26,
-   "train": 39,
-   "heldout": 14,
-   "support": 42,
-   "oppose": 5,
-   "conditional": 2
-  },
-  "ministry_health": {
-   "rows": 34,
-   "support": 23,
-   "pre_2018_09_14": 19,
-   "train": 24,
-   "heldout": 10,
-   "oppose": 7,
-   "neutral": 2,
-   "conditional": 2
-  },
-  "elective_physicians": {
-   "rows": 6,
-   "support": 5,
-   "pre_2018_09_14": 5,
-   "train": 5,
-   "heldout": 1,
-   "oppose": 1
+  "leak_hits": 0,
+  "personFiltered": true,
+  "corpusRevision": "press-v1",
+  "rewrites": 1406,
+  "not_relevant": 762,
+  "about_replaced": 27,
+  "dropped_guard": 8,
+  "exported": 636,
+  "per_role": {
+    "chamber_labour": {
+      "rows": 79,
+      "support": 46,
+      "pre_2018_09_14": 31,
+      "train": 56,
+      "heldout": 23,
+      "oppose": 29,
+      "conditional": 1,
+      "neutral": 3
+    },
+    "ministry_finance": {
+      "rows": 24,
+      "support": 17,
+      "pre_2018_09_14": 9,
+      "train": 12,
+      "heldout": 12,
+      "oppose": 2,
+      "neutral": 4,
+      "conditional": 1
+    },
+    "industry_pharma": {
+      "rows": 70,
+      "support": 34,
+      "pre_2018_09_14": 39,
+      "train": 50,
+      "heldout": 20,
+      "oppose": 34,
+      "conditional": 1,
+      "neutral": 1
+    },
+    "contract_physicians": {
+      "rows": 15,
+      "support": 9,
+      "pre_2018_09_14": 10,
+      "train": 12,
+      "heldout": 3,
+      "oppose": 6
+    },
+    "chamber_commerce": {
+      "rows": 58,
+      "support": 41,
+      "pre_2018_09_14": 22,
+      "train": 38,
+      "heldout": 20,
+      "oppose": 15,
+      "neutral": 2
+    },
+    "medical_chamber": {
+      "rows": 92,
+      "neutral": 4,
+      "pre_2018_09_14": 56,
+      "train": 72,
+      "heldout": 20,
+      "support": 35,
+      "oppose": 52,
+      "conditional": 1
+    },
+    "laender": {
+      "rows": 62,
+      "support": 46,
+      "pre_2018_09_14": 37,
+      "train": 47,
+      "heldout": 15,
+      "oppose": 11,
+      "conditional": 3,
+      "neutral": 2
+    },
+    "nursing": {
+      "rows": 23,
+      "support": 15,
+      "pre_2018_09_14": 10,
+      "train": 19,
+      "heldout": 4,
+      "oppose": 6,
+      "conditional": 1,
+      "neutral": 1
+    },
+    "patients": {
+      "rows": 69,
+      "support": 39,
+      "pre_2018_09_14": 32,
+      "train": 47,
+      "heldout": 22,
+      "oppose": 23,
+      "conditional": 3,
+      "neutral": 4
+    },
+    "social_insurance": {
+      "rows": 51,
+      "support": 30,
+      "pre_2018_09_14": 34,
+      "train": 41,
+      "heldout": 10,
+      "oppose": 18,
+      "neutral": 3
+    },
+    "hospitals": {
+      "rows": 53,
+      "neutral": 4,
+      "pre_2018_09_14": 26,
+      "train": 39,
+      "heldout": 14,
+      "support": 42,
+      "oppose": 5,
+      "conditional": 2
+    },
+    "ministry_health": {
+      "rows": 34,
+      "support": 23,
+      "pre_2018_09_14": 19,
+      "train": 24,
+      "heldout": 10,
+      "oppose": 7,
+      "neutral": 2,
+      "conditional": 2
+    },
+    "elective_physicians": {
+      "rows": 6,
+      "support": 5,
+      "pre_2018_09_14": 5,
+      "train": 5,
+      "heldout": 1,
+      "oppose": 1
+    }
   }
- }
 }
