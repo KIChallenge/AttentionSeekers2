@@ -37,7 +37,11 @@ const de = {
   voiceEleven: "ElevenLabs",
   voiceBy: "Stimme dieser Wortmeldung",
   elevenAttribution:
-    "Ausgewählter Abschnitt mit Stimmen von ElevenLabs (elevenlabs.io), Free-Tarif, nicht kommerziell. Übrige Wortmeldungen: Azure AI Speech.",
+    "Stimmen von ElevenLabs (elevenlabs.io), Free-Tarif, nicht kommerziell; Ersatz und Rest: Azure AI Speech.",
+  voiceOnDemand:
+    "Jede Wortmeldung wird beim ersten Abspielen vertont und dann zwischengespeichert.",
+  voiceUsage: (used: number, limit: number, tier: string, lang: string) =>
+    `ElevenLabs diesen Monat: ${used.toLocaleString(lang)} von ${limit.toLocaleString(lang)} Zeichen (${tier})`,
   inTranscript: "Im Protokoll öffnen",
   utterance: "Wortmeldung",
   of: "von",
@@ -97,7 +101,10 @@ const en: StageStrings = {
   voiceEleven: "ElevenLabs",
   voiceBy: "Voice of this utterance",
   elevenAttribution:
-    "Selected span voiced by ElevenLabs (elevenlabs.io), free tier, non-commercial. Other utterances: Azure AI Speech.",
+    "Voices by ElevenLabs (elevenlabs.io), free tier, non-commercial; fallback and rest: Azure AI Speech.",
+  voiceOnDemand: "Each utterance is voiced the first time it plays, then cached.",
+  voiceUsage: (used: number, limit: number, tier: string, lang: string) =>
+    `ElevenLabs this month: ${used.toLocaleString(lang)} of ${limit.toLocaleString(lang)} characters (${tier})`,
   inTranscript: "Open in record",
   utterance: "Utterance",
   of: "of",
