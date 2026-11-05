@@ -19,8 +19,23 @@ export const dynamic = "force-dynamic";
 
 // Source detail (W-46, FR-P1, FR-P3, FR-T2, CON-1/2): metadata, licence line, link out to the
 // original, name-masked text with masked spans marked, "used in" backlinks. No raw PDF, no download.
-export default async function SourcePage({ params }: { params: Promise<{ sourceId: string }> }) {
+// Letterhead lines, page numbers and OCR fragments carry no argument; they are hidden by
+// default and one click away, so the reading view shows the statement, not its scaffolding.
+function isScaffold(text: string): boolean {
+  const s = text.replace(/\s+/g, " ").trim();
+  if (/§|\bArt\.|\bZ ?\d/.test(s)) return false;
+  return s.length < 40;
+}
+
+export default async function SourcePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ sourceId: string }>;
+  searchParams: Promise<{ all?: string }>;
+}) {
   const id = decodeURIComponent((await params).sourceId);
+  const showAll = (await searchParams).all === "1";
   const { lang } = await serverPrefs();
   const t = laneT(lang);
   const d = await getSource(id);
@@ -112,55 +127,82 @@ export default async function SourcePage({ params }: { params: Promise<{ sourceI
               <p className="text-sm text-muted-foreground">{t.archive.detail.noText}</p>
             ) : (
               <ol className="space-y-2">
-                {d.segments.map((g) => {
-                  const cited = uses.filter((u) => u.segmentId === g.id);
-                  return (
-                    <li
-                      key={g.id}
-                      id={`seg-${g.id}`}
-                      className={`grid grid-cols-[3rem_minmax(0,1fr)] gap-3 rounded-lg px-1 py-1 text-[15px] leading-relaxed ${cited.length ? "bg-warning/10" : ""}`}
-                    >
-                      <span className="pt-1 text-right font-mono text-[10px] text-muted-foreground">
-                        {g.ordinal}
-                      </span>
-                      <div>
-                        <MaskedText text={g.text} maskedLabel={t.archive.detail.masked} />
-                        {cited.length ? (
-                          <div className="mt-1 flex flex-wrap gap-1">
-                            {[
-                              ...new Map(
-                                cited.map((u) => [
-                                  u.claimId ?? u.utteranceId ?? `${u.agentId}-${u.round}`,
-                                  u,
-                                ]),
-                              ).entries(),
-                            ]
-                              .slice(0, 8)
-                              .map(([k, u]) => (
-                                <EntityLink
-                                  key={`${u.runId}-${k}`}
-                                  type={u.claimId ? "claim" : u.utteranceId ? "utterance" : "run"}
-                                  id={
-                                    u.claimId
-                                      ? scopedId(u.runId, u.claimId)
-                                      : u.utteranceId
-                                        ? scopedId(u.runId, u.utteranceId)
-                                        : u.runId
-                                  }
-                                  className="rounded-[5px] border bg-background px-1.5 font-mono text-[10px] no-underline"
-                                >
-                                  {u.claimId ?? u.utteranceId ?? `${u.agentId} R${u.round}`}
-                                  {u.recencyWeight !== null
-                                    ? ` · w ${u.recencyWeight.toFixed(2)}`
-                                    : ""}
-                                </EntityLink>
-                              ))}
-                          </div>
-                        ) : null}
-                      </div>
+                {(() => {
+                  const hidden = d.segments.filter((g) => isScaffold(g.text)).length;
+                  return hidden ? (
+                    <li className="pb-1 text-xs text-muted-foreground">
+                      {showAll
+                        ? lang === "de"
+                          ? "Alle Zeilen sichtbar, inklusive Briefkopf und Seitenränder. "
+                          : "All lines shown, including letterhead and margins. "
+                        : lang === "de"
+                          ? `${hidden} kurze Zeilen (Briefkopf, Seitenzahlen, OCR-Reste) ausgeblendet. `
+                          : `${hidden} short lines (letterhead, page numbers, OCR fragments) hidden. `}
+                      <Link href={showAll ? "?" : "?all=1"} className="underline">
+                        {showAll
+                          ? lang === "de"
+                            ? "Ausblenden"
+                            : "Hide"
+                          : lang === "de"
+                            ? "Anzeigen"
+                            : "Show"}
+                      </Link>
                     </li>
-                  );
-                })}
+                  ) : null;
+                })()}
+                {d.segments
+                  .filter(
+                    (g) => showAll || !isScaffold(g.text) || uses.some((u) => u.segmentId === g.id),
+                  )
+                  .map((g) => {
+                    const cited = uses.filter((u) => u.segmentId === g.id);
+                    return (
+                      <li
+                        key={g.id}
+                        id={`seg-${g.id}`}
+                        className={`grid grid-cols-[3rem_minmax(0,1fr)] gap-3 rounded-lg px-1 py-1 text-[15px] leading-relaxed ${cited.length ? "bg-warning/10" : ""}`}
+                      >
+                        <span className="pt-1 text-right font-mono text-[10px] text-muted-foreground">
+                          {g.ordinal}
+                        </span>
+                        <div>
+                          <MaskedText text={g.text} maskedLabel={t.archive.detail.masked} />
+                          {cited.length ? (
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {[
+                                ...new Map(
+                                  cited.map((u) => [
+                                    u.claimId ?? u.utteranceId ?? `${u.agentId}-${u.round}`,
+                                    u,
+                                  ]),
+                                ).entries(),
+                              ]
+                                .slice(0, 8)
+                                .map(([k, u]) => (
+                                  <EntityLink
+                                    key={`${u.runId}-${k}`}
+                                    type={u.claimId ? "claim" : u.utteranceId ? "utterance" : "run"}
+                                    id={
+                                      u.claimId
+                                        ? scopedId(u.runId, u.claimId)
+                                        : u.utteranceId
+                                          ? scopedId(u.runId, u.utteranceId)
+                                          : u.runId
+                                    }
+                                    className="rounded-[5px] border bg-background px-1.5 font-mono text-[10px] no-underline"
+                                  >
+                                    {u.claimId ?? u.utteranceId ?? `${u.agentId} R${u.round}`}
+                                    {u.recencyWeight !== null
+                                      ? ` · w ${u.recencyWeight.toFixed(2)}`
+                                      : ""}
+                                  </EntityLink>
+                                ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      </li>
+                    );
+                  })}
               </ol>
             )}
           </section>
@@ -169,10 +211,21 @@ export default async function SourcePage({ params }: { params: Promise<{ sourceI
         <aside className="space-y-4 lg:sticky lg:top-[66px] lg:self-start">
           <section className="rounded-2xl border bg-card p-4">
             <h2 className="mb-3 text-sm font-medium">{t.archive.detail.meta}</h2>
-            <dl className="grid grid-cols-[7rem_1fr] gap-y-1.5 text-sm">
+            <dl className="grid grid-cols-[max-content_minmax(0,1fr)] items-baseline gap-x-4 gap-y-2 text-sm [&>dd]:min-w-0 [&>dd]:break-words">
               <dt className="text-muted-foreground">{t.archive.detail.date}</dt>
               <dd className="font-mono text-xs">
-                {s.date} ({s.datePrecision})
+                {s.date}
+                {s.datePrecision && s.datePrecision !== "day" ? (
+                  <span className="ml-1 font-sans text-muted-foreground">
+                    (
+                    {lang === "de"
+                      ? s.datePrecision === "month"
+                        ? "Monat"
+                        : "Jahr"
+                      : s.datePrecision}
+                    )
+                  </span>
+                ) : null}
               </dd>
               {s.outlet ? (
                 <>
@@ -212,7 +265,9 @@ export default async function SourcePage({ params }: { params: Promise<{ sourceI
               <dt className="text-muted-foreground">{t.archive.detail.corpusRevision}</dt>
               <dd className="font-mono text-xs">{s.corpusRevision}</dd>
               <dt className="text-muted-foreground">CON-1/2</dt>
-              <dd className="text-xs">personFiltered: true</dd>
+              <dd className="text-xs">
+                {lang === "de" ? "Personennamen maskiert" : "Person names masked"}
+              </dd>
             </dl>
           </section>
           <section className="rounded-2xl border bg-card p-4">
