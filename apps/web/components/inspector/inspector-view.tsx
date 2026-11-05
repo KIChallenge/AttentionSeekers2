@@ -3,6 +3,7 @@
 import type { Claim, UtteranceTrace } from "@sv/contracts";
 import Link from "next/link";
 import { useState } from "react";
+import { GatePanel } from "@/components/quality/gate-panel";
 import { Chip, Empty, Panel, Tile, UttRef } from "@/components/run/bits";
 import { agentLook, L } from "@/components/run/helpers";
 import { ClaimRow, SourceChip } from "@/components/run/provenance";
@@ -359,6 +360,7 @@ export function InspectorView({
         </div>
 
         <div className="min-w-0 space-y-4">
+          <GatePanel u={u} />
           <Panel title={t.inspector.modelParams}>
             <dl className="grid grid-cols-[110px_1fr] gap-y-1 text-sm">
               <dt className="text-muted-foreground">{t.live.model}</dt>
