@@ -580,6 +580,13 @@ export class AvatarScene {
     }
     this.seats.clear();
     this.renderer.dispose();
-    void this.audioCtx?.close().catch(() => {});
+    const ctx = this.audioCtx;
+    if (ctx) {
+      // TalkingHead's visibility observers may still call stop()/start() on a disposed head;
+      // on a closed context those reject, so make them no-ops first.
+      ctx.suspend = () => Promise.resolve();
+      ctx.resume = () => Promise.resolve();
+      void ctx.close().catch(() => {});
+    }
   }
 }
