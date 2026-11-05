@@ -1,6 +1,13 @@
 "use client";
 
-import { Menu01Icon, Projector01Icon, Settings01Icon } from "@hugeicons/core-free-icons";
+import {
+  ComputerIcon,
+  Menu01Icon,
+  Moon02Icon,
+  Projector01Icon,
+  Settings01Icon,
+  Sun01Icon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { Lang } from "@sv/contracts";
 import Link from "next/link";
@@ -58,8 +65,8 @@ const iconBtn =
 
 /**
  * Global top bar. Language and disclosure stay visible from md up because the demo uses
- * both on stage (ui-plan 7.8); theme and projector mode live in the settings menu, with a
- * one-click projector toggle beside it. Below lg the screen links fold into a menu, below md
+ * both on stage (ui-plan 7.8), next to an icon theme switcher; projector mode sits in the
+ * settings menu with a one-click toggle beside it. Below lg the screen links fold into a menu, below md
  * the level and language switches join them, so nothing overflows at 390px.
  */
 export function TopBar() {
@@ -76,9 +83,9 @@ export function TopBar() {
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
   const themeValue = mounted ? (theme ?? "system") : "system";
   const themes = [
-    { value: "system", label: t.prefs.themes.system },
-    { value: "light", label: t.prefs.themes.light },
-    { value: "dark", label: t.prefs.themes.dark },
+    { value: "system", label: t.prefs.themes.system, icon: ComputerIcon },
+    { value: "light", label: t.prefs.themes.light, icon: Sun01Icon },
+    { value: "dark", label: t.prefs.themes.dark, icon: Moon02Icon },
   ];
   return (
     <header className="sticky top-0 z-20 flex h-[50px] items-center gap-2 border-b bg-surface px-3 sm:gap-4 sm:px-6 print:hidden">
@@ -126,6 +133,28 @@ export function TopBar() {
           ]}
           onChange={setLang}
         />
+        {/* Icon theme switcher; px sizes keep the 28px hit target in projector mode too. */}
+        <ToggleGroup
+          type="single"
+          size="sm"
+          variant="outline"
+          spacing={0}
+          aria-label={t.prefs.theme}
+          value={themeValue}
+          onValueChange={(v) => v && setTheme(v)}
+        >
+          {themes.map((o) => (
+            <ToggleGroupItem
+              key={o.value}
+              value={o.value}
+              aria-label={o.label}
+              title={o.label}
+              className="h-[28px] min-w-[28px] px-0"
+            >
+              <HugeiconsIcon icon={o.icon} size={16} strokeWidth={1.8} />
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
       </div>
       <button
         type="button"
@@ -180,15 +209,18 @@ export function TopBar() {
             </DropdownMenuRadioGroup>
             <DropdownMenuSeparator />
           </div>
-          <DropdownMenuLabel>{t.prefs.theme}</DropdownMenuLabel>
-          <DropdownMenuRadioGroup value={themeValue} onValueChange={setTheme}>
-            {themes.map((o) => (
-              <DropdownMenuRadioItem key={o.value} value={o.value}>
-                {o.label}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-          <DropdownMenuSeparator />
+          <div className="md:hidden">
+            <DropdownMenuLabel>{t.prefs.theme}</DropdownMenuLabel>
+            <DropdownMenuRadioGroup value={themeValue} onValueChange={setTheme}>
+              {themes.map((o) => (
+                <DropdownMenuRadioItem key={o.value} value={o.value}>
+                  <HugeiconsIcon icon={o.icon} size={16} strokeWidth={1.8} />
+                  {o.label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+            <DropdownMenuSeparator />
+          </div>
           <DropdownMenuCheckboxItem checked={projector} onCheckedChange={(v) => setProjector(!!v)}>
             <span>
               {t.prefs.projector}
