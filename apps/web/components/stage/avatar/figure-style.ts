@@ -1,13 +1,21 @@
 // Per-seat variation of the one generic figure (CON-1, FR-S7). Everything is derived from the
 // speaker id, so a seat looks the same in every run and on every machine. Variation is coarse
-// on purpose (clay tone, clothing in the institution colour, hair colour or none, build,
-// glasses): enough to tell seats apart at a glance, never enough to read as a portrait.
+// on purpose (clay tone, clothing in the institution colour, hair colour, build, glasses):
+// enough to tell seats apart at a glance, never enough to read as a portrait. The presentation
+// gender (body pose set, short cut or long hair) comes from lib/stage-cast.ts, the same table
+// that picks the voices, so a seat never looks one way and sounds another.
+
+import { type CastGender, castGender } from "@/lib/stage-cast";
 
 export interface FigureStyle {
+  /** Presentation gender from the cast (lib/stage-cast.ts); the voices use the same value. */
+  gender: CastGender;
   /** Flat toon "clay" tone of skin, deliberately not a photographic skin texture. */
   skin: string;
-  /** Hair colour, or null for no hair mesh. */
+  /** Hair colour, or null for no hair. */
   hair: string | null;
+  /** Long hair tied back (the model's ponytail mesh) or a short cut built at runtime. */
+  hairCut: "long" | "short";
   brows: string;
   /** Clothing colour: the institution colour (hex), darkened for the neutral seats. */
   suit: string;
@@ -44,14 +52,20 @@ function pick<T>(list: readonly T[], h: number, salt: number): T {
 
 export function figureStyle(id: string, color: string): FigureStyle {
   const h = hashId(id);
-  const hair = id === "moderator" ? "#3c3a44" : id === "expert" ? "#8f8a86" : pick(HAIR, h, 3);
+  const gender = castGender(id);
+  const picked = id === "moderator" ? "#3c3a44" : id === "expert" ? "#8f8a86" : pick(HAIR, h, 3);
+  // long hair always has a colour; a short cut may be no hair at all
+  const hair = gender === "female" ? (picked ?? "#5b3c27") : picked;
+  const male = gender === "male";
   return {
+    gender,
     skin: pick(CLAY, h, 7),
     hair,
+    hairCut: male ? "short" : "long",
     brows: hair ?? "#4a3a30",
     suit: color,
-    height: 0.96 + ((h >>> 11) % 9) / 100,
-    width: 0.97 + ((h >>> 17) % 8) / 100,
+    height: (male ? 0.99 : 0.95) + ((h >>> 11) % 6) / 100,
+    width: (male ? 1.04 : 0.96) + ((h >>> 17) % 5) / 100,
     glasses: id === "expert" || (h >>> 23) % 4 === 0,
   };
 }
