@@ -658,7 +658,7 @@ function Transport({
         />
         {roundStarts.map(({ i, r }) => (
           <span
-            key={r}
+            key={`${r}-${i}`}
             className="pointer-events-none absolute -bottom-1 font-mono text-[10px] text-muted-foreground"
             style={{ left: `${(i / n) * 100}%` }}
           >
