@@ -148,7 +148,7 @@ export function ReplayPlayer({ runId, events }: { runId: string; events: RunEven
   return (
     <div className="space-y-4">
       {/* sticky transport */}
-      <div className="sticky top-[50px] z-10 -mx-8 border-b bg-background/95 px-8 pt-3 pb-1 backdrop-blur">
+      <div className="sticky top-[50px] z-10 -mx-4 border-b bg-background/95 px-4 pt-3 pb-1 backdrop-blur sm:-mx-8 sm:px-8">
         <div className="flex flex-wrap items-center gap-2">
           <Button
             size="sm"
@@ -288,7 +288,7 @@ export function ReplayPlayer({ runId, events }: { runId: string; events: RunEven
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <Transcript s={s} lang={lang} currentUtterance={lastUtt} onSelect={seekUtterance} />
         <aside className="space-y-3 lg:sticky lg:top-[214px] lg:self-start">
           <PositionGrid s={s} lang={lang} />

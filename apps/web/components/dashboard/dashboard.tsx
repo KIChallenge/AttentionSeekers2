@@ -105,7 +105,7 @@ function Pinned({ d, forkAvailable }: { d: PinnedDetail; forkAvailable: boolean 
         <span className="flex-1" />
         <span className="font-mono text-muted-foreground">{r.id}</span>
       </div>
-      <div className="grid gap-6 p-5 lg:grid-cols-[1.25fr_1fr]">
+      <div className="grid grid-cols-1 gap-6 p-5 lg:grid-cols-[1.25fr_1fr]">
         <div className="flex min-w-0 flex-col gap-4">
           <div className="flex flex-wrap items-center gap-1.5">
             <OutcomeBadge value={r.outcomeBadge} t={base} />
@@ -300,7 +300,7 @@ export function Dashboard({
 
       {pinned ? <Pinned d={pinned} forkAvailable={forkAvailable} /> : null}
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Link
           href="/runs/new"
           className="group rounded-2xl border bg-card p-4 transition-colors hover:bg-gray-alpha-50"
@@ -441,7 +441,7 @@ export function Dashboard({
               </table>
             </div>
             {/* cards below lg */}
-            <div className="grid gap-3 sm:grid-cols-2 lg:hidden">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:hidden">
               {filtered.map((r) => (
                 <article
                   key={r.id}

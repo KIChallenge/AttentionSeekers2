@@ -33,7 +33,7 @@ export function StrategicPanel({ agentId }: { agentId: string }) {
       {!a ? (
         <p className="text-sm text-muted-foreground">{t.agent.noAssessment}</p>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-4">
             <div>
               <h3 className="mb-1 text-xs text-muted-foreground">{t.agent.leverage}</h3>

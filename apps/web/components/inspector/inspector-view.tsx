@@ -24,7 +24,7 @@ export function InspectorView({
   const u = snap.utterances[utteranceId];
   if (!u) {
     return (
-      <main className="mx-auto max-w-[1600px] px-6 pt-6">
+      <main className="mx-auto max-w-[1600px] px-4 sm:px-6 pt-6">
         <Empty>{t.inspector.notFound}</Empty>
       </main>
     );
@@ -58,7 +58,7 @@ export function InspectorView({
   };
 
   return (
-    <main className="mx-auto max-w-[1800px] px-6 pt-5 pb-12">
+    <main className="mx-auto max-w-[1800px] px-4 sm:px-6 pt-5 pb-12">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
           <Link
@@ -103,7 +103,7 @@ export function InspectorView({
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="min-w-0 space-y-4">
           <Panel>
             <div className="flex flex-wrap items-center gap-2">
@@ -147,7 +147,7 @@ export function InspectorView({
 
           {d ? (
             <Panel title={t.inspector.record} aside={<Chip>schema v{d.schemaVersion}</Chip>}>
-              <div className="grid gap-5 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                 <div>
                   <h3 className="mb-1.5 text-xs text-muted-foreground">
                     {t.inspector.sourcesRead}

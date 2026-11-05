@@ -55,7 +55,7 @@ export default async function AgentShelfPage({ params }: { params: Promise<{ age
           {a.role}
         </Badge>
       </header>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="min-w-0 space-y-4">
           <section className="rounded-2xl border bg-card p-4">
             <h2 className="mb-3 text-base">

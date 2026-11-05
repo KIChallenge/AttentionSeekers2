@@ -69,8 +69,11 @@ export default async function ArchivePage({ searchParams }: { searchParams: Prom
     <Page>
       <PageHead title={base.archive.title} sub={base.archive.sub} />
       <ArchiveNav lang={lang} active="search" />
-      <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="order-2 space-y-5 lg:order-1 lg:sticky lg:top-[66px] lg:self-start" aria-label="Facets">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <aside
+          className="order-2 space-y-5 lg:order-1 lg:sticky lg:top-[66px] lg:self-start"
+          aria-label="Facets"
+        >
           <div className="rounded-2xl border bg-card p-3 text-xs text-muted-foreground">
             <div className="mb-1 font-medium text-foreground">{t.archive.corpus}</div>
             <div className="num">

@@ -237,7 +237,7 @@ export function Transcript({
                   {t.replay.summary} · {r.round}
                 </div>
                 <p className="mb-3 text-muted-foreground">{localize(summary.text, lang)}</p>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <div className="mb-1 text-xs text-muted-foreground">{t.replay.conflicts}</div>
                     <ul className="space-y-1">

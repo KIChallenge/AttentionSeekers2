@@ -54,7 +54,7 @@ function ForecastCard({ f }: { f: Forecast }) {
   const title = p ? L(p.title, lang) : f.measureId;
   const pctFmt = (x: number) => `${Math.round(x * 100)} %`;
   return (
-    <div className="grid gap-3 rounded-xl border p-3.5 md:grid-cols-[1fr_260px]">
+    <div className="grid grid-cols-1 gap-3 rounded-xl border p-3.5 md:grid-cols-[1fr_260px]">
       <div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-mono text-xs text-muted-foreground">{f.measureId}</span>
@@ -165,7 +165,7 @@ export function OutcomeView() {
   const wait = pkgFig("wait_change_pct");
 
   return (
-    <main className="mx-auto max-w-[1800px] px-6 pt-5 pb-12">
+    <main className="mx-auto max-w-[1800px] px-4 sm:px-6 pt-5 pb-12">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{t.outcome.title}</h1>
@@ -334,7 +334,7 @@ export function OutcomeView() {
                       open[mid] ? (
                         <tr key={`${mid}-a`} className="border-b bg-gray-alpha-50">
                           <td colSpan={usedMetrics.length + 3} className="p-3">
-                            <div className="grid gap-4 lg:grid-cols-2">
+                            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                               {figs.map((f) => (
                                 <div key={f.metric} className="space-y-1.5 text-xs">
                                   <div className="font-medium">{t.outcome.metric[f.metric]}</div>

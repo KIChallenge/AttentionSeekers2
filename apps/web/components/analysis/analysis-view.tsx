@@ -14,7 +14,7 @@ export function AnalysisView() {
   const last = Math.max(1, snap.summaries.length);
   const openCount = snap.summaries.at(-1)?.openConflicts.length ?? 0;
   return (
-    <main className="mx-auto max-w-[1800px] px-6 pt-5 pb-12">
+    <main className="mx-auto max-w-[1800px] px-4 sm:px-6 pt-5 pb-12">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">{t.analysis.title}</h1>
@@ -34,7 +34,7 @@ export function AnalysisView() {
           </Link>
         </div>
       </div>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_400px]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="min-w-0 space-y-4">
           <Panel title={t.analysis.trajectory}>
             <TrajectoryChart />

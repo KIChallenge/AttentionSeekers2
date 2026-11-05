@@ -69,12 +69,12 @@ export function AgentCard({ agentId }: { agentId: string }) {
   const opening = myUtts[0];
 
   return (
-    <main className="mx-auto max-w-[1800px] px-6 pt-5 pb-12">
+    <main className="mx-auto max-w-[1800px] px-4 pt-5 pb-12 sm:px-6">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
+        <div className="flex min-w-0 items-start gap-3">
           <Tile id={agentId} size="lg" />
-          <div>
-            <h1 className="text-2xl font-semibold">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold break-words">
               {look.name}{" "}
               <span className="text-base font-normal text-muted-foreground">
                 · {cfg.institution.unit}
@@ -104,7 +104,7 @@ export function AgentCard({ agentId }: { agentId: string }) {
         </nav>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="min-w-0 space-y-4">
           <Panel
             title={t.agent.stanceTitle}
@@ -119,13 +119,13 @@ export function AgentCard({ agentId }: { agentId: string }) {
                 return (
                   <div
                     key={tp.id}
-                    className="grid grid-cols-[170px_1fr_64px] items-center gap-4 py-2.5"
+                    className="grid grid-cols-[minmax(0,1fr)_64px] items-center gap-x-4 gap-y-2 py-2.5 sm:grid-cols-[170px_minmax(0,1fr)_64px]"
                   >
                     <div>
                       <div className="text-sm font-medium">{L(tp.label, lang)}</div>
                       <div className="text-xs text-muted-foreground">{L(tp.measure, lang)}</div>
                     </div>
-                    <div>
+                    <div className="col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:row-start-auto">
                       <StanceBar start={s.stance} now={n.stance} color={look.color} />
                       <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
                         <span>−2</span>
@@ -143,7 +143,7 @@ export function AgentCard({ agentId }: { agentId: string }) {
                         </div>
                       ) : null}
                     </div>
-                    <div className="num text-right text-xs text-muted-foreground">
+                    <div className="num col-start-2 row-start-1 text-right text-xs text-muted-foreground sm:col-start-auto">
                       {t.agent.strength}
                       <div className="text-sm text-foreground">{s.strength.toFixed(2)}</div>
                     </div>
