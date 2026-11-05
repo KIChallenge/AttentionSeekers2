@@ -50,7 +50,7 @@ export default async function SourcePage({ params }: { params: Promise<{ sourceI
       >
         ← {t.archive.detail.back}
       </Link>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <article className="min-w-0 space-y-4">
           <header className="space-y-2">
             <div className="flex flex-wrap items-center gap-1.5 text-sm">
