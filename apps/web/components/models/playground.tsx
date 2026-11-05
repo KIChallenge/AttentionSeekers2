@@ -300,8 +300,13 @@ function Output({
         ) : null}
       </div>
       <p className="max-h-80 overflow-y-auto text-sm leading-relaxed whitespace-pre-wrap">
-        {gen.text}
+        {plainText(gen.text)}
       </p>
     </article>
   );
+}
+
+/** The base model writes markdown letters; show them as plain text, the words unchanged. */
+function plainText(text: string): string {
+  return text.replace(/\*\*/g, "").replace(/^#{1,6}\s+/gm, "");
 }
