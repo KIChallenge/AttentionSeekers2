@@ -1,0 +1,63 @@
+import type { Lang } from "@sv/contracts";
+
+const de = {
+  title: "Redezeit",
+  label: "Zeitleiste der Wortmeldungen",
+  sub: "Wer spricht mit wem und wie lange, in simulierten Minuten",
+  derived: "Zeit aus Reihenfolge und Wortzahl geschätzt",
+  show: "Zeitleiste einblenden",
+  hide: "Zeitleiste ausblenden",
+  zoomAll: "Gesamt",
+  zoomFollow: "Aktueller Austausch",
+  zoomTo: (label: string) => `Auf Austausch zoomen: ${label}`,
+  zoomed: "Gezoomt",
+  kind: { plenary: "Plenum", bilateral: "Bilateral", trilateral: "Trilateral", caucus: "Caucus" },
+  parallel: "parallel",
+  open: "läuft",
+  trigger: "Anlass",
+  outcome: "Ergebnis",
+  addressed: "an",
+  table: "an den ganzen Tisch",
+  respondsTo: "antwortet auf",
+  minutes: (n: number) => `${n.toLocaleString("de-AT")} min`,
+  at: "ab",
+  keys: "Pfeiltasten wechseln die Wortmeldung, Enter wählt sie, Z zoomt auf ihren Austausch, Escape zeigt alles",
+  speaking: "spricht",
+  addressedRow: "angesprochen",
+  legendBar: "Wortmeldung",
+  legendReply: "Antwort auf",
+  noData: "Noch keine Wortmeldungen.",
+};
+
+export type TimelineStrings = typeof de;
+
+const en: TimelineStrings = {
+  title: "Speaking time",
+  label: "Timeline of utterances",
+  sub: "Who talks to whom and for how long, in simulated minutes",
+  derived: "Time estimated from order and word count",
+  show: "Show timeline",
+  hide: "Hide timeline",
+  zoomAll: "All",
+  zoomFollow: "Current exchange",
+  zoomTo: (label: string) => `Zoom to exchange: ${label}`,
+  zoomed: "Zoomed",
+  kind: { plenary: "Plenary", bilateral: "Bilateral", trilateral: "Trilateral", caucus: "Caucus" },
+  parallel: "parallel",
+  open: "running",
+  trigger: "Trigger",
+  outcome: "Outcome",
+  addressed: "to",
+  table: "to the whole table",
+  respondsTo: "responds to",
+  minutes: (n: number) => `${n.toLocaleString("en-GB")} min`,
+  at: "from",
+  keys: "Arrow keys move between utterances, Enter selects, Z zooms to its exchange, Escape shows everything",
+  speaking: "speaking",
+  addressedRow: "addressed",
+  legendBar: "Utterance",
+  legendReply: "Reply to",
+  noData: "No utterances yet.",
+};
+
+export const timelineStrings: Record<Lang, TimelineStrings> = { de, en };
