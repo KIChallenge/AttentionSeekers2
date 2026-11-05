@@ -393,7 +393,7 @@
     --card-foreground: black;
     --muted-foreground: #444;
   }
-  body * {
+  :where(body:has(#gp-letter)) * {
     visibility: hidden;
   }
   #gp-letter,
