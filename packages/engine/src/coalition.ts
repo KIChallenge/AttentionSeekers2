@@ -36,7 +36,11 @@ export interface CalculusInput {
   maxCoalitions?: number;
 }
 
-const L = (de: string, en: string): LocalizedText => ({ lang: "de", text: de, translations: { en } });
+const L = (de: string, en: string): LocalizedText => ({
+  lang: "de",
+  text: de,
+  translations: { en },
+});
 
 /** Agents needed to pass under the rule (FR-U10). */
 export function quorumFor(
@@ -182,7 +186,12 @@ export function computeCalculus(input: CalculusInput): CoalitionCalculus {
   // Coalitions: supporting and blocking sets per proposal, plus topic alignment.
   const coalitions: Coalition[] = [];
   const seen = new Map<string, Coalition>();
-  const add = (kind: Coalition["kind"], members: string[], topicIds: string[], note: LocalizedText) => {
+  const add = (
+    kind: Coalition["kind"],
+    members: string[],
+    topicIds: string[],
+    note: LocalizedText,
+  ) => {
     if (members.length < 2) return;
     const key = `${kind}:${[...members].sort().join(",")}`;
     const prev = seen.get(key);
@@ -223,7 +232,12 @@ export function computeCalculus(input: CalculusInput): CoalitionCalculus {
     const contra = Object.entries(stances)
       .filter(([, s]) => s <= -1)
       .map(([a]) => a);
-    add("alignment", pro, [topicId], L("Gleiche Richtung beim Thema", "Same direction on the topic"));
+    add(
+      "alignment",
+      pro,
+      [topicId],
+      L("Gleiche Richtung beim Thema", "Same direction on the topic"),
+    );
     add("alignment", contra, [topicId], L("Gemeinsam dagegen", "Jointly against"));
   }
 
@@ -240,7 +254,11 @@ export function computeCalculus(input: CalculusInput): CoalitionCalculus {
   };
   let nextTabled: CoalitionCalculus["nextTabled"] = null;
   const ranked = open
-    .map((r) => ({ r, s: score(r), acc: live.find((p) => p.proposalId === r.proposalId)?.acceptance ?? 0 }))
+    .map((r) => ({
+      r,
+      s: score(r),
+      acc: live.find((p) => p.proposalId === r.proposalId)?.acceptance ?? 0,
+    }))
     .sort(
       (a, b) =>
         Number(b.s.passes) - Number(a.s.passes) ||

@@ -217,9 +217,11 @@ export function maskDeep<T>(value: T): { value: T; masked: number } {
   let masked = 0;
   const walk = (v: unknown): unknown => {
     if (typeof v === "string") {
-      if (!hasPersonName(v)) return v;
+      // House style: no em dash in any generated text.
+      const t = v.includes("\u2014") ? v.replace(/\s*\u2014\s*/g, ", ") : v;
+      if (!hasPersonName(t)) return t;
       masked++;
-      return maskPersonNames(v);
+      return maskPersonNames(t);
     }
     if (Array.isArray(v)) return v.map(walk);
     if (v && typeof v === "object") {

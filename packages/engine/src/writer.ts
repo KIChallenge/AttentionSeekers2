@@ -40,7 +40,10 @@ export class RunWriter {
   /** Re-emits an existing event (fork prefix) under this run id with a fresh seq. */
   copy(e: RunEvent) {
     const { v: _v, runId: _r, seq: _s, ...rest } = e as RunEvent & Record<string, unknown>;
-    return this.emitRaw({ ...(rest as Body) }, e.tMs);
+    const out = this.emitRaw({ ...(rest as Body) }, e.tMs);
+    // Continue the clock after the copied prefix.
+    this.t0 = Math.min(this.t0, performance.now() - e.tMs);
+    return out;
   }
 
   emit(body: Body): RunEvent {
@@ -76,9 +79,11 @@ export class RunWriter {
     const batch = this.pending;
     this.pending = [];
     if (batch.length === 0 || !this.dbOk) return this.flushing;
+    const first = batch[0]?.type === "run.started";
     this.flushing = this.flushing.then(async () => {
       try {
         const store = await import("@sv/db");
+        if (first) await resetRun(this.runId);
         await store.appendRunEvents(store.getDb(), batch);
       } catch (error) {
         this.dbOk = false;
@@ -110,4 +115,24 @@ export class RunWriter {
     }
     return { db: this.dbOk };
   }
+}
+
+/** A re-run under the same id replaces the stored run instead of mixing event streams. */
+async function resetRun(runId: string) {
+  const store = await import("@sv/db");
+  const { eq } = await import("drizzle-orm");
+  const db = store.getDb();
+  const t = store.schema;
+  for (const table of [
+    t.positions,
+    t.claims,
+    t.proposals,
+    t.strategicAssessments,
+    t.coalitionCalculi,
+    t.roundLessons,
+    t.utteranceTraces,
+  ]) {
+    await db.delete(table).where(eq(table.runId, runId));
+  }
+  await db.delete(t.runs).where(eq(t.runs.id, runId));
 }

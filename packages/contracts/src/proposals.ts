@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MeasureClass } from "./descriptor.ts";
 import { AgentId, LocalizedText } from "./primitives.ts";
 
 // Rounds and proposals (FR-M6, M7, R2, R3, R4, O2)
@@ -61,6 +62,17 @@ export const Proposal = z.object({
   outcomeClass: OutcomeClass.nullable(),
   /** Id of the proposal this one is an alternative to. */
   alternativeTo: z.string().nullable().default(null),
+  /** Added 2026-11-05 (engine): impact model inputs stated by the proposer (FR-N3). */
+  capacityEffect: z
+    .object({ value: z.number(), low: z.number(), high: z.number(), unit: z.string() })
+    .nullable()
+    .optional(),
+  /** Added 2026-11-05 (engine): how the proposer finances it (offset, reallocation, new funds). */
+  financing: LocalizedText.optional(),
+  /** Added 2026-11-05 (engine): the measures bundled in a package proposal. */
+  components: z.array(LocalizedText).optional(),
+  /** Added 2026-11-05 (engine): measure class for the forecasting bridge (FR-J10). */
+  measureClass: MeasureClass.optional(),
   /** Added 2026-11-05 (engine): latest vote per agent with its stated reason or condition. */
   votes: z
     .array(

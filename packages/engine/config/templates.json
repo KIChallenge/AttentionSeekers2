@@ -1,0 +1,158 @@
+{
+  "$comment": "Template seeds: fixed topics and axes per template so runs are comparable. Templates without topics let the moderator derive them from the question.",
+  "wartezeiten": {
+    "decisionRule": "veto_players",
+    "roundLimit": 5,
+    "budgetCeilingPct": 5,
+    "agents": ["gm", "sv", "ak", "va", "ka", "pf", "bl", "pv", "fm"],
+    "topics": [
+      {
+        "id": "t-tele",
+        "key": "telemedicine",
+        "label": {
+          "de": "Telemedizin",
+          "en": "Telemedicine"
+        },
+        "measure": {
+          "de": "Erstkontakt als Kassenleistung",
+          "en": "First contact as an insured benefit"
+        }
+      },
+      {
+        "id": "t-stellen",
+        "key": "contract_posts",
+        "label": {
+          "de": "Kassenstellen",
+          "en": "Contract posts"
+        },
+        "measure": {
+          "de": "Zusätzliche Kassenstellen, gestaffelt",
+          "en": "Additional contract posts, staggered"
+        }
+      },
+      {
+        "id": "t-tss",
+        "key": "appointment_service",
+        "label": {
+          "de": "Terminservice",
+          "en": "Appointment service"
+        },
+        "measure": {
+          "de": "Terminservicestelle über 1450",
+          "en": "Appointment service centre via 1450"
+        }
+      },
+      {
+        "id": "t-4wo",
+        "key": "appointment_guarantee",
+        "label": {
+          "de": "Terminzusage",
+          "en": "Appointment guarantee"
+        },
+        "measure": {
+          "de": "Verbindliche Terminzusage binnen vier Wochen",
+          "en": "Binding appointment within four weeks"
+        }
+      },
+      {
+        "id": "t-pve",
+        "key": "pve_planning",
+        "label": {
+          "de": "Primärversorgung",
+          "en": "Primary care"
+        },
+        "measure": {
+          "de": "Planungshoheit für PVE",
+          "en": "Planning authority for primary care units"
+        }
+      },
+      {
+        "id": "t-honorar",
+        "key": "fee_indexation",
+        "label": {
+          "de": "Honorar",
+          "en": "Fees"
+        },
+        "measure": {
+          "de": "Honoraranreize im Gesamtvertrag",
+          "en": "Fee incentives in the collective contract"
+        }
+      },
+      {
+        "id": "t-pflege",
+        "key": "nursing_first_contact",
+        "label": {
+          "de": "Pflegekompetenz",
+          "en": "Nursing scope"
+        },
+        "measure": {
+          "de": "Pflegerischer Erstkontakt in PVE",
+          "en": "Nursing first contact in primary care units"
+        }
+      }
+    ],
+    "axes": [
+      {
+        "id": "x",
+        "label": {
+          "de": "Steuerung",
+          "en": "Governance"
+        },
+        "poles": [
+          {
+            "de": "Selbstverwaltung",
+            "en": "Self-governance"
+          },
+          {
+            "de": "Zentrale Steuerung",
+            "en": "Central steering"
+          }
+        ],
+        "topicWeights": {
+          "t-tss": 0.3,
+          "t-4wo": 0.3,
+          "t-pve": 0.4
+        }
+      },
+      {
+        "id": "y",
+        "label": {
+          "de": "Ressourcen",
+          "en": "Resources"
+        },
+        "poles": [
+          {
+            "de": "Umschichtung",
+            "en": "Reallocation"
+          },
+          {
+            "de": "Zusätzliche Mittel",
+            "en": "Additional funds"
+          }
+        ],
+        "topicWeights": {
+          "t-stellen": 0.4,
+          "t-honorar": 0.4,
+          "t-tele": 0.2
+        }
+      }
+    ],
+    "scheduledEvents": [
+      {
+        "id": "ev-1",
+        "atRound": 4,
+        "kind": "budget_shock",
+        "title": {
+          "de": "Szenario: angespannte Gebarung",
+          "en": "Scenario: strained finances"
+        },
+        "body": {
+          "de": "Szenario-Annahme der Moderation, kein Messwert: Die Krankenversicherung meldet für das Folgejahr ein höheres Defizit als geplant. Zusätzliche Ausgaben brauchen eine ausgewiesene Bedeckung.",
+          "en": "Moderator scenario assumption, not a measurement: social health insurance reports a larger deficit than planned for next year. Extra spending needs an identified source of funds."
+        },
+        "sourceId": null,
+        "sourceSegmentId": null
+      }
+    ]
+  }
+}

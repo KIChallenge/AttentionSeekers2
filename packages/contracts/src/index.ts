@@ -39,7 +39,9 @@
  * - 2026-11-05 engine: Mandate.decisionRule, .budgetCeilingPct, .climate, .endConditions
  *   (rules restated in the mandate, FR-M1/M8/U10).
  * - 2026-11-05 engine: RoundSummary.recommendations (FR-O3, set on the final summary).
- * - 2026-11-05 engine: Proposal.votes (latest vote per agent with reason or condition).
+ * - 2026-11-05 engine: Proposal.votes (latest vote per agent with reason or condition),
+ *   Proposal.capacityEffect, .measureClass, .financing, .components (impact model,
+ *   forecast inputs, package contents).
  * - 2026-11-05 engine: Telemetry.reasoningTokens.
  */
 export * from "./agents.ts";

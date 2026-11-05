@@ -18,6 +18,7 @@
   "dependencies": {
     "@sv/contracts": "workspace:*",
     "@sv/db": "workspace:*",
+    "drizzle-orm": "^0.44.0",
     "zod": "^4.1.0"
   },
   "devDependencies": {
