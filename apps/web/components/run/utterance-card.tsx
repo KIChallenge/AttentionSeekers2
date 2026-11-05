@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { Level, usePrefs } from "@/components/shell/providers";
 import { cn } from "@/lib/utils";
 import { Chip, EntityRef, Tile } from "./bits";
-import { agentLook, claimUnderline, L, withKeys } from "./helpers";
+import { agentLook, claimUnderline, delegateRole, L, withKeys } from "./helpers";
 import { ClaimStateBadge, SourceChip } from "./provenance";
 import { useRun } from "./run-context";
 
@@ -71,6 +71,8 @@ export function UtteranceCard({
   const replyTo = u.respondsTo ? snap.utterances[u.respondsTo] : null;
   const replyName = replyTo ? agentLook(run, replyTo.speaker, lang).name : null;
   const isMod = u.speaker === "moderator";
+  const role = delegateRole(run, u.speaker, u.delegateId, lang);
+  const addressees = (u.addressedTo ?? []).filter((a) => a !== u.speaker);
   const applied = snap.lessonApplications.filter((a) => a.utteranceId === u.id);
   return (
     // biome-ignore lint/a11y/useSemanticElements: card contains links and popover buttons
@@ -111,6 +113,15 @@ export function UtteranceCard({
             {speaker.name}
           </EntityRef>
         )}
+        {role ? <span className="text-xs text-muted-foreground">{role}</span> : null}
+        {addressees.length ? (
+          <span
+            className="inline-flex items-center gap-0.5 text-xs text-muted-foreground"
+            title={addressees.map((a) => agentLook(run, a, lang).name).join(", ")}
+          >
+            → {addressees.map((a) => agentLook(run, a, lang).code).join(", ")}
+          </span>
+        ) : null}
         <span className="font-mono text-[11px] text-muted-foreground">{u.id}</span>
         {u.respondsTo ? (
           <a

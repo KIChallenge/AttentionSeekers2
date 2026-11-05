@@ -4,11 +4,20 @@ import { type Claim, PHASES, topicStatus, type Utterance } from "@sv/contracts";
 import Link from "next/link";
 import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Level, usePrefs } from "@/components/shell/providers";
+import { ExchangeGroup } from "@/components/timeline/exchange-group";
+import {
+  focusOf,
+  groupByExchange,
+  parallelExchanges,
+  type SpeakerFocus,
+} from "@/components/timeline/model";
+import { SpeakerTimeline } from "@/components/timeline/speaker-timeline";
+import { timelineStrings } from "@/components/timeline/strings";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 import { Chip, EntityRef, Meter, Seg, Tile } from "./bits";
-import { agentLook, L } from "./helpers";
+import { agentLook, delegateRole, L } from "./helpers";
 import { ClaimRow, SourceChip } from "./provenance";
 import { EventCard, ExpertNote, LessonCards, RoundSummaryCard } from "./round-blocks";
 import { useRun } from "./run-context";
@@ -16,7 +25,7 @@ import { PendingCard, UtteranceCard } from "./utterance-card";
 
 type View = "condensed" | "full";
 
-function Roster({ round }: { round: number }) {
+function Roster({ round, focus }: { round: number; focus: SpeakerFocus | null }) {
   const { snap, run, t, lang, runId } = useRun();
   const rs = snap.rounds.find((r) => r.round === round);
   const order = rs?.speakingOrder ?? run.agents.map((a) => a.id);
@@ -24,12 +33,19 @@ function Roster({ round }: { round: number }) {
   const row = (id: string, sub: string, href?: string) => {
     const a = agentLook(run, id, lang);
     const active = snap.activeSpeaker === id;
+    // the utterance in focus: its speaker (institution plus delegate role) and addressees
+    const speaking = focus?.speaker === id;
+    const addressed = !!focus?.addressedTo.includes(id);
+    const role = speaking ? delegateRole(run, id, focus?.delegateId, lang) : "";
     const inner = (
       <>
         <Tile id={id} size="md" />
         <span className="min-w-0 flex-1 max-desk:sr-only">
           <span className="block truncate text-sm">{a.name}</span>
-          <span className="block truncate text-xs text-muted-foreground">{sub}</span>
+          <span className="block truncate text-xs text-muted-foreground">
+            {role || sub}
+            {addressed ? ` · ${timelineStrings[lang].addressedRow}` : ""}
+          </span>
           <Level min="engineer">
             <span className="block truncate font-mono text-[10px] text-muted-foreground">
               {run.modelAssignment[id] ?? ""}
@@ -54,8 +70,9 @@ function Roster({ round }: { round: number }) {
     );
     const cls = cn(
       "relative flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-gray-alpha-100 max-desk:justify-center max-desk:px-0",
-      active &&
+      (active || speaking) &&
         "bg-gray-alpha-100 before:absolute before:inset-y-1 before:-left-2 before:w-[3px] before:rounded before:bg-foreground",
+      addressed && "ring-1 ring-foreground/25 ring-inset",
     );
     return href ? (
       <Link key={id} href={href} className={cls} title={a.name}>
@@ -363,7 +380,7 @@ export function NegotiationView({
     const u = snap.utterances[id];
     if (u) setExpanded((e) => ({ ...e, [u.round]: true }));
     requestAnimationFrame(() =>
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" }),
     );
   };
 
@@ -392,6 +409,13 @@ export function NegotiationView({
 
   const pending = Object.values(snap.pending);
   const fresh = snap.utteranceOrder.length - seen;
+  // timeline and roster follow the voice while streaming, the selection otherwise
+  const pendingId = pending[0]?.utteranceId ?? null;
+  const activeId =
+    pendingId ?? (streaming ? (snap.utteranceOrder.at(-1) ?? null) : (selected ?? null));
+  const focus = focusOf(snap, activeId);
+  const parallel = parallelExchanges(snap.exchanges);
+  const exchangeById = new Map(snap.exchanges.map((x) => [x.id, x]));
 
   return (
     <div
@@ -406,7 +430,7 @@ export function NegotiationView({
         aria-label={view === "full" ? t.live.outline : t.live.roster}
         className="hidden overflow-y-auto border-r px-1.5 py-4 md:block desk:p-4"
       >
-        {view === "full" ? <Outline onJump={jump} /> : <Roster round={current} />}
+        {view === "full" ? <Outline onJump={jump} /> : <Roster round={current} focus={focus} />}
       </aside>
       <section
         ref={scroller}
@@ -453,6 +477,20 @@ export function NegotiationView({
               ]}
             />
           </Level>
+          <SpeakerTimeline
+            snap={snap}
+            run={run}
+            lang={lang}
+            activeId={activeId}
+            selectedId={selected}
+            progress={pendingId ? 0.5 : 1}
+            onSelect={(id) => {
+              jump(id);
+              select(id);
+            }}
+            collapsible
+            className="basis-full shadow-none"
+          />
         </div>
         <div className="mx-auto max-w-[920px] space-y-3 px-5 py-4">
           <p id="transcript-keys" className="sr-only">
@@ -492,18 +530,28 @@ export function NegotiationView({
                     />
                   ) : (
                     <>
-                      {r.utteranceIds.map((id) => {
-                        const u = snap.utterances[id];
-                        if (!u) return null;
-                        return (
-                          <div key={id} className="space-y-2">
-                            <UtteranceCard u={u} selected={selected === id} onSelect={select} />
-                            {(notesAfter[id] ?? []).map((n) => (
-                              <ExpertNote key={n.seq} note={n} />
-                            ))}
-                          </div>
-                        );
-                      })}
+                      {groupByExchange(r.utteranceIds, snap.utterances).map((g) => (
+                        <ExchangeGroup
+                          key={g.exchangeId ?? `loose-${g.ids[0]}`}
+                          exchange={g.exchangeId ? exchangeById.get(g.exchangeId) : null}
+                          run={run}
+                          lang={lang}
+                          parallel={!!g.exchangeId && parallel.has(g.exchangeId)}
+                        >
+                          {g.ids.map((id) => {
+                            const u = snap.utterances[id];
+                            if (!u) return null;
+                            return (
+                              <div key={id} className="space-y-2">
+                                <UtteranceCard u={u} selected={selected === id} onSelect={select} />
+                                {(notesAfter[id] ?? []).map((n) => (
+                                  <ExpertNote key={n.seq} note={n} />
+                                ))}
+                              </div>
+                            );
+                          })}
+                        </ExchangeGroup>
+                      ))}
                       {pending
                         .filter((p) => p.round === r.round)
                         .map((p) => (
