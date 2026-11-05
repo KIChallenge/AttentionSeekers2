@@ -18,6 +18,7 @@
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { CAST, ELEVEN_PREMADE } from "../lib/stage-cast.ts";
 import { EL_API, type ElevenVoice, loadEnv, type VoiceTable } from "../lib/tts-providers.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -25,35 +26,35 @@ const webRoot = path.resolve(here, "..");
 const repoRoot = path.resolve(webRoot, "../..");
 const out = path.join(webRoot, "lib", "stage-voices.json");
 
-/** Premade fallback: German-verified on eleven_multilingual_v2, same ids on every account. */
-const PREMADE: Record<string, ElevenVoice> = {
-  moderator: { id: "XrExE9yKIg1WjnnlVkGX", name: "Matilda", category: "premade", speed: 1.0 },
-  gm: { id: "onwK4e9ZLuTAKqWW03F9", name: "Daniel", category: "premade", speed: 1.0 },
-  sv: { id: "pFZP5JQG7iQjIQuC4Bku", name: "Lily", category: "premade", speed: 1.03 },
-  ak: { id: "pqHfZKP75CvOlQylNhV4", name: "Bill", category: "premade", speed: 0.97 },
-  va: { id: "cjVigY5qzO86Huf0OWal", name: "Eric", category: "premade", speed: 1.04 },
-  ka: { id: "FGY2WhTYpPnrIDTdsKH5", name: "Laura", category: "premade", speed: 1.0 },
-  pf: { id: "cgSgspJ2msm6clMCkdW9", name: "Jessica", category: "premade", speed: 1.02 },
-  bl: { id: "CwhRBWXzGAHq8TQ4Fs17", name: "Roger", category: "premade", speed: 0.98 },
-  pv: { id: "TX3LPaxmHKxFdv7VOQHJ", name: "Liam", category: "premade", speed: 1.04 },
-  fm: { id: "nPczCjzI2devNBz1zQrb", name: "Brian", category: "premade", speed: 0.96 },
-  expert: { id: "bIHbv24MWmeRgasZH58o", name: "Will", category: "premade", speed: 0.98 },
-};
+/** Premade voices from the cast (lib/stage-cast.ts), the one place seat genders are set. */
+const PREMADE: Record<string, ElevenVoice> = Object.fromEntries(
+  Object.entries(CAST).flatMap(([sp, c]) => {
+    const v = c.eleven ? ELEVEN_PREMADE[c.eleven] : undefined;
+    if (!c.eleven || !v) return [];
+    return [
+      [sp, { id: c.eleven, name: v.name, category: "premade", speed: c.speed, gender: c.gender }],
+    ];
+  }),
+);
 
-/** What each seat should sound like; genders match the premade table so seats stay stable. */
-const WANT: Record<string, { gender: string; ages: string[]; austrian: boolean }> = {
-  moderator: { gender: "female", ages: ["middle_aged"], austrian: true },
-  gm: { gender: "male", ages: ["middle_aged"], austrian: true },
-  sv: { gender: "female", ages: ["middle_aged"], austrian: true },
-  ak: { gender: "male", ages: ["old", "middle_aged"], austrian: true },
-  va: { gender: "male", ages: ["middle_aged", "young"], austrian: false },
-  ka: { gender: "female", ages: ["young", "middle_aged"], austrian: false },
-  pf: { gender: "female", ages: ["middle_aged", "young"], austrian: false },
-  bl: { gender: "male", ages: ["middle_aged", "old"], austrian: true },
-  pv: { gender: "male", ages: ["young", "middle_aged"], austrian: false },
-  fm: { gender: "male", ages: ["middle_aged", "old"], austrian: false },
-  expert: { gender: "male", ages: ["middle_aged", "old"], austrian: false },
+/** What each seat should sound like on a paid plan; the gender always comes from the cast. */
+const AGES: Record<string, { ages: string[]; austrian: boolean }> = {
+  moderator: { ages: ["middle_aged"], austrian: true },
+  gm: { ages: ["middle_aged"], austrian: true },
+  sv: { ages: ["middle_aged"], austrian: true },
+  ak: { ages: ["old", "middle_aged"], austrian: true },
+  va: { ages: ["middle_aged", "young"], austrian: false },
+  ka: { ages: ["young", "middle_aged"], austrian: false },
+  pf: { ages: ["middle_aged", "young"], austrian: false },
+  bl: { ages: ["middle_aged", "old"], austrian: true },
+  pv: { ages: ["middle_aged", "young"], austrian: false },
+  fm: { ages: ["middle_aged", "old"], austrian: false },
+  expert: { ages: ["middle_aged", "old"], austrian: false },
 };
+const WANT: Record<string, { gender: string; ages: string[]; austrian: boolean }> =
+  Object.fromEntries(
+    Object.entries(AGES).map(([sp, w]) => [sp, { ...w, gender: CAST[sp]?.gender ?? "male" }]),
+  );
 /** Registers that suit a negotiation table; entertainment and character voices do not. */
 const USE_CASES = new Set(["informative_educational", "conversational", "narrative_story", ""]);
 
@@ -155,11 +156,14 @@ function pick(pool: Shared[]): Record<string, ElevenVoice> {
         category: v.category,
         locale: v.locale ?? "de-DE",
         speed: fallback?.speed ?? 1,
+        gender: w.gender,
       };
     } else if (fallback) {
       table[sp] = { ...fallback, locale: "de-DE" };
     }
   }
+  // optional seats keep their premade voice
+  for (const [sp, v] of Object.entries(PREMADE)) table[sp] ??= { ...v, locale: "de-DE" };
   return table;
 }
 

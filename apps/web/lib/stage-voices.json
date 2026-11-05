@@ -7,78 +7,129 @@
       "id": "XrExE9yKIg1WjnnlVkGX",
       "name": "Matilda",
       "category": "premade",
-      "locale": "de-DE",
-      "speed": 1.0
-    },
-    "gm": {
-      "id": "onwK4e9ZLuTAKqWW03F9",
-      "name": "Daniel",
-      "category": "premade",
-      "locale": "de-DE",
-      "speed": 1.0
-    },
-    "sv": {
-      "id": "pFZP5JQG7iQjIQuC4Bku",
-      "name": "Lily",
-      "category": "premade",
-      "locale": "de-DE",
-      "speed": 1.03
-    },
-    "ak": {
-      "id": "pqHfZKP75CvOlQylNhV4",
-      "name": "Bill",
-      "category": "premade",
-      "locale": "de-DE",
-      "speed": 0.97
-    },
-    "va": {
-      "id": "cjVigY5qzO86Huf0OWal",
-      "name": "Eric",
-      "category": "premade",
-      "locale": "de-DE",
-      "speed": 1.04
-    },
-    "ka": {
-      "id": "FGY2WhTYpPnrIDTdsKH5",
-      "name": "Laura",
-      "category": "premade",
-      "locale": "de-DE",
-      "speed": 1.0
-    },
-    "pf": {
-      "id": "cgSgspJ2msm6clMCkdW9",
-      "name": "Jessica",
-      "category": "premade",
-      "locale": "de-DE",
-      "speed": 1.02
-    },
-    "bl": {
-      "id": "CwhRBWXzGAHq8TQ4Fs17",
-      "name": "Roger",
-      "category": "premade",
-      "locale": "de-DE",
-      "speed": 0.98
-    },
-    "pv": {
-      "id": "TX3LPaxmHKxFdv7VOQHJ",
-      "name": "Liam",
-      "category": "premade",
-      "locale": "de-DE",
-      "speed": 1.04
-    },
-    "fm": {
-      "id": "nPczCjzI2devNBz1zQrb",
-      "name": "Brian",
-      "category": "premade",
-      "locale": "de-DE",
-      "speed": 0.96
+      "speed": 1,
+      "gender": "female",
+      "locale": "de-DE"
     },
     "expert": {
       "id": "bIHbv24MWmeRgasZH58o",
       "name": "Will",
       "category": "premade",
-      "locale": "de-DE",
-      "speed": 0.98
+      "speed": 0.98,
+      "gender": "male",
+      "locale": "de-DE"
+    },
+    "gm": {
+      "id": "onwK4e9ZLuTAKqWW03F9",
+      "name": "Daniel",
+      "category": "premade",
+      "speed": 1,
+      "gender": "male",
+      "locale": "de-DE"
+    },
+    "sv": {
+      "id": "pFZP5JQG7iQjIQuC4Bku",
+      "name": "Lily",
+      "category": "premade",
+      "speed": 1.03,
+      "gender": "female",
+      "locale": "de-DE"
+    },
+    "ak": {
+      "id": "pqHfZKP75CvOlQylNhV4",
+      "name": "Bill",
+      "category": "premade",
+      "speed": 0.97,
+      "gender": "male",
+      "locale": "de-DE"
+    },
+    "va": {
+      "id": "cjVigY5qzO86Huf0OWal",
+      "name": "Eric",
+      "category": "premade",
+      "speed": 1.04,
+      "gender": "male",
+      "locale": "de-DE"
+    },
+    "ka": {
+      "id": "FGY2WhTYpPnrIDTdsKH5",
+      "name": "Laura",
+      "category": "premade",
+      "speed": 1,
+      "gender": "female",
+      "locale": "de-DE"
+    },
+    "pf": {
+      "id": "cgSgspJ2msm6clMCkdW9",
+      "name": "Jessica",
+      "category": "premade",
+      "speed": 1.02,
+      "gender": "female",
+      "locale": "de-DE"
+    },
+    "bl": {
+      "id": "CwhRBWXzGAHq8TQ4Fs17",
+      "name": "Roger",
+      "category": "premade",
+      "speed": 0.98,
+      "gender": "male",
+      "locale": "de-DE"
+    },
+    "pv": {
+      "id": "EXAVITQu4vr4xnSDxMaL",
+      "name": "Sarah",
+      "category": "premade",
+      "speed": 1.02,
+      "gender": "female",
+      "locale": "de-DE"
+    },
+    "fm": {
+      "id": "nPczCjzI2devNBz1zQrb",
+      "name": "Brian",
+      "category": "premade",
+      "speed": 0.96,
+      "gender": "male",
+      "locale": "de-DE"
+    },
+    "ph": {
+      "id": "Xb7hH8MSUJpSbSDYk0k2",
+      "name": "Alice",
+      "category": "premade",
+      "speed": 1,
+      "gender": "female",
+      "locale": "de-DE"
+    },
+    "abk": {
+      "id": "hpp4J3VqNfWAUOO0d1Us",
+      "name": "Bella",
+      "category": "premade",
+      "speed": 1.02,
+      "gender": "female",
+      "locale": "de-DE"
+    },
+    "wk": {
+      "id": "TX3LPaxmHKxFdv7VOQHJ",
+      "name": "Liam",
+      "category": "premade",
+      "speed": 1.02,
+      "gender": "male",
+      "locale": "de-DE"
+    },
+    "lk": {
+      "id": "JBFqnCBsd6RMkjVDRZzb",
+      "name": "George",
+      "category": "premade",
+      "speed": 0.98,
+      "gender": "male",
+      "locale": "de-DE"
+    },
+    "ind": {
+      "id": "iP95p4xoKVk53GoZ742B",
+      "name": "Chris",
+      "category": "premade",
+      "speed": 1,
+      "gender": "male",
+      "locale": "de-DE"
     }
   }
 }

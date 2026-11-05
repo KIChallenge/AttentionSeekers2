@@ -3,6 +3,7 @@
 // path aliases, so plain `node` can import it too. Server-only: it handles API keys.
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { AZURE_GENDER, CAST, castGender } from "./stage-cast.ts";
 
 /** Repo .env merged with process.env; non-empty process values win (see stage-tts.ts). */
 export function loadEnv(repoRoot: string): Record<string, string> {
@@ -25,34 +26,10 @@ export interface AzureVoice {
   rate: string;
 }
 
-/** Azure neural voice and prosody rate per speaker and language. de-AT first, then de-CH/de-DE. */
+/** Azure neural voice and prosody rate per speaker and language, from lib/stage-cast.ts. */
 export const AZURE_VOICES: Record<string, Record<string, AzureVoice>> = {
-  de: {
-    moderator: { voice: "de-AT-IngridNeural", rate: "+0%" },
-    gm: { voice: "de-AT-JonasNeural", rate: "+2%" },
-    sv: { voice: "de-DE-KatjaNeural", rate: "+4%" },
-    ak: { voice: "de-DE-ConradNeural", rate: "-3%" },
-    va: { voice: "de-CH-JanNeural", rate: "+5%" },
-    ka: { voice: "de-DE-AmalaNeural", rate: "-2%" },
-    pf: { voice: "de-DE-ElkeNeural", rate: "+3%" },
-    bl: { voice: "de-DE-KillianNeural", rate: "-4%" },
-    pv: { voice: "de-CH-LeniNeural", rate: "+6%" },
-    fm: { voice: "de-DE-BerndNeural", rate: "-6%" },
-    expert: { voice: "de-DE-FlorianMultilingualNeural", rate: "-1%" },
-  },
-  en: {
-    moderator: { voice: "en-GB-SoniaNeural", rate: "+0%" },
-    gm: { voice: "en-GB-RyanNeural", rate: "+2%" },
-    sv: { voice: "en-GB-LibbyNeural", rate: "+4%" },
-    ak: { voice: "en-GB-ThomasNeural", rate: "-3%" },
-    va: { voice: "en-GB-ElliotNeural", rate: "+5%" },
-    ka: { voice: "en-GB-HollieNeural", rate: "-2%" },
-    pf: { voice: "en-GB-BellaNeural", rate: "+3%" },
-    bl: { voice: "en-GB-OliverNeural", rate: "-4%" },
-    pv: { voice: "en-GB-MaisieNeural", rate: "+6%" },
-    fm: { voice: "en-GB-NoahNeural", rate: "-6%" },
-    expert: { voice: "en-GB-AlfieNeural", rate: "-1%" },
-  },
+  de: Object.fromEntries(Object.entries(CAST).map(([k, c]) => [k, c.azure.de])),
+  en: Object.fromEntries(Object.entries(CAST).map(([k, c]) => [k, c.azure.en])),
 };
 export const AZURE_LOCALE: Record<string, string[]> = {
   de: ["de-AT", "de-CH", "de-DE"],
@@ -77,20 +54,42 @@ export async function azureVoiceTable(
   const all = (await r.json()) as Array<{ ShortName: string; Locale: string }>;
   const locales = AZURE_LOCALE[lang] ?? [];
   const available = all.filter((v) => locales.includes(v.Locale)).map((v) => v.ShortName);
+  if (available.length === 0) throw new Error(`no ${lang} voice in ${region}`);
+  return pickAzureVoices(available, lang, speakers);
+}
+
+/**
+ * The cast's voice per speaker. A voice another speaker already holds (or one the region lacks)
+ * is swapped for an unused voice of the same gender and only shared when none is left, so a
+ * seat never speaks with a voice of the other gender.
+ */
+export function pickAzureVoices(
+  available: string[],
+  lang: string,
+  speakers: string[],
+): Record<string, AzureVoice> {
   const wanted = AZURE_VOICES[lang] ?? {};
   const used = new Set<string>();
   const table: Record<string, AzureVoice> = {};
   for (const sp of speakers) {
     const w = wanted[sp];
-    if (w && available.includes(w.voice) && !used.has(w.voice)) table[sp] = w;
+    if (w && available.includes(w.voice) && !used.has(w.voice)) {
+      table[sp] = w;
+      used.add(w.voice);
+    }
   }
-  for (const v of Object.values(table)) used.add(v.voice);
   for (const sp of speakers) {
     if (table[sp]) continue;
-    const spare = available.find((v) => !used.has(v)) ?? available[0];
-    if (!spare) throw new Error(`no ${lang} voice in ${region}`);
+    const g = castGender(sp);
+    const same = available.filter((v) => AZURE_GENDER[v] === g);
+    const w = wanted[sp];
+    const spare =
+      same.find((v) => !used.has(v)) ??
+      (w && available.includes(w.voice) ? w.voice : undefined) ??
+      same[0];
+    if (!spare) throw new Error(`no ${g} ${lang} voice available`);
     used.add(spare);
-    table[sp] = { voice: spare, rate: "+0%" };
+    table[sp] = { voice: spare, rate: w?.voice === spare ? w.rate : "+0%" };
   }
   return table;
 }
@@ -136,6 +135,8 @@ export interface ElevenVoice {
   category: string;
   locale?: string;
   speed: number;
+  /** Voice gender; must match the seat's gender in lib/stage-cast.ts (checked by a test). */
+  gender?: string;
 }
 
 export interface VoiceTable {

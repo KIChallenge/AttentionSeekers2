@@ -36,11 +36,12 @@ describe("elevenRequest", () => {
 });
 
 describe("voice table", () => {
-  it("has a distinct voice for each of the eleven stage speakers", () => {
+  it("has a distinct voice for each of the eleven core speakers and the optional seats", () => {
     const t = loadVoiceTable(path.resolve(import.meta.dirname, ".."), {});
     const speakers = ["moderator", "gm", "sv", "ak", "va", "ka", "pf", "bl", "pv", "fm", "expert"];
-    expect(Object.keys(t.voices).sort()).toEqual([...speakers].sort());
-    expect(new Set(Object.values(t.voices).map((v) => v.id)).size).toBe(11);
+    for (const sp of speakers) expect(Object.keys(t.voices)).toContain(sp);
+    const ids = Object.values(t.voices).map((v) => v.id);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 });
 
