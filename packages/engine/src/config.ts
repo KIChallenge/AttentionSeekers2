@@ -30,8 +30,16 @@ export interface Profile {
   register: string;
   keywords: string;
   redLineIds: string[];
+  /** Fictional, unnamed functional roles (CON-1/CON-2); the first one leads. */
+  delegates?: DelegateDef[];
 }
-interface RedLineDef {
+export interface DelegateDef {
+  id: string;
+  role: Bi;
+  /** Topic keys this delegate covers in focused exchanges; empty for the lead. */
+  topicKeys: string[];
+}
+export interface RedLineDef {
   id: string;
   agentId: string;
   role: RedLine["role"];
@@ -90,6 +98,19 @@ export function profileOf(agentId: string): Profile {
     keywords: c?.nameDe ?? "",
     redLineIds: [],
   };
+}
+
+/** At most three delegates; an institution without config gets a lead only. */
+export function delegatesOf(agentId: string): DelegateDef[] {
+  const list = profileOf(agentId).delegates;
+  if (list?.length) return list.slice(0, 3);
+  return [
+    {
+      id: `${agentId}-lead`,
+      role: { de: "Verhandlungsführung", en: "Lead negotiator" },
+      topicKeys: [],
+    },
+  ];
 }
 
 export function redLinesOf(agentId: string): RedLineDef[] {
@@ -198,6 +219,7 @@ export function agentConfigOf(
     },
     color: c?.color ?? "var(--c-opt)",
     code: c?.code ?? agentId.toUpperCase().slice(0, 3),
+    delegates: delegatesOf(agentId).map((d) => ({ id: d.id, role: bi(d.role) })),
   };
 }
 
@@ -209,5 +231,21 @@ export function defaultTemperament(agentId: string) {
 
 export const DEFAULT_MODEL = () => process.env.SV_DEFAULT_MODEL ?? "azure/gpt-6-sol";
 export const EXPERT_MODEL = () => process.env.SV_EXPERT_MODEL ?? DEFAULT_MODEL();
-/** Second verifier (FR-N7); a different family when the team deploys one. */
-export const VERIFIER_MODEL = () => process.env.SV_VERIFIER_MODEL ?? EXPERT_MODEL();
+const hasSecondFamily = () =>
+  Boolean(process.env.BIFROST_SEED_BEDROCK_KEY && process.env.BIFROST_SEED_BEDROCK_REGION);
+/**
+ * Second model family (FR-X1, FR-N7) via Amazon Bedrock. Nova Pro by default: the only
+ * Mistral model enabled on the account (Pixtral Large) is throttled to about one request
+ * per minute, far below a run's needs; set SV_SECOND_MODEL to use it anyway.
+ */
+export const SECOND_MODEL = (): string | null =>
+  process.env.SV_SECOND_MODEL ?? (hasSecondFamily() ? "bedrock/eu.amazon.nova-pro-v1:0" : null);
+/** Institutions seated on the second family by default (two-family floor, FR-X1). */
+export const SECOND_FAMILY_AGENTS = (): string[] =>
+  (process.env.SV_SECOND_FAMILY_AGENTS ?? "ak,pf,bl,pv")
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+/** Second verifier (FR-N7): the other family when available, so the check is cross-family. */
+export const VERIFIER_MODEL = () =>
+  process.env.SV_VERIFIER_MODEL ?? SECOND_MODEL() ?? EXPERT_MODEL();

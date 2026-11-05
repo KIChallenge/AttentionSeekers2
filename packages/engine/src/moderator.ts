@@ -52,6 +52,73 @@ export function topicTally(s: RunState, topicId: string) {
   return { support, oppose, of, pro, contra };
 }
 
+/**
+ * Closes a focused exchange with one neutral outcome sentence (FR-M9: the moderation
+ * holds no position). The measured stance movement is passed in, so the sentence
+ * reports what moved instead of inventing agreement. Falls back to a template.
+ */
+export async function exchangeOutcome(
+  s: RunState,
+  x: {
+    kind: "bilateral" | "caucus";
+    topicId: string | null;
+    participants: string[];
+    transcript: Array<{ speaker: string; text: string }>;
+    moves: Array<{ agentId: string; from: number | null; to: number | null }>;
+  },
+  model: string,
+): Promise<{ de: string; en: string; meta: CallMeta | null }> {
+  const topic = s.mandate.topics.find((t) => t.id === x.topicId);
+  const label = topic?.label.text ?? "Vorschlag";
+  const moved = x.moves.filter(
+    (m) => m.from !== null && m.to !== null && Math.abs(m.to - m.from) >= 0.25,
+  );
+  const fmt = (m: (typeof x.moves)[number]) =>
+    `${nameOf(m.agentId)} ${m.from ?? "offen"} auf ${m.to ?? "offen"}`;
+  const fallbackDe =
+    x.kind === "caucus"
+      ? `${x.participants.map(nameOf).join(", ")} gehen mit abgestimmter Linie zu ${label} ins Plenum.`
+      : moved.length
+        ? `${label}: Bewegung bei ${moved.map(fmt).join(", ")}; der Konflikt ist kleiner, aber nicht gelöst.`
+        : `${label}: keine Annäherung, die Positionen bleiben getrennt.`;
+  try {
+    const r = await structured(
+      model,
+      "exchange_outcome",
+      BiOut,
+      [
+        {
+          role: "system",
+          content:
+            "Du bist die Moderation ohne eigene Position. Fasse das Ergebnis eines Gesprächs in genau einem nüchternen Satz zusammen (höchstens 30 Wörter), Deutsch (de) und Englisch (en). Erfinde keine Einigung. Nenne nur Institutionen, keine Personen. Kein Gedankenstrich-Zeichen.",
+        },
+        {
+          role: "user",
+          content: [
+            `${x.kind === "caucus" ? "Koalitionsabstimmung" : "Einzelgespräch"} zu ${label} zwischen ${x.participants.map(nameOf).join(", ")}.`,
+            `Gemessene Haltungen vorher und nachher: ${x.moves.map(fmt).join("; ") || "keine"}.`,
+            x.transcript.map((t) => `${nameOf(t.speaker)}: ${t.text}`).join("\n"),
+            x.kind === "caucus"
+              ? "Satz: welche gemeinsame Linie die Partner ins Plenum tragen, oder wo sie uneins bleiben."
+              : "Satz: was sich bewegt hat und welche Bedingung offen bleibt.",
+          ].join("\n"),
+        },
+      ],
+      { reasoningEffort: "none", maxOutputTokens: 600 },
+    );
+    return { de: r.data.de, en: r.data.en, meta: r.meta };
+  } catch (error) {
+    console.warn("exchange_outcome_fallback", error instanceof Error ? error.message : error);
+    const fallbackEn =
+      x.kind === "caucus"
+        ? `${x.participants.join(", ")} go into plenary with an agreed line on ${x.topicId ?? "the tabled proposal"}.`
+        : moved.length
+          ? `${x.topicId ?? "Proposal"}: movement by ${moved.map((m) => m.agentId).join(", ")}; the conflict is smaller but not resolved.`
+          : `${x.topicId ?? "Proposal"}: no rapprochement, positions stay apart.`;
+    return { de: fallbackDe, en: fallbackEn, meta: null };
+  }
+}
+
 export async function summarizeRound(
   s: RunState,
   round: number,
@@ -107,10 +174,18 @@ export async function summarizeRound(
     .map((t) => ({ t, x: topicTally(s, t.id) }))
     .filter(({ x }) => x.of > 0 && x.oppose === 0 && x.support >= x.of - 1);
   try {
-    const r = await structured(model, "round_summary", SummaryOut, [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ]);
+    // Interim summaries are bookkeeping and sit on the critical path of every round;
+    // only the final one (with recommendations) gets reasoning.
+    const r = await structured(
+      model,
+      "round_summary",
+      SummaryOut,
+      [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+      { reasoningEffort: final ? "low" : "none" },
+    );
     const o = r.data;
     const notes = new Map(o.consensusNotes.map((c) => [c.topicId, c.note]));
     const summary: RoundSummary = {

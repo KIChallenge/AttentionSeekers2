@@ -48,8 +48,8 @@ export class StructuredOutputError extends Error {}
 /** Never logs request bodies or credentials. */
 export function redact(message: string): string {
   let m = message;
-  const key = process.env.OPENAI_COMPATIBLE_API_KEY;
-  if (key) m = m.replaceAll(key, "[redacted]");
+  for (const key of [process.env.OPENAI_COMPATIBLE_API_KEY, process.env.BIFROST_SEED_BEDROCK_KEY])
+    if (key) m = m.replaceAll(key, "[redacted]");
   return m.replace(/Bearer\s+\S+|sk-[\w-]+/gi, "[redacted]").slice(0, 600);
 }
 
@@ -143,6 +143,252 @@ async function complete(
   });
 }
 
+// ---------- Amazon Bedrock (Converse API), model ids prefixed "bedrock/" ----------
+
+export const BEDROCK_PREFIX = "bedrock/";
+export const isBedrock = (model: string) => model.startsWith(BEDROCK_PREFIX);
+
+/** Structured-output reliability per model: calls, invalid outputs, final failures. */
+export const structuredStats: Record<
+  string,
+  { calls: number; attempts: number; invalid: number; failed: number; repaired: number }
+> = {};
+const statOf = (model: string) => {
+  structuredStats[model] ??= { calls: 0, attempts: 0, invalid: 0, failed: 0, repaired: 0 };
+  return structuredStats[model];
+};
+
+export function hasBedrock(): boolean {
+  return Boolean(process.env.BIFROST_SEED_BEDROCK_KEY && process.env.BIFROST_SEED_BEDROCK_REGION);
+}
+
+/** Bedrock rejects the draft-7 "$schema" marker inside a tool inputSchema. */
+export function toolSchema(schema: Record<string, unknown>): Record<string, unknown> {
+  const { $schema: _drop, ...rest } = schema;
+  return rest;
+}
+
+/**
+ * Maps chat messages to Converse and forces one tool whose inputSchema is the JSON schema,
+ * so the tool input is the structured output. System messages go to `system`; consecutive
+ * same-role messages are merged because Converse requires alternating turns.
+ */
+export function converseBody(
+  messages: Message[],
+  name: string,
+  schema: Record<string, unknown>,
+  maxTokens: number,
+  choice: "tool" | "any" = "tool",
+): Record<string, unknown> {
+  const system = messages.filter((m) => m.role === "system").map((m) => ({ text: m.content }));
+  const turns: Array<{ role: "user" | "assistant"; content: Array<{ text: string }> }> = [];
+  for (const m of messages) {
+    if (m.role === "system") continue;
+    const last = turns.at(-1);
+    if (last && last.role === m.role) last.content.push({ text: m.content });
+    else turns.push({ role: m.role, content: [{ text: m.content }] });
+  }
+  return {
+    ...(system.length ? { system } : {}),
+    messages: turns,
+    inferenceConfig: { maxTokens },
+    toolConfig: {
+      tools: [
+        {
+          toolSpec: {
+            name,
+            description: `Return the result as the input of this tool (${name}).`,
+            inputSchema: { json: toolSchema(schema) },
+          },
+        },
+      ],
+      toolChoice: choice === "tool" ? { tool: { name } } : { any: {} },
+    },
+  };
+}
+
+type JsonSchema = {
+  type?: string | string[];
+  properties?: Record<string, JsonSchema>;
+  items?: JsonSchema;
+  anyOf?: JsonSchema[];
+  enum?: unknown[];
+};
+
+/**
+ * Schema-guided repair for tool-use output: models behind Converse often omit fields they
+ * were told to leave empty. Fills a missing string with "", a missing nullable with null,
+ * a missing array with [], a missing boolean with false, and turns numeric strings into
+ * numbers. Never invents numbers or enum values, so those still fail validation.
+ */
+export function repairToSchema(data: unknown, schema: JsonSchema): unknown {
+  // Nullable comes as anyOf [..., {type: "null"}] or as type: ["string", "null"].
+  const typeList = Array.isArray(schema.type) ? schema.type : null;
+  const nullable =
+    Boolean(schema.anyOf?.some((s) => s.type === "null")) || Boolean(typeList?.includes("null"));
+  const inner: JsonSchema = typeList
+    ? { ...schema, type: typeList.find((t) => t !== "null") }
+    : (schema.anyOf?.find((s) => s.type !== "null") ?? schema);
+  if (data === undefined || data === null) {
+    if (nullable) return null;
+    if (inner.enum) return data;
+    if (inner.type === "string") return "";
+    if (inner.type === "array") return [];
+    if (inner.type === "boolean") return false;
+    if (inner.type === "object") return repairToSchema({}, inner);
+    return data;
+  }
+  if (inner.type === "object" && typeof data === "object" && !Array.isArray(data)) {
+    const out: Record<string, unknown> = { ...(data as Record<string, unknown>) };
+    for (const [k, s] of Object.entries(inner.properties ?? {})) {
+      const v = repairToSchema(out[k], s);
+      if (v !== undefined) out[k] = v;
+    }
+    return out;
+  }
+  if (inner.type === "array") {
+    let arr = data;
+    if (typeof arr === "string") {
+      try {
+        arr = JSON.parse(arr);
+      } catch {
+        arr = [];
+      }
+    }
+    if (!Array.isArray(arr)) return [];
+    return inner.items ? arr.map((x) => repairToSchema(x, inner.items as JsonSchema)) : arr;
+  }
+  if (inner.type === "string" && !inner.enum && typeof data !== "string") {
+    if (typeof data === "number" || typeof data === "boolean") return String(data);
+    if (Array.isArray(data) && data.every((x) => typeof x === "string")) return data.join("; ");
+    return data;
+  }
+  if ((inner.type === "number" || inner.type === "integer") && typeof data === "string") {
+    const n = Number(data.replace(",", "."));
+    return Number.isFinite(n) ? n : data;
+  }
+  return data;
+}
+
+/** Models that refuse a named toolChoice fall back to "any" (one tool, same effect). */
+const anyChoice = new Set<string>();
+
+const BEDROCK_THROTTLE_RETRIES = 3;
+/** HTTP 429 responses per model (reported with the structured-output stats). */
+export const throttled: Record<string, number> = {};
+
+// Bedrock quotas are per account and low; a separate, smaller concurrency slot.
+let bedrockActive = 0;
+const bedrockWaiting: Array<() => void> = [];
+function bedrockLimit(): number {
+  const v = Number(process.env.SV_BEDROCK_CONCURRENCY ?? 6);
+  return Number.isSafeInteger(v) && v > 0 ? v : 6;
+}
+async function bedrockSlot<T>(run: () => Promise<T>): Promise<T> {
+  if (bedrockActive >= bedrockLimit()) await new Promise<void>((r) => bedrockWaiting.push(r));
+  bedrockActive++;
+  try {
+    return await run();
+  } finally {
+    bedrockActive--;
+    bedrockWaiting.shift()?.();
+  }
+}
+
+async function completeBedrock(
+  model: string,
+  messages: Message[],
+  name: string,
+  schema: Record<string, unknown>,
+  maxTokens: number,
+  timeoutMs: number,
+): Promise<{ content: string; meta: Omit<CallMeta, "retries"> }> {
+  const key = process.env.BIFROST_SEED_BEDROCK_KEY;
+  const region = process.env.BIFROST_SEED_BEDROCK_REGION;
+  if (!key || !region) throw new Error("Bedrock key or region is not set");
+  const modelId = model.slice(BEDROCK_PREFIX.length);
+  return bedrockSlot(async () => {
+    const started = performance.now();
+    let status: number | undefined;
+    try {
+      const send = (choice: "tool" | "any") =>
+        fetch(
+          `https://bedrock-runtime.${region}.amazonaws.com/model/${encodeURIComponent(modelId)}/converse`,
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+            body: JSON.stringify(converseBody(messages, name, schema, maxTokens, choice)),
+            signal: AbortSignal.timeout(timeoutMs),
+          },
+        );
+      let res = await send(anyChoice.has(modelId) ? "any" : "tool");
+      // Throttling: back off and retry (1.5 s, 3 s, 6 s) before giving up.
+      for (let i = 0; res.status === 429 && i < BEDROCK_THROTTLE_RETRIES; i++) {
+        throttled[model] = (throttled[model] ?? 0) + 1;
+        await res.text();
+        await new Promise((r) => setTimeout(r, 1500 * 2 ** i));
+        res = await send(anyChoice.has(modelId) ? "any" : "tool");
+      }
+      if (res.status === 400 && !anyChoice.has(modelId)) {
+        const text = await res.text();
+        if (!/toolChoice|tool choice/i.test(text))
+          throw new Error(`Bedrock 400: ${redact(text.slice(0, 300))}`);
+        anyChoice.add(modelId);
+        res = await send("any");
+      }
+      status = res.status;
+      if (!res.ok)
+        throw new Error(`Bedrock ${res.status}: ${redact((await res.text()).slice(0, 300))}`);
+      const json = (await res.json()) as {
+        output?: {
+          message?: {
+            content?: Array<{ text?: string; toolUse?: { name?: string; input?: unknown } }>;
+          };
+        };
+        stopReason?: string;
+        usage?: { inputTokens?: number; outputTokens?: number };
+      };
+      const u = json.usage ?? {};
+      usage.calls++;
+      usage.tokensIn += u.inputTokens ?? 0;
+      usage.tokensOut += u.outputTokens ?? 0;
+      if (json.stopReason === "max_tokens")
+        throw new StructuredOutputError(`LLM ${name}: truncated`);
+      const parts = json.output?.message?.content ?? [];
+      const input = parts.find((p) => p.toolUse)?.toolUse?.input;
+      const content =
+        typeof input === "string"
+          ? input
+          : input !== undefined
+            ? JSON.stringify(input)
+            : (parts.find((p) => p.text)?.text ?? "");
+      if (!content.trim()) throw new StructuredOutputError(`LLM ${name}: empty response`);
+      return {
+        content,
+        meta: {
+          model,
+          latencyMs: Math.round(performance.now() - started),
+          tokensIn: u.inputTokens ?? 0,
+          tokensOut: u.outputTokens ?? 0,
+          reasoningTokens: 0,
+          gatewayRequestId: res.headers.get("x-amzn-requestid"),
+        },
+      };
+    } catch (error) {
+      console.warn(
+        "llm_request_failed",
+        JSON.stringify({
+          operation: name,
+          provider: "bedrock",
+          status,
+          message: redact(error instanceof Error ? error.message : String(error)),
+        }),
+      );
+      throw error;
+    }
+  });
+}
+
 export interface StructuredOptions {
   timeoutMs?: number;
   maxOutputTokens?: number;
@@ -161,29 +407,65 @@ export async function structured<T extends z.ZodType>(
   opts: StructuredOptions = {},
 ): Promise<{ data: z.infer<T>; meta: CallMeta }> {
   const { timeoutMs = 150_000, maxOutputTokens = 16_000, reasoningEffort = "low" } = opts;
+  const json = z.toJSONSchema(schema, { target: "draft-7" }) as Record<string, unknown>;
   const response_format = {
     type: "json_schema",
-    json_schema: { name, strict: true, schema: z.toJSONSchema(schema, { target: "draft-7" }) },
+    json_schema: { name, strict: true, schema: json },
   };
+  const stat = statOf(model);
+  stat.calls++;
   let lastError: unknown;
   for (let attempt = 0; attempt < 2; attempt++) {
+    stat.attempts++;
+    let content: string;
+    let meta: Omit<CallMeta, "retries">;
     try {
-      const { content, meta } = await complete(
-        model,
-        messages,
-        {
-          response_format,
-          max_completion_tokens: maxOutputTokens,
-          ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
-        },
-        timeoutMs,
-        name,
-      );
-      return { data: schema.parse(JSON.parse(content)), meta: { ...meta, retries: attempt } };
+      ({ content, meta } = isBedrock(model)
+        ? await completeBedrock(
+            model,
+            messages,
+            name,
+            json,
+            Math.min(maxOutputTokens, 8192),
+            timeoutMs,
+          )
+        : await complete(
+            model,
+            messages,
+            {
+              response_format,
+              max_completion_tokens: maxOutputTokens,
+              ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
+            },
+            timeoutMs,
+            name,
+          ));
     } catch (error) {
+      lastError = error;
+      continue;
+    }
+    try {
+      const raw: unknown = JSON.parse(content);
+      const direct = schema.safeParse(raw);
+      if (direct.success) return { data: direct.data, meta: { ...meta, retries: attempt } };
+      if (isBedrock(model)) {
+        const fixed = schema.safeParse(repairToSchema(raw, json as JsonSchema));
+        if (fixed.success) {
+          stat.repaired++;
+          return { data: fixed.data, meta: { ...meta, retries: attempt } };
+        }
+      }
+      throw direct.error;
+    } catch (error) {
+      stat.invalid++;
+      console.warn(
+        "llm_invalid_output",
+        JSON.stringify({ operation: name, model, message: redact(String(error)).slice(0, 300) }),
+      );
       lastError = error;
     }
   }
+  stat.failed++;
   throw new StructuredOutputError(
     `LLM ${name}: ${redact(lastError instanceof Error ? lastError.message : String(lastError))}`,
   );

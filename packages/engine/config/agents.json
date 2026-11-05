@@ -1,5 +1,5 @@
 {
-  "$comment": "Agent profiles (FR-A1, FR-C3, FR-C4, NFR-3). Institutions only, never a person. Edit here, no code change needed (FR-A7). temperament = [concession, assertiveness, coalitionAppetite, riskTolerance].",
+  "$comment": "Agent profiles (FR-A1, FR-C3, FR-C4, NFR-3). Institutions only, never a person. Edit here, no code change needed (FR-A7). temperament = [concession, assertiveness, coalitionAppetite, riskTolerance]. delegates = up to three fictional, unnamed functional roles per institution (CON-1/CON-2); topicKeys pick the delegate for a focused exchange, the first is the lead for plenary and caucus.",
   "agents": {
     "gm": {
       "unit": "Sektion Gesundheitssystem",
@@ -52,7 +52,39 @@
       "temperament": [0.55, 0.6, 0.7, 0.5],
       "register": "sachlich-steuernd, spricht von Zielsteuerung, Versorgungsauftrag, Patientenlenkung, Gesundheitshotline 1450",
       "keywords": "Zielsteuerung Gesundheitsreform Terminservice 1450 Patientenlenkung Versorgung",
-      "redLineIds": []
+      "redLineIds": [],
+      "delegates": [
+        {
+          "id": "gm-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "gm-plan",
+          "role": {
+            "de": "Fachreferat Versorgungsplanung",
+            "en": "Care planning desk"
+          },
+          "topicKeys": [
+            "pve_planning",
+            "appointment_service",
+            "appointment_guarantee",
+            "contract_posts",
+            "telemedicine"
+          ]
+        },
+        {
+          "id": "gm-beruf",
+          "role": {
+            "de": "Fachreferat Gesundheitsberufe",
+            "en": "Health professions desk"
+          },
+          "topicKeys": ["nursing_first_contact"]
+        }
+      ]
     },
     "sv": {
       "unit": "Dachverband und ÖGK",
@@ -105,7 +137,38 @@
       "temperament": [0.5, 0.55, 0.6, 0.45],
       "register": "kostenträgerorientiert, spricht von Versichertengemeinschaft, Kassenstellen, Gebarung, Beitragsstabilität, Versorgungswirksamkeit",
       "keywords": "Sozialversicherung ÖGK Kassenstellen Gebarung Gesamtvertrag Beitrag",
-      "redLineIds": ["rl-sv-1"]
+      "redLineIds": ["rl-sv-1"],
+      "delegates": [
+        {
+          "id": "sv-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "sv-vertrag",
+          "role": {
+            "de": "Fachreferat Vertragspartner und Honorare",
+            "en": "Contracts and fees desk"
+          },
+          "topicKeys": ["fee_indexation", "contract_posts", "appointment_guarantee"]
+        },
+        {
+          "id": "sv-plan",
+          "role": {
+            "de": "Fachreferat Versorgungsplanung",
+            "en": "Care planning desk"
+          },
+          "topicKeys": [
+            "pve_planning",
+            "appointment_service",
+            "telemedicine",
+            "nursing_first_contact"
+          ]
+        }
+      ]
     },
     "ak": {
       "unit": "Kurie niedergelassene Ärzte",
@@ -158,7 +221,33 @@
       "temperament": [0.3, 0.8, 0.4, 0.4],
       "register": "standespolitisch-pointiert, spricht von Kassenmedizin, Attraktivität, Bürokratieabbau, ärztlicher Verantwortung, Arztvorbehalt",
       "keywords": "Ärztekammer Kassenvertrag Honorar Tarif Attraktivität Arztvorbehalt Stellenplan",
-      "redLineIds": ["rl-ak-1", "rl-ak-2"]
+      "redLineIds": ["rl-ak-1", "rl-ak-2"],
+      "delegates": [
+        {
+          "id": "ak-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "ak-recht",
+          "role": {
+            "de": "Fachreferat Vertragsrecht",
+            "en": "Contract law desk"
+          },
+          "topicKeys": ["contract_posts", "fee_indexation", "appointment_guarantee", "pve_planning"]
+        },
+        {
+          "id": "ak-beruf",
+          "role": {
+            "de": "Fachreferat Berufsrecht",
+            "en": "Professional law desk"
+          },
+          "topicKeys": ["nursing_first_contact", "telemedicine", "appointment_service"]
+        }
+      ]
     },
     "va": {
       "unit": "Vertretung der Kassenordinationen",
@@ -211,7 +300,38 @@
       "temperament": [0.5, 0.6, 0.5, 0.45],
       "register": "praxisnah, spricht von Ordinationsalltag, Patientenfrequenz, Tarifposition, Haftung, Wahlarztabwanderung",
       "keywords": "Vertragsärzte Ordination Telemedizin Tarif Haftung Wahlarzt",
-      "redLineIds": ["rl-va-1"]
+      "redLineIds": ["rl-va-1"],
+      "delegates": [
+        {
+          "id": "va-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "va-praxis",
+          "role": {
+            "de": "Fachreferat Praxisorganisation",
+            "en": "Practice organisation desk"
+          },
+          "topicKeys": [
+            "appointment_service",
+            "appointment_guarantee",
+            "telemedicine",
+            "nursing_first_contact"
+          ]
+        },
+        {
+          "id": "va-hon",
+          "role": {
+            "de": "Fachreferat Honorare",
+            "en": "Fees desk"
+          },
+          "topicKeys": ["fee_indexation", "contract_posts", "pve_planning"]
+        }
+      ]
     },
     "ka": {
       "unit": "Spitalsträger",
@@ -264,7 +384,39 @@
       "temperament": [0.55, 0.45, 0.6, 0.4],
       "register": "betriebswirtschaftlich-versorgungsorientiert, spricht von Ambulanzfrequenzen, Fehlversorgung, Best Point of Service, LKF",
       "keywords": "Spitalsambulanz Krankenanstalten Ambulanz Entlastung Spital",
-      "redLineIds": []
+      "redLineIds": [],
+      "delegates": [
+        {
+          "id": "ka-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "ka-plan",
+          "role": {
+            "de": "Fachreferat Versorgungsplanung",
+            "en": "Care planning desk"
+          },
+          "topicKeys": [
+            "pve_planning",
+            "appointment_service",
+            "contract_posts",
+            "telemedicine",
+            "nursing_first_contact"
+          ]
+        },
+        {
+          "id": "ka-fin",
+          "role": {
+            "de": "Fachreferat Finanzen",
+            "en": "Finance desk"
+          },
+          "topicKeys": ["fee_indexation", "appointment_guarantee"]
+        }
+      ]
     },
     "pf": {
       "unit": "Berufsverband Pflege",
@@ -317,7 +469,33 @@
       "temperament": [0.6, 0.55, 0.75, 0.55],
       "register": "professionspolitisch, spricht von Kompetenzerweiterung, Community Nursing, Skill-Mix, GuKG",
       "keywords": "Pflege Community Nursing Kompetenz GuKG Primärversorgung",
-      "redLineIds": []
+      "redLineIds": [],
+      "delegates": [
+        {
+          "id": "pf-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "pf-praxis",
+          "role": {
+            "de": "Fachreferat Pflegepraxis",
+            "en": "Nursing practice desk"
+          },
+          "topicKeys": [
+            "telemedicine",
+            "contract_posts",
+            "appointment_service",
+            "appointment_guarantee",
+            "pve_planning",
+            "fee_indexation",
+            "nursing_first_contact"
+          ]
+        }
+      ]
     },
     "bl": {
       "unit": "Landes-Zielsteuerungskommissionen",
@@ -370,7 +548,39 @@
       "temperament": [0.5, 0.6, 0.65, 0.5],
       "register": "föderal, spricht von Landes-Zielsteuerung, RSG, 15a-Vereinbarung, Finanzausgleich, regionaler Versorgung",
       "keywords": "Länder Landes-Zielsteuerung 15a Finanzausgleich Primärversorgung Planung",
-      "redLineIds": ["rl-bl-1"]
+      "redLineIds": ["rl-bl-1"],
+      "delegates": [
+        {
+          "id": "bl-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "bl-plan",
+          "role": {
+            "de": "Fachreferat Versorgungsplanung",
+            "en": "Care planning desk"
+          },
+          "topicKeys": [
+            "pve_planning",
+            "contract_posts",
+            "appointment_service",
+            "telemedicine",
+            "nursing_first_contact"
+          ]
+        },
+        {
+          "id": "bl-budget",
+          "role": {
+            "de": "Fachreferat Budget",
+            "en": "Budget desk"
+          },
+          "topicKeys": ["fee_indexation", "appointment_guarantee"]
+        }
+      ]
     },
     "pv": {
       "unit": "Patientenanwaltschaften",
@@ -423,7 +633,33 @@
       "temperament": [0.4, 0.75, 0.55, 0.6],
       "register": "betroffenennah, spricht von Patient:innen, Zwei-Klassen-Medizin, Wartezeit, Rechtsanspruch, Transparenz",
       "keywords": "Patienten Wartezeit Termin Zwei-Klassen Patientenanwaltschaft",
-      "redLineIds": ["rl-pv-1"]
+      "redLineIds": ["rl-pv-1"],
+      "delegates": [
+        {
+          "id": "pv-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "pv-recht",
+          "role": {
+            "de": "Fachreferat Patientenrechte",
+            "en": "Patient rights desk"
+          },
+          "topicKeys": [
+            "telemedicine",
+            "contract_posts",
+            "appointment_service",
+            "appointment_guarantee",
+            "pve_planning",
+            "fee_indexation",
+            "nursing_first_contact"
+          ]
+        }
+      ]
     },
     "fm": {
       "unit": "Budgetsektion",
@@ -476,7 +712,33 @@
       "temperament": [0.35, 0.65, 0.4, 0.3],
       "register": "fiskalisch, spricht von Ausgabenpfad, Gegenfinanzierung, Evaluierung, Kostendämpfungspfad, Stabilitätspakt",
       "keywords": "Finanzministerium Budget Gegenfinanzierung Ausgabenobergrenze Finanzrahmen",
-      "redLineIds": ["rl-fm-1"]
+      "redLineIds": ["rl-fm-1"],
+      "delegates": [
+        {
+          "id": "fm-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "fm-budget",
+          "role": {
+            "de": "Fachreferat Budget",
+            "en": "Budget desk"
+          },
+          "topicKeys": [
+            "telemedicine",
+            "contract_posts",
+            "appointment_service",
+            "appointment_guarantee",
+            "pve_planning",
+            "fee_indexation",
+            "nursing_first_contact"
+          ]
+        }
+      ]
     },
     "nr": {
       "unit": "Gesundheitsausschuss",
@@ -529,7 +791,33 @@
       "temperament": [0.5, 0.5, 0.6, 0.5],
       "register": "parlamentarisch, spricht von Mehrheiten, Begutachtung, Initiativantrag, Wirkungsorientierung",
       "keywords": "Nationalrat Gesundheitsausschuss Gesetz Novelle Begutachtung",
-      "redLineIds": ["rl-nr-1"]
+      "redLineIds": ["rl-nr-1"],
+      "delegates": [
+        {
+          "id": "nr-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "nr-leg",
+          "role": {
+            "de": "Fachreferat Legistik",
+            "en": "Legislative drafting desk"
+          },
+          "topicKeys": [
+            "telemedicine",
+            "contract_posts",
+            "appointment_service",
+            "appointment_guarantee",
+            "pve_planning",
+            "fee_indexation",
+            "nursing_first_contact"
+          ]
+        }
+      ]
     },
     "ph": {
       "unit": "Public-Health-Fachstellen",
@@ -582,7 +870,33 @@
       "temperament": [0.6, 0.5, 0.6, 0.5],
       "register": "wissenschaftlich, spricht von Evidenz, Versorgungsforschung, Outcome, Monitoring",
       "keywords": "Public Health Evidenz Versorgungsforschung Monitoring",
-      "redLineIds": []
+      "redLineIds": [],
+      "delegates": [
+        {
+          "id": "ph-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "ph-vf",
+          "role": {
+            "de": "Fachreferat Versorgungsforschung",
+            "en": "Health services research desk"
+          },
+          "topicKeys": [
+            "telemedicine",
+            "contract_posts",
+            "appointment_service",
+            "appointment_guarantee",
+            "pve_planning",
+            "fee_indexation",
+            "nursing_first_contact"
+          ]
+        }
+      ]
     },
     "wk": {
       "unit": "Sparte Gewerbe und Gesundheitsberufe",
@@ -635,7 +949,33 @@
       "temperament": [0.45, 0.6, 0.5, 0.4],
       "register": "wirtschaftsnah, spricht von Lohnnebenkosten, Effizienz, Standortqualität",
       "keywords": "Wirtschaftskammer Lohnnebenkosten Effizienz Dienstgeber",
-      "redLineIds": []
+      "redLineIds": [],
+      "delegates": [
+        {
+          "id": "wk-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "wk-beruf",
+          "role": {
+            "de": "Fachreferat Gesundheitsberufe",
+            "en": "Health professions desk"
+          },
+          "topicKeys": [
+            "telemedicine",
+            "contract_posts",
+            "appointment_service",
+            "appointment_guarantee",
+            "pve_planning",
+            "fee_indexation",
+            "nursing_first_contact"
+          ]
+        }
+      ]
     },
     "abk": {
       "unit": "Abteilung Sozialversicherung",
@@ -688,7 +1028,33 @@
       "temperament": [0.45, 0.7, 0.55, 0.5],
       "register": "arbeitnehmernah, spricht von Versicherten, Kassenmedizin statt Wahlarzt, Gerechtigkeit",
       "keywords": "Arbeiterkammer Versicherte Wahlarzt Selbstbehalt Zugang",
-      "redLineIds": []
+      "redLineIds": [],
+      "delegates": [
+        {
+          "id": "abk-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "abk-sv",
+          "role": {
+            "de": "Fachreferat Sozialversicherung",
+            "en": "Social insurance desk"
+          },
+          "topicKeys": [
+            "telemedicine",
+            "contract_posts",
+            "appointment_service",
+            "appointment_guarantee",
+            "pve_planning",
+            "fee_indexation",
+            "nursing_first_contact"
+          ]
+        }
+      ]
     },
     "lk": {
       "unit": "Abteilung Soziales",
@@ -736,7 +1102,33 @@
       "temperament": [0.5, 0.5, 0.55, 0.45],
       "register": "ländlich, spricht von Erreichbarkeit, Landarzt, Wegzeiten",
       "keywords": "Landwirtschaftskammer ländlich Landarzt Erreichbarkeit",
-      "redLineIds": []
+      "redLineIds": [],
+      "delegates": [
+        {
+          "id": "lk-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "lk-soz",
+          "role": {
+            "de": "Fachreferat Sozialpolitik",
+            "en": "Social policy desk"
+          },
+          "topicKeys": [
+            "telemedicine",
+            "contract_posts",
+            "appointment_service",
+            "appointment_guarantee",
+            "pve_planning",
+            "fee_indexation",
+            "nursing_first_contact"
+          ]
+        }
+      ]
     },
     "ind": {
       "unit": "Branchenverbände Industrie und Pharma",
@@ -789,7 +1181,33 @@
       "temperament": [0.5, 0.6, 0.5, 0.55],
       "register": "innovationsorientiert, spricht von Standort, Innovation, Erstattung, digitale Gesundheitsanwendungen",
       "keywords": "Pharma Industrie Innovation Erstattung digitale Gesundheitsanwendung",
-      "redLineIds": []
+      "redLineIds": [],
+      "delegates": [
+        {
+          "id": "ind-lead",
+          "role": {
+            "de": "Verhandlungsführung",
+            "en": "Lead negotiator"
+          },
+          "topicKeys": []
+        },
+        {
+          "id": "ind-dig",
+          "role": {
+            "de": "Fachreferat Digitalisierung und Arzneimittel",
+            "en": "Digital and pharmaceuticals desk"
+          },
+          "topicKeys": [
+            "telemedicine",
+            "contract_posts",
+            "appointment_service",
+            "appointment_guarantee",
+            "pve_planning",
+            "fee_indexation",
+            "nursing_first_contact"
+          ]
+        }
+      ]
     }
   },
   "redLines": [

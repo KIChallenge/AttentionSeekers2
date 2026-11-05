@@ -20,6 +20,7 @@ import {
   Template,
 } from "@sv/contracts";
 import { REPO_ROOT } from "./config.ts";
+import { structuredStats, throttled } from "./llm.ts";
 import { buildMandate, defaultRoom } from "./room.ts";
 import { newRunId, runNegotiation } from "./runner.ts";
 
@@ -194,9 +195,16 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  process.stderr.write(
-    `engine_failed: ${error instanceof Error ? error.message : String(error)}\n`,
-  );
-  process.exit(1);
-});
+main()
+  .then(() => {
+    if (Object.keys(structuredStats).length)
+      process.stderr.write(
+        `llm_stats ${JSON.stringify({ structured: structuredStats, throttled })}\n`,
+      );
+  })
+  .catch((error) => {
+    process.stderr.write(
+      `engine_failed: ${error instanceof Error ? error.message : String(error)}\n`,
+    );
+    process.exit(1);
+  });

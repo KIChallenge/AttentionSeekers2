@@ -1,15 +1,22 @@
 // The negotiation loop. Every step emits RunEvents through RunWriter (NDJSON file,
-// database, live listeners). Per-agent calls within a wave run in parallel; a round
-// has two waves so the second half of the speaking order can answer the first half.
+// database, live listeners).
+//
+// A round is a sequence of exchanges, not a speaking order: the full table opens
+// (phase 1: short opening statements), then the moderator opens focused bilateral or
+// trilateral exchanges on the open conflicts and the tabled proposal, coalition partners
+// confer in caucuses (in parallel, overlapping in meeting time), and the full table meets
+// again to table and vote on proposals. Every utterance carries simulated meeting time.
 import path from "node:path";
 import {
   type CitationRef,
   type Claim,
+  type Exchange,
   foldRun,
   lessonKey,
   type Mandate,
   type PayoffSign,
   type Position,
+  type PromptBlock,
   type Proposal,
   type RoomConfig,
   type RoundLesson,
@@ -21,22 +28,38 @@ import {
   type Utterance,
   type UtteranceTrace,
 } from "@sv/contracts";
-import { nameOf, runLesson, runStrategy, runTurn, type TurnOut } from "./agent.ts";
+import { nameOf, runExchangeTurn, runLesson, runStrategy, runTurn, type TurnOut } from "./agent.ts";
 import { computeCalculus, outcomeClassOf, type Vote } from "./coalition.ts";
 import {
   agentConfigOf,
   allRedLines,
+  delegatesOf,
   L,
   profileOf,
   REPO_ROOT,
   redLinesOf,
   VERIFIER_MODEL,
 } from "./config.ts";
+import {
+  type Conflict,
+  conflictsFromStances,
+  type ExchangePlan,
+  lanes,
+  MeetingClock,
+  mergeConflicts,
+  type PlanInput,
+  pickDelegate,
+  pickInterjector,
+  selectBilaterals,
+  selectCaucuses,
+  type TabledInfo,
+  touchesInterests,
+} from "./exchanges.ts";
 import { runExpert } from "./expert.ts";
 import { forecast } from "./forecast.ts";
 import { DEFAULT_BASELINE_EUR_BN, packageFigures, proposalFigures } from "./impact.ts";
 import { type CallMeta, usage } from "./llm.ts";
-import { summarizeRound } from "./moderator.ts";
+import { exchangeOutcome, summarizeRound } from "./moderator.ts";
 import { PHASE_NAMES, phaseFor, shuffle } from "./phases.ts";
 import { type Passage, retrieve } from "./retrieval.ts";
 import { buildMandate } from "./room.ts";
@@ -73,6 +96,8 @@ export interface RunResult {
 const MAX_NEW_PROPOSALS_PER_ROUND = 4;
 const MAX_OPEN_PROPOSALS = 8;
 const SHIFT = 0.25;
+const MAX_BILATERALS = 2;
+const MAX_CAUCUSES = 2;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -84,7 +109,11 @@ export function newRunId(prefix = "run"): string {
   return `${prefix}-${stamp}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
-function telemetry(meta: CallMeta, seed: number): NonNullable<Utterance["telemetry"]> {
+function telemetry(
+  meta: CallMeta,
+  seed: number,
+  maxOutputTokens = 16000,
+): NonNullable<Utterance["telemetry"]> {
   return {
     model: meta.model,
     latencyMs: meta.latencyMs,
@@ -95,7 +124,7 @@ function telemetry(meta: CallMeta, seed: number): NonNullable<Utterance["telemet
     fallbackFrom: null,
     cacheHit: false,
     gatewayRequestId: meta.gatewayRequestId,
-    params: { temperature: null, maxOutputTokens: 16000, seed },
+    params: { temperature: null, maxOutputTokens, seed },
     reasoningTokens: meta.reasoningTokens,
   };
 }
@@ -137,6 +166,14 @@ function stateFromSnapshot(s: RunState, snap: RunSnapshot) {
     : null;
   s.summaries.push(...snap.summaries);
   s.proposalCounter = snap.proposalOrder.length;
+}
+
+/** Where an utterance goes: its exchange, the clock that times it, its addressees. */
+interface At {
+  ex: Exchange;
+  clk: MeetingClock;
+  addressedTo?: string[];
+  delegateId?: string;
 }
 
 export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
@@ -205,6 +242,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     retrievalEdit: opts.fork?.edit ? { ...opts.fork.edit } : null,
   };
 
+  const clock = new MeetingClock();
   let startRound = 1;
   if (opts.fork) {
     const cut = opts.fork.baseEvents.findIndex(
@@ -215,21 +253,100 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
       if (e.type === "run.completed" || e.type === "run.error") continue;
       w.copy(retag(e, runId));
     }
-    stateFromSnapshot(s, foldRun(w.events));
+    const snap = foldRun(w.events);
+    stateFromSnapshot(s, snap);
+    clock.now = r2(
+      Math.max(
+        0,
+        ...snap.exchanges.map((x) => x.endMin ?? 0),
+        ...s.utterances.map((u) => (u.timing ? u.timing.startMin + u.timing.durationMin : 0)),
+      ),
+    );
+    if (clock.now > 0) clock.gap();
     startRound = opts.fork.fromRound;
   }
 
   const roundUtts = (round: number) => s.utterances.filter((u) => u.round === round);
   const nextUttId = (round: number) => `u${round}-${pad(roundUtts(round).length + 1)}`;
   const lastSummaryUtt = () => [...s.utterances].reverse().find((u) => u.kind === "round_summary");
+  const topicById = (id: string | null) => s.mandate.topics.find((t) => t.id === id);
+  const redLineOwner = (id: string) => allRedLines().find((r) => r.id === id)?.agentId;
+  const stanceNow = (a: string, t: string | null) =>
+    t ? (s.positions.get(a)?.get(t)?.stance ?? null) : null;
 
-  const pushUtterance = (u: Utterance, claims: Claim[]) => {
+  /**
+   * NFR-9: a call that fails on a seat's own model (for example the second family) is
+   * retried once on the default model; the result names the model it fell back from.
+   */
+  const withFallback = async <T extends object>(
+    a: string,
+    call: (model: string) => Promise<T>,
+  ): Promise<(T & { fallbackFrom?: string }) | Error> => {
+    const own = modelOf(a);
+    try {
+      return await call(own);
+    } catch (error) {
+      if (own === room.moderatorModel) return error as Error;
+      console.warn("model_fallback", JSON.stringify({ agentId: a, from: own }));
+      try {
+        return { ...(await call(room.moderatorModel)), fallbackFrom: own };
+      } catch (e2) {
+        return e2 as Error;
+      }
+    }
+  };
+
+  // ---------- exchanges ----------
+  const exCounters = new Map<number, number>();
+  const openExchange = (
+    round: number,
+    phase: number,
+    kind: Exchange["kind"],
+    participants: string[],
+    topicId: string | null,
+    trigger: { de: string; en: string },
+    clk: MeetingClock,
+  ): Exchange => {
+    const n = (exCounters.get(round) ?? 0) + 1;
+    exCounters.set(round, n);
+    const ex: Exchange = {
+      id: `x${round}-${pad(n)}`,
+      round,
+      phase,
+      kind,
+      participants,
+      topicId,
+      trigger: L(trigger.de, trigger.en),
+      utteranceIds: [],
+      outcome: null,
+      startMin: r2(clk.now),
+    };
+    w.emit({ type: "exchange.opened", exchange: { ...ex, utteranceIds: [] } });
+    return ex;
+  };
+  const closeExchange = (
+    ex: Exchange,
+    outcome: { de: string; en: string } | null,
+    clk: MeetingClock,
+  ) => {
+    ex.outcome = outcome ? L(outcome.de, outcome.en) : null;
+    ex.endMin = r2(Math.max(ex.startMin ?? 0, clk.end));
+    w.emit({ type: "exchange.closed", exchange: { ...ex, utteranceIds: [...ex.utteranceIds] } });
+  };
+
+  const pushUtterance = (u: Utterance, claims: Claim[], at: At) => {
+    u.exchangeId = at.ex.id;
+    if (at.delegateId) u.delegateId = at.delegateId;
+    if (at.addressedTo) u.addressedTo = at.addressedTo;
+    u.timing = at.clk.place(u.text.text);
+    at.ex.utteranceIds.push(u.id);
     s.utterances.push(u);
     for (const c of claims) s.claims.set(c.id, c);
     w.emit({ type: "utterance.completed", utterance: u, claims });
   };
 
   const moderatorSays = (
+    at: At,
     round: number,
     phase: number,
     kind: Utterance["kind"],
@@ -259,8 +376,160 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
       deliberationSummary: null,
       degraded: null,
     };
-    pushUtterance(u, []);
+    pushUtterance(u, [], at);
     return u;
+  };
+
+  /** A failed model call still leaves a visible, marked turn (NFR-9). */
+  const pushDegraded = (
+    a: string,
+    round: number,
+    phase: number,
+    kind: Utterance["kind"],
+    respondsTo: string | null,
+    reason: string,
+    at: At,
+  ) => {
+    const uttId = nextUttId(round);
+    w.emit({
+      type: "utterance.started",
+      utteranceId: uttId,
+      speaker: a,
+      round,
+      respondsTo,
+      model: modelOf(a),
+    });
+    const u: Utterance = {
+      id: uttId,
+      round,
+      seq: s.utterances.length + 1,
+      phase,
+      speaker: a,
+      kind,
+      respondsTo,
+      text: L(
+        "(Beitrag ausgefallen: Modellaufruf fehlgeschlagen)",
+        "(Turn degraded: model call failed)",
+      ),
+      claimIds: [],
+      redLinesTouched: [],
+      proposalIds: [],
+      model: modelOf(a),
+      telemetry: null,
+      deliberationSummary: null,
+      degraded: { reason },
+    };
+    pushUtterance(u, [], at);
+    w.emit({ type: "agent.degraded", agentId: a, utteranceId: uttId, reason });
+    return u;
+  };
+
+  const citer = (passages: Passage[]) => {
+    const handles = new Map(passages.map((p) => [p.handle, p]));
+    return (hs: string[]): CitationRef[] =>
+      [...new Set(hs)]
+        .map((h) => handles.get(h.trim()))
+        .filter((p): p is Passage => Boolean(p))
+        .map((p) => ({
+          sourceId: p.sourceId,
+          segmentId: p.segmentId,
+          start: null,
+          end: null,
+          recencyWeight: p.recencyWeight,
+        }));
+  };
+
+  /** Claims (FR-T10, FR-P5): assumption iff no citation. */
+  const buildClaims = (
+    round: number,
+    uttId: string,
+    textDe: string,
+    raw: TurnOut["claims"],
+    cite: (hs: string[]) => CitationRef[],
+    model: string,
+    max: number,
+  ): Claim[] =>
+    raw.slice(0, max).map((c, i) => {
+      const citations = cite(c.evidence);
+      let start = textDe.indexOf(c.quote);
+      let len = c.quote.length;
+      if (start < 0 || !c.quote) {
+        start = 0;
+        len = textDe.length;
+      }
+      return {
+        id: `c-${round}-${uttId.slice(uttId.indexOf("-") + 1)}-${i + 1}`,
+        utteranceId: uttId,
+        span: { start, end: start + len },
+        atomicText: c.atomic,
+        kind: c.kind,
+        numeric:
+          c.value !== null ? { value: c.value, unit: c.unit ?? "", low: null, high: null } : null,
+        citations,
+        state: citations.length ? "unverified" : "assumption",
+        verifyingModels: [],
+        decompositionModel: model,
+        contradiction: null,
+      };
+    });
+
+  const buildTrace = (o: {
+    a: string;
+    round: number;
+    uttId: string;
+    respondsTo: string | null;
+    blocks: PromptBlock[];
+    ev: { passages: Passage[]; trace: UtteranceTrace["retrieval"][number] } | undefined;
+    usedHandles: Set<string>;
+    options: UtteranceTrace["deliberation"]["options"];
+    decision: string;
+    wouldChangeMind: string[];
+    reasoningTokens: number;
+  }): UtteranceTrace => {
+    const lesson = s.lessons.get(o.a);
+    const own = [...s.utterances].reverse().find((u) => u.speaker === o.a && u.id !== o.uttId);
+    return {
+      utteranceId: o.uttId,
+      prompt: o.blocks,
+      retrieval: o.ev ? [o.ev.trace] : [],
+      deliberation: {
+        utteranceId: o.uttId,
+        sourcesRead: (o.ev?.passages ?? []).map((p) => ({
+          ref: {
+            sourceId: p.sourceId,
+            segmentId: p.segmentId,
+            start: null,
+            end: null,
+            recencyWeight: p.recencyWeight,
+          },
+          use: o.usedHandles.has(p.handle) ? ("cited" as const) : ("read_not_cited" as const),
+        })),
+        priorUtterances: [
+          ...(o.respondsTo ? [{ id: o.respondsTo, relation: "responds_to" as const }] : []),
+          ...(own ? [{ id: own.id, relation: "own" as const }] : []),
+          ...s.utterances
+            .filter(
+              (u) =>
+                u.round >= o.round - 1 &&
+                u.id !== o.respondsTo &&
+                u.id !== own?.id &&
+                u.id !== o.uttId,
+            )
+            .slice(-8)
+            .map((u) => ({ id: u.id, relation: "context" as const })),
+        ],
+        lessonsUsed: lesson ? [lessonKey(o.a, lesson.round)] : [],
+        options: o.options,
+        decision: L(o.decision),
+        wouldChangeMind: o.wouldChangeMind.slice(0, 3).map((x) => L(x)),
+        providerTrace: {
+          available: false,
+          text: null,
+          note: `Reasoning-Tokens (${o.reasoningTokens}) werden über Chat Completions nicht im Klartext geliefert`,
+        },
+        schemaVersion: 2,
+      },
+    };
   };
 
   let endId: "convergence" | "max_rounds" | "deadlock" | null = null;
@@ -275,6 +544,110 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     const order = shuffle(agentIds, room.seed + round * 7919);
     w.emit({ type: "round.started", round, phase, speakingOrder: order });
     const phaseName = PHASE_NAMES[phase - 1];
+    let newProposals = 0;
+    let maxShift = 0;
+    let stageClaims: Claim[] = [];
+    const expertJobs: Array<Promise<Awaited<ReturnType<typeof runExpert>>>> = [];
+    const flushExpert = () => {
+      // Experte checks each stage's claims in the background (FR-N1, N2, N7).
+      if (stageClaims.length)
+        expertJobs.push(runExpert(s, stageClaims, room.expertModel, verifierModel));
+      stageClaims = [];
+    };
+
+    // ---------- planning inputs (moderator, deterministic) ----------
+    const tabledInfo = (): TabledInfo | null => {
+      const nt = s.calculus?.nextTabled;
+      const p = nt ? s.proposals.get(nt.proposalId) : undefined;
+      const row = s.calculus?.proposals.find((r) => r.proposalId === nt?.proposalId);
+      if (!p || !row || p.status !== "open" || phase < 2 || phase > 4) return null;
+      return {
+        proposalId: p.id,
+        topicIds: p.topicIds,
+        origin: p.originAgent,
+        supporters: row.supporters,
+        conditional: row.conditional,
+        opponents: row.opponents,
+        blockers: row.blockers,
+      };
+    };
+    const planInput = (): PlanInput => {
+      const stanceOf = (a: string, t: string) => {
+        const p = s.positions.get(a)?.get(t);
+        return p ? { stance: p.stance, strength: p.strength } : undefined;
+      };
+      const fromSummary: Conflict[] =
+        round > 1
+          ? (s.summaries.at(-1)?.openConflicts ?? []).map((c) => ({
+              topicId: c.topicId,
+              sides: c.sides,
+              boundBy: c.boundBy,
+            }))
+          : [];
+      const fromStances = conflictsFromStances(
+        s.mandate.topics.map((t) => t.id),
+        agentIds,
+        stanceOf,
+      );
+      return {
+        conflicts: mergeConflicts(fromSummary, fromStances),
+        stanceOf,
+        vetoPlayers: agentIds.filter((a) => profileOf(a).vetoStatus === "formal_veto"),
+        eligible: (a, t) => {
+          const topic = topicById(t);
+          return touchesInterests({
+            origin: seated.find((x) => x.agentId === a)?.origin ?? "optional",
+            topicKey: topic?.key ?? t,
+            topicLabel: topic?.label.text ?? t,
+            redLineTopicKeys: redLinesOf(a).flatMap((r) => r.topicKeys),
+            keywords: profileOf(a).keywords,
+          });
+        },
+        redLineOwner,
+        labelOf: (t) => {
+          const topic = topicById(t);
+          return {
+            de: topic?.label.text ?? t,
+            en: topic?.label.translations.en ?? topic?.label.text ?? t,
+          };
+        },
+        nameOf,
+        tabled: tabledInfo(),
+        seated: agentIds,
+      };
+    };
+    const affinity = (a: string, b: string) =>
+      Math.max(
+        0,
+        ...(s.assessments.get(a)?.coalitionOptions ?? [])
+          .filter((o) => o.withAgents.includes(b))
+          .map((o) => o.overlap),
+      );
+    const describePlans = (plans: ExchangePlan[]) =>
+      plans
+        .map((p) => {
+          const label = topicById(p.topicId)?.label.text ?? "Vorschlag auf dem Tisch";
+          return `${p.participants.map(nameOf).join(" und ")} zu ${label}`;
+        })
+        .join("; ");
+
+    // ---------- opening plenary ----------
+    let bilaterals: ExchangePlan[] =
+      round > 1 && !final ? selectBilaterals(planInput(), MAX_BILATERALS) : [];
+    const opening = openExchange(
+      round,
+      phase,
+      "plenary",
+      [...agentIds],
+      null,
+      final
+        ? { de: "Schlussrunde: Abstimmung und Ergebnis", en: "Final round: vote and result" }
+        : round === 1
+          ? { de: "Eröffnung: Ausgangspositionen", en: "Opening: starting positions" }
+          : { de: `Eröffnung Runde ${round}`, en: `Opening round ${round}` },
+      clock,
+    );
+    const atOpening: At = { ex: opening, clk: clock, addressedTo: [] };
 
     // Scheduled events (FR-U10).
     const injected: string[] = [];
@@ -282,6 +655,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
       w.emit({ type: "room.event_injected", round, event: ev });
       injected.push(`${ev.title.text}: ${ev.body.text}`);
       moderatorSays(
+        atOpening,
         round,
         phase,
         "event_injection",
@@ -291,7 +665,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
       );
     }
 
-    // Opening (templated, so the moderator holds no position, FR-M9).
+    // Opening line (templated, so the moderator holds no position, FR-M9).
     const names = order.map(nameOf).join(", ");
     const lastSummary = s.summaries.at(-1);
     const tabled = s.calculus?.nextTabled
@@ -301,20 +675,27 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     let openDe: string;
     let openEn: string;
     if (round === 1) {
-      openDe = `Runde 1, ${phaseName?.de}. Mandat: ${mandate.objective.text.replace(/\.$/, "")}. Regel: ${room.decisionRule}, höchstens ${room.roundLimit} Runden, Budgetdeckel +${room.budgetCeiling.maxIncreasePct} %. Ausgeloste Reihenfolge: ${names}. Bitte legen Sie Ihre Ausgangspositionen mit Belegen dar.`;
-      openEn = `Round 1, ${phaseName?.en}. Mandate: ${(mandate.objective.translations.en ?? mandate.objective.text).replace(/\.$/, "")}. Rule: ${room.decisionRule}, at most ${room.roundLimit} rounds, budget ceiling +${room.budgetCeiling.maxIncreasePct} %. Drawn order: ${order.join(", ")}. Please state your starting positions with evidence.`;
+      openDe = `Runde 1, ${phaseName?.de}. Mandat: ${mandate.objective.text.replace(/\.$/, "")}. Regel: ${room.decisionRule}, höchstens ${room.roundLimit} Runden, Budgetdeckel +${room.budgetCeiling.maxIncreasePct} %. Bitte zuerst kurze Eröffnungsstatements in ausgeloster Reihenfolge (${names}); danach lade ich die Institutionen mit den schärfsten Gegensätzen zu Einzelgesprächen.`;
+      openEn = `Round 1, ${phaseName?.en}. Mandate: ${(mandate.objective.translations.en ?? mandate.objective.text).replace(/\.$/, "")}. Rule: ${room.decisionRule}, at most ${room.roundLimit} rounds, budget ceiling +${room.budgetCeiling.maxIncreasePct} %. Short opening statements first in drawn order (${order.join(", ")}); then I invite the institutions furthest apart to focused talks.`;
     } else if (final) {
-      openDe = `Letzte Runde, ${phaseName?.de}. Offene Vorschläge: ${openIds.join(", ") || "keine"}. Bitte geben Sie Ihre endgültige Stimme mit Begründung ab und benennen Sie, was offen bleibt. Reihenfolge: ${names}.`;
-      openEn = `Final round, ${phaseName?.en}. Open proposals: ${openIds.join(", ") || "none"}. Please give your final vote with reasons and name what remains open. Order: ${order.join(", ")}.`;
+      openDe = `Letzte Runde, ${phaseName?.de}. Offene Vorschläge: ${openIds.join(", ") || "keine"}. Bitte geben Sie im Plenum Ihre endgültige Stimme mit Begründung ab und benennen Sie, was offen bleibt. Reihenfolge: ${names}.`;
+      openEn = `Final round, ${phaseName?.en}. Open proposals: ${openIds.join(", ") || "none"}. Please give your final vote in plenary with reasons and name what remains open. Order: ${order.join(", ")}.`;
     } else {
       const conflicts =
-        lastSummary?.openConflicts.map(
-          (c) => s.mandate.topics.find((t) => t.id === c.topicId)?.label.text ?? c.topicId,
-        ) ?? [];
-      openDe = `Runde ${round}, ${phaseName?.de}. Offene Konflikte: ${[...new Set(conflicts)].join(", ") || "keine benannt"}. ${tabled ? `Auf dem Tisch liegt ${tabled.id} (${tabled.title.text}): ${s.calculus?.nextTabled?.reason.text}` : "Noch kein tragfähiger Vorschlag auf dem Tisch."} Reihenfolge: ${names}.`;
-      openEn = `Round ${round}, ${phaseName?.en}. Open conflicts: ${[...new Set(conflicts)].join(", ") || "none named"}. ${tabled ? `Tabled: ${tabled.id} (${tabled.title.translations.en ?? tabled.title.text}): ${s.calculus?.nextTabled?.reason.translations.en ?? ""}` : "No viable proposal tabled yet."} Order: ${order.join(", ")}.`;
+        lastSummary?.openConflicts.map((c) => topicById(c.topicId)?.label.text ?? c.topicId) ?? [];
+      const agenda = describePlans(bilaterals);
+      openDe = `Runde ${round}, ${phaseName?.de}. Offene Konflikte: ${[...new Set(conflicts)].join(", ") || "keine benannt"}. ${tabled ? `Auf dem Tisch liegt ${tabled.id} (${tabled.title.text}): ${s.calculus?.nextTabled?.reason.text}` : "Noch kein tragfähiger Vorschlag auf dem Tisch."} ${agenda ? `Zuerst Einzelgespräche: ${agenda}.` : ""} Danach Abstimmung im Plenum.`;
+      openEn = `Round ${round}, ${phaseName?.en}. Open conflicts: ${[...new Set(lastSummary?.openConflicts.map((c) => c.topicId) ?? [])].join(", ") || "none named"}. ${tabled ? `Tabled: ${tabled.id} (${tabled.title.translations.en ?? tabled.title.text}): ${s.calculus?.nextTabled?.reason.translations.en ?? ""}` : "No viable proposal tabled yet."} ${bilaterals.length ? `Focused talks first: ${bilaterals.map((p) => `${p.participants.join("/")} on ${p.topicId ?? "the tabled proposal"}`).join("; ")}.` : ""} Then a plenary vote.`;
     }
-    moderatorSays(round, phase, "round_opening", openDe, openEn, lastSummaryUtt()?.id ?? null);
+    moderatorSays(
+      atOpening,
+      round,
+      phase,
+      "round_opening",
+      openDe.replace(/\s+/g, " ").trim(),
+      openEn.replace(/\s+/g, " ").trim(),
+      lastSummaryUtt()?.id ?? null,
+    );
 
     // Retrieval per agent (FR-P1, FR-H2, FR-P4).
     const evidence = new Map<
@@ -346,433 +727,671 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
       }),
     );
 
-    // Strategic assessments run alongside the first wave (FR-A10).
+    // Strategic assessments run alongside the opening and the focused exchanges (FR-A10).
     const strategies = new Map(
       agentIds.map((a) => [
         a,
-        runStrategy(s, a, round, evidence.get(a)?.passages ?? [], modelOf(a)).catch(
-          (e: unknown) => e as Error,
-        ),
+        withFallback(a, (m) => runStrategy(s, a, round, evidence.get(a)?.passages ?? [], m)),
       ]),
     );
 
-    const half = Math.ceil(order.length / 2);
-    const waves = [order.slice(0, half), order.slice(half)];
-    const expertJobs: Array<Promise<Awaited<ReturnType<typeof runExpert>>>> = [];
-    const prevStances = new Map(
-      agentIds.map((a) => [
-        a,
-        new Map([...(s.positions.get(a)?.entries() ?? [])].map(([t, p]) => [t, p.stance])),
-      ]),
-    );
-    let newProposals = 0;
-    let maxShift = 0;
+    // ---------- full turn (opening statement or plenary vote) ----------
+    const commitFull = (
+      a: string,
+      res: (Awaited<ReturnType<typeof runTurn>> & { fallbackFrom?: string }) | Error | undefined,
+      at: At,
+    ) => {
+      const ev = evidence.get(a);
+      if (!res || res instanceof Error) {
+        const reason = res instanceof Error ? res.message.slice(0, 200) : "no result";
+        pushDegraded(a, round, phase, final ? "closing" : "position", null, reason, at);
+        return;
+      }
+      const uttId = nextUttId(round);
+      const { out, meta, blocks } = res;
+      const cite = citer(ev?.passages ?? []);
+      const known = new Set(s.utterances.map((u) => u.id));
+      let respondsTo = out.respondsTo && known.has(out.respondsTo) ? out.respondsTo : null;
+      if (!respondsTo && round > 1) {
+        // FR-A4: agents after round 1 must reference a prior utterance.
+        respondsTo =
+          [...s.utterances]
+            .reverse()
+            .find((u) => u.speaker !== a && u.speaker !== "moderator" && u.speaker !== "expert")
+            ?.id ??
+          s.utterances.at(-1)?.id ??
+          null;
+      }
+      w.emit({
+        type: "utterance.started",
+        utteranceId: uttId,
+        speaker: a,
+        round,
+        respondsTo,
+        model: meta.model,
+      });
+      const claims = buildClaims(round, uttId, out.textDe, out.claims, cite, meta.model, 6);
+      stageClaims.push(...claims);
 
-    for (const [wi, wave] of waves.entries()) {
-      const respondable = s.utterances.map((u) => u.id);
-      const jobs = new Map(
-        wave.map((a) => [
-          a,
-          runTurn(
-            s,
-            {
-              round,
-              phase,
-              agentId: a,
-              passages: evidence.get(a)?.passages ?? [],
-              respondable,
-              injected,
-            },
-            modelOf(a),
-          ).catch((e: unknown) => e as Error),
-        ]),
+      // Votes; red lines are never conceded (FR-C3).
+      const myRed = new Set(redLinesOf(a).map((r) => r.id));
+      const touched = new Set(
+        out.redLinesTouched.filter((id) => allRedLines().some((r) => r.id === id)),
       );
-      const waveClaims: Claim[] = [];
-      for (const a of wave) {
-        const uttId = nextUttId(round);
-        const res = await jobs.get(a);
-        const ev = evidence.get(a);
-        if (!res || res instanceof Error) {
-          const reason = res instanceof Error ? res.message.slice(0, 200) : "no result";
-          w.emit({
-            type: "utterance.started",
-            utteranceId: uttId,
-            speaker: a,
-            round,
-            respondsTo: null,
-            model: modelOf(a),
-          });
-          pushUtterance(
-            {
-              id: uttId,
-              round,
-              seq: s.utterances.length + 1,
-              phase,
-              speaker: a,
-              kind: final ? "closing" : "position",
-              respondsTo: null,
-              text: L(
-                "(Beitrag ausgefallen: Modellaufruf fehlgeschlagen)",
-                "(Turn degraded: model call failed)",
-              ),
-              claimIds: [],
-              redLinesTouched: [],
-              proposalIds: [],
-              model: modelOf(a),
-              telemetry: null,
-              deliberationSummary: null,
-              degraded: { reason },
-            },
-            [],
-          );
-          w.emit({ type: "agent.degraded", agentId: a, utteranceId: uttId, reason });
-          continue;
-        }
-        const { out, meta, blocks } = res;
-        const handles = new Map((ev?.passages ?? []).map((p) => [p.handle, p]));
-        const cite = (hs: string[]): CitationRef[] =>
-          [...new Set(hs)]
-            .map((h) => handles.get(h.trim()))
-            .filter((p): p is Passage => Boolean(p))
-            .map((p) => ({
-              sourceId: p.sourceId,
-              segmentId: p.segmentId,
-              start: null,
-              end: null,
-              recencyWeight: p.recencyWeight,
-            }));
-        const known = new Set(s.utterances.map((u) => u.id));
-        let respondsTo = out.respondsTo && known.has(out.respondsTo) ? out.respondsTo : null;
-        if (!respondsTo && round > 1) {
-          // FR-A4: agents after round 1 must reference a prior utterance.
-          respondsTo =
-            [...s.utterances]
-              .reverse()
-              .find((u) => u.speaker !== a && u.speaker !== "moderator" && u.speaker !== "expert")
-              ?.id ??
-            s.utterances.at(-1)?.id ??
-            null;
-        }
-        w.emit({
-          type: "utterance.started",
-          utteranceId: uttId,
-          speaker: a,
-          round,
-          respondsTo,
-          model: meta.model,
-        });
-
-        // Claims (FR-T10, FR-P5): assumption iff no citation.
-        const claims: Claim[] = out.claims.slice(0, 6).map((c, i) => {
-          const citations = cite(c.evidence);
-          let start = out.textDe.indexOf(c.quote);
-          let len = c.quote.length;
-          if (start < 0 || !c.quote) {
-            start = 0;
-            len = out.textDe.length;
+      for (const v of out.votes) {
+        const p = s.proposals.get(v.proposalId);
+        if (p?.status !== "open" || p.originAgent === a) continue;
+        let vote: Vote = v.vote;
+        let reason = v.reason;
+        if (v.crossesOwnRedLine && myRed.size > 0) {
+          // A red line is never conceded: unconditional support of a proposal that
+          // crosses it becomes conditional (final round: opposition).
+          if (vote === "support") {
+            vote = final ? "oppose" : "conditional";
+            reason = `Rote Linie: ${reason}`;
           }
-          return {
-            id: `c-${round}-${uttId.slice(uttId.indexOf("-") + 1)}-${i + 1}`,
-            utteranceId: uttId,
-            span: { start, end: start + len },
-            atomicText: c.atomic,
-            kind: c.kind,
-            numeric:
-              c.value !== null
-                ? { value: c.value, unit: c.unit ?? "", low: null, high: null }
-                : null,
-            citations,
-            state: citations.length ? "unverified" : "assumption",
-            verifyingModels: [],
-            decompositionModel: meta.model,
-            contradiction: null,
-          };
-        });
-        waveClaims.push(...claims);
-
-        // Votes; red lines are never conceded (FR-C3).
-        const myRed = new Set(redLinesOf(a).map((r) => r.id));
-        const touched = new Set(
-          out.redLinesTouched.filter((id) => allRedLines().some((r) => r.id === id)),
-        );
-        for (const v of out.votes) {
-          const p = s.proposals.get(v.proposalId);
-          if (p?.status !== "open" || p.originAgent === a) continue;
-          let vote: Vote = v.vote;
-          let reason = v.reason;
-          if (v.crossesOwnRedLine && myRed.size > 0) {
-            // A red line is never conceded: unconditional support of a proposal that
-            // crosses it becomes conditional (final round: opposition).
-            if (vote === "support") {
-              vote = final ? "oppose" : "conditional";
-              reason = `Rote Linie: ${reason}`;
-            }
-            for (const id of myRed) touched.add(id);
-          }
-          const m = s.votes.get(p.id) ?? new Map();
-          m.set(a, { vote, reason, round });
-          s.votes.set(p.id, m);
+          for (const id of myRed) touched.add(id);
         }
+        const m = s.votes.get(p.id) ?? new Map();
+        m.set(a, { vote, reason, round });
+        s.votes.set(p.id, m);
+      }
 
-        // Proposals (FR-R3) and withdrawals.
-        const proposalIds: string[] = [];
-        const changed: Proposal[] = [];
-        for (const id of out.withdraw) {
-          const p = s.proposals.get(id);
-          if (p && p.originAgent === a && p.status === "open") {
-            const np: Proposal = {
-              ...p,
-              status: "withdrawn",
-              rejectionReason: L(`Von ${nameOf(a)} zurückgezogen`, `Withdrawn by ${a}`),
-            };
-            s.proposals.set(id, np);
-            changed.push(np);
-          }
-        }
-        const openCount = [...s.proposals.values()].filter((p) => p.status === "open").length;
-        if (
-          out.proposal &&
-          phase >= 2 &&
-          phase <= 4 &&
-          newProposals < MAX_NEW_PROPOSALS_PER_ROUND &&
-          openCount < MAX_OPEN_PROPOSALS
-        ) {
-          newProposals++;
-          const o = out.proposal;
-          const id = `p-${pad(++s.proposalCounter)}`;
-          const alt = o.alternativeTo && s.proposals.has(o.alternativeTo) ? o.alternativeTo : null;
-          const lo = Math.min(o.costLow, o.costMioEurPa, o.costHigh);
-          const hi = Math.max(o.costLow, o.costMioEurPa, o.costHigh);
-          const cap =
-            o.capacityEffectPct !== null && o.capacityEffectPct > 0
-              ? {
-                  value: r2(clamp(o.capacityEffectPct, 0, 60)),
-                  low: r2(
-                    clamp(
-                      Math.min(o.capacityLow ?? o.capacityEffectPct, o.capacityEffectPct),
-                      0,
-                      60,
-                    ),
-                  ),
-                  high: r2(
-                    clamp(
-                      Math.max(o.capacityHigh ?? o.capacityEffectPct, o.capacityEffectPct),
-                      0,
-                      60,
-                    ),
-                  ),
-                  unit: "%",
-                }
-              : null;
+      // Proposals (FR-R3) and withdrawals.
+      const proposalIds: string[] = [];
+      const changed: Proposal[] = [];
+      for (const id of out.withdraw) {
+        const p = s.proposals.get(id);
+        if (p && p.originAgent === a && p.status === "open") {
           const np: Proposal = {
-            id,
-            originAgent: a,
-            round,
-            topicIds: o.topicIds.filter((t) => s.mandate.topics.some((x) => x.id === t)),
-            title: L(o.titleDe, o.titleEn),
-            cost: { value: r2(o.costMioEurPa), low: r2(lo), high: r2(hi), unit: "Mio. EUR p.a." },
-            acceptance: 1 / agentIds.length,
-            feasibility: clamp(o.feasibility, 0, 1),
-            supporters: [a],
-            opponents: [],
-            conditional: [],
-            status: "open",
-            rejectionReason: null,
-            outcomeClass: null,
-            alternativeTo: alt,
-            capacityEffect: cap,
-            measureClass: o.measureClass,
-            financing: o.financingDe.trim() ? L(o.financingDe) : undefined,
-            components: o.components.length ? o.components.slice(0, 6).map((x) => L(x)) : undefined,
-            votes: [
-              {
-                agentId: a,
-                vote: "support",
-                reason: L("Eigener Vorschlag", "Own proposal"),
-                round,
-              },
-            ],
+            ...p,
+            status: "withdrawn",
+            rejectionReason: L(`Von ${nameOf(a)} zurückgezogen`, `Withdrawn by ${a}`),
           };
           s.proposals.set(id, np);
-          s.votes.set(id, new Map([[a, { vote: "support", reason: "Eigener Vorschlag", round }]]));
-          proposalIds.push(id);
           changed.push(np);
-          if (alt) {
-            const old = s.proposals.get(alt);
-            if (old && old.originAgent === a && old.status === "open") {
-              const wd: Proposal = {
-                ...old,
-                status: "withdrawn",
-                rejectionReason: L(`Ersetzt durch ${id}`, `Replaced by ${id}`),
-              };
-              s.proposals.set(alt, wd);
-              changed.push(wd);
-            }
-          }
         }
-
-        // Positions with triggers (FR-A5).
-        const lesson = s.lessons.get(a);
-        const mine = s.positions.get(a) ?? new Map<string, Position>();
-        const positions: Position[] = [];
-        let shifted = false;
-        for (const t of s.mandate.topics) {
-          const st = out.stances.find((x) => x.topicId === t.id);
-          const prev = mine.get(t.id);
-          if (!st && !prev) continue;
-          const stance = st ? r2(clamp(st.stance, -2, 2)) : (prev?.stance ?? 0);
-          const delta = prev ? Math.abs(stance - prev.stance) : 0;
-          if (delta > maxShift) maxShift = delta;
-          let trigger: Position["trigger"] = null;
-          if (prev && delta >= SHIFT) {
-            shifted = true;
-            const by =
-              st?.changedBecauseOf && known.has(st.changedBecauseOf)
-                ? st.changedBecauseOf
-                : (respondsTo ?? s.utterances.at(-1)?.id);
-            if (by)
-              trigger = {
-                utteranceId: by,
-                note: L(st?.changeNote ?? `Anpassung nach ${by}`),
-              };
-          }
-          const pos: Position = {
-            runId,
-            agentId: a,
-            topicId: t.id,
-            round,
-            stance,
-            strength: st ? r2(clamp(st.strength, 0, 1)) : (prev?.strength ?? 0.5),
-            arguments: (st?.arguments ?? []).slice(0, 3).map((x) => L(x)),
-            citations: st ? cite(st.evidence) : (prev?.citations ?? []),
-            rationale: st
-              ? L(st.rationaleDe, st.rationaleEn || undefined)
-              : (prev?.rationale ?? L("Unverändert")),
-            trigger,
-          };
-          mine.set(t.id, pos);
-          positions.push(pos);
-        }
-        s.positions.set(a, mine);
-
-        let kind: Utterance["kind"] = out.kind;
-        if (final) kind = "closing";
-        else if (proposalIds.length) kind = "proposal";
-        else if (kind === "proposal") kind = respondsTo ? "rebuttal" : "position";
-        else if (kind === "closing") kind = "rebuttal";
-        if (shifted && kind !== "proposal" && !final) kind = "position_shift";
-
-        const d = out.deliberation;
-        const usedHandles = new Set([
-          ...out.claims.flatMap((c) => c.evidence),
-          ...out.stances.flatMap((x) => x.evidence),
-        ]);
-        const utterance: Utterance = {
-          id: uttId,
+      }
+      const openCount = [...s.proposals.values()].filter((p) => p.status === "open").length;
+      if (
+        out.proposal &&
+        phase >= 2 &&
+        phase <= 4 &&
+        newProposals < MAX_NEW_PROPOSALS_PER_ROUND &&
+        openCount < MAX_OPEN_PROPOSALS
+      ) {
+        newProposals++;
+        const o = out.proposal;
+        const id = `p-${pad(++s.proposalCounter)}`;
+        const alt = o.alternativeTo && s.proposals.has(o.alternativeTo) ? o.alternativeTo : null;
+        const lo = Math.min(o.costLow, o.costMioEurPa, o.costHigh);
+        const hi = Math.max(o.costLow, o.costMioEurPa, o.costHigh);
+        const cap =
+          o.capacityEffectPct !== null && o.capacityEffectPct > 0
+            ? {
+                value: r2(clamp(o.capacityEffectPct, 0, 60)),
+                low: r2(
+                  clamp(Math.min(o.capacityLow ?? o.capacityEffectPct, o.capacityEffectPct), 0, 60),
+                ),
+                high: r2(
+                  clamp(
+                    Math.max(o.capacityHigh ?? o.capacityEffectPct, o.capacityEffectPct),
+                    0,
+                    60,
+                  ),
+                ),
+                unit: "%",
+              }
+            : null;
+        const np: Proposal = {
+          id,
+          originAgent: a,
           round,
-          seq: s.utterances.length + 1,
-          phase,
-          speaker: a,
-          kind,
-          respondsTo,
-          text: L(out.textDe, out.textEn),
-          claimIds: claims.map((c) => c.id),
-          redLinesTouched: [...touched],
-          proposalIds,
-          model: meta.model,
-          telemetry: telemetry(meta, room.seed),
-          deliberationSummary: { read: d.read, weighed: d.weighed, wouldMoveIt: d.wouldMoveIt },
-          degraded: null,
+          topicIds: o.topicIds.filter((t) => s.mandate.topics.some((x) => x.id === t)),
+          title: L(o.titleDe, o.titleEn),
+          cost: { value: r2(o.costMioEurPa), low: r2(lo), high: r2(hi), unit: "Mio. EUR p.a." },
+          acceptance: 1 / agentIds.length,
+          feasibility: clamp(o.feasibility, 0, 1),
+          supporters: [a],
+          opponents: [],
+          conditional: [],
+          status: "open",
+          rejectionReason: null,
+          outcomeClass: null,
+          alternativeTo: alt,
+          capacityEffect: cap,
+          measureClass: o.measureClass,
+          financing: o.financingDe.trim() ? L(o.financingDe) : undefined,
+          components: o.components.length ? o.components.slice(0, 6).map((x) => L(x)) : undefined,
+          votes: [
+            { agentId: a, vote: "support", reason: L("Eigener Vorschlag", "Own proposal"), round },
+          ],
         };
-        pushUtterance(utterance, claims);
-        const own = [...s.utterances].reverse().find((u) => u.speaker === a && u.id !== uttId);
-        const trace: UtteranceTrace = {
-          utteranceId: uttId,
-          prompt: blocks,
-          retrieval: ev ? [ev.trace] : [],
-          deliberation: {
-            utteranceId: uttId,
-            sourcesRead: (ev?.passages ?? []).map((p) => ({
-              ref: {
-                sourceId: p.sourceId,
-                segmentId: p.segmentId,
-                start: null,
-                end: null,
-                recencyWeight: p.recencyWeight,
-              },
-              use: usedHandles.has(p.handle) ? ("cited" as const) : ("read_not_cited" as const),
-            })),
-            priorUtterances: [
-              ...(respondsTo ? [{ id: respondsTo, relation: "responds_to" as const }] : []),
-              ...(own ? [{ id: own.id, relation: "own" as const }] : []),
-              ...s.utterances
-                .filter(
-                  (u) =>
-                    u.round >= round - 1 &&
-                    u.id !== respondsTo &&
-                    u.id !== own?.id &&
-                    u.id !== uttId,
-                )
-                .slice(-8)
-                .map((u) => ({ id: u.id, relation: "context" as const })),
-            ],
-            lessonsUsed: lesson ? [lessonKey(a, lesson.round)] : [],
-            options: d.options.slice(0, 4).map((o, i) => ({
-              key: `o${i + 1}`,
-              label: L(o.label),
-              pros: o.pros.slice(0, 3).map((x) => L(x)),
-              cons: o.cons.slice(0, 3).map((x) => L(x)),
-              status: o.chosen ? ("chosen" as const) : ("rejected" as const),
-              rejectReason: o.chosen ? null : L(o.rejectReason ?? "Nicht gewählt"),
-            })),
-            decision: L(d.decision),
-            wouldChangeMind: d.wouldChangeMind.slice(0, 3).map((x) => L(x)),
-            providerTrace: {
-              available: false,
-              text: null,
-              note: `Reasoning-Tokens (${meta.reasoningTokens}) werden über Chat Completions nicht im Klartext geliefert`,
-            },
-            schemaVersion: 2,
-          },
-        };
-        w.emit({ type: "utterance.trace", trace });
-        for (const p of changed) w.emit({ type: "proposal.updated", proposal: p });
-        for (const p of positions) w.emit({ type: "position.updated", position: p });
-        if (lesson && out.lessonApplied.applied && out.lessonApplied.note.trim()) {
-          w.emit({
-            type: "lesson.applied",
-            application: {
-              agentId: a,
-              lessonRound: lesson.round,
-              utteranceId: uttId,
-              note: L(out.lessonApplied.note),
-            },
-          });
+        s.proposals.set(id, np);
+        s.votes.set(id, new Map([[a, { vote: "support", reason: "Eigener Vorschlag", round }]]));
+        proposalIds.push(id);
+        changed.push(np);
+        if (alt) {
+          const old = s.proposals.get(alt);
+          if (old && old.originAgent === a && old.status === "open") {
+            const wd: Proposal = {
+              ...old,
+              status: "withdrawn",
+              rejectionReason: L(`Ersetzt durch ${id}`, `Replaced by ${id}`),
+            };
+            s.proposals.set(alt, wd);
+            changed.push(wd);
+          }
         }
-        s.demands.delete(a);
       }
 
-      if (wi === 0) {
-        // Emit the assessments once the first wave has spoken.
-        for (const a of agentIds) {
-          const r = await strategies.get(a);
-          if (!r || r instanceof Error) {
-            w.emit({
-              type: "agent.degraded",
-              agentId: a,
-              utteranceId: null,
-              reason: `strategic assessment failed: ${r instanceof Error ? r.message.slice(0, 160) : "no result"}`,
-            });
-            continue;
-          }
-          s.assessments.set(a, r.assessment);
-          w.emit({ type: "strategy.assessed", assessment: r.assessment });
+      // Positions with triggers (FR-A5).
+      const lesson = s.lessons.get(a);
+      const mine = s.positions.get(a) ?? new Map<string, Position>();
+      const positions: Position[] = [];
+      let shifted = false;
+      for (const t of s.mandate.topics) {
+        const st = out.stances.find((x) => x.topicId === t.id);
+        const prev = mine.get(t.id);
+        if (!st && !prev) continue;
+        const stance = st ? r2(clamp(st.stance, -2, 2)) : (prev?.stance ?? 0);
+        const delta = prev ? Math.abs(stance - prev.stance) : 0;
+        if (delta > maxShift) maxShift = delta;
+        let trigger: Position["trigger"] = null;
+        if (prev && delta >= SHIFT) {
+          shifted = true;
+          const by =
+            st?.changedBecauseOf && known.has(st.changedBecauseOf)
+              ? st.changedBecauseOf
+              : (respondsTo ?? s.utterances.at(-1)?.id);
+          if (by) trigger = { utteranceId: by, note: L(st?.changeNote ?? `Anpassung nach ${by}`) };
         }
+        const pos: Position = {
+          runId,
+          agentId: a,
+          topicId: t.id,
+          round,
+          stance,
+          strength: st ? r2(clamp(st.strength, 0, 1)) : (prev?.strength ?? 0.5),
+          arguments: (st?.arguments ?? []).slice(0, 3).map((x) => L(x)),
+          citations: st ? cite(st.evidence) : (prev?.citations ?? []),
+          rationale: st
+            ? L(st.rationaleDe, st.rationaleEn || undefined)
+            : (prev?.rationale ?? L("Unverändert")),
+          trigger: trigger ?? (prev?.round === round ? prev.trigger : null),
+        };
+        mine.set(t.id, pos);
+        positions.push(pos);
       }
-      // Experte checks each wave's claims in the background (FR-N1, N2, N7).
-      if (waveClaims.length)
-        expertJobs.push(runExpert(s, waveClaims, room.expertModel, verifierModel));
+      s.positions.set(a, mine);
+
+      let kind: Utterance["kind"] = out.kind;
+      if (final) kind = "closing";
+      else if (proposalIds.length) kind = "proposal";
+      else if (kind === "proposal") kind = respondsTo ? "rebuttal" : "position";
+      else if (kind === "closing") kind = "rebuttal";
+      if (shifted && kind !== "proposal" && !final) kind = "position_shift";
+      if (phase === 1 && !shifted) kind = "position";
+
+      const d = out.deliberation;
+      const usedHandles = new Set([
+        ...out.claims.flatMap((c) => c.evidence),
+        ...out.stances.flatMap((x) => x.evidence),
+      ]);
+      const utterance: Utterance = {
+        id: uttId,
+        round,
+        seq: s.utterances.length + 1,
+        phase,
+        speaker: a,
+        kind,
+        respondsTo,
+        text: L(out.textDe, out.textEn),
+        claimIds: claims.map((c) => c.id),
+        redLinesTouched: [...touched],
+        proposalIds,
+        model: meta.model,
+        telemetry: { ...telemetry(meta, room.seed), fallbackFrom: res.fallbackFrom ?? null },
+        deliberationSummary: { read: d.read, weighed: d.weighed, wouldMoveIt: d.wouldMoveIt },
+        degraded: null,
+      };
+      pushUtterance(utterance, claims, at);
+      const trace = buildTrace({
+        a,
+        round,
+        uttId,
+        respondsTo,
+        blocks,
+        ev,
+        usedHandles,
+        options: d.options.slice(0, 4).map((o, i) => ({
+          key: `o${i + 1}`,
+          label: L(o.label),
+          pros: o.pros.slice(0, 3).map((x) => L(x)),
+          cons: o.cons.slice(0, 3).map((x) => L(x)),
+          status: o.chosen ? ("chosen" as const) : ("rejected" as const),
+          rejectReason: o.chosen ? null : L(o.rejectReason ?? "Nicht gewählt"),
+        })),
+        decision: d.decision,
+        wouldChangeMind: d.wouldChangeMind,
+        reasoningTokens: meta.reasoningTokens,
+      });
+      w.emit({ type: "utterance.trace", trace });
+      for (const p of changed) w.emit({ type: "proposal.updated", proposal: p });
+      for (const p of positions) w.emit({ type: "position.updated", position: p });
+      if (lesson && out.lessonApplied.applied && out.lessonApplied.note.trim()) {
+        w.emit({
+          type: "lesson.applied",
+          application: {
+            agentId: a,
+            lessonRound: lesson.round,
+            utteranceId: uttId,
+            note: L(out.lessonApplied.note),
+          },
+        });
+      }
+      s.demands.delete(a);
+    };
+
+    /** All seated institutions speak in the plenary; calls run in parallel. */
+    const plenaryTurns = async (mode: "opening" | "plenary", at: At) => {
+      const respondable = s.utterances.map((u) => u.id);
+      const jobs = new Map(
+        order.map((a) => [
+          a,
+          withFallback(a, (m) =>
+            runTurn(
+              s,
+              {
+                round,
+                phase,
+                agentId: a,
+                passages: evidence.get(a)?.passages ?? [],
+                respondable,
+                injected,
+                mode: final ? undefined : mode,
+                delegateRole: delegatesOf(a)[0]?.role.de,
+              },
+              m,
+            ),
+          ),
+        ]),
+      );
+      for (const a of order) {
+        const res = await jobs.get(a);
+        commitFull(a, res, { ...at, delegateId: pickDelegate(delegatesOf(a), null, "plenary") });
+      }
+      flushExpert();
+    };
+
+    // ---------- light turn inside a focused exchange ----------
+    const commitLight = (
+      a: string,
+      res: (Awaited<ReturnType<typeof runExchangeTurn>> & { fallbackFrom?: string }) | Error,
+      o: {
+        at: At;
+        respondsTo: string | null;
+        topicId: string | null;
+        kind: "bilateral" | "caucus" | "interjection";
+      },
+    ): Utterance => {
+      if (res instanceof Error)
+        return pushDegraded(
+          a,
+          round,
+          phase,
+          "rebuttal",
+          o.respondsTo,
+          res.message.slice(0, 200),
+          o.at,
+        );
+      const { out, meta, blocks } = res;
+      const ev = evidence.get(a);
+      const cite = citer(ev?.passages ?? []);
+      const uttId = nextUttId(round);
+      w.emit({
+        type: "utterance.started",
+        utteranceId: uttId,
+        speaker: a,
+        round,
+        respondsTo: o.respondsTo,
+        model: meta.model,
+      });
+      const claims = buildClaims(round, uttId, out.textDe, out.claims, cite, meta.model, 2);
+      stageClaims.push(...claims);
+      const touched = out.redLinesTouched.filter((id) => allRedLines().some((r) => r.id === id));
+
+      // Position on the exchange topic; a move is triggered by the turn it answers (FR-A5).
+      const topicId = topicById(o.topicId)?.id ?? topicById(out.stance.topicId)?.id ?? null;
+      const mine = s.positions.get(a) ?? new Map<string, Position>();
+      let shifted = false;
+      let pos: Position | null = null;
+      if (topicId) {
+        const prev = mine.get(topicId);
+        const stance = r2(clamp(Math.round(out.stance.stance * 4) / 4, -2, 2));
+        const delta = prev ? Math.abs(stance - prev.stance) : 0;
+        if (delta > maxShift) maxShift = delta;
+        let trigger: Position["trigger"] = null;
+        if (prev && delta >= SHIFT && o.respondsTo) {
+          shifted = true;
+          trigger = {
+            utteranceId: o.respondsTo,
+            note: L(out.stance.changeNote ?? `Anpassung im Gespräch nach ${o.respondsTo}`),
+          };
+        }
+        pos = {
+          runId,
+          agentId: a,
+          topicId,
+          round,
+          stance,
+          strength: r2(clamp(out.stance.strength, 0, 1)),
+          arguments: prev?.arguments ?? [],
+          citations: prev?.citations ?? [],
+          rationale: out.stance.rationaleDe.trim()
+            ? L(out.stance.rationaleDe)
+            : (prev?.rationale ?? L("Unverändert")),
+          trigger: trigger ?? (prev?.round === round ? prev.trigger : null),
+        };
+        mine.set(topicId, pos);
+        s.positions.set(a, mine);
+      }
+
+      const kind: Utterance["kind"] = shifted
+        ? "position_shift"
+        : o.kind === "caucus"
+          ? "position"
+          : "rebuttal";
+      const d = out.deliberation;
+      const u: Utterance = {
+        id: uttId,
+        round,
+        seq: s.utterances.length + 1,
+        phase,
+        speaker: a,
+        kind,
+        respondsTo: o.respondsTo,
+        text: L(out.textDe, out.textEn),
+        claimIds: claims.map((c) => c.id),
+        redLinesTouched: touched,
+        proposalIds: [],
+        model: meta.model,
+        telemetry: { ...telemetry(meta, room.seed, 6000), fallbackFrom: res.fallbackFrom ?? null },
+        deliberationSummary: { read: d.read, weighed: d.weighed, wouldMoveIt: d.wouldMoveIt },
+        degraded: null,
+      };
+      pushUtterance(u, claims, o.at);
+      const trace = buildTrace({
+        a,
+        round,
+        uttId,
+        respondsTo: o.respondsTo,
+        blocks,
+        ev,
+        usedHandles: new Set(out.claims.flatMap((c) => c.evidence)),
+        options: [],
+        decision: d.decision,
+        wouldChangeMind: d.wouldMoveIt ? [d.wouldMoveIt] : [],
+        reasoningTokens: meta.reasoningTokens,
+      });
+      w.emit({ type: "utterance.trace", trace });
+      if (pos) w.emit({ type: "position.updated", position: pos });
+      const lesson = s.lessons.get(a);
+      if (lesson && out.lessonApplied.applied && out.lessonApplied.note.trim()) {
+        w.emit({
+          type: "lesson.applied",
+          application: {
+            agentId: a,
+            lessonRound: lesson.round,
+            utteranceId: uttId,
+            note: L(out.lessonApplied.note),
+          },
+        });
+      }
+      return u;
+    };
+
+    /**
+     * Runs focused exchanges. Model calls of different exchanges run in parallel; their
+     * utterances enter the record exchange by exchange (ordered lanes). Bilaterals follow
+     * each other in meeting time; caucuses (overlap) start together on clock branches.
+     */
+    const runFocused = async (plans: ExchangePlan[], overlap: boolean) => {
+      if (plans.length === 0) return;
+      clock.gap();
+      const ls = lanes(plans.length);
+      const clocks = plans.map(() => (overlap ? clock.branch() : clock));
+      const lastBy = (who: string[]) =>
+        [...s.utterances].reverse().find((u) => who.includes(u.speaker))?.id ??
+        s.utterances.at(-1)?.id ??
+        null;
+      await Promise.all(
+        plans.map(async (plan, i) => {
+          const lane = ls[i] as NonNullable<(typeof ls)[number]>;
+          const clk = clocks[i] as MeetingClock;
+          const topic = topicById(plan.topicId);
+          const kind = plan.kind === "caucus" ? "caucus" : "bilateral";
+          const before = new Map(plan.participants.map((a) => [a, stanceNow(a, plan.topicId)]));
+          const local = new Map(before);
+          const transcript: Array<{ speaker: string; text: string }> = [];
+          const ref: { ex: Exchange | null; prevId: string | null } = { ex: null, prevId: null };
+          // The first turn answers the counterpart's latest word before the exchange.
+          const outsiders = agentIds.filter((a) => !plan.participants.includes(a));
+          const first0 = plan.turns[0] as string;
+          const firstRespondsTo =
+            kind === "caucus"
+              ? lastBy(outsiders)
+              : lastBy(plan.participants.filter((a) => a !== first0));
+          lane.do(() => {
+            if (i > 0 && !overlap) clk.gap();
+            ref.ex = openExchange(
+              round,
+              phase,
+              plan.kind,
+              plan.participants,
+              plan.topicId,
+              plan.trigger,
+              clk,
+            );
+          });
+          let interjected = false;
+          let prevSpeaker: string | null = null;
+          const turn = async (
+            a: string,
+            tkind: "bilateral" | "caucus" | "interjection",
+            addressedTo: string[],
+            redLine?: { id: string; text: string },
+          ) => {
+            const delegateId =
+              pickDelegate(
+                delegatesOf(a),
+                topic?.key ?? null,
+                tkind === "caucus" ? "caucus" : "bilateral",
+              ) ?? undefined;
+            const delegateRole = delegatesOf(a).find((d) => d.id === delegateId)?.role.de;
+            const participants =
+              tkind === "interjection" ? [...plan.participants] : plan.participants;
+            const res = await withFallback(a, (m) =>
+              runExchangeTurn(
+                s,
+                {
+                  round,
+                  phase,
+                  agentId: a,
+                  kind: tkind,
+                  topicId: plan.topicId,
+                  participants,
+                  addressedTo,
+                  trigger: plan.trigger.de,
+                  transcript: [...transcript],
+                  stances: [...new Set([...plan.participants, a])].map((x) => ({
+                    agentId: x,
+                    stance: local.get(x) ?? stanceNow(x, plan.topicId),
+                  })),
+                  passages: (evidence.get(a)?.passages ?? []).slice(0, 5),
+                  delegateRole,
+                  redLine,
+                },
+                m,
+              ),
+            );
+            if (!(res instanceof Error)) {
+              transcript.push({ speaker: a, text: res.out.textDe });
+              if (plan.topicId && plan.participants.includes(a))
+                local.set(a, r2(clamp(Math.round(res.out.stance.stance * 4) / 4, -2, 2)));
+            }
+            lane.do(() => {
+              const u = commitLight(a, res, {
+                at: { ex: ref.ex as Exchange, clk, addressedTo, delegateId },
+                respondsTo: ref.prevId ?? firstRespondsTo,
+                topicId: plan.topicId,
+                kind: tkind,
+              });
+              ref.prevId = u.id;
+            });
+            return res;
+          };
+          for (const a of plan.turns) {
+            const addressedTo =
+              kind === "bilateral" && prevSpeaker && prevSpeaker !== a
+                ? [prevSpeaker]
+                : plan.participants.filter((x) => x !== a);
+            const res = await turn(a, kind, addressedTo);
+            prevSpeaker = a;
+            // Interjection rule: at most one, only by the holder of a touched red line.
+            if (kind !== "bilateral" || res instanceof Error) continue;
+            const ij = pickInterjector({
+              touched: res.out.redLinesTouched,
+              participants: plan.participants,
+              seated: agentIds,
+              redLineOwner,
+              alreadyInterjected: interjected,
+            });
+            if (!ij) continue;
+            interjected = true;
+            const rl = allRedLines().find((r) => r.id === ij.redLineId);
+            await turn(ij.agentId, "interjection", [a], {
+              id: ij.redLineId,
+              text: rl?.de ?? ij.redLineId,
+            });
+          }
+          const outcome = await exchangeOutcome(
+            s,
+            {
+              kind,
+              topicId: plan.topicId,
+              participants: plan.participants,
+              transcript,
+              moves: plan.participants.map((a) => ({
+                agentId: a,
+                from: before.get(a) ?? null,
+                to: local.get(a) ?? null,
+              })),
+            },
+            room.moderatorModel,
+          );
+          lane.do(() => closeExchange(ref.ex as Exchange, outcome, clk));
+          lane.end();
+          await lane.done;
+        }),
+      );
+      if (overlap) clock.join(clocks);
+      flushExpert();
+    };
+
+    // Phase 1: short opening statements, one per institution, in the plenary.
+    if (phase === 1) await plenaryTurns("opening", atOpening);
+    if (round === 1 && !final) bilaterals = selectBilaterals(planInput(), MAX_BILATERALS);
+    if (!final) {
+      const agenda = describePlans(bilaterals);
+      closeExchange(
+        opening,
+        round === 1
+          ? {
+              de: `${agentIds.length} Ausgangspositionen liegen vor.${agenda ? ` Einzelgespräche: ${agenda}.` : ""}`,
+              en: `${agentIds.length} starting positions on record.${bilaterals.length ? ` Focused talks: ${bilaterals.map((p) => p.participants.join("/")).join("; ")}.` : ""}`,
+            }
+          : {
+              de: agenda
+                ? `Tagesordnung: Einzelgespräche ${agenda}, danach Plenum.`
+                : "Tagesordnung: Plenum.",
+              en: bilaterals.length
+                ? `Agenda: focused talks ${bilaterals.map((p) => p.participants.join("/")).join("; ")}, then plenary.`
+                : "Agenda: plenary.",
+            },
+        clock,
+      );
     }
+
+    // Bilateral and trilateral exchanges on the conflicts.
+    if (!final) await runFocused(bilaterals, false);
+
+    // Emit the assessments once they are needed: before the caucuses (partner affinity),
+    // otherwise after the plenary statements, which do not wait for them.
+    let assessed = false;
+    const emitAssessments = async () => {
+      if (assessed) return;
+      assessed = true;
+      for (const a of agentIds) {
+        const r = await strategies.get(a);
+        if (!r || r instanceof Error) {
+          w.emit({
+            type: "agent.degraded",
+            agentId: a,
+            utteranceId: null,
+            reason: `strategic assessment failed: ${r instanceof Error ? r.message.slice(0, 160) : "no result"}`,
+          });
+          continue;
+        }
+        s.assessments.set(a, r.assessment);
+        w.emit({ type: "strategy.assessed", assessment: r.assessment });
+      }
+    };
+
+    // Caucuses of coalition partners, in parallel.
+    if (phase >= 2 && phase <= 4) {
+      await emitAssessments();
+      await runFocused(selectCaucuses(planInput(), affinity, MAX_CAUCUSES), true);
+    }
+
+    // ---------- closing plenary: tabling, votes, check, summary ----------
+    let plenary = opening;
+    if (!final) {
+      clock.gap();
+      const t = tabledInfo();
+      plenary = openExchange(
+        round,
+        phase,
+        "plenary",
+        [...agentIds],
+        t?.topicIds[0] ?? null,
+        phase === 1
+          ? { de: "Zwischenbilanz der Runde", en: "Round review" }
+          : t
+            ? {
+                de: `Plenum: Abstimmung, ${t.proposalId} auf dem Tisch`,
+                en: `Plenary: vote, ${t.proposalId} tabled`,
+              }
+            : { de: "Plenum: Anträge und Abstimmung", en: "Plenary: motions and vote" },
+        clock,
+      );
+    }
+    const atPlenary: At = { ex: plenary, clk: clock, addressedTo: [] };
+    if (phase >= 2 && !final) {
+      const t = tabledInfo();
+      moderatorSays(
+        atPlenary,
+        round,
+        phase,
+        "round_opening",
+        `Zurück im Plenum. ${t ? `Auf dem Tisch liegt ${t.proposalId}.` : "Es liegt noch kein mehrheitsfähiger Vorschlag vor."} Bitte berichten Sie kurz aus den Gesprächen, geben Sie Ihre Stimme zu den offenen Vorschlägen ab und bringen Sie gegebenenfalls Anträge ein. Reihenfolge: ${names}.`,
+        `Back in plenary. ${t ? `${t.proposalId} is tabled.` : "No viable proposal yet."} Please report briefly from the talks, vote on the open proposals and table motions if any. Order: ${order.join(", ")}.`,
+        s.utterances.at(-1)?.id ?? null,
+      );
+    }
+    if (phase >= 2) await plenaryTurns("plenary", atPlenary);
+    // The calculus below reads the assessments' payoffs.
+    await emitAssessments();
 
     // Proposal tallies, coalition calculus (FR-A11), rejections with reasons (FR-R4).
     const vetoPlayers = agentIds.filter((a) => profileOf(a).vetoStatus === "formal_veto");
@@ -913,9 +1532,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     });
     const lessonJobs = final
       ? []
-      : agentIds.map((a) =>
-          runLesson(s, a, round, lessonBase(a), modelOf(a)).catch((e: unknown) => e as Error),
-        );
+      : agentIds.map((a) => withFallback(a, (m) => runLesson(s, a, round, lessonBase(a), m)));
     const summaryJob = summarizeRound(s, round, final, room.moderatorModel);
     // Experte results.
     const expertResults = await Promise.all(expertJobs);
@@ -942,6 +1559,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
         null;
       const metas = expertResults.flatMap((r) => r.metas);
       moderatorSays(
+        atPlenary,
         round,
         phase,
         "contradiction_note",
@@ -971,6 +1589,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
         asked.add(u.speaker);
         s.demands.set(u.speaker, { utteranceId: u.id, claim: c.atomicText });
         moderatorSays(
+          { ...atPlenary, addressedTo: [u.speaker] },
           round,
           phase,
           "justification_demand",
@@ -984,6 +1603,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     const { summary, meta: sumMeta } = await summaryJob;
     s.summaries.push(summary);
     moderatorSays(
+      atPlenary,
       round,
       phase,
       "round_summary",
@@ -995,6 +1615,8 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
       sumMeta,
     );
     w.emit({ type: "round.summary", summary });
+    closeExchange(plenary, plenaryOutcome(s, calculus.proposals, summary.text), clock);
+    clock.gap();
     const lessons = await Promise.all(lessonJobs);
     for (const [i, l] of lessons.entries()) {
       const a = agentIds[i] as string;
@@ -1007,8 +1629,9 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
         });
         continue;
       }
-      s.lessons.set(a, l);
-      w.emit({ type: "lesson.recorded", lesson: l });
+      const { fallbackFrom: _from, ...lesson } = l;
+      s.lessons.set(a, lesson);
+      w.emit({ type: "lesson.recorded", lesson });
     }
 
     // End conditions (FR-M8).
@@ -1028,7 +1651,6 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
         finalNext = true;
       }
     }
-    void prevStances;
   }
 
   // Outcome: impact figures (FR-N3, FR-U6) and forecasts (FR-J).
@@ -1086,6 +1708,43 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     usage: u,
     db,
   };
+}
+
+/** Outcome sentence of the closing plenary: the vote tally, else the summary's first sentence. */
+function plenaryOutcome(
+  s: RunState,
+  rows: NonNullable<RunState["calculus"]>["proposals"],
+  summary: { text: string; translations: { en?: string } },
+): { de: string; en: string } {
+  const open = rows.filter((r) => s.proposals.has(r.proposalId));
+  if (open.length) {
+    const de = open
+      .map((r) => {
+        const st = s.proposals.get(r.proposalId)?.status;
+        const tallyDe = `${r.supporters.length} dafür, ${r.conditional.length} bedingt, ${r.opponents.length} dagegen`;
+        const verdict =
+          st === "accepted"
+            ? "angenommen"
+            : st === "rejected"
+              ? "abgelehnt"
+              : r.passes
+                ? "mehrheitsfähig"
+                : r.blockers.length
+                  ? `blockiert durch ${r.blockers.map(nameOf).join(", ")}`
+                  : "noch nicht mehrheitsfähig";
+        return `${r.proposalId} ${verdict} (${tallyDe})`;
+      })
+      .join("; ");
+    const en = open
+      .map(
+        (r) =>
+          `${r.proposalId}: ${r.supporters.length} for, ${r.conditional.length} conditional, ${r.opponents.length} against${r.passes ? ", passes" : r.blockers.length ? `, blocked by ${r.blockers.join(", ")}` : ""}`,
+      )
+      .join("; ");
+    return { de: `Abstimmung: ${de}.`, en: `Vote: ${en}.` };
+  }
+  const first = (t: string) => (t.match(/^.*?[.!?](\s|$)/)?.[0] ?? t).trim();
+  return { de: first(summary.text), en: first(summary.translations.en ?? summary.text) };
 }
 
 /** Rewrites runId fields inside copied fork events. */
