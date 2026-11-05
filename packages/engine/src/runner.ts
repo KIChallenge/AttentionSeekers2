@@ -274,6 +274,28 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
   const stanceNow = (a: string, t: string | null) =>
     t ? (s.positions.get(a)?.get(t)?.stance ?? null) : null;
 
+  /**
+   * NFR-9: a call that fails on a seat's own model (for example the second family) is
+   * retried once on the default model; the result names the model it fell back from.
+   */
+  const withFallback = async <T extends object>(
+    a: string,
+    call: (model: string) => Promise<T>,
+  ): Promise<(T & { fallbackFrom?: string }) | Error> => {
+    const own = modelOf(a);
+    try {
+      return await call(own);
+    } catch (error) {
+      if (own === room.moderatorModel) return error as Error;
+      console.warn("model_fallback", JSON.stringify({ agentId: a, from: own }));
+      try {
+        return { ...(await call(room.moderatorModel)), fallbackFrom: own };
+      } catch (e2) {
+        return e2 as Error;
+      }
+    }
+  };
+
   // ---------- exchanges ----------
   const exCounters = new Map<number, number>();
   const openExchange = (
@@ -709,16 +731,14 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     const strategies = new Map(
       agentIds.map((a) => [
         a,
-        runStrategy(s, a, round, evidence.get(a)?.passages ?? [], modelOf(a)).catch(
-          (e: unknown) => e as Error,
-        ),
+        withFallback(a, (m) => runStrategy(s, a, round, evidence.get(a)?.passages ?? [], m)),
       ]),
     );
 
     // ---------- full turn (opening statement or plenary vote) ----------
     const commitFull = (
       a: string,
-      res: Awaited<ReturnType<typeof runTurn>> | Error | undefined,
+      res: (Awaited<ReturnType<typeof runTurn>> & { fallbackFrom?: string }) | Error | undefined,
       at: At,
     ) => {
       const ev = evidence.get(a);
@@ -931,7 +951,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
         redLinesTouched: [...touched],
         proposalIds,
         model: meta.model,
-        telemetry: telemetry(meta, room.seed),
+        telemetry: { ...telemetry(meta, room.seed), fallbackFrom: res.fallbackFrom ?? null },
         deliberationSummary: { read: d.read, weighed: d.weighed, wouldMoveIt: d.wouldMoveIt },
         degraded: null,
       };
@@ -979,20 +999,22 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
       const jobs = new Map(
         order.map((a) => [
           a,
-          runTurn(
-            s,
-            {
-              round,
-              phase,
-              agentId: a,
-              passages: evidence.get(a)?.passages ?? [],
-              respondable,
-              injected,
-              mode: final ? undefined : mode,
-              delegateRole: delegatesOf(a)[0]?.role.de,
-            },
-            modelOf(a),
-          ).catch((e: unknown) => e as Error),
+          withFallback(a, (m) =>
+            runTurn(
+              s,
+              {
+                round,
+                phase,
+                agentId: a,
+                passages: evidence.get(a)?.passages ?? [],
+                respondable,
+                injected,
+                mode: final ? undefined : mode,
+                delegateRole: delegatesOf(a)[0]?.role.de,
+              },
+              m,
+            ),
+          ),
         ]),
       );
       for (const a of order) {
@@ -1005,7 +1027,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     // ---------- light turn inside a focused exchange ----------
     const commitLight = (
       a: string,
-      res: Awaited<ReturnType<typeof runExchangeTurn>> | Error,
+      res: (Awaited<ReturnType<typeof runExchangeTurn>> & { fallbackFrom?: string }) | Error,
       o: {
         at: At;
         respondsTo: string | null;
@@ -1094,7 +1116,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
         redLinesTouched: touched,
         proposalIds: [],
         model: meta.model,
-        telemetry: telemetry(meta, room.seed, 6000),
+        telemetry: { ...telemetry(meta, room.seed, 6000), fallbackFrom: res.fallbackFrom ?? null },
         deliberationSummary: { read: d.read, weighed: d.weighed, wouldMoveIt: d.wouldMoveIt },
         degraded: null,
       };
@@ -1189,28 +1211,30 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
             const delegateRole = delegatesOf(a).find((d) => d.id === delegateId)?.role.de;
             const participants =
               tkind === "interjection" ? [...plan.participants] : plan.participants;
-            const res = await runExchangeTurn(
-              s,
-              {
-                round,
-                phase,
-                agentId: a,
-                kind: tkind,
-                topicId: plan.topicId,
-                participants,
-                addressedTo,
-                trigger: plan.trigger.de,
-                transcript: [...transcript],
-                stances: [...new Set([...plan.participants, a])].map((x) => ({
-                  agentId: x,
-                  stance: local.get(x) ?? stanceNow(x, plan.topicId),
-                })),
-                passages: (evidence.get(a)?.passages ?? []).slice(0, 5),
-                delegateRole,
-                redLine,
-              },
-              modelOf(a),
-            ).catch((e: unknown) => e as Error);
+            const res = await withFallback(a, (m) =>
+              runExchangeTurn(
+                s,
+                {
+                  round,
+                  phase,
+                  agentId: a,
+                  kind: tkind,
+                  topicId: plan.topicId,
+                  participants,
+                  addressedTo,
+                  trigger: plan.trigger.de,
+                  transcript: [...transcript],
+                  stances: [...new Set([...plan.participants, a])].map((x) => ({
+                    agentId: x,
+                    stance: local.get(x) ?? stanceNow(x, plan.topicId),
+                  })),
+                  passages: (evidence.get(a)?.passages ?? []).slice(0, 5),
+                  delegateRole,
+                  redLine,
+                },
+                m,
+              ),
+            );
             if (!(res instanceof Error)) {
               transcript.push({ speaker: a, text: res.out.textDe });
               if (plan.topicId && plan.participants.includes(a))
@@ -1508,9 +1532,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     });
     const lessonJobs = final
       ? []
-      : agentIds.map((a) =>
-          runLesson(s, a, round, lessonBase(a), modelOf(a)).catch((e: unknown) => e as Error),
-        );
+      : agentIds.map((a) => withFallback(a, (m) => runLesson(s, a, round, lessonBase(a), m)));
     const summaryJob = summarizeRound(s, round, final, room.moderatorModel);
     // Experte results.
     const expertResults = await Promise.all(expertJobs);
@@ -1607,8 +1629,9 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
         });
         continue;
       }
-      s.lessons.set(a, l);
-      w.emit({ type: "lesson.recorded", lesson: l });
+      const { fallbackFrom: _from, ...lesson } = l;
+      s.lessons.set(a, lesson);
+      w.emit({ type: "lesson.recorded", lesson });
     }
 
     // End conditions (FR-M8).
