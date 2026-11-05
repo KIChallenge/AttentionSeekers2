@@ -1,0 +1,76 @@
+{
+ "metric": "mean P(role | generated text), char-head in-character classifier; chance about 0.10",
+ "adapter_model": "sv-<role> (Qwen3-8B + LoRA r16, SageMaker)",
+ "baseline_model": "sv-base (prompted Qwen3-8B)",
+ "split": "held-out (statements dated 2023-01-01 or later)",
+ "institutions": {
+  "chamber_commerce": {
+   "n": 30,
+   "adapter": 0.0974,
+   "baseline": 0.5458,
+   "stance_sign_adapter": 0.5,
+   "stance_sign_baseline": 0.6
+  },
+  "chamber_labour": {
+   "n": 30,
+   "adapter": 0.3918,
+   "baseline": 0.2207,
+   "stance_sign_adapter": 0.2667,
+   "stance_sign_baseline": 0.6667
+  },
+  "hospitals": {
+   "n": 28,
+   "adapter": 0.1803,
+   "baseline": 0.1231,
+   "stance_sign_adapter": 0.4643,
+   "stance_sign_baseline": 0.6071
+  },
+  "laender": {
+   "n": 30,
+   "adapter": 0.5723,
+   "baseline": 0.7622,
+   "stance_sign_adapter": 0.5,
+   "stance_sign_baseline": 0.6
+  },
+  "medical_chamber": {
+   "n": 30,
+   "adapter": 0.237,
+   "baseline": 0.3142,
+   "stance_sign_adapter": 0.3333,
+   "stance_sign_baseline": 0.6667
+  },
+  "ministry_finance": {
+   "n": 24,
+   "adapter": 0.3251,
+   "baseline": 0.7124,
+   "stance_sign_adapter": 0.4583,
+   "stance_sign_baseline": 0.4167
+  },
+  "nursing": {
+   "n": 30,
+   "adapter": 0.6585,
+   "baseline": 0.4147,
+   "stance_sign_adapter": 0.3333,
+   "stance_sign_baseline": 0.3667
+  },
+  "patients": {
+   "n": 12,
+   "adapter": 0.595,
+   "baseline": 0.6227,
+   "stance_sign_adapter": 0.3333,
+   "stance_sign_baseline": 0.5
+  },
+  "social_insurance": {
+   "n": 30,
+   "adapter": 0.5221,
+   "baseline": 0.6064,
+   "stance_sign_adapter": 0.7,
+   "stance_sign_baseline": 0.6333
+  }
+ },
+ "all": {
+  "n": 244,
+  "adapter": 0.3867,
+  "baseline": 0.4669
+ }
+}
