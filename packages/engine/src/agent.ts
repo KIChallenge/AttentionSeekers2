@@ -184,13 +184,16 @@ export function nameOf(agentId: string): string {
 }
 
 /** System prompt: role, character layers (FR-C1..C4), rules (CON-1/2, FR-P5, FR-A4). */
-export function systemPrompt(s: RunState, agentId: string): string {
+export function systemPrompt(s: RunState, agentId: string, delegateRole?: string): string {
   const p = profileOf(agentId);
   const room = s.room.agents.find((a) => a.agentId === agentId);
   const t = room?.temperament;
   const red = redLinesOf(agentId);
   const lines = [
     `Du vertrittst die Institution "${nameOf(agentId)}" (${p.unit}) in einer simulierten Verhandlung des österreichischen Gesundheitswesens. Du sprichst als Institution ("wir"), niemals als Person.`,
+    delegateRole
+      ? `In diesem Beitrag spricht für die Institution die Funktion "${delegateRole}" (eine Rolle, keine Person; nenne keinen Namen).`
+      : "",
     `Ziele: ${p.goals.map((g) => g.de).join("; ")}`,
     `Interessen: ${p.interests.map((g) => g.de).join("; ")}`,
     `Restriktionen: ${p.restrictions.map((g) => g.de).join("; ")}`,
@@ -231,7 +234,7 @@ export function evidenceBlock(passages: Passage[]): string {
 }
 
 function transcriptBlock(s: RunState, round: number): string {
-  const recent = s.utterances.filter((u) => u.round >= round - 1);
+  const recent = s.utterances.filter((u) => u.round >= round - 1).slice(-36);
   const older = s.summaries.filter((x) => x.round < round - 1);
   const parts: string[] = [];
   for (const x of older) parts.push(`[Zusammenfassung Runde ${x.round}] ${x.text.text}`);
@@ -334,6 +337,9 @@ export interface TurnContext {
   /** Utterance ids available as respondsTo targets. */
   respondable: string[];
   injected: string[];
+  /** opening = short phase-1 statement, plenary = vote statement after the exchanges. */
+  mode?: "opening" | "plenary";
+  delegateRole?: string;
 }
 
 export function turnMessages(
@@ -350,7 +356,7 @@ export function turnMessages(
       return `${t.id} (${t.label.text}: ${t.measure.text})${p ? ` | deine bisherige Haltung ${p.stance}` : ""}`;
     })
     .join("\n");
-  const sys = systemPrompt(s, c.agentId);
+  const sys = systemPrompt(s, c.agentId, c.delegateRole);
   const mandate = [
     `Verhandlungsfrage: ${s.mandate.question}`,
     `Ziel: ${s.mandate.objective.text}`,
@@ -385,7 +391,11 @@ export function turnMessages(
     `Verlauf:\n${transcriptBlock(s, c.round)}`,
     `Mögliche respondsTo-Ziele: ${c.respondable.slice(-14).join(", ") || "keine (dann null)"}`,
     "",
-    "Aufgabe: Formuliere deinen Redebeitrag (textDe 50 bis 100 Wörter, textEn = sinngemäße englische Übersetzung). Fasse alle übrigen Felder knapp: Stichworte statt Sätze, wo möglich.",
+    c.mode === "opening"
+      ? "Aufgabe: Kurzes Eröffnungsstatement im Plenum (textDe 2 bis 4 Sätze, 40 bis 80 Wörter, textEn = sinngemäße englische Übersetzung): deine Ausgangslage und deine wichtigste Bedingung. Fasse alle übrigen Felder knapp: Stichworte statt Sätze, wo möglich."
+      : c.mode === "plenary"
+        ? "Aufgabe: Erklärung im Plenum nach den Einzelgesprächen (textDe 2 bis 4 Sätze, 40 bis 80 Wörter, textEn = sinngemäße englische Übersetzung): was die Gespräche für dich ergeben haben, deine Stimme zum Vorschlag auf dem Tisch, gegebenenfalls dein Antrag. Fasse alle übrigen Felder knapp: Stichworte statt Sätze, wo möglich."
+        : "Aufgabe: Formuliere deinen Redebeitrag (textDe 50 bis 100 Wörter, textEn = sinngemäße englische Übersetzung). Fasse alle übrigen Felder knapp: Stichworte statt Sätze, wo möglich.",
     "claims: höchstens vier, nur Zahlen und überprüfbare Tatsachenbehauptungen aus dem Text; quote = exakter kurzer Ausschnitt aus textDe; evidence = Belegkennungen (leer = Annahme).",
     `stances: genau ein Eintrag je Thema (${s.mandate.topics.map((t) => t.id).join(", ")}); rationaleDe höchstens 15 Wörter, rationaleEn leer lassen, arguments höchstens zwei Stichworte; changedBecauseOf = id der Äußerung, die eine Änderung um mindestens 0,25 ausgelöst hat, sonst null.`,
     c.phase === 5
@@ -459,6 +469,159 @@ export async function runTurn(
     blocks,
     guardRetries,
   };
+}
+
+// ---------- focused exchanges (bilateral, caucus, interjection) ----------
+
+export const ExchangeTurnOut = z.object({
+  textDe: z.string(),
+  textEn: z.string(),
+  claims: TurnOut.shape.claims,
+  stance: z.object({
+    topicId: z.string(),
+    stance: z.number(),
+    strength: z.number(),
+    rationaleDe: z.string(),
+    changeNote: z.string().nullable(),
+  }),
+  redLinesTouched: z.array(z.string()),
+  lessonApplied: z.object({ applied: z.boolean(), note: z.string() }),
+  deliberation: z.object({
+    decision: z.string(),
+    read: z.string(),
+    weighed: z.string(),
+    wouldMoveIt: z.string(),
+  }),
+});
+export type ExchangeTurnOut = z.infer<typeof ExchangeTurnOut>;
+
+export interface ExchangeTurnContext {
+  round: number;
+  phase: number;
+  agentId: string;
+  kind: "bilateral" | "caucus" | "interjection";
+  topicId: string | null;
+  participants: string[];
+  addressedTo: string[];
+  trigger: string;
+  /** This exchange so far, oldest first. */
+  transcript: Array<{ speaker: string; text: string }>;
+  /** Current stances inside the exchange (own and counterparts) on the topic. */
+  stances: Array<{ agentId: string; stance: number | null }>;
+  passages: Passage[];
+  delegateRole?: string;
+  /** Interjection: the red line that was touched. */
+  redLine?: { id: string; text: string };
+}
+
+export function exchangeTurnMessages(
+  s: RunState,
+  c: ExchangeTurnContext,
+): { messages: Message[]; blocks: PromptBlock[] } {
+  const topic = s.mandate.topics.find((t) => t.id === c.topicId);
+  const lesson = s.lessons.get(c.agentId);
+  const sys = systemPrompt(s, c.agentId, c.delegateRole);
+  const others = c.participants.filter((a) => a !== c.agentId);
+  const otherRed = c.participants
+    .filter((a) => a !== c.agentId)
+    .flatMap((a) => redLinesOf(a).map((r) => `${r.id} (${nameOf(a)}): ${r.de}`));
+  const seatedRed = s.agentIds
+    .filter((a) => !c.participants.includes(a))
+    .flatMap((a) => redLinesOf(a).map((r) => `${r.id} (${nameOf(a)}): ${r.de}`));
+  const frame = [
+    `Verhandlungsfrage: ${s.mandate.question}`,
+    budgetLine(s),
+    `Runde ${c.round} von ${s.room.roundLimit}, ${PHASE_NAMES[c.phase - 1]?.de ?? ""}.`,
+    topic
+      ? `Thema dieses Gesprächs: ${topic.id} (${topic.label.text}: ${topic.measure.text}).`
+      : "Thema: der Vorschlag auf dem Tisch.",
+    `Haltungen am Tisch zu diesem Thema (-2 bis +2): ${c.stances.map((x) => `${nameOf(x.agentId)} ${x.stance ?? "offen"}`).join(", ")}`,
+    tabledBlock(s, c.agentId),
+    s.summaries.at(-1)
+      ? `Letzter Zwischenstand der Moderation: ${s.summaries.at(-1)?.text.text}`
+      : "",
+    lesson ? `Deine Lektion aus Runde ${lesson.round}: ${lesson.nextMove.text}` : "",
+    otherRed.length ? `Rote Linien deines Gegenübers: ${otherRed.join("; ")}` : "",
+    seatedRed.length ? `Rote Linien anderer am Tisch: ${seatedRed.join("; ")}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+  const history = c.transcript.length
+    ? c.transcript.map((t) => `${nameOf(t.speaker)}: ${t.text}`).join("\n")
+    : "(Du eröffnest das Gespräch.)";
+  const task =
+    c.kind === "bilateral"
+      ? `Das ist ein Einzelgespräch abseits des Plenums zwischen ${c.participants.map(nameOf).join(", ")}. Anlass: ${c.trigger}\nDu sprichst direkt zu ${others.map(nameOf).join(" und ")}${c.transcript.length ? " und antwortest auf den letzten Zug" : ""}. Greife das konkrete Argument auf, nenne eine erfüllbare Bedingung oder ein Zugeständnis, oder begründe, warum deine rote Linie hält.`
+      : c.kind === "caucus"
+        ? `Das ist eine interne Abstimmung von Koalitionspartnern (${c.participants.map(nameOf).join(", ")}) vor dem Plenum. Anlass: ${c.trigger}\nArbeitet eine gemeinsame Linie für das Plenum aus: was ihr gemeinsam fordert, was ihr anbietet, wo eure Grenze liegt. Sprich offen mit deinen Partnern.`
+        : `Du sitzt nicht in diesem Gespräch (${c.participants.map(nameOf).join(", ")}), aber deine rote Linie ${c.redLine?.id} (${c.redLine?.text}) wurde berührt. Kurzer Einwurf an ${others.map(nameOf).join(" und ")}: sag klar, wo deine Grenze liegt.`;
+  const user = [
+    `Gesprächsverlauf:\n${history}`,
+    "",
+    task,
+    `textDe: ${c.kind === "interjection" ? "1 bis 2 Sätze, höchstens 45 Wörter" : "2 bis 4 Sätze, 35 bis 80 Wörter"}, gesprochene Sprache, kein Aufzählungsstil, sprich dein Gegenüber als Institution an und nenne keine Zug-, Äußerungs- oder Rote-Linien-Kennungen; textEn = sinngemäße englische Übersetzung.`,
+    "claims: höchstens zwei, nur Zahlen und überprüfbare Tatsachen aus textDe; quote = exakter kurzer Ausschnitt; evidence = Belegkennungen (leer = Annahme).",
+    `stance: deine Haltung zu ${topic?.id ?? "dem Hauptthema des Vorschlags"} nach diesem Zug (Viertelschritte); wenn das Gespräch dich bewegt hat, ändere sie und nenne in changeNote den Anlass, sonst changeNote null. strength 0..1, rationaleDe höchstens 12 Wörter.`,
+    "redLinesTouched: ids roter Linien (eigene oder fremde), die dein Zug berührt.",
+    lesson
+      ? "lessonApplied: applied = true nur, wenn deine Lektion diesen Zug verändert; note = wie."
+      : "lessonApplied: applied = false, note leer.",
+    "deliberation: decision, read, weighed, wouldMoveIt je ein kurzer Satz.",
+  ].join("\n");
+  const ev = `Belege:\n${evidenceBlock(c.passages)}`;
+  const blocks: PromptBlock[] = [
+    { role: "system", title: "Rolle, Charakter, Regeln", tokens: estimateTokens(sys), text: sys },
+    { role: "user", title: "Lage und Thema", tokens: estimateTokens(frame), text: frame },
+    { role: "user", title: "Belege", tokens: estimateTokens(ev), text: ev },
+    { role: "user", title: "Gespräch und Aufgabe", tokens: estimateTokens(user), text: user },
+  ];
+  return {
+    messages: [
+      { role: "system", content: sys },
+      { role: "user", content: [frame, ev, user].join("\n\n") },
+    ],
+    blocks,
+  };
+}
+
+/** One turn inside a focused exchange; same CON guard as the plenary turn. */
+export async function runExchangeTurn(
+  s: RunState,
+  c: ExchangeTurnContext,
+  model: string,
+): Promise<{ out: ExchangeTurnOut; meta: CallMeta; blocks: PromptBlock[] }> {
+  const { messages, blocks } = exchangeTurnMessages(s, c);
+  let guardRetries = 0;
+  let r = await structured(model, "exchange_turn", ExchangeTurnOut, messages, {
+    maxOutputTokens: 6000,
+  });
+  for (let i = 0; i < 2; i++) {
+    const hits = [
+      ...findPersonNames(r.data.textDe),
+      ...findPersonNames(r.data.textEn),
+      ...r.data.claims.flatMap((x) => findPersonNames(x.atomic)),
+    ];
+    if (hits.length === 0) break;
+    guardRetries++;
+    console.warn(
+      "con_guard_regenerate",
+      JSON.stringify({ agentId: c.agentId, round: c.round, hits: hits.length }),
+    );
+    r = await structured(
+      model,
+      "exchange_turn",
+      ExchangeTurnOut,
+      [
+        ...messages,
+        {
+          role: "user",
+          content: `Dein Entwurf nannte Personen (${hits.map((h) => h.rule).join(", ")}). Das ist verboten. Formuliere neu und nenne ausschließlich Institutionen.`,
+        },
+      ],
+      { maxOutputTokens: 6000 },
+    );
+  }
+  return { out: r.data, meta: { ...r.meta, retries: r.meta.retries + guardRetries }, blocks };
 }
 
 export async function runStrategy(
