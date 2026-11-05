@@ -46,13 +46,43 @@ export function ResultDocument() {
             {run.createdAt.slice(0, 10)}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="rounded-control border px-3 py-1.5 text-sm hover:border-foreground/40 print:hidden"
-        >
-          {t.result.print}
-        </button>
+        <div className="flex flex-wrap items-center gap-2 print:hidden">
+          <fieldset
+            className="m-0 inline-flex items-center rounded-control border p-0.5"
+            title={t.result.exportHint}
+          >
+            <legend className="sr-only">{t.result.exportLabel}</legend>
+            <span className="px-2 text-xs text-muted-foreground" aria-hidden>
+              {t.result.exportLabel}
+            </span>
+            {(["de", "en"] as const).map((l) => (
+              <a
+                key={l}
+                href={`/api/runs/${encodeURIComponent(runId)}/export?lang=${l}&download=1`}
+                download={`ergebnis-${runId}-${l}.html`}
+                aria-label={l === "de" ? t.result.exportDe : t.result.exportEn}
+                className="rounded-[8px] px-2.5 py-1 text-sm hover:bg-gray-alpha-100"
+              >
+                {l.toUpperCase()}
+              </a>
+            ))}
+          </fieldset>
+          <a
+            href={`/api/runs/${encodeURIComponent(runId)}/bundle`}
+            download
+            title={t.result.bundleHint}
+            className="rounded-control border px-3 py-1.5 text-sm hover:border-foreground/40"
+          >
+            {t.result.bundle}
+          </a>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="rounded-control border px-3 py-1.5 text-sm hover:border-foreground/40"
+          >
+            {t.result.print}
+          </button>
+        </div>
       </div>
       <article className="rounded-2xl border bg-card px-4 sm:px-6 print:border-0 print:px-0">
         <Section n={1} title={t.result.s1}>
