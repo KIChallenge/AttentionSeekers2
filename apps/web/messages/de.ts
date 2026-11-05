@@ -58,6 +58,16 @@ export const de = {
   stub: {
     soon: "Gerüst. Diese Ansicht wird in den Lane-Tickets gebaut.",
   },
+  states: {
+    loading: "Wird geladen",
+    notFound: "Nicht gefunden",
+    notFoundBody: "Diese Seite oder dieser Lauf existiert nicht (mehr).",
+    back: "Zur Übersicht",
+    error: "Diese Ansicht konnte nicht geladen werden",
+    errorBody:
+      "Der Lauf oder die Datenbank war nicht lesbar. Der Referenzlauf funktioniert auch offline.",
+    retry: "Erneut versuchen",
+  },
   setup: {
     title: "Verhandlungsraum einrichten",
     sub: "Frage, Parteien, Regeln und Klima. Alles wird ins Mandat geschrieben und ist beim Abspielen reproduzierbar.",

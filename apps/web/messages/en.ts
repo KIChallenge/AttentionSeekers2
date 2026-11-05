@@ -58,6 +58,15 @@ export const en = {
   stub: {
     soon: "Scaffold. This view is built in the lane tickets.",
   },
+  states: {
+    loading: "Loading",
+    notFound: "Not found",
+    notFoundBody: "This page or run does not exist (any more).",
+    back: "Back to overview",
+    error: "This view could not be loaded",
+    errorBody: "The run or the database could not be read. The reference run also works offline.",
+    retry: "Try again",
+  },
   setup: {
     title: "Set up the negotiation room",
     sub: "Question, parties, rules and climate. Everything is written into the mandate and reproducible on replay.",
