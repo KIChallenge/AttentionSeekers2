@@ -50,6 +50,7 @@ export function TopBar() {
     { href: "/", label: t.nav.dashboard },
     { href: "/runs/new", label: t.nav.newRun },
     { href: "/archive", label: t.nav.archive },
+    { href: "/method", label: t.nav.method },
   ];
   return (
     <header className="sticky top-0 z-20 flex h-[50px] items-center gap-4 border-b bg-surface px-6">
