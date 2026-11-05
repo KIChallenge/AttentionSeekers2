@@ -4,7 +4,7 @@ import type { Utterance } from "@sv/contracts";
 import { type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { type AudioManifest, silentDurationMs, syntheticAmplitude } from "./stage-logic";
 
-export type AudioState = "loading" | "on" | "off";
+export type AudioState = "loading" | "rendering" | "on" | "off";
 
 /**
  * Plays utterances one after another. With a pre-rendered manifest (FR-S3) each utterance is
@@ -51,26 +51,53 @@ export function useStagePlayer({
 
   const setIdx = useCallback((i: number) => setIdxRaw(Math.max(0, Math.min(last, i))), [last]);
 
-  // Manifest per run and language; a 404 means "no sound" and the stage says so.
+  // Manifest per run and language. Without one, the stage asks the server to render the voices
+  // (POST /api/runs/<id>/tts) and polls until the manifest appears, so a run started live gets
+  // its voices within about a minute. Only if rendering is impossible does it say "no sound".
   useEffect(() => {
     let alive = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const started = Date.now();
+    const base = `/stage/${encodeURIComponent(runId)}/${lang}/manifest.json`;
+    const load = async (): Promise<boolean> => {
+      const r = await fetch(base, { cache: "no-store" }).catch(() => null);
+      if (!r?.ok) return false;
+      const m = (await r.json().catch(() => null)) as AudioManifest | null;
+      if (!m || Object.keys(m.files ?? {}).length === 0) return false;
+      if (alive) {
+        setManifest(m);
+        setAudioState("on");
+      }
+      return true;
+    };
+    const poll = async () => {
+      if (!alive) return;
+      if (await load()) return;
+      if (Date.now() - started > 8 * 60 * 1000) {
+        if (alive) setAudioState("off");
+        return;
+      }
+      timer = setTimeout(poll, 4000);
+    };
     setAudioState("loading");
-    fetch(`/stage/${encodeURIComponent(runId)}/${lang}/manifest.json`, { cache: "no-store" })
-      .then((r) => (r.ok ? (r.json() as Promise<AudioManifest>) : null))
-      .then((m) => {
-        if (!alive) return;
-        const ok = !!m && Object.keys(m.files ?? {}).length > 0;
-        setManifest(ok ? m : null);
-        setAudioState(ok ? "on" : "off");
-      })
-      .catch(() => {
-        if (alive) {
-          setManifest(null);
-          setAudioState("off");
-        }
-      });
+    setManifest(null);
+    void (async () => {
+      if (await load()) return;
+      const res = await fetch(`/api/runs/${encodeURIComponent(runId)}/tts?lang=${lang}`, {
+        method: "POST",
+      }).catch(() => null);
+      const body = (await res?.json().catch(() => null)) as { state?: string } | null;
+      if (!alive) return;
+      if (body?.state === "rendering" || body?.state === "ready") {
+        setAudioState("rendering");
+        timer = setTimeout(poll, 4000);
+      } else {
+        setAudioState("off");
+      }
+    })();
     return () => {
       alive = false;
+      if (timer) clearTimeout(timer);
     };
   }, [runId, lang]);
 

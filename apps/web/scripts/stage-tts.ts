@@ -104,7 +104,10 @@ function loadEnv(): Record<string, string> {
       if (m?.[1]) out[m[1]] = (m[2] ?? "").replace(/^["']|["']$/g, "");
     }
   }
-  return { ...out, ...(process.env as Record<string, string>) };
+  // Non-empty process values win; an empty variable inherited from a parent (for example the
+  // Next dev server) must not mask the key in the repo's .env.
+  for (const [k, v] of Object.entries(process.env)) if (v) out[k] = v;
+  return out;
 }
 
 function args() {

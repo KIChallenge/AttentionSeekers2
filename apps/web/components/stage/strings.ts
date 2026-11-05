@@ -29,6 +29,7 @@ const de = {
   audioOffHint:
     "Für diesen Lauf liegen keine vorgerenderten Stimmen vor. Die Wiedergabe läuft stumm, zeitlich nach Textlänge.",
   audioLoading: "Ton wird geladen",
+  audioRendering: "Stimmen werden erzeugt (ca. 1 Minute)",
   inTranscript: "Im Protokoll öffnen",
   utterance: "Wortmeldung",
   of: "von",
@@ -70,6 +71,7 @@ const en: StageStrings = {
   audioOffHint:
     "No pre-rendered voices exist for this run. Playback is silent, timed by text length.",
   audioLoading: "Loading sound",
+  audioRendering: "Rendering voices (about a minute)",
   inTranscript: "Open in record",
   utterance: "Utterance",
   of: "of",
