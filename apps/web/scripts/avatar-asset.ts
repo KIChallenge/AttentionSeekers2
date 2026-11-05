@@ -66,7 +66,9 @@ async function main() {
   if (!existsSync(path.dirname(out))) mkdirSync(path.dirname(out), { recursive: true });
   const bin = await io.writeBinary(doc);
   writeFileSync(out, bin);
-  console.log(`wrote ${path.relative(process.cwd(), out)} (${(bin.byteLength / 1e6).toFixed(2)} MB)`);
+  console.log(
+    `wrote ${path.relative(process.cwd(), out)} (${(bin.byteLength / 1e6).toFixed(2)} MB)`,
+  );
 }
 
 await main();
