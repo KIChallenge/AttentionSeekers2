@@ -33,6 +33,11 @@ const de = {
   audioLoading: "Ton wird geladen",
   audioRendering: "Stimmen werden erzeugt (ca. 1 Minute)",
   audioWaiting: "Stimmen folgen, sobald der Lauf fertig ist",
+  voiceAzure: "Azure",
+  voiceEleven: "ElevenLabs",
+  voiceBy: "Stimme dieser Wortmeldung",
+  elevenAttribution:
+    "Ausgewählter Abschnitt mit Stimmen von ElevenLabs (elevenlabs.io), Free-Tarif, nicht kommerziell. Übrige Wortmeldungen: Azure AI Speech.",
   inTranscript: "Im Protokoll öffnen",
   utterance: "Wortmeldung",
   of: "von",
@@ -88,6 +93,11 @@ const en: StageStrings = {
   audioLoading: "Loading sound",
   audioRendering: "Rendering voices (about a minute)",
   audioWaiting: "Voices follow once the run has finished",
+  voiceAzure: "Azure",
+  voiceEleven: "ElevenLabs",
+  voiceBy: "Voice of this utterance",
+  elevenAttribution:
+    "Selected span voiced by ElevenLabs (elevenlabs.io), free tier, non-commercial. Other utterances: Azure AI Speech.",
   inTranscript: "Open in record",
   utterance: "Utterance",
   of: "of",

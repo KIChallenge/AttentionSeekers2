@@ -1,3 +1,4 @@
 # Pre-rendered stage audio (scripts/stage-tts.ts) stays local: large and regenerable.
 *
 !.gitignore
+!VOICES.md

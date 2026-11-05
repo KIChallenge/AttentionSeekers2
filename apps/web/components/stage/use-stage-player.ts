@@ -2,7 +2,14 @@
 
 import type { Utterance } from "@sv/contracts";
 import { type RefObject, useCallback, useEffect, useRef, useState } from "react";
-import { type AudioManifest, silentDurationMs, syntheticAmplitude } from "./stage-logic";
+import {
+  type AudioManifest,
+  type AudioProvider,
+  audioFileFor,
+  EL_MANIFEST,
+  silentDurationMs,
+  syntheticAmplitude,
+} from "./stage-logic";
 
 export type AudioState = "loading" | "waiting" | "rendering" | "on" | "off";
 
@@ -24,7 +31,8 @@ export interface StageLive {
  * an audio file routed through a Web Audio analyser whose RMS drives the mouth bars; without
  * one, playback is silent and timed by text length with a synthetic envelope. Amplitude goes
  * straight into the CSS variable --amp on `rootRef`, progress into state at word steps.
- * The browser Web Speech API is never used.
+ * An optional ElevenLabs variant (manifest.elevenlabs.json) wins per utterance where present;
+ * Azure voices everything else. The browser Web Speech API is never used.
  */
 export function useStagePlayer({
   runId,
@@ -52,6 +60,7 @@ export function useStagePlayer({
   /** Characters of the current utterance already spoken (word granularity). */
   const [spoken, setSpoken] = useState(0);
   const [manifest, setManifest] = useState<AudioManifest | null>(null);
+  const [eleven, setEleven] = useState<AudioManifest | null>(null);
   const [audioState, setAudioState] = useState<AudioState>("loading");
 
   const elapsedRef = useRef(0);
@@ -123,9 +132,32 @@ export function useStagePlayer({
     };
   }, [runId, lang]);
 
+  // ElevenLabs variant: static, rendered offline for a span only; no polling, no rendering.
+  useEffect(() => {
+    let alive = true;
+    setEleven(null);
+    void (async () => {
+      const r = await fetch(`/stage/${encodeURIComponent(runId)}/${lang}/${EL_MANIFEST}`, {
+        cache: "no-store",
+      }).catch(() => null);
+      if (!r?.ok) return;
+      const m = (await r.json().catch(() => null)) as AudioManifest | null;
+      if (alive && m && Object.keys(m.files ?? {}).length > 0) setEleven(m);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [runId, lang]);
+
   const fileFor = useCallback(
-    (u: Utterance | null) => (u && manifest ? (manifest.files[u.id] ?? null) : null),
-    [manifest],
+    (u: Utterance | null) => (u ? (audioFileFor(u.id, manifest, eleven)?.file ?? null) : null),
+    [manifest, eleven],
+  );
+  /** Provider that voices `u`, or null when it plays silent. */
+  const providerOf = useCallback(
+    (u: Utterance | null): AudioProvider | null =>
+      u ? (audioFileFor(u.id, manifest, eleven)?.provider ?? null) : null,
+    [manifest, eleven],
   );
 
   const ensureAudio = useCallback(() => {
@@ -174,7 +206,7 @@ export function useStagePlayer({
       if (file) el.src = `/stage/${encodeURIComponent(runId)}/${lang}/${file}`;
       else el.removeAttribute("src");
     }
-  }, [idx, lang, manifest]);
+  }, [idx, lang, manifest, eleven]);
 
   const nextRef = useRef(nextOf);
   nextRef.current = nextOf;
@@ -293,6 +325,8 @@ export function useStagePlayer({
     spoken,
     audioState,
     manifest,
+    eleven,
+    provider: providerOf(current),
     liveRef,
   };
 }

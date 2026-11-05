@@ -146,6 +146,12 @@ aus medlyn, dem früheren Projekt eines Teammitglieds. Verhandlungs-Engine, Agen
 Koalitionskalkül, Experte-Prüfung, Datenkorpus, Prognose, Persona-Modelle und alle Ansichten der
 Verhandlung sind in dieser Challenge entstanden. Tabelle im README, Abschnitt 1.6.
 
+Stimmen der Bühne: Azure AI Speech für alle Wortmeldungen. Ein ausgewählter Abschnitt des
+Referenzlaufs (die schärfste Erwiderung und ihre Nachbarn) ist zusätzlich mit ElevenLabs vertont
+(elevenlabs.io, Free-Tarif, nicht kommerziell, Namensnennung verlangt); der Ton-Chip der Bühne
+zeigt je Wortmeldung, welcher Anbieter spricht. Nur vorgefertigte Stimmen, keine Stimmklone.
+Details: `apps/web/public/stage/VOICES.md`.
+
 ## 9. Literatur, die eine Entscheidung geändert hat
 
 | Befund                                                                      | Konsequenz                                              |
