@@ -8,6 +8,7 @@ import { Chip, Empty, Panel, Tile } from "@/components/run/bits";
 import { fmtNum, L } from "@/components/run/helpers";
 import { SourceChip } from "@/components/run/provenance";
 import { useRun } from "@/components/run/run-context";
+import { Level } from "@/components/shell/providers";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
@@ -89,29 +90,31 @@ function ForecastCard({ f }: { f: Forecast }) {
             <AlertDescription className="text-sm">{t.outcome.unavailable}</AlertDescription>
           </Alert>
         )}
-        <div className="mt-2 flex flex-wrap gap-1">
-          <Chip className="font-mono text-[11px] text-muted-foreground">
-            {t.outcome.classKey} {f.classKey}
-          </Chip>
-          {f.descriptor
-            ? (
-                [
-                  ["measure_class", f.descriptor.measure_class],
-                  ["cost", `${f.descriptor.cost_direction} ${f.descriptor.cost_band}`],
-                  ["payer", f.descriptor.payer],
-                  ["gesetz", f.descriptor.requires_legislation],
-                  ["15a", f.descriptor.requires_15a_agreement],
-                  ["gesamtvertrag", f.descriptor.requires_gesamtvertrag],
-                  ["contestation", f.descriptor.contestation],
-                  ["red_line", f.descriptor.red_line_crossed],
-                ] as const
-              ).map(([k, v]) => (
-                <Chip key={k} className="text-[11px] text-muted-foreground">
-                  {k} <span className="text-foreground">{String(v)}</span>
-                </Chip>
-              ))
-            : null}
-        </div>
+        <Level min="engineer">
+          <div className="mt-2 flex flex-wrap gap-1">
+            <Chip className="font-mono text-[11px] text-muted-foreground">
+              {t.outcome.classKey} {f.classKey}
+            </Chip>
+            {f.descriptor
+              ? (
+                  [
+                    ["measure_class", f.descriptor.measure_class],
+                    ["cost", `${f.descriptor.cost_direction} ${f.descriptor.cost_band}`],
+                    ["payer", f.descriptor.payer],
+                    ["gesetz", f.descriptor.requires_legislation],
+                    ["15a", f.descriptor.requires_15a_agreement],
+                    ["gesamtvertrag", f.descriptor.requires_gesamtvertrag],
+                    ["contestation", f.descriptor.contestation],
+                    ["red_line", f.descriptor.red_line_crossed],
+                  ] as const
+                ).map(([k, v]) => (
+                  <Chip key={k} className="text-[11px] text-muted-foreground">
+                    {k} <span className="text-foreground">{String(v)}</span>
+                  </Chip>
+                ))
+              : null}
+          </div>
+        </Level>
       </div>
       <div className="border-l pl-3 text-xs">
         <div className="mb-1 text-muted-foreground">
@@ -197,18 +200,23 @@ export function OutcomeView() {
             {t.outcome.measures(proposals.length, failed)}
           </div>
         </div>
+        {/* A missing figure says so; a lone dot read as a rendering bug. */}
         <div className="rounded-2xl border bg-card p-4">
-          <div className="num text-2xl font-semibold">{sv ? fmtFig(sv, lang) : "·"}</div>
+          <div className={sv ? "num text-2xl font-semibold" : "text-base text-muted-foreground"}>
+            {sv ? fmtFig(sv, lang) : t.common.notAvailable}
+          </div>
           <div className="text-xs text-muted-foreground">{t.outcome.metric.sv_spend_pp}</div>
           <div className="mt-1 text-xs text-muted-foreground">
-            {sv ? `${t.outcome.range} ${rangeOf(sv, lang)}` : ""} · cap +{cap} %
+            {sv ? `${t.outcome.range} ${rangeOf(sv, lang)} · ` : ""}cap +{cap} %
           </div>
         </div>
         <div className="rounded-2xl border bg-card p-4">
-          <div className="num text-2xl font-semibold">{wait ? fmtFig(wait, lang) : "·"}</div>
+          <div className={wait ? "num text-2xl font-semibold" : "text-base text-muted-foreground"}>
+            {wait ? fmtFig(wait, lang) : t.common.notAvailable}
+          </div>
           <div className="text-xs text-muted-foreground">{t.outcome.metric.wait_change_pct}</div>
           <div className="mt-1 text-xs text-muted-foreground">
-            {wait ? `${t.outcome.range} ${rangeOf(wait, lang)}` : ""} ·{" "}
+            {wait ? `${t.outcome.range} ${rangeOf(wait, lang)} · ` : ""}
             {lang === "de" ? "Ziel" : "target"} −20 %
           </div>
         </div>
@@ -232,9 +240,7 @@ export function OutcomeView() {
             </>
           ) : (
             <>
-              <div className="text-2xl font-semibold text-muted-foreground">
-                {t.common.notAvailable}
-              </div>
+              <div className="text-base text-muted-foreground">{t.common.notAvailable}</div>
               <div className="text-xs text-muted-foreground">{t.outcome.realism.outcome}</div>
             </>
           )}

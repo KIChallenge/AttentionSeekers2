@@ -21,7 +21,7 @@ function ClaimText({ u, claims }: { u: Utterance; claims: Claim[] }) {
         {claims.flatMap((c) => c.citations).length ? " " : null}
         {claims.flatMap((c) =>
           withKeys(c.citations, (ref) => `${c.id}-${ref.segmentId}`).map(([key, ref]) => (
-            <SourceChip key={key} cite={ref} />
+            <SourceChip key={key} cite={ref} compact />
           )),
         )}
       </>
@@ -45,7 +45,7 @@ function ClaimText({ u, claims }: { u: Utterance; claims: Claim[] }) {
       </span>,
     );
     for (const [key, ref] of withKeys(c.citations, (r) => `${c.id}-${r.segmentId}`))
-      out.push(<SourceChip key={key} cite={ref} />);
+      out.push(<SourceChip key={key} cite={ref} compact />);
     pos = c.span.end;
   }
   out.push(text.slice(pos));
@@ -101,6 +101,8 @@ export function UtteranceCard({
         onSelect && "cursor-pointer hover:border-foreground/30",
       )}
     >
+      {/* Header: who speaks, to whom, in reply to whom; the kind as quiet text. Ids,
+          proposal ids and the model are Engineer-level. */}
       <header className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <Tile id={u.speaker} size="md" />
         {isMod || u.speaker === "expert" ? (
@@ -122,18 +124,16 @@ export function UtteranceCard({
             → {addressees.map((a) => agentLook(run, a, lang).code).join(", ")}
           </span>
         ) : null}
-        <span className="font-mono text-[11px] text-muted-foreground">{u.id}</span>
         {u.respondsTo ? (
           <a
             href={`#${u.respondsTo}`}
-            className="inline-flex items-center gap-1 rounded-full border px-2 text-xs text-muted-foreground hover:text-foreground"
+            className="text-xs text-muted-foreground hover:text-foreground hover:underline"
             title={`${t.live.respondsTo} ${u.respondsTo}`}
           >
-            ↩ {t.live.respondsTo} <span className="font-mono">{u.respondsTo}</span>
-            {replyName ? ` ${replyName}` : ""}
+            ↩ {t.live.respondsTo} {replyName ?? u.respondsTo}
           </a>
         ) : null}
-        <Chip className="bg-gray-alpha-100 font-medium">{t.kind[u.kind]}</Chip>
+        <span className="text-xs text-muted-foreground">· {t.kind[u.kind]}</span>
         {u.redLinesTouched.length ? (
           <Chip
             className="border-warning/40 bg-warning/10 text-warning"
@@ -142,32 +142,42 @@ export function UtteranceCard({
             {t.live.redLineTouched}
           </Chip>
         ) : null}
-        {u.proposalIds.map((p) => (
-          <Chip key={p} className="font-mono">
-            {p}
-          </Chip>
-        ))}
         {u.degraded ? (
           <Chip className="border-destructive/40 text-destructive" title={u.degraded.reason}>
             {t.live.degraded}
           </Chip>
         ) : null}
         <Level min="engineer">
-          <span className="ml-auto font-mono text-[11px] text-muted-foreground">{u.model}</span>
+          <span className="ml-auto flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
+            {u.proposalIds.map((p) => (
+              <span key={p}>{p}</span>
+            ))}
+            <span>{u.id}</span>
+            <span>{u.model}</span>
+          </span>
         </Level>
       </header>
       <p className="mt-2 text-sm leading-relaxed">
         <ClaimText u={u} claims={claims} />
       </p>
       {(claims.length > 0 || applied.length > 0) && (
-        <footer className="mt-2 flex flex-wrap items-center gap-1.5">
-          {(["verified", "unverified", "contradicted", "assumption"] as const).map((s) =>
+        <footer className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+          {/* Verified and contradicted carry colour; unverified and assumption are plain. */}
+          {(["verified", "contradicted"] as const).map((s) =>
             counts[s] ? <ClaimStateBadge key={s} state={s} count={counts[s]} /> : null,
           )}
+          {(["unverified", "assumption"] as const).map((s) =>
+            counts[s] ? (
+              <span key={s}>
+                {counts[s]} {t.claim[s]}
+              </span>
+            ) : null,
+          )}
           {applied.map((a) => (
-            <Chip key={`${a.agentId}-${a.lessonRound}`} className="border-info/30 text-info">
-              {t.live.lessonsTitle(a.lessonRound).split(" (")[0]}: {L(a.note, lang)}
-            </Chip>
+            <span key={`${a.agentId}-${a.lessonRound}`}>
+              <span className="text-info">{t.live.lessonsTitle(a.lessonRound)}:</span>{" "}
+              {L(a.note, lang)}
+            </span>
           ))}
         </footer>
       )}
@@ -213,18 +223,22 @@ export function PendingCard({
   respondsTo: string | null;
   text: string;
 }) {
-  const { run, lang, t } = useRun();
+  const { run, snap, lang, t } = useRun();
   const { projector } = usePrefs();
   const a = agentLook(run, speaker, lang);
+  const replyTo = respondsTo ? snap.utterances[respondsTo] : null;
+  const replyName = replyTo ? agentLook(run, replyTo.speaker, lang).name : respondsTo;
   return (
     <article className="rounded-2xl border border-foreground bg-card p-3.5">
       <header className="flex items-center gap-2">
         <Tile id={speaker} size="md" />
         <span className="font-medium">{a.name}</span>
-        <span className="font-mono text-[11px] text-muted-foreground">{id}</span>
+        <Level min="engineer">
+          <span className="font-mono text-[11px] text-muted-foreground">{id}</span>
+        </Level>
         {respondsTo ? (
           <span className="text-xs text-muted-foreground">
-            ↩ {t.live.respondsTo} <span className="font-mono">{respondsTo}</span>
+            ↩ {t.live.respondsTo} {replyName}
           </span>
         ) : null}
         <Chip className="border-success/30 bg-success/10 text-success">

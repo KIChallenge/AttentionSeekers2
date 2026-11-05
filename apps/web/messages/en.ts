@@ -97,6 +97,6 @@ export const en = {
   },
   archive: {
     title: "Evidence archive",
-    sub: "One search over everything the agents reason from, with an as-of slider (FR-H2).",
+    sub: "One search over everything the agents reason from, with an as-of slider.",
   },
 } satisfies Messages;

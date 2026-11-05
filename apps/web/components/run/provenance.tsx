@@ -1,6 +1,7 @@
 "use client";
 
 import type { CitationRef, Claim, ClaimState } from "@sv/contracts";
+import { Level } from "@/components/shell/providers";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Chip, EntityRef } from "./bits";
@@ -95,40 +96,45 @@ export function ClaimStateBadge({ state, count }: { state: ClaimState; count?: n
   );
 }
 
-/** Per-claim block: atomic text, state, citations, verifying models (FR-T10). */
+/**
+ * Per-claim block: atomic text, state, citations (FR-T10). The claim id and the verifying
+ * models' verdicts are Engineer-level; Analyst sees the state and the sources.
+ */
 export function ClaimRow({ claim, dense = false }: { claim: Claim; dense?: boolean }) {
   const { t, lang } = useRun();
   return (
     <div className="rounded-xl border p-2.5">
       <div className="flex items-start justify-between gap-2">
-        <span className="font-mono text-[11px] text-muted-foreground">{claim.id}</span>
+        <p className="text-sm">„{claim.atomicText}“</p>
         <ClaimStateBadge state={claim.state} />
       </div>
-      <p className="mt-1 text-sm">„{claim.atomicText}“</p>
       {claim.citations.length ? (
         <div className="mt-1.5 flex flex-wrap gap-1">
           {withKeys(claim.citations, (c) => c.segmentId).map(([key, c]) => (
-            <SourceChip key={key} cite={c} />
+            <SourceChip key={key} cite={c} compact />
           ))}
         </div>
       ) : null}
       {!dense && claim.verifyingModels.length ? (
-        <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
-          {withKeys(claim.verifyingModels, (v) => v.model).map(([key, v]) => (
-            <li key={key}>
-              <span className="font-mono">{v.model}</span>:{" "}
-              <span
-                className={cn(
-                  v.verdict === "supported" && "text-success",
-                  v.verdict === "contradicted" && "text-warning",
-                )}
-              >
-                {t.claim.verdict[v.verdict]}
-              </span>
-              {v.reason ? ` · ${v.reason}` : ""}
-            </li>
-          ))}
-        </ul>
+        <Level min="engineer">
+          <div className="mt-1.5 font-mono text-[11px] text-muted-foreground">{claim.id}</div>
+          <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+            {withKeys(claim.verifyingModels, (v) => v.model).map(([key, v]) => (
+              <li key={key}>
+                <span className="font-mono">{v.model}</span>:{" "}
+                <span
+                  className={cn(
+                    v.verdict === "supported" && "text-success",
+                    v.verdict === "contradicted" && "text-warning",
+                  )}
+                >
+                  {t.claim.verdict[v.verdict]}
+                </span>
+                {v.reason ? ` · ${v.reason}` : ""}
+              </li>
+            ))}
+          </ul>
+        </Level>
       ) : null}
       {claim.contradiction ? (
         <p className="mt-1 text-xs text-warning">

@@ -19,7 +19,7 @@ import { useRouter } from "next/navigation";
 import { type ReactNode, useMemo, useState } from "react";
 import { laneT } from "@/components/entity/messages";
 import { AgentTile } from "@/components/run/agent-tile";
-import { usePrefs } from "@/components/shell/providers";
+import { Level, usePrefs } from "@/components/shell/providers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -360,9 +360,10 @@ export function SetupRoom({
             variant="ghost"
             onClick={() => setOpen(expanded ? null : a.agentId)}
             aria-expanded={expanded}
+            aria-label={t.setup.model}
             className="font-mono text-[11px] text-muted-foreground"
           >
-            {a.model.split("/").at(-1)} {expanded ? "▴" : "▾"}
+            <Level min="engineer">{a.model.split("/").at(-1)}</Level> {expanded ? "▴" : "▾"}
           </Button>
         </div>
         {expanded ? (

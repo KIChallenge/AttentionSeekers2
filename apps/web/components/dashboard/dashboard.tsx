@@ -13,7 +13,7 @@ import { useMemo, useState } from "react";
 import { laneT } from "@/components/entity/messages";
 import { AgentTile } from "@/components/run/agent-tile";
 import { OutcomeBadge } from "@/components/run/outcome-badge";
-import { usePrefs } from "@/components/shell/providers";
+import { Level, usePrefs } from "@/components/shell/providers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -103,23 +103,18 @@ function Pinned({ d, forkAvailable }: { d: PinnedDetail; forkAvailable: boolean 
         </span>
         <span className="text-muted-foreground">{t.dash.referenceLead}</span>
         <span className="flex-1" />
-        <span className="font-mono text-muted-foreground">{r.id}</span>
+        <Level min="engineer">
+          <span className="font-mono text-muted-foreground">{r.id}</span>
+        </Level>
       </div>
       <div className="grid grid-cols-1 gap-6 p-5 lg:grid-cols-[1.25fr_1fr]">
         <div className="flex min-w-0 flex-col gap-4">
+          {/* Outcome and template only; variant and end condition are in the end note. */}
           <div className="flex flex-wrap items-center gap-1.5">
             <OutcomeBadge value={r.outcomeBadge} t={base} />
-            <Badge variant="outline" className="text-muted-foreground">
-              {(base.variant as Record<string, string>)[r.variantKind] ?? r.variantKind}
-            </Badge>
             {template ? (
               <Badge variant="outline" className="text-muted-foreground">
                 {lang === "de" ? template.de : template.en}
-              </Badge>
-            ) : null}
-            {r.endCondition ? (
-              <Badge variant="outline" className="text-muted-foreground">
-                {t.dash.endCondition[r.endCondition]}
               </Badge>
             ) : null}
           </div>
@@ -282,44 +277,23 @@ export function Dashboard({
     </Select>
   );
 
+  // The totals are one quiet line, not four tiles: with a handful of runs they are
+  // orientation, not a result. The setup and archive entry points live in the top bar.
+  const totals = [
+    `${runs.length} ${t.dash.stats.runs}`,
+    `${consensus} ${t.dash.stats.consensus}`,
+    `${topicsAgreed}/${topicsAll} ${t.dash.stats.topics}`,
+    `${models.length} ${t.dash.stats.models}`,
+  ].join(" · ");
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {[
-          { k: t.dash.stats.runs, v: String(runs.length) },
-          { k: t.dash.stats.consensus, v: `${consensus}/${runs.length}` },
-          { k: t.dash.stats.topics, v: `${topicsAgreed}/${topicsAll}` },
-          { k: t.dash.stats.models, v: String(models.length) },
-        ].map((s) => (
-          <div key={s.k} className="rounded-2xl border bg-card px-4 py-3">
-            <div className="text-xs text-muted-foreground">{s.k}</div>
-            <div className="num mt-0.5 text-2xl">{s.v}</div>
-          </div>
-        ))}
-      </div>
-
       {pinned ? <Pinned d={pinned} forkAvailable={forkAvailable} /> : null}
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Link
-          href="/runs/new"
-          className="group rounded-2xl border bg-card p-4 transition-colors hover:bg-gray-alpha-50"
-        >
-          <div className="text-sm font-medium">{t.dash.setupCta} →</div>
-          <div className="mt-0.5 text-sm text-muted-foreground">{t.dash.setupCtaSub}</div>
-        </Link>
-        <Link
-          href="/archive"
-          className="group rounded-2xl border bg-card p-4 transition-colors hover:bg-gray-alpha-50"
-        >
-          <div className="text-sm font-medium">{t.dash.archiveCta} →</div>
-          <div className="mt-0.5 text-sm text-muted-foreground">{t.dash.archiveCtaSub}</div>
-        </Link>
-      </div>
 
       <section aria-label={t.dash.allRuns} className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="mr-2 text-base">{t.dash.allRuns}</h2>
+          <h2 className="text-base">{t.dash.allRuns}</h2>
+          <span className="num mr-2 text-xs text-muted-foreground">{totals}</span>
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -374,7 +348,6 @@ export function Dashboard({
                   <tr>
                     <th className="px-4 py-2 font-normal">{t.dash.question}</th>
                     <th className="px-3 py-2 font-normal">{t.dash.date}</th>
-                    <th className="px-3 py-2 font-normal">{t.dash.filterVariant}</th>
                     <th className="px-3 py-2 font-normal">{t.dash.outcome}</th>
                     <th className="px-3 py-2 font-normal">{base.dashboard.agreement}</th>
                     <th className="px-3 py-2 font-normal">{base.dashboard.movedMost}</th>
@@ -395,20 +368,25 @@ export function Dashboard({
                         <Link href={`/runs/${r.id}`} className="line-clamp-2 hover:underline">
                           {r.question}
                         </Link>
-                        <div className="mt-1 flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+                        <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                           {r.isReference ? (
                             <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
                               {base.dashboard.reference}
                             </Badge>
                           ) : null}
-                          {r.id} · {r.agents.length} · {r.models.length} models
+                          <span>
+                            {(base.variant as Record<string, string>)[r.variantKind] ??
+                              r.variantKind}
+                          </span>
+                          <Level min="engineer">
+                            <span className="font-mono">
+                              · {r.id} · {r.agents.length} · {r.models.length} models
+                            </span>
+                          </Level>
                         </div>
                       </td>
                       <td className="num px-3 py-3 whitespace-nowrap">
                         {formatDate(r.createdAt, lang)}
-                      </td>
-                      <td className="px-3 py-3 whitespace-nowrap text-muted-foreground">
-                        {(base.variant as Record<string, string>)[r.variantKind] ?? r.variantKind}
                       </td>
                       <td className="px-3 py-3">
                         <OutcomeBadge value={r.outcomeBadge} t={base} />
