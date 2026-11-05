@@ -12,7 +12,8 @@
     "lint": "biome check .",
     "stage:tts": "node scripts/stage-tts.ts",
     "avatar:asset": "node scripts/avatar-asset.ts",
-    "stage:voices": "node scripts/stage-voices.ts"
+    "stage:voices": "node scripts/stage-voices.ts",
+    "topic:forecasts": "node --no-warnings scripts/topic-forecasts.ts"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.4.0",
