@@ -260,7 +260,18 @@ export function StageView() {
               p.audioState === "on" && "border-success/30 bg-success/10 text-success",
               p.audioState === "off" && "border-warning/40 bg-warning/10 text-warning",
             )}
-            title={p.audioState === "off" ? s.audioOffHint : (p.manifest?.model ?? undefined)}
+            title={
+              p.audioState === "off" && !p.eleven
+                ? s.audioOffHint
+                : [
+                    p.provider
+                      ? `${s.voiceBy}: ${p.provider === "elevenlabs" ? (p.eleven?.model ?? s.voiceEleven) : (p.manifest?.model ?? s.voiceAzure)}`
+                      : (p.manifest?.model ?? ""),
+                    p.eleven ? s.elevenAttribution : "",
+                  ]
+                    .filter(Boolean)
+                    .join("\n") || undefined
+            }
           >
             {p.audioState === "on" ? "♪ " : p.audioState === "off" ? "∅ " : ""}
             {p.audioState === "on"
@@ -270,6 +281,17 @@ export function StageView() {
                 : p.audioState === "rendering"
                   ? s.audioRendering
                   : s.audioLoading}
+            {p.provider ? (
+              <span
+                data-voice-provider={p.provider}
+                className={cn(
+                  "ml-1.5 border-l border-current/30 pl-1.5 opacity-80",
+                  p.provider === "elevenlabs" && "font-medium opacity-100",
+                )}
+              >
+                {p.provider === "elevenlabs" ? s.voiceEleven : s.voiceAzure}
+              </span>
+            ) : null}
           </Chip>
         </div>
 

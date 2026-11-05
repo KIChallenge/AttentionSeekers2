@@ -32,6 +32,11 @@ const de = {
     "Für diesen Lauf liegen keine vorgerenderten Stimmen vor. Die Wiedergabe läuft stumm, zeitlich nach Textlänge.",
   audioLoading: "Ton wird geladen",
   audioRendering: "Stimmen werden erzeugt (ca. 1 Minute)",
+  voiceAzure: "Azure",
+  voiceEleven: "ElevenLabs",
+  voiceBy: "Stimme dieser Wortmeldung",
+  elevenAttribution:
+    "Ausgewählter Abschnitt mit Stimmen von ElevenLabs (elevenlabs.io), Free-Tarif, nicht kommerziell. Übrige Wortmeldungen: Azure AI Speech.",
   inTranscript: "Im Protokoll öffnen",
   utterance: "Wortmeldung",
   of: "von",
@@ -86,6 +91,11 @@ const en: StageStrings = {
     "No pre-rendered voices exist for this run. Playback is silent, timed by text length.",
   audioLoading: "Loading sound",
   audioRendering: "Rendering voices (about a minute)",
+  voiceAzure: "Azure",
+  voiceEleven: "ElevenLabs",
+  voiceBy: "Voice of this utterance",
+  elevenAttribution:
+    "Selected span voiced by ElevenLabs (elevenlabs.io), free tier, non-commercial. Other utterances: Azure AI Speech.",
   inTranscript: "Open in record",
   utterance: "Utterance",
   of: "of",
