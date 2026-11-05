@@ -13,6 +13,9 @@ import { EntityLink } from "@/components/entity/entity-link";
 import { laneT } from "@/components/entity/messages";
 import { scopedId } from "@/components/entity/types";
 import { AgentTile } from "@/components/run/agent-tile";
+import { delegateRole } from "@/components/run/helpers";
+import { ExchangeGroup } from "@/components/timeline/exchange-group";
+import { groupByExchange, parallelExchanges } from "@/components/timeline/model";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -48,6 +51,8 @@ function UtteranceCard({
   const runId = s.runId ?? "";
   const claims = u.claimIds.map((id) => s.claims[id]).filter((c): c is Claim => !!c);
   const moderator = u.speaker === "moderator" || u.speaker === "expert";
+  const role = delegateRole(s.run, u.speaker, u.delegateId, lang);
+  const addressees = (u.addressedTo ?? []).filter((a) => a !== u.speaker);
   return (
     <article
       id={`utt-${u.id}`}
@@ -61,6 +66,12 @@ function UtteranceCard({
       <header className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
         <AgentTile agentId={u.speaker} />
         <span className="text-sm font-medium">{speakerName(u.speaker, lang)}</span>
+        {role ? <span className="text-xs text-muted-foreground">{role}</span> : null}
+        {addressees.length ? (
+          <span className="text-xs text-muted-foreground">
+            → {addressees.map((a) => catalogAgent(a)?.code ?? a).join(", ")}
+          </span>
+        ) : null}
         <button
           type="button"
           onClick={() => onSelect(u.id)}
@@ -139,6 +150,8 @@ export function Transcript({
   onSelect: (utteranceId: string) => void;
 }) {
   const t = laneT(lang);
+  const parallel = parallelExchanges(s.exchanges);
+  const exchangeById = new Map(s.exchanges.map((x) => [x.id, x]));
   return (
     <div className="space-y-4">
       {s.rounds.map((r) => {
@@ -182,19 +195,29 @@ export function Transcript({
                 ) : null}
               </div>
             ))}
-            {r.utteranceIds.map((id) => {
-              const u = s.utterances[id];
-              return u ? (
-                <UtteranceCard
-                  key={id}
-                  u={u}
-                  s={s}
-                  lang={lang}
-                  current={id === currentUtterance}
-                  onSelect={onSelect}
-                />
-              ) : null;
-            })}
+            {groupByExchange(r.utteranceIds, s.utterances).map((g) => (
+              <ExchangeGroup
+                key={g.exchangeId ?? `loose-${g.ids[0]}`}
+                exchange={g.exchangeId ? exchangeById.get(g.exchangeId) : null}
+                run={s.run}
+                lang={lang}
+                parallel={!!g.exchangeId && parallel.has(g.exchangeId)}
+              >
+                {g.ids.map((id) => {
+                  const u = s.utterances[id];
+                  return u ? (
+                    <UtteranceCard
+                      key={id}
+                      u={u}
+                      s={s}
+                      lang={lang}
+                      current={id === currentUtterance}
+                      onSelect={onSelect}
+                    />
+                  ) : null;
+                })}
+              </ExchangeGroup>
+            ))}
             {notes.map((n) => (
               <div key={n.seq} className="rounded-2xl border border-dashed p-3 text-sm">
                 <span className="mr-2 text-xs text-muted-foreground">
