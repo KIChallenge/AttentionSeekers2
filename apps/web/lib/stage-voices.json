@@ -1,0 +1,84 @@
+{
+  "source": "premade",
+  "note": "Free tier: only premade voices work over the API. Regenerate with scripts/stage-voices.ts after an upgrade; see public/stage/VOICES.md.",
+  "model": "eleven_turbo_v2_5",
+  "voices": {
+    "moderator": {
+      "id": "XrExE9yKIg1WjnnlVkGX",
+      "name": "Matilda",
+      "category": "premade",
+      "locale": "de-DE",
+      "speed": 1.0
+    },
+    "gm": {
+      "id": "onwK4e9ZLuTAKqWW03F9",
+      "name": "Daniel",
+      "category": "premade",
+      "locale": "de-DE",
+      "speed": 1.0
+    },
+    "sv": {
+      "id": "pFZP5JQG7iQjIQuC4Bku",
+      "name": "Lily",
+      "category": "premade",
+      "locale": "de-DE",
+      "speed": 1.03
+    },
+    "ak": {
+      "id": "pqHfZKP75CvOlQylNhV4",
+      "name": "Bill",
+      "category": "premade",
+      "locale": "de-DE",
+      "speed": 0.97
+    },
+    "va": {
+      "id": "cjVigY5qzO86Huf0OWal",
+      "name": "Eric",
+      "category": "premade",
+      "locale": "de-DE",
+      "speed": 1.04
+    },
+    "ka": {
+      "id": "FGY2WhTYpPnrIDTdsKH5",
+      "name": "Laura",
+      "category": "premade",
+      "locale": "de-DE",
+      "speed": 1.0
+    },
+    "pf": {
+      "id": "cgSgspJ2msm6clMCkdW9",
+      "name": "Jessica",
+      "category": "premade",
+      "locale": "de-DE",
+      "speed": 1.02
+    },
+    "bl": {
+      "id": "CwhRBWXzGAHq8TQ4Fs17",
+      "name": "Roger",
+      "category": "premade",
+      "locale": "de-DE",
+      "speed": 0.98
+    },
+    "pv": {
+      "id": "TX3LPaxmHKxFdv7VOQHJ",
+      "name": "Liam",
+      "category": "premade",
+      "locale": "de-DE",
+      "speed": 1.04
+    },
+    "fm": {
+      "id": "nPczCjzI2devNBz1zQrb",
+      "name": "Brian",
+      "category": "premade",
+      "locale": "de-DE",
+      "speed": 0.96
+    },
+    "expert": {
+      "id": "bIHbv24MWmeRgasZH58o",
+      "name": "Will",
+      "category": "premade",
+      "locale": "de-DE",
+      "speed": 0.98
+    }
+  }
+}
