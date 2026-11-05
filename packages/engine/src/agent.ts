@@ -560,7 +560,7 @@ export function exchangeTurnMessages(
     "",
     task,
     `textDe: ${c.kind === "interjection" ? "1 bis 2 Sätze, höchstens 45 Wörter" : "2 bis 4 Sätze, 35 bis 80 Wörter"}, gesprochene Sprache, kein Aufzählungsstil, sprich dein Gegenüber als Institution an und nenne keine Zug-, Äußerungs- oder Rote-Linien-Kennungen; textEn = sinngemäße englische Übersetzung.`,
-    "claims: höchstens zwei, nur Zahlen und überprüfbare Tatsachen aus textDe; quote = exakter kurzer Ausschnitt; evidence = Belegkennungen (leer = Annahme).",
+    "claims: höchstens zwei, nur Zahlen und überprüfbare Tatsachen aus textDe; quote = exakter kurzer Ausschnitt; atomic = die Aussage als kurzer deutscher Satz; evidence = Belegkennungen (leer = Annahme).",
     `stance: deine Haltung zu ${topic?.id ?? "dem Hauptthema des Vorschlags"} nach diesem Zug (Viertelschritte); wenn das Gespräch dich bewegt hat, ändere sie und nenne in changeNote den Anlass, sonst changeNote null. strength 0..1, rationaleDe höchstens 12 Wörter.`,
     "redLinesTouched: ids roter Linien (eigene oder fremde), die dein Zug berührt.",
     lesson
