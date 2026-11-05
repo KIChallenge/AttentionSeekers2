@@ -6,6 +6,7 @@ import { Chip, Empty, Meter, Panel, Tile, UttRef } from "@/components/run/bits";
 import { agentLook, fmtStance, L } from "@/components/run/helpers";
 import { SourceChip } from "@/components/run/provenance";
 import { useRun } from "@/components/run/run-context";
+import { Level } from "@/components/shell/providers";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { StrategicPanel } from "./strategic-panel";
@@ -74,14 +75,13 @@ export function AgentCard({ agentId }: { agentId: string }) {
         <div className="flex min-w-0 items-start gap-3">
           <Tile id={agentId} size="lg" />
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold break-words">
-              {look.name}{" "}
-              <span className="text-base font-normal text-muted-foreground">
-                · {cfg.institution.unit}
-                {lang === "de" ? ` (${cfg.institution.glossEn})` : ` (${cfg.institution.nameDe})`}
+            <h1 className="text-2xl font-semibold break-words">{look.name}</h1>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {cfg.institution.unit}
+              <span className="text-text-tertiary">
+                {lang === "de" ? ` · ${cfg.institution.glossEn}` : ` · ${cfg.institution.nameDe}`}
               </span>
-            </h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{t.agent.sub}</p>
+            </p>
           </div>
         </div>
         <nav aria-label={t.agent.switcher} className="flex flex-wrap items-center gap-1">
@@ -117,35 +117,28 @@ export function AgentCard({ agentId }: { agentId: string }) {
                 const n = positionAt(snap, agentId, tp.id);
                 if (!s || !n) return null;
                 return (
-                  <div
-                    key={tp.id}
-                    className="grid grid-cols-[minmax(0,1fr)_64px] items-center gap-x-4 gap-y-2 py-2.5 sm:grid-cols-[170px_minmax(0,1fr)_64px]"
-                  >
-                    <div>
+                  <div key={tp.id} className="flex flex-wrap items-start gap-x-4 gap-y-2 py-3">
+                    <div className="w-44 shrink-0">
                       <div className="text-sm font-medium">{L(tp.label, lang)}</div>
                       <div className="text-xs text-muted-foreground">{L(tp.measure, lang)}</div>
                     </div>
-                    <div className="col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:row-start-auto">
+                    <div className="min-w-[240px] flex-1 pt-1">
                       <StanceBar start={s.stance} now={n.stance} color={look.color} />
-                      <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
+                      <div className="num mt-1.5 flex justify-between text-[11px] text-muted-foreground">
                         <span>−2</span>
-                        <span className="num">
+                        <span>
                           {t.agent.start} {fmtStance(s.stance)} · {t.agent.current}{" "}
-                          {fmtStance(n.stance)}
+                          {fmtStance(n.stance)} · {t.agent.strength} {s.strength.toFixed(2)}
                         </span>
                         <span>+2</span>
                       </div>
                       {s.citations.length ? (
-                        <div className="mt-1 flex flex-wrap gap-1">
+                        <div className="mt-1.5 flex flex-wrap gap-1">
                           {s.citations.map((c) => (
                             <SourceChip key={c.segmentId} cite={c} />
                           ))}
                         </div>
                       ) : null}
-                    </div>
-                    <div className="num col-start-2 row-start-1 text-right text-xs text-muted-foreground sm:col-start-auto">
-                      {t.agent.strength}
-                      <div className="text-sm text-foreground">{s.strength.toFixed(2)}</div>
                     </div>
                   </div>
                 );
@@ -190,7 +183,9 @@ export function AgentCard({ agentId }: { agentId: string }) {
                 <li key={id} className="border-l-[3px] border-destructive pl-3">
                   <div className="text-sm">{rl ? L(rl.text, lang) : id}</div>
                   <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                    <span className="font-mono">{id}</span>
+                    <Level min="engineer">
+                      <span className="font-mono">{id}</span>
+                    </Level>
                     {rl ? <Chip>{t.agent.tier[rl.tier]}</Chip> : null}
                     {rl?.basis ? <SourceChip cite={rl.basis} compact /> : null}
                     {touched(id).length ? (
@@ -222,33 +217,47 @@ export function AgentCard({ agentId }: { agentId: string }) {
                 </li>
               ))}
             </ul>
-            <h3 className="mt-4 mb-1 text-xs text-muted-foreground">
-              {t.agent.sources} ({sources.length})
-            </h3>
-            <div className="space-y-1.5">
-              {sources.map((c) => (
-                <div key={c.segmentId} className="text-sm">
-                  <SourceChip cite={c} />{" "}
-                  <span className="text-muted-foreground">
-                    {evidence.segments[c.segmentId]?.text ?? ""}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <details className="mt-4">
+              <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+                {t.agent.sources} ({sources.length})
+              </summary>
+              <div className="mt-1.5 space-y-1.5">
+                {sources.map((c) => (
+                  <div key={c.segmentId} className="text-sm">
+                    <SourceChip cite={c} />{" "}
+                    <span className="text-muted-foreground">
+                      {evidence.segments[c.segmentId]?.text ?? ""}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </details>
           </Panel>
         </div>
 
         <div className="min-w-0 space-y-4">
           <Panel title={t.agent.playedBy}>
             <dl className="grid grid-cols-[90px_1fr] gap-y-1 text-sm">
-              <dt className="text-muted-foreground">{t.live.model}</dt>
-              <dd className="font-mono text-xs">{run.modelAssignment[agentId] ?? "-"}</dd>
               <dt className="text-muted-foreground">Mode</dt>
               <dd>{t.agent.mode[cfg.mode]}</dd>
               <dt className="text-muted-foreground">{t.agent.utterances}</dt>
-              <dd className="flex flex-wrap gap-1">
-                {myUtts.map((u) => (u ? <UttRef key={u.id} id={u.id} /> : null))}
+              <dd>
+                <Link
+                  href={`/runs/${runId}`}
+                  className="underline decoration-gray-alpha-400 underline-offset-2 hover:decoration-foreground"
+                >
+                  {myUtts.length}
+                </Link>
+                <Level min="engineer">
+                  <span className="mt-1 flex flex-wrap gap-1">
+                    {myUtts.map((u) => (u ? <UttRef key={u.id} id={u.id} /> : null))}
+                  </span>
+                </Level>
               </dd>
+              <Level min="engineer">
+                <dt className="text-muted-foreground">{t.live.model}</dt>
+                <dd className="font-mono text-xs">{run.modelAssignment[agentId] ?? "-"}</dd>
+              </Level>
             </dl>
           </Panel>
           <Panel title={t.agent.goals}>
@@ -309,7 +318,7 @@ export function AgentCard({ agentId }: { agentId: string }) {
         </div>
       </div>
       <p className="mt-6 border-t pt-3 text-xs text-muted-foreground">
-        CON-1/CON-2 · {t.source.personFiltered} · FR-P4 w = recency weight
+        {t.agent.sub.split(". ").at(-1)} · {t.source.personFiltered} · w = {t.source.weight}
       </p>
     </main>
   );
