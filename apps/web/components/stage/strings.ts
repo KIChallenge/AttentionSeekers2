@@ -41,6 +41,13 @@ const de = {
   scope: "Umfang",
   scopeExchange: "Austausch",
   scopeRun: "Ganzer Lauf",
+  view: "Ansicht",
+  viewGrid: "Kacheln",
+  view3d: "3D",
+  view3dHint:
+    "Stilisierte 3D-Figuren, eine je Institution, Lippenbewegung aus den vorgerenderten Stimmen",
+  view3dLoading: "3D-Figuren werden geladen",
+  view3dFallback: "3D nicht verfügbar, Kachelansicht aktiv",
 };
 
 export type StageStrings = typeof de;
@@ -85,6 +92,12 @@ const en: StageStrings = {
   scope: "Scope",
   scopeExchange: "Exchange",
   scopeRun: "Whole run",
+  view: "View",
+  viewGrid: "Tiles",
+  view3d: "3D",
+  view3dHint: "Stylized 3D figures, one per institution, lip sync from the pre-rendered voices",
+  view3dLoading: "Loading 3D figures",
+  view3dFallback: "3D unavailable, showing tiles",
 };
 
 export const stageStrings: Record<Lang, StageStrings> = { de, en };
