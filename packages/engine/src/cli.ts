@@ -2,7 +2,8 @@
 //   run      --question "..." [--template wartezeiten] [--rounds 5] [--id X] [--reference]
 //            [--as-of YYYY-MM-DD] [--seed N] [--climate neutral] [--agents gm,sv,...]
 //            [--room-file room.json] [--mandate-file mandate.json] [--stdout] [--no-db]
-//            [--out-dir runs]
+//            [--out-dir runs] [--variant all_gpt|all_nova|mixed|swapped] [--models gm=nova,sv=gpt]
+//            [--base <runId>]   (with --variant or --models: Run.variant = model_ensemble)
 //   room     --question "..." [--template ...] [--select]   prints { room, mandate } JSON
 //   fork     --base <runId> --from-round N [--id X] [--edit-agent a --remove s1,s2 --add s3]
 //   validate <file.ndjson>                                   foldRun check + summary
@@ -19,7 +20,7 @@ import {
   TEMPLATES,
   Template,
 } from "@sv/contracts";
-import { REPO_ROOT } from "./config.ts";
+import { DEFAULT_MODEL, REPO_ROOT, SECOND_MODEL } from "./config.ts";
 import { structuredStats, throttled } from "./llm.ts";
 import { buildMandate, defaultRoom } from "./room.ts";
 import { newRunId, runNegotiation } from "./runner.ts";
@@ -42,6 +43,8 @@ const { positionals, values } = parseArgs({
     stdout: { type: "boolean" },
     "no-db": { type: "boolean" },
     "out-dir": { type: "string" },
+    variant: { type: "string" },
+    models: { type: "string" },
     select: { type: "boolean" },
     base: { type: "string" },
     "from-round": { type: "string" },
@@ -71,6 +74,45 @@ function roomFromArgs() {
     agentIds: values.agents?.split(",").map((x) => x.trim()),
     model: values.model,
   });
+}
+
+/** Family aliases for --models, so a seat list stays short on the command line. */
+function resolveModel(m: string): string {
+  if (m === "gpt" || m === "primary") return DEFAULT_MODEL();
+  if (m === "nova" || m === "second") {
+    const second = SECOND_MODEL();
+    if (!second) throw new Error("second model family is not configured");
+    return second;
+  }
+  return m;
+}
+
+/**
+ * Model-ensemble assignment (FR-X2, FR-X3): rewrites the seat models of a room without touching
+ * the moderator, the Experte or the verifier, so only the institutions' models vary across runs.
+ * Presets: all_gpt, all_nova, mixed (the default two-family floor), swapped (mixed with the
+ * families exchanged between seats). --models seat=model pairs apply on top.
+ */
+function applyModelVariant(room: RoomConfig): RoomConfig {
+  const preset = values.variant;
+  if (!preset && !values.models) return room;
+  const primary = DEFAULT_MODEL();
+  const second = SECOND_MODEL();
+  const agents = room.agents.map((a) => {
+    let model = a.model;
+    if (preset === "all_gpt") model = primary;
+    else if (preset === "all_nova") model = resolveModel("nova");
+    else if (preset === "swapped") model = a.model === second ? primary : resolveModel("nova");
+    else if (preset && preset !== "mixed") throw new Error(`unknown --variant ${preset}`);
+    return { ...a, model };
+  });
+  for (const pair of values.models?.split(",").filter(Boolean) ?? []) {
+    const [seat, m] = pair.split("=").map((x) => x.trim());
+    const agent = agents.find((a) => a.agentId === seat);
+    if (!agent || !m) throw new Error(`--models: bad pair ${pair}`);
+    agent.model = resolveModel(m);
+  }
+  return { ...room, agents };
 }
 
 function loadEvents(runId: string): RunEvent[] {
@@ -168,7 +210,8 @@ async function main() {
     return;
   }
   // run
-  const room = roomFromArgs();
+  const room = applyModelVariant(roomFromArgs());
+  const ensemble = values.variant || values.models;
   const mandate = values["mandate-file"]
     ? Mandate.parse(JSON.parse(readFileSync(values["mandate-file"], "utf8")))
     : undefined;
@@ -177,6 +220,9 @@ async function main() {
     mandate,
     runId: values.id,
     isReference: values.reference ?? false,
+    variant: ensemble
+      ? { kind: "model_ensemble", label: values.variant ?? "custom", baseRunId: values.base ?? null }
+      : undefined,
     outDir: values["out-dir"],
     db: !values["no-db"],
     selectActors: !values["room-file"] && !values.agents && room.template === "custom",
