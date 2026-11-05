@@ -1,6 +1,7 @@
 // pnpm db:import            imports runs/fixture-sources.json and whatever track files exist
 // pnpm db:import --assume-masked   also imports data/derived/stellungnahmen*.jsonl
 //                                  (only after checking data/derived/masking_summary.json)
+// pnpm db:import --no-press        skips press/derived/press_*.jsonl (loaded by default when present)
 import "./env.ts";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
@@ -93,5 +94,23 @@ if (assumeMasked && existsSync(p("data/derived/stellungnahmen.jsonl"))) {
     adaptStellungnahmeSegment,
   );
   console.log(`stellungnahmen_segments: ${await importSegments(db, segs)} segments`);
+}
+
+// 4. press archive (press/derived, built by `pnpm press:all`). Contract-shaped Source rows of
+// kind "press"; loaded only when the press guard summary reports zero leaks (CON-1/CON-2).
+const noPress = process.argv.includes("--no-press");
+if (!noPress && existsSync(p("press/derived/press_sources.jsonl"))) {
+  const summaryFile = p("press/derived/press_masking_summary.json");
+  if (!existsSync(summaryFile))
+    throw new Error("press_masking_summary.json missing; refusing to import");
+  const summary = JSON.parse(readFileSync(summaryFile, "utf8")) as { leak_hits?: number };
+  if (summary.leak_hits !== 0)
+    throw new Error("press guard summary reports leaks; refusing to import");
+  const sources = validateRows(p("press/derived/press_sources.jsonl"), Source);
+  if (sources.some((s) => s.kind !== "press"))
+    throw new Error("press_sources.jsonl holds a non-press row");
+  console.log(`press_sources: ${await importSources(db, sources)} sources`);
+  const segs = validateRows(p("press/derived/press_segments.jsonl"), Segment);
+  console.log(`press_segments: ${await importSegments(db, segs)} segments`);
 }
 await closeDb();

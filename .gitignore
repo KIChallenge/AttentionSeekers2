@@ -35,3 +35,7 @@ __pycache__/
 .pytest_cache/
 .claude/
 apps/web/AGENTS.md
+# press/: scripts, counts and metadata only; press text and its derivatives stay local
+press/work/
+press/derived/*.jsonl
+press/derived/sft/

@@ -17,7 +17,9 @@
     "db:import": "pnpm --filter @sv/db db:import",
     "runs:load": "pnpm --filter @sv/db runs:load",
     "contracts:schema": "pnpm --filter @sv/contracts schema",
-    "fixture": "pnpm --filter @sv/contracts fixture"
+    "fixture": "pnpm --filter @sv/contracts fixture",
+    "press:all": "cd press && uv run python -I -m sv_press all",
+    "press:test": "cd press && uv run python -I -m pytest -q"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.4",
