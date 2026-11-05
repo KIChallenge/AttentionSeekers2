@@ -21,6 +21,7 @@ models/
     serve_vllm.sh                3a. vLLM multi-LoRA server, one model name per role
     azure_finetune.py            3b. Azure OpenAI export / upload / SFT and DPO jobs
     eval_stance.py               3c. held-out stance agreement adapter vs prompted baseline
+  aws/                           3d. SageMaker path (own uv project): setup, training job, endpoint, proxy, teardown
   cards/MODEL_CARD.md, DATASET_CARD.md   Hugging Face drafts (not published)
   data/                          generated training sets (rebuild any time)
   out/                           classifier model + report, LoRA adapters, eval runs (weights gitignored)
@@ -134,7 +135,88 @@ OPENAI_COMPATIBLE_BASE_URL=... OPENAI_COMPATIBLE_API_KEY=... \
   .venv/bin/python -I scripts/eval_stance.py --n 40                      # adapter vs baseline
 ```
 
-### Azure Foundry fine-tuning (preferred path: team resource, no GPU VM)
+### AWS SageMaker (the path that is running for the demo)
+
+Region `eu-north-1`, one `ml.g6e.xlarge` (1x L40S 48 GB) for training and one for hosting, every resource
+tagged `Project=sv-ki-challenge`. Nothing account-specific is in the repo: the account id comes from STS at
+runtime, the bucket is `sv-ki-challenge-<account>-eu-north-1` (override with `SV_SM_BUCKET`). Uses the
+default AWS CLI profile (SSO).
+
+```sh
+cd models/aws && uv sync
+uv run python -I setup_infra.py                    # budget (200 USD/month, no subscriber), bucket, IAM role
+SV_SFT_DIR=../data/sft uv run python -I train_job.py launch   # uploads the 18 SFT files, starts ONE job
+uv run python -I train_job.py status | cost        # log tail / billable seconds x 2.7636 USD/h
+uv run python -I deploy.py single                  # after the job: stage adapters, LMI model, endpoint, ~10 min
+uv run python -I deploy.py status | smoke <role>   # smoke base | smoke medical_chamber
+uv run python -I proxy.py                          # OpenAI-compatible on http://127.0.0.1:8790/v1
+./teardown.sh                                      # dry run; ./teardown.sh --execute deletes everything
+```
+
+- **Infra** (`setup_infra.py`): bucket with public access blocked, SSE-S3, TLS-only policy. Execution role
+  `sv-ki-challenge-sagemaker`, trust limited to `sagemaker.amazonaws.com` from this account, inline policy
+  only: list/get/put/delete on this bucket, CloudWatch Logs under `/aws/sagemaker/*`, `PutMetricData` in
+  the SageMaker namespaces, ECR pulls from the AWS Deep Learning Containers registry (763104351884).
+- **Training** (`train_job.py`, `train/sm_train.py`): HF PyTorch training DLC
+  (`2.8.0-transformers4.56.2-gpu-py312-cu129`, trl 0.23, peft 0.17), 3 h runtime cap. The job first copies
+  Qwen3-8B to `s3://<bucket>/base/Qwen3-8B/` (so the endpoint loads from S3 and can start while training
+  runs), then trains the nine adapters sequentially with the same recipe as `train_lora.py`: bf16 LoRA
+  rank 16 / alpha 32 on all attention and MLP projections, 3 epochs, lr 1e-4 cosine, batch 4 x grad-acc 4,
+  max length 2048, completion-only loss, Qwen3 non-thinking prompts. Each adapter is uploaded as soon as it
+  is done: `adapters/<role>/` (adapter_config.json, adapter_model.safetensors, train_meta.json) and
+  `adapters-tar/<role>.tar.gz` (files at archive root, the format inference components need).
+- **Serving** (`deploy.py single`): endpoint `sv-ki-challenge-personas`, one classic single-model
+  variant on the LMI container (`djl-inference:0.36.0-lmi24.0.0-cu129`, vLLM rolling batch, bf16, max model
+  len 6144, LoRA on, max 10 adapters on GPU, rank 16). The nine adapters are copied into
+  `s3://<bucket>/base/Qwen3-8B/adapters/<role>/`, so LMI loads all of them at startup together with the base
+  weights; a request selects one with the body field `"adapters": "<role>"`, no field means the prompted
+  base. First attempt was SageMaker multi-adapter inference (one base inference component plus one
+  adapter component per institution, `deploy.py endpoint|base|adapters`, `SV_SM_MODE=ic`): it served, but
+  adapter components are registered lazily at runtime, and under eval load a registration timed out
+  ("Read chunk timeout"), the LMI worker restarted and came back with adapters missing (HTTP 424). On
+  g6e.xlarge the base component also only placed with a 2 GiB memory reservation (16 and 8 GiB: "not enough
+  hardware resources").
+- **Proxy** (`proxy.py`, port 8790): `GET /v1/models`, `POST /v1/chat/completions`. Model ids
+  `sv-<role>` (role ids as in packages/contracts, e.g. `sv-medical_chamber`) select that adapter,
+  `sv-base` (alias `Qwen/Qwen3-8B`) the prompted baseline. Requests are SigV4-signed by boto3. The proxy renders
+  the Qwen3 chat template with an empty think block itself (checked identical to the tokenizer with
+  `enable_thinking=False`), so serving matches training; `stream: true` returns one SSE chunk. The engine
+  uses it as an OpenAI-compatible endpoint: base URL `http://127.0.0.1:8790/v1`, any API key.
+- **Eval** (`eval_report.py`): `eval_stance.py --gen-base-url http://127.0.0.1:8790/v1 --base-model sv-base
+  --adapter-model "sv-{role}" --judge-model gpt-6-sol --judge-temperature none`, then
+  `eval_report.py <run dirs>` writes `out/eval_sagemaker.md` and `out/persona_fidelity.json`.
+
+**Costs actually incurred** (on-demand, ml.g6e.xlarge eu-north-1 = 2.7636 USD/h for training; the Pricing
+API has no separate hosting row for this type, the same rate is assumed):
+
+| item | duration | USD |
+|---|---:|---:|
+| training job `sv-ki-challenge-lora-1105-220044` (9 adapters, 3 epochs) | about 0.9 h (adapters 2 to 4 min each, laender about 22 min; final billable seconds via `train_job.py cost`) | about 2.5 |
+| first endpoint, inference-component mode (21:01 to 21:34 UTC, deleted) | 0.55 h | about 1.5 |
+| S3 (base weights 16 GB + adapters, one day) | | < 0.1 |
+| single-model endpoint, projected from start to 13:00 CET on jury day | about 14 h | about 39 |
+| **projected total** | | **about 43** |
+
+Status 2026-11-05 22:45 CET: the AWS CLI login session expired while the job was training; the job runs on
+its own role and finishes by itself, but `deploy.py single` and the eval need a fresh `aws login` first.
+
+Delete with `models/aws/teardown.sh --execute` right after the jury (hosting bills per hour while idle).
+Download the adapters first if they should outlive the bucket:
+`aws s3 sync s3://<bucket>/adapters/ out/lora-sagemaker/ --exclude "summary.json"`.
+
+**Publishing the adapters to Hugging Face later (not done):**
+1. Download as above; each `out/lora-sagemaker/<role>/` is a standard PEFT adapter whose
+   `adapter_config.json` already names `Qwen/Qwen3-8B` as base (rewritten from the container path).
+2. Re-check the licence position first: Qwen3-8B is Apache-2.0 (redistribution with the licence notice is
+   fine), but the training text is the institutions' Stellungnahmen (see `cards/DATASET_CARD.md`); publish
+   adapters only, never the SFT data, and keep the person masking statement in the card.
+3. Fill `cards/MODEL_CARD.md` per adapter (base, rank, epochs, `train_meta.json` losses, the held-out
+   numbers from `out/eval_sagemaker.md`, limitations, intended use: simulation, not real positions).
+4. `huggingface-cli login` with a write token kept outside the repo, then
+   `huggingface-cli upload <org>/sv-persona-<role> out/lora-sagemaker/<role> . --private` (start private,
+   flip to public after review). Do not upload `train_meta.json` if it is not wanted public.
+
+### Azure Foundry fine-tuning (blocked server-side, see status below)
 
 Credentials come from the repo `.env` (`BIFROST_SEED_AZURE_ENDPOINT` = v1 base URL, `BIFROST_SEED_AZURE_KEY`,
 sent as `api-key` header); `scripts/envfile.py` loads them and never prints them. Fine-tunable models on
