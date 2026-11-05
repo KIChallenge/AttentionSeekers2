@@ -213,8 +213,8 @@ export function InspectorView({
                       <Chip
                         className={
                           o.status === "chosen"
-                            ? "border-success/30 bg-success/10 text-success"
-                            : "text-muted-foreground"
+                            ? "h-auto border-success/30 bg-success/10 py-0.5 whitespace-normal text-success"
+                            : "h-auto py-0.5 whitespace-normal text-muted-foreground"
                         }
                       >
                         {o.status === "chosen" ? t.inspector.chosen : t.inspector.rejected}

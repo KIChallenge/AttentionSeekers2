@@ -22,7 +22,7 @@ export function AnalysisView() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {snap.endCondition ? (
-            <Chip className="text-muted-foreground">
+            <Chip className="h-auto py-0.5 whitespace-normal text-muted-foreground">
               {t.analysis.endCondition}: {L(snap.endCondition.note, lang)}
             </Chip>
           ) : null}
