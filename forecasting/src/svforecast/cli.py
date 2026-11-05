@@ -2,6 +2,7 @@
 
   uv run svforecast forecast --descriptor draft.json [--k 8] [--target binary|three]
   uv run svforecast forecast --proposer health_ministry --coalition oevp_spoe_neos --date 2026-11-01
+  uv run python -m svforecast.cli forecast --measure-class workforce --proposer BMASGPK --date 2026-11-01 --k 5
   uv run svforecast fixture XXVI-ME-75
 
 Descriptor JSON needs first_draft_date (ISO), and either proposer_group or ressort (e.g. "BMASGPK");
@@ -16,12 +17,17 @@ import json
 import sys
 from dataclasses import asdict
 
-from .forecast import analogs, forecast_a, forecast_b, load_episodes, pool_for, status_quo
+from .forecast import _counts, _forecast_from_counts, analogs, forecast_a, forecast_b, load_episodes, pool_for, status_quo
 from .govtable import government_at, proposer_group
+
+
+GROUPS = {"health_ministry", "social_ministry", "finance_ministry", "other_ministry"}
 
 
 def complete(desc: dict) -> dict:
     d = dict(desc)
+    if d.get("proposer_group") and d["proposer_group"] not in GROUPS:  # a Ressort code was given
+        d["ressort"], d["proposer_group"] = d["proposer_group"], proposer_group(d["proposer_group"])
     if "proposer_group" not in d:
         d["proposer_group"] = proposer_group(d.get("ressort"))
     if "coalition" not in d:
@@ -35,7 +41,7 @@ def run_forecast(desc: dict, k: int = 8, target: str = "binary", exclude: str | 
     pool = pool_for(eps, desc["first_draft_date"], exclude=exclude)
     fa = forecast_a(desc, pool, target)
     out = {
-        "descriptor": {k2: desc[k2] for k2 in ("first_draft_date", "proposer_group", "coalition")},
+        "descriptor": {k2: desc.get(k2) for k2 in ("first_draft_date", "proposer_group", "coalition", "measure_class")},
         "pool_size": len(pool),
         "forecast_A": asdict(fa),
         "forecast_B": asdict(forecast_b(desc, pool, target)),
@@ -43,6 +49,13 @@ def run_forecast(desc: dict, k: int = 8, target: str = "binary", exclude: str | 
         "analogs": analogs(desc, pool, k),
         "note": "Historical base rate over comparable first drafts, not a verdict. Reference-class counts only, no trained model.",
     }
+    if desc.get("measure_class"):
+        mc = [e for e in pool if e.get("measure_class") == desc["measure_class"]]
+        c, n = _counts(mc, target)
+        mf = _forecast_from_counts("measure_class_descriptive", "measure_class", c, n, target)
+        out["measure_class_rate"] = asdict(mf)
+        out["measure_class_rate"]["note"] = ("Descriptive only: measure_class is a keyword rule (v1) and is not part "
+                                             "of the preregistered baseline; this rate was never scored.")
     r = next(x for x in fa.rates if x.category in ("enacted", "implemented"))
     out["sentence"] = (f"Drafts in this reference class ({fa.level}) were enacted within 24 months in "
                        f"{r.k:.0f} of {r.n:.0f} comparable cases (90% Jeffreys interval "
@@ -60,7 +73,8 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     f = sub.add_parser("forecast")
     f.add_argument("--descriptor")
-    f.add_argument("--proposer")
+    f.add_argument("--proposer", help="proposer group or Ressort code (e.g. BMASGPK)")
+    f.add_argument("--measure-class", dest="measure_class")
     f.add_argument("--ressort")
     f.add_argument("--coalition")
     f.add_argument("--date")
@@ -80,6 +94,8 @@ def main(argv=None):
             desc["ressort"] = a.ressort
         if a.coalition:
             desc["coalition"] = a.coalition
+        if a.measure_class:
+            desc["measure_class"] = a.measure_class
         if "first_draft_date" not in desc:
             ap.error("need first_draft_date (--date or descriptor)")
         res = run_forecast(desc, a.k, a.target)

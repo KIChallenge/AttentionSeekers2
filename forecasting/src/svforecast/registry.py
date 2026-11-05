@@ -179,14 +179,14 @@ def title_match(r, idx, reverse_pre: dict) -> dict | None:
     best = None
     for key, row in idx.items():
         dk = row[11]
-        if dk not in ("RV", "A", "AUB"):
+        if dk not in ("RV", "A", "AUB", "BUA"):
             continue
         d = iso(row[4])
         if not d or not (me_date <= d <= end):
             continue
         if dk == "RV" and reverse_pre.get(key):  # RV already claimed by another ME's identifier link
             continue
-        if dk == "A":
+        if dk in ("A", "BUA"):
             try:
                 fr = set(json.loads(row[21] or "[]"))
             except json.JSONDecodeError:
@@ -196,7 +196,9 @@ def title_match(r, idx, reverse_pre: dict) -> dict | None:
         y1, y2 = set(re.findall(r"\b20\d\d\b", r[4])), set(re.findall(r"\b20\d\d\b", row[6] or ""))
         if y1 and y2 and not (y1 & y2):  # "SVAeG 2011" is not "SVAeG 2012"
             continue
-        j = jaccard(tk, tokens(row[6]))
+        tb = tokens(row[6])
+        cont = len(tk & tb) / len(tk) if len(tk) >= 2 else 0.0  # Deviation 4: draft title contained in bill title
+        j = max(jaccard(tk, tb), cont if cont >= 0.8 else 0.0)
         if j >= 0.5 and (best is None or j > best[0] or (j == best[0] and d < best[2])):
             best = (j, key, d)
     if best:
@@ -225,8 +227,14 @@ def link():
     for o in out:
         for l in o["links"]:
             claimed.setdefault((l["gp"], l["ityp"], l["inr"]), []).append((o["r"][0], o["r"][2]))
+    passed_status = {}
     for o in out:
-        if not o["links"]:
+        for l in o["links"]:
+            row = idx.get((l["gp"], l["ityp"], l["inr"]))
+            passed_status[(l["gp"], l["ityp"], l["inr"])] = row[10] if row else None
+    for o in out:
+        # Deviation 4: also look for a successor bill when every identifier-linked bill died or was replaced
+        if not o["links"] or all(passed_status.get((l["gp"], l["ityp"], l["inr"])) in ("2", "3", "4") for l in o["links"]):
             tm = title_match(o["r"], idx, claimed)
             if tm:
                 o["links"].append(tm)
