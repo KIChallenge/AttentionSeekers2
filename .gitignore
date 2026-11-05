@@ -39,3 +39,6 @@ apps/web/AGENTS.md
 press/work/
 press/derived/*.jsonl
 press/derived/sft/
+press/derived/*.jsonl
+press/derived/sft/
+press/work/
