@@ -2,12 +2,22 @@ import type { Messages } from "./de";
 
 export const en = {
   brand: "HealthPolicy Simulator",
-  nav: { dashboard: "Overview", newRun: "New negotiation", archive: "Archive", method: "Method" },
+  nav: {
+    dashboard: "Overview",
+    newRun: "New negotiation",
+    archive: "Archive",
+    method: "Method",
+    menu: "Menu",
+    screens: "Screens",
+  },
   prefs: {
     language: "Language",
     level: "Disclosure level",
     theme: "Theme",
     levels: { executive: "Executive", analyst: "Analyst", engineer: "Engineer" },
+    projector: "Projector mode",
+    projectorHint: "Large type, inspector as overlay, no typing cursor",
+    settings: "Settings",
     themes: { system: "Auto", light: "Light", dark: "Dark" },
   },
   dashboard: {

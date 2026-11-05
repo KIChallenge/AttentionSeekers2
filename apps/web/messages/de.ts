@@ -1,12 +1,22 @@
 // Source dictionary (German). en.ts must satisfy the same shape.
 export const de = {
   brand: "HealthPolicy Simulator",
-  nav: { dashboard: "Übersicht", newRun: "Neue Verhandlung", archive: "Archiv", method: "Methode" },
+  nav: {
+    dashboard: "Übersicht",
+    newRun: "Neue Verhandlung",
+    archive: "Archiv",
+    method: "Methode",
+    menu: "Menü",
+    screens: "Bildschirme",
+  },
   prefs: {
     language: "Sprache",
     level: "Detailgrad",
     theme: "Farbschema",
     levels: { executive: "Executive", analyst: "Analyst", engineer: "Engineer" },
+    projector: "Projektormodus",
+    projectorHint: "Große Schrift, Inspektor als Overlay, kein Schreibcursor",
+    settings: "Einstellungen",
     themes: { system: "Auto", light: "Hell", dark: "Dunkel" },
   },
   dashboard: {

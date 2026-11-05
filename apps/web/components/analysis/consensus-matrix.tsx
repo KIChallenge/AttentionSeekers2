@@ -109,6 +109,7 @@ export function ConsensusMatrix() {
                                 {mode === "delta" ? `Δ ${fmtStance(shownVal)}` : fmtStance(v)}
                               </span>
                               <span
+                                data-matrix-secondary=""
                                 className={cn(
                                   "num rounded px-0.5 text-[10px] text-muted-foreground",
                                   v <= -0.5 && mode === "state" && "bg-card",

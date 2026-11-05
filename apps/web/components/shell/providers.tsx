@@ -10,6 +10,7 @@ import {
   LOCALE_COOKIE,
   levelRank,
   messagesFor,
+  PROJECTOR_COOKIE,
 } from "@/lib/prefs";
 import type { Messages } from "@/messages/de";
 
@@ -19,6 +20,9 @@ interface Prefs {
   t: Messages;
   setLang: (lang: Lang) => void;
   setLevel: (level: LevelValue) => void;
+  /** Projector mode (W-34, NFR-7): larger type and tiles, inspector as overlay. */
+  projector: boolean;
+  setProjector: (on: boolean) => void;
 }
 
 const PrefsContext = createContext<Prefs | null>(null);
@@ -31,15 +35,18 @@ function writeCookie(name: string, value: string) {
 export function Providers({
   lang: initialLang,
   level: initialLevel,
+  projector: initialProjector = false,
   children,
 }: {
   lang: Lang;
   level: LevelValue;
+  projector?: boolean;
   children: ReactNode;
 }) {
   const router = useRouter();
   const [lang, setLangState] = useState(initialLang);
   const [level, setLevelState] = useState(initialLevel);
+  const [projector, setProjectorState] = useState(initialProjector);
   const setLang = useCallback(
     (next: Lang) => {
       writeCookie(LOCALE_COOKIE, next);
@@ -58,9 +65,17 @@ export function Providers({
     },
     [router],
   );
+  // Client-only switch: the attribute drives the CSS scale, the context drives layout
+  // (sheet inspector, tile size, cursor), so no server round trip is needed.
+  const setProjector = useCallback((on: boolean) => {
+    writeCookie(PROJECTOR_COOKIE, on ? "1" : "0");
+    if (on) document.documentElement.dataset.projector = "";
+    else delete document.documentElement.dataset.projector;
+    setProjectorState(on);
+  }, []);
   const value = useMemo(
-    () => ({ lang, level, t: messagesFor(lang), setLang, setLevel }),
-    [lang, level, setLang, setLevel],
+    () => ({ lang, level, t: messagesFor(lang), setLang, setLevel, projector, setProjector }),
+    [lang, level, setLang, setLevel, projector, setProjector],
   );
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>

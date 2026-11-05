@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { EntityLink } from "@/components/entity/entity-link";
 import { scopedId } from "@/components/entity/types";
+import { usePrefs } from "@/components/shell/providers";
 import { cn } from "@/lib/utils";
 import { agentLook } from "./helpers";
 import { useRun } from "./run-context";
@@ -75,16 +76,20 @@ export function Tile({
   className?: string;
 }) {
   const { run, lang } = useRun();
+  const { projector } = usePrefs();
   const a = agentLook(run, id, lang);
+  // Projector mode (W-34) steps every tile up one size so codes read from the back row.
+  const s = projector ? (size === "sm" ? "md" : "lg") : size;
   return (
     <span className={cn("inline-flex items-center gap-1.5", className)} title={a.name}>
       <span
         data-agent={id}
         className={cn(
           "inline-grid shrink-0 place-items-center rounded-[5px] font-semibold text-white",
-          size === "sm" && "size-4 text-[8px]",
-          size === "md" && "size-5 text-[9px]",
-          size === "lg" && "size-9 text-sm rounded-lg",
+          s === "sm" && "size-4 text-[8px]",
+          s === "md" && "size-5 text-[9px]",
+          s === "lg" && "size-7 rounded-md text-[11px]",
+          size === "lg" && "size-9 rounded-lg text-sm",
           id === "fm" && "outline-1 outline-offset-1 outline-dashed outline-[var(--c-fm)]",
         )}
         style={{ background: a.color }}

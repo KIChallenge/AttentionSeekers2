@@ -2,7 +2,7 @@
 
 import type { Claim, ClaimState, Utterance } from "@sv/contracts";
 import type { ReactNode } from "react";
-import { Level } from "@/components/shell/providers";
+import { Level, usePrefs } from "@/components/shell/providers";
 import { cn } from "@/lib/utils";
 import { Chip, EntityRef, Tile } from "./bits";
 import { agentLook, claimUnderline, L } from "./helpers";
@@ -195,6 +195,7 @@ export function PendingCard({
   text: string;
 }) {
   const { run, lang, t } = useRun();
+  const { projector } = usePrefs();
   const a = agentLook(run, speaker, lang);
   return (
     <article className="rounded-2xl border border-foreground bg-card p-3.5">
@@ -216,7 +217,9 @@ export function PendingCard({
         {text ? (
           <>
             {text}
-            <span className="ml-0.5 inline-block h-4 w-1.5 translate-y-0.5 bg-foreground" />
+            {projector ? null : (
+              <span className="ml-0.5 inline-block h-4 w-1.5 translate-y-0.5 bg-foreground" />
+            )}
           </>
         ) : (
           <div className="space-y-2 pt-1">

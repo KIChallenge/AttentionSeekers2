@@ -460,3 +460,38 @@
 .num {
   font-variant-numeric: tabular-nums;
 }
+
+/* ---- Projector mode (W-34, NFR-7) ----
+   One root scale lifts every rem-based size; the few fixed pixel sizes are re-expressed in
+   rem so they scale too. Layout changes (sheet inspector, larger tiles, no typing cursor)
+   are made in the components from the same preference. */
+html[data-projector] {
+  font-size: 125%;
+}
+html[data-projector] .text-\[8px\] {
+  font-size: 0.5rem;
+}
+html[data-projector] .text-\[9px\] {
+  font-size: 0.5625rem;
+}
+html[data-projector] .text-\[10px\] {
+  font-size: 0.6875rem;
+}
+html[data-projector] .text-\[11px\] {
+  font-size: 0.75rem;
+}
+html[data-projector] .text-\[12px\] {
+  font-size: 0.75rem;
+}
+html[data-projector] .text-\[13px\] {
+  font-size: 0.8125rem;
+}
+html[data-projector] .text-\[15px\] {
+  font-size: 0.9375rem;
+}
+html[data-projector] [data-matrix-secondary] {
+  display: none;
+}
+html[data-projector] .animate-pulse {
+  animation: none;
+}
