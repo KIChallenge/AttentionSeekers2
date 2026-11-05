@@ -60,6 +60,10 @@ export interface SceneOptions {
   url: string;
   lang: "de" | "en";
   cols: number;
+  /** Take each seat's gaze frame from its on-screen rect instead of the grid (free layouts). */
+  gazeFromRects?: boolean;
+  /** Visible height factor over frameHeight(): above 1 frames wider, like a webcam. */
+  frameScale?: number;
   live: { current: StageLive };
   onLost: (why: string) => void;
 }
@@ -394,7 +398,7 @@ export class AvatarScene {
   }
 
   private placeCamera(seat: Seat, zoom: number) {
-    const fh = frameHeight(seat.camera.aspect);
+    const fh = frameHeight(seat.camera.aspect) * (this.opts.frameScale ?? 1);
     const dist = fh / 2 / Math.tan(THREE.MathUtils.degToRad(FOV / 2));
     const e = seat.eyes;
     const cy = e.y - fh * 0.16;
@@ -415,6 +419,9 @@ export class AvatarScene {
   private rects = new Map<string, DOMRect>();
 
   private applyRects() {
+    // free layouts: screen offsets in units of a quarter of the canvas width ~ one grid step
+    const unit = Math.max(1, this.size.w / 4);
+    let moved = false;
     for (const [id, r] of this.rects) {
       const seat = this.seats.get(id);
       if (!seat) continue;
@@ -422,7 +429,16 @@ export class AvatarScene {
       seat.camera.aspect = r.width / Math.max(1, r.height);
       seat.camera.updateProjectionMatrix();
       this.placeCamera(seat, seat.zoom);
+      if (this.opts.gazeFromRects) {
+        const x = ((r.x + r.width / 2 - this.size.w / 2) / unit) * 1.4;
+        const y = (-(r.y + r.height / 2 - this.size.h / 2) / unit) * 1.4;
+        if (Math.abs(x - seat.grid.x) > 0.01 || Math.abs(y - seat.grid.y) > 0.01) {
+          seat.grid = { x, y };
+          moved = true;
+        }
+      }
     }
+    if (moved) this.applyCue(false);
   }
 
   setBackgrounds(bg: Map<string, string>) {
