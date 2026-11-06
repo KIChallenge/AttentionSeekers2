@@ -24,35 +24,41 @@ Einheit am Tisch: Dachverband und ÖGK. Verhandlungsmacht: formal_veto (Vertrags
 Skala -2 bis +2, Mittelwert nach Aktualität gewichtet (Halbwertszeit fünf Jahre vor dem Stichtag).
 
 ### Öffentliche Gesundheit, Epidemie, Prävention: überwiegend ablehnend, Änderungen gefordert (-0.8, n=43)
+
 - 2022-01: Sie fordert eine Verordnung, die Ausnahmen von der COVID-19-Impfpflicht präzisiert. [SN XXVII/SNME/202005#19]
 - 2021-05: Sie verlangt bei Änderungen des Epidemiegesetzes die Klärung benötigter Daten und eine enge Einbindung des Dachverbandes. [SN XXVII/SNME/107339#8]
 - 2021-03: Sie weist darauf hin, dass die geplante Veranstaltungsregel auch private und berufliche Treffen erfasst, ohne beim Personenzahlkriterium nach Alter zu unterscheiden. [SN XXVII/SNME/75459#14]
 - 2021-03: Sie fordert Klarheit, ob die geplante Testpflicht auch Verwaltungsbehörden betrifft, und eine Begrenzung auf Beschäftigte mit Kundenkontakt. [SN XXVII/SNME/74056#11]
 
 ### Sozialversicherung und Selbstverwaltung: überwiegend ablehnend, Änderungen gefordert (-0.8, n=74)
+
 - 2022-06: Sie fordert beim Angehörigenbonus die Berichtigung des angegebenen Rechtswegs: Gegen ablehnende Bescheide sei eine Klage beim Sozialgericht möglich. [SN XXVII/SNME/220870#23]
 - 2021-11: Sie erinnert beim Hospiz- und Palliativfondsgesetz an verfassungsrechtliche Grenzen für Aufgaben und Finanzierung der Selbstverwaltung. [SN XXVII/SNME/110800#141]
 - 2021-11: Sie hält die Höhe ihres Beitrags zum Hospiz- und Palliativfonds für nicht nachvollziehbar und bezweifelt die Verfassungsmäßigkeit der Drittelfinanzierung. [SN XXVII/SNME/110756#29]
 - 2020-01: Sie fordert, Betrieb, Wartung und Weiterentwicklung des elektronischen Impfpasses auch nach dem Pilotbetrieb bei der Sozialversicherung zu belassen. [SN XXVII/SNME/127#6]
 
 ### Pflege und Gesundheitsberufe: überwiegend ablehnend, Änderungen gefordert (-0.8, n=45)
+
 - 2022-06: Sie fordert im Zahnärztekammergesetz detailliertere Regeln und die Berücksichtigung der Sozialversicherung. [SN XXVII/SNME/221028#7]
 - 2022-06: Sie fordert beim Angehörigenbonus Regeln gegen Mehrfachauszahlungen und eine eindeutige Zuständigkeit für die Auszahlung. [SN XXVII/SNME/220870#10]
 - 2022-06: Sie hinterfragt, warum höhere Pflegeentgelte eine nachgewiesene Mehrleistung oder größere Verantwortung voraussetzen sollen. [SN XXVII/SNME/220872#14]
 
 ### Ärztliche Versorgung, Kassenstellen, Ärztegesetz: gemischt bzw. neutral-technisch (-0.0, n=36)
+
 - 2022-02: Sie strebt eine Lösung für die ärztliche Bereitschaft im Burgenland an. [PR press-179928-1-sv]
 - 2022-01: Sie verlangt für kieferorthopädische Lehrpraktika in Kassenpraxen vertragliche Regeln zur Leistungsabrechnung und Mitwirkungsrechte bei der Anerkennung. [SN XXVII/SNME/219899#15]
 - 2020-01: Sie strebt einen deutlichen Ausbau der Primärversorgungseinheiten an. [PR press-162960-1-sv]
 - 2018-11: Sie lehnt es ab, unwissenschaftliche Verfahren im Ärztegesetz dem ärztlichen Tätigkeitsbereich zuzuordnen, und verweist auf den Patientenschutz. [SN XXVI/SNME/3310#14]
 
 ### Arzneimittel, Apotheken, Medizinprodukte: überwiegend ablehnend, Änderungen gefordert (-1.0, n=18)
+
 - 2022-09: Sie kritisiert die geplante Informationspflicht bei fehlerhaften Implantaten als unsachliche Verlagerung von Verantwortung auf Gesundheitseinrichtungen und ärztliches Personal. [SN XXVII/SNME/221444#5]
 - 2021-11: Sie äußert Bedenken gegen die vorgesehene Zustimmungsregel im Arzneimittelgesetz, falls der Dachverband damit für die Träger handeln soll. [SN XXVII/SNME/110755#32]
 - 2021-04: Sie fordert im Medizinproduktegesetz strengere Voraussetzungen für den Einsatz von Produkten mit noch nicht belegtem Nutzen. [SN XXVII/SNME/85379#9]
 - 2020-11: Sie beteiligt sich am Begutachtungsverfahren zu Änderungen des Suchtmittelgesetzes sowie der Suchtgift- und Psychotropenverordnung. [SN XXVII/SNME/18421#2]
 
 ### Digitalisierung, ELGA, Daten: überwiegend ablehnend, Änderungen gefordert (-0.5, n=16)
+
 - 2021-03: Sie kritisiert die Koalitionspläne zur Verwaltung von ELGA-Daten. [PR press-174246-1-sv]
 - 2021-01: Sie stellt Software für ein Pilotprojekt ärztlicher Videokonsultationen bereit und will Hardwaredetails noch verhandeln. [PR press-173025-0-sv]
 - 2020-01: Sie will im Gesundheitstelematikgesetz die Trennung von Gesundheitsdatenhaltung und Zugriffssteuerung zum Schutz von Sicherheit und Vertrauen beibehalten. [SN XXVII/SNME/127#11]

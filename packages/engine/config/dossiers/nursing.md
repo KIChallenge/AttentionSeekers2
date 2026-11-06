@@ -24,26 +24,31 @@ Einheit am Tisch: Berufsverband Pflege. Verhandlungsmacht: consultative (Keine V
 Skala -2 bis +2, Mittelwert nach Aktualität gewichtet (Halbwertszeit fünf Jahre vor dem Stichtag).
 
 ### Pflege und Gesundheitsberufe: überwiegend ablehnend, Änderungen gefordert (-0.4, n=143)
+
 - 2022-06: Die Pflegevertretung begrüßt höhere Zuschläge bei Demenz, weniger Anrechnung auf das Pflegegeld und einen Bonus für pflegende Angehörige. [SN XXVII/SNME/220991#6]
 - 2022-06: Sie sieht die Ausweitung der Aufgaben von Pflegeassistenzberufen als Antwort auf den Personalmangel äußerst kritisch. [SN XXVII/SNME/220946#5]
 - 2022-06: Sie begrüßt gesetzliche Zuschüsse, die Ausbildungsbeiträge während der gesamten Pflegeausbildung ermöglichen. [SN XXVII/SNME/220989#6]
 - 2022-06: Sie lehnt niedrigere Sprachanforderungen im Pflegeberuf ab, weil Verständigung, Dokumentation und sichere Delegation gewährleistet sein müssen. [SN XXVII/SNME/220988#13]
 
 ### Ärztliche Versorgung, Kassenstellen, Ärztegesetz: überwiegend ablehnend, Änderungen gefordert (-0.6, n=19)
+
 - 2019-04: Sie fordert Mitsprache bei Primärversorgungsverträgen sowie transparente, bundesweit festgelegte Grundlagen für die Vergütung pflegerischer Leistungen. [PR press-140279-1-pf]
 - 2018-11: Sie verlangt im Ärztegesetz eine Klarstellung, dass neue ärztliche Vorbehalte bestehende Kompetenzen anderer Gesundheitsberufe nicht einschränken. [SN XXVI/SNME/3181#17]
 - 2018-10: Sie lehnt die Erweiterung des ärztlichen Berufsbildes um komplementäre Heilverfahren ab, weil sie Nachteile für andere Anbieter befürchtet. [SN XXVI/SNME/2880#11]
 - 2014-08: Sie begrüßt die Reform der ärztlichen Ausbildung grundsätzlich als Beitrag zu zeitgemäßer Qualifikation und guter Patientenversorgung. [SN XXV/SNME/1428#3]
 
 ### Digitalisierung, ELGA, Daten: überwiegend ablehnend, Änderungen gefordert (-0.5, n=5)
+
 - 2018-03: Sie erhebt gegen das Datenschutz-Anpassungsgesetz grundsätzlich keinen Einwand, sieht aber die Informationspflichten von Staatsanwaltschaften und Gerichten kritisch. [SN XXVI/SNME/555#11]
 - 2017-02: Sie verlangt im Gesundheitsberuferegisterrecht Klarheit darüber, welche dokumentierbaren Übermittlungsformen als schriftliche Anordnung gelten. [SN XXV/SNME/9167#31]
 - 2011-03: Sie kritisiert, dass der Entwurf zur elektronischen Gesundheitsakte Pflegeinformationen für die Versorgung über Einrichtungsgrenzen hinweg unzureichend berücksichtigt. [SN XXIV/SNME/6047#6]
 
 ### Öffentliche Gesundheit, Epidemie, Prävention: gemischt bzw. neutral-technisch (+0.0, n=2)
+
 - 2021-05: Sie begrüßt grundsätzlich überprüfbare Gesundheitszertifikate, die europäischen Vorgaben und dem innerstaatlichen Bedarf entsprechen. [SN XXVII/SNME/102862#13]
 
 ### Arzneimittel, Apotheken, Medizinprodukte: überwiegend ablehnend, Änderungen gefordert (-1.0, n=2)
+
 - 2017-05: Sie fordert eine gesetzliche Regelung für die Anordnung benötigter Medizinprodukte im Rahmen pflegerischer Kernkompetenzen. [SN XXV/SNME/12105#62]
 - 2017-05: Sie verlangt im Gesundheitsreformumsetzungsgesetz eine angemessene Bezeichnung pflegerischer Leistungen und klare Regeln für benötigte Medizinprodukte. [SN XXV/SNME/11835#57]
 

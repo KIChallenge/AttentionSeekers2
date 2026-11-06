@@ -323,6 +323,7 @@ def build(role: str, ctx: dict, use_llm: bool) -> tuple[str, dict]:
         w = sum(recency(x["date"]) for x in allx)
         mean = sum(recency(x["date"]) * x["stance"] for x in allx) / w if w else 0.0
         md.append(f"### {tl[t]}: {stance_word(mean)} ({mean:+.1f}, n={len(allx)})")
+        md.append("")
         for x in sorted(xs, key=lambda x: x["date"], reverse=True):
             md.append(f"- {x['date'][:7]}: {para_of(x)} [{x['kind']} {x['id']}]")
         md.append("")
@@ -398,7 +399,8 @@ def main():
         lines = text.split("\n")
         bad = {i for i, _, _ in pii_guard.verify(lines)}
         dropped += len(bad)
-        results[r] = ("\n".join(x for i, x in enumerate(lines) if i not in bad), {**meta, "dropped_lines": len(bad)})
+        kept = re.sub(r"\n{3,}", "\n\n", "\n".join(x for i, x in enumerate(lines) if i not in bad)).strip() + "\n"
+        results[r] = (kept, {**meta, "dropped_lines": len(bad)})
     pii_guard.fail_closed([t for t, _ in results.values()], "dossiers")
     if any("—" in t for t, _ in results.values()):
         raise SystemExit("em dash in a dossier; nothing written")
@@ -410,7 +412,13 @@ def main():
                                 "tokens_est": round(len(text) / 3.6), "sha256": hashlib.sha256(text.encode()).hexdigest()[:16]}
         print(f"{r:20s} {len(text):6d} chars ~{round(len(text) / 3.6):5d} tok  sn={meta['n_sn']} press={meta['n_press']} "
               f"reforms={meta['n_reforms']} dropped={meta['dropped_lines']} usage={meta.get('usage')}")
-    (OUT / "index.json").write_text(json.dumps(index, indent=1, ensure_ascii=False) + "\n")
+    (OUT / "index.json").write_text(json.dumps(index, indent=2, ensure_ascii=False) + "\n")
+    # keep the committed files identical to what the repo formatter produces (hashes stay valid)
+    import subprocess
+    subprocess.run(["npx", "--no-install", "biome", "format", "--write", str(OUT)], cwd=REPO, capture_output=True)
+    for r in results:
+        if hashlib.sha256((OUT / f"{r}.md").read_bytes()).hexdigest()[:16] != index["dossiers"][r]["sha256"]:
+            raise SystemExit(f"formatter changed {r}.md; adjust the builder so hashes match")
     print(f"written {len(results)} dossiers to {OUT} (guard dropped {dropped} lines)")
 
 

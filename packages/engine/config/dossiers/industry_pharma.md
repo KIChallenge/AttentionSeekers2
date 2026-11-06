@@ -24,19 +24,23 @@ Einheit am Tisch: Branchenverbände Industrie und Pharma. Verhandlungsmacht: con
 Skala -2 bis +2, Mittelwert nach Aktualität gewichtet (Halbwertszeit fünf Jahre vor dem Stichtag).
 
 ### Arzneimittel, Apotheken, Medizinprodukte: gemischt bzw. neutral-technisch (+0.1, n=34)
+
 - 2021-11: Sieht die Forschung an Medikamenten gegen seltene Erkrankungen als risikoreich an, ohne eine ausdrückliche Forderung zur EU-Regelung zu stellen. [PR press-178654-1-ip]
 - 2020-02: Setzt bei Medikamenten auf personalisierte Medizin mit auf einzelne Patienten zugeschnittenen Behandlungen. [PR press-165513-1-ip]
 - 2019-11: Fordert eine andere Preispolitik und stärkere Standortförderung, um die Versorgung mit Medikamenten zu sichern. [PR press-157053-1-ip]
 
 ### Finanzierung, Zielsteuerung, Kostentragung: gemischt bzw. neutral-technisch (+0.1, n=12)
+
 - 2018-08: Begrüßt den Plan zur Reform der Allgemeinen Unfallversicherungsanstalt. [PR press-121149-1-ip]
 
 ### Digitalisierung, ELGA, Daten: eher zustimmend mit Vorbehalten (+1.0, n=1)
+
 - 2021-05: Bewertet die Entwicklung der Telemedizin infolge der Coronakrise positiv. [PR press-176010-1-ip]
 
 ### Ärztliche Versorgung, Kassenstellen, Ärztegesetz: überwiegend ablehnend, Änderungen gefordert (-1.0, n=1)
 
 ### Öffentliche Gesundheit, Epidemie, Prävention: eher zustimmend mit Vorbehalten (+1.0, n=1)
+
 - 2012-05: Unterstützt gemeinsam mit dem Hauptverband Projekte zur Kindergesundheit und Prävention. [PR press-27310-1-ip]
 
 ## Typische Argumente und Register
