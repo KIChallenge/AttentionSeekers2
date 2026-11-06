@@ -11,6 +11,7 @@ import {
   type Topic,
   type VetoStatus,
 } from "@sv/contracts";
+import { personaOf } from "./persona/index.ts";
 
 const here = path.dirname(new URL(import.meta.url).pathname);
 export const ENGINE_ROOT = path.resolve(here, "..");
@@ -220,6 +221,7 @@ export function agentConfigOf(
     color: c?.color ?? "var(--c-opt)",
     code: c?.code ?? agentId.toUpperCase().slice(0, 3),
     delegates: delegatesOf(agentId).map((d) => ({ id: d.id, role: bi(d.role) })),
+    persona: personaOf(agentId),
   };
 }
 
