@@ -1,8 +1,17 @@
 "use client";
 
+import { FlashIcon, NextIcon, PreviousIcon } from "@hugeicons/core-free-icons";
 import { type Claim, PHASES, type Utterance } from "@sv/contracts";
 import Link from "next/link";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  PlaybackButton,
+  PlaybackGroup,
+  Playhead,
+  PlayPauseButton,
+  Segmented,
+} from "@/components/playback/controls";
+import { playbackKeys } from "@/components/playback/strings";
 import { Chip, Seg } from "@/components/run/bits";
 import { agentLook, claimUnderline, delegateRole, fmtStance, L } from "@/components/run/helpers";
 import { ClaimStateBadge, SourceChip } from "@/components/run/provenance";
@@ -468,6 +477,7 @@ export function StageView() {
         {/* Transport */}
         <Transport
           s={s}
+          lang={lang}
           utterances={utterances}
           idx={p.idx}
           setIdx={p.setIdx}
@@ -475,6 +485,7 @@ export function StageView() {
           toggle={p.toggle}
           speed={p.speed}
           setSpeed={p.setSpeed}
+          progress={u && (p.playing || p.spoken > 0) ? p.spoken / Math.max(1, textOf(u).length) : 0}
           exchange={exchange ? [exchangeStart, exchangeEnd] : null}
           onSharpest={jumpSharpest}
           colorOf={(id) => look(id).color}
@@ -620,6 +631,7 @@ export function StageView() {
 
 function Transport({
   s,
+  lang,
   utterances,
   idx,
   setIdx,
@@ -627,6 +639,7 @@ function Transport({
   toggle,
   speed,
   setSpeed,
+  progress,
   exchange,
   onSharpest,
   colorOf,
@@ -634,6 +647,7 @@ function Transport({
   setScope,
 }: {
   s: StageStrings;
+  lang: "de" | "en";
   utterances: Utterance[];
   idx: number;
   setIdx: (i: number) => void;
@@ -641,65 +655,60 @@ function Transport({
   toggle: () => void;
   speed: number;
   setSpeed: (n: number) => void;
+  /** Spoken fraction of the current utterance, 0..1: the playhead moves inside its segment. */
+  progress: number;
   exchange: [number, number] | null;
   onSharpest: () => void;
   colorOf: (id: string) => string;
   scope: "exchange" | "run";
   setScope: (v: "exchange" | "run") => void;
 }) {
-  const btn =
-    "grid h-9 shrink-0 place-items-center rounded-control border px-3 text-sm hover:border-foreground/40 disabled:opacity-40";
+  const k = playbackKeys[lang];
   // Round boundaries for the timeline ticks.
   const roundStarts = utterances
     .map((u, i) => (i === 0 || utterances[i - 1]?.round !== u.round ? { i, r: u.round } : null))
     .filter((x): x is { i: number; r: number } => x !== null);
   const n = Math.max(1, utterances.length);
+  const head = (idx + Math.max(0, Math.min(1, progress))) / n;
   return (
-    <div className="flex shrink-0 items-center gap-2">
-      <button
-        type="button"
-        className={btn}
+    <PlaybackGroup label={s.timeline} className="shrink-0 gap-2" data-stage-transport="">
+      <PlaybackButton
+        icon={PreviousIcon}
+        label={s.prev}
+        shortcut={k.left}
+        keys="ArrowLeft"
         onClick={() => setIdx(idx - 1)}
         disabled={idx <= 0}
-        aria-label={s.prev}
-        title={`${s.prev} (←)`}
-      >
-        ⏮
-      </button>
-      <button
-        type="button"
-        className={cn(
-          btn,
-          "min-w-32 whitespace-nowrap bg-foreground text-background hover:bg-foreground/90",
-        )}
-        onClick={toggle}
-        title={`${playing ? s.pause : s.play} (Space)`}
-      >
-        {playing ? `❚❚ ${s.pause}` : `▶ ${s.play}`}
-      </button>
-      <button
-        type="button"
-        className={btn}
+      />
+      <PlayPauseButton
+        playing={playing}
+        onToggle={toggle}
+        labels={{ play: s.play, pause: s.pause }}
+        shortcut={k.space}
+      />
+      <PlaybackButton
+        icon={NextIcon}
+        label={s.next}
+        shortcut={k.right}
+        keys="ArrowRight"
         onClick={() => setIdx(idx + 1)}
         disabled={idx >= utterances.length - 1}
-        aria-label={s.next}
-        title={`${s.next} (→)`}
-      >
-        ⏭
-      </button>
-      <button
-        type="button"
-        className={cn(btn, "border-info/40 text-info")}
+      />
+      <PlaybackButton
+        icon={FlashIcon}
+        variant="accent"
+        label={s.sharpestHint}
+        text={s.sharpest}
+        shortcut="R"
+        keys="R"
         onClick={onSharpest}
         disabled={!exchange}
-        title={`${s.sharpestHint} (R)`}
-      >
-        ⚡ {s.sharpest}
-      </button>
+        className="ml-1"
+      />
 
-      {/* Timeline: one segment per utterance in the speaker's colour */}
+      {/* Timeline: one segment per utterance in the speaker's colour, playhead on top */}
       <fieldset className="relative mx-2 h-9 min-w-0 flex-1" aria-label={s.timeline}>
-        <div className="absolute inset-x-0 top-3 flex h-3 gap-px overflow-hidden rounded-full">
+        <div className="absolute inset-x-0 top-[13px] flex h-2.5 gap-px overflow-hidden rounded-full bg-gray-alpha-100">
           {utterances.map((u, i) => (
             <button
               key={u.id}
@@ -710,7 +719,7 @@ function Transport({
               aria-current={i === idx ? "step" : undefined}
               className={cn(
                 "h-full flex-1 transition-opacity hover:opacity-100",
-                i === idx ? "opacity-100" : i < idx ? "opacity-70" : "opacity-25",
+                i === idx ? "opacity-100" : i < idx ? "opacity-75" : "opacity-30",
               )}
               style={{ background: colorOf(u.speaker) }}
             />
@@ -718,21 +727,18 @@ function Transport({
         </div>
         {exchange ? (
           <span
-            className="pointer-events-none absolute top-1.5 h-6 rounded-md border-2 border-info"
+            className="pointer-events-none absolute top-[9px] h-[18px] rounded-md border-2 border-info"
             style={{
               left: `calc(${(exchange[0] / n) * 100}% - 2px)`,
               width: `calc(${((exchange[1] - exchange[0] + 1) / n) * 100}% + 4px)`,
             }}
           />
         ) : null}
-        <span
-          className="pointer-events-none absolute top-0.5 h-8 w-0.5 rounded bg-foreground"
-          style={{ left: `calc(${((idx + 0.5) / n) * 100}% - 1px)` }}
-        />
+        <Playhead left={`${head * 100}%`} className="top-[6px] bottom-[6px]" />
         {roundStarts.map(({ i, r }) => (
           <span
             key={`${r}-${i}`}
-            className="pointer-events-none absolute -bottom-1 font-mono text-[10px] text-muted-foreground"
+            className="pointer-events-none absolute -bottom-1.5 font-mono text-[10px] text-muted-foreground"
             style={{ left: `${(i / n) * 100}%` }}
           >
             R{r}
@@ -740,7 +746,7 @@ function Transport({
         ))}
       </fieldset>
 
-      <Seg
+      <Segmented
         label={s.scope}
         value={scope}
         onChange={setScope}
@@ -749,12 +755,12 @@ function Transport({
           { value: "run" as const, label: s.scopeRun },
         ]}
       />
-      <Seg
+      <Segmented
         label={s.speed}
         value={speed}
         onChange={setSpeed}
         options={SPEEDS.map((v) => ({ value: v, label: `${v}x` }))}
       />
-    </div>
+    </PlaybackGroup>
   );
 }
