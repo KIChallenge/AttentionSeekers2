@@ -161,3 +161,10 @@ One control system, `components/playback`:
   share one playhead: a 2 px line with a 14 px knob ringed in the surface colour; the stage
   playhead moves within the current segment as the line is spoken.
 - Keyboard shortcuts unchanged: Space, arrows, S, F, R, Esc.
+
+Auto-continue check (headless Chrome, `pw/controls/autoplay.mjs`, one sample every 5 s): the
+tile stage played from utterance 33 to 35 of 132 over 80 s with ElevenLabs audio and was never
+paused between lines; the Meeting view went from 33 to 36 over 65 s at 1.5x, also without a stop.
+The whole-run default scope and the audio stall watchdog from `main` hold, nothing to fix there.
+Measured hit targets after the change: 36 px (prev, next, restart, every speed and scope option),
+44 px play/pause; Meeting 44 px and 56 px play/pause; projector 45 px and 55 px.
