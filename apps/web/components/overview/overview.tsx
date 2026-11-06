@@ -16,6 +16,7 @@ import {
 } from "@/lib/overview";
 import type { Overview } from "@/lib/overview-data";
 import { cn } from "@/lib/utils";
+import funnel from "../../../../press/derived/archive_funnel.json";
 import { type ArmRow, SourcesByYear, StanceArms, type YearRow } from "./charts";
 import { overviewT } from "./messages";
 
@@ -138,6 +139,7 @@ function DataCard({ data, lang }: { data: Overview; lang: Lang }) {
         {a.years ? <Tile label={t.years}>{t.yearsRange(a.years.min, a.years.max)}</Tile> : null}
       </Tiles>
       {rows.length ? <SourcesByYear rows={rows} labels={t.kinds} title={t.chart} /> : null}
+      <PressFunnel lang={lang} />
       {a.backend === "file" ? <Meta>{t.fileBackend}</Meta> : null}
     </Section>
   );
@@ -328,5 +330,48 @@ function SimulationCard({ data, lang }: { data: Overview; lang: Lang }) {
         </div>
       ) : null}
     </Section>
+  );
+}
+
+/**
+ * Every page of the press archive was searched; this strip shows how the 223,909 pages
+ * narrow down to the person-free institution positions the agents use.
+ */
+function PressFunnel({ lang }: { lang: Lang }) {
+  const t = overviewT(lang).data.funnel;
+  const f = formats(lang);
+  const n = funnel;
+  const steps: Array<[string, number]> = [
+    [t.pages, n.pages],
+    [t.hits, n.institutionPageHits],
+    [t.candidates, n.candidates],
+    [t.evaluated, n.evaluated],
+    [t.positions, n.positions],
+  ];
+  return (
+    <div className="space-y-3 border-t pt-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div className="text-sm font-medium">{t.title}</div>
+        <Meta>
+          {f.int(n.editions)} {t.editions} · {t.range(n.from.slice(0, 4), n.to.slice(0, 4))}
+        </Meta>
+      </div>
+      <ol className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {steps.map(([label, value], i) => (
+          <li key={label} className="rounded-xl border bg-muted/30 p-3">
+            <div className="num text-lg font-semibold">{f.int(value)}</div>
+            <div className="text-xs text-muted-foreground">{label}</div>
+            {i > 0 ? (
+              <div className="mt-1 h-1 rounded bg-muted">
+                <div
+                  className="h-1 rounded bg-foreground/60"
+                  style={{ width: `${Math.max(2, Math.sqrt(value / n.pages) * 100)}%` }}
+                />
+              </div>
+            ) : null}
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
