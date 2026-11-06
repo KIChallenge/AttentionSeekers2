@@ -129,6 +129,7 @@ const de = {
     },
     hypothesis: "Vorab formulierte Erwartung",
     result: "Ergebnis",
+    cols: { case: "Fall", forecast: "Prognose", simulation: "Simulation", reality: "Realität" },
     scoring:
       "Bewertet nach Präferenzerreichung je Institution relativ zum Erstentwurf, nicht nach Treffer oder Fehlschlag.",
   },
@@ -342,6 +343,7 @@ const en: Dict = {
     status: { pending: "pending", running: "running", done: "done", cut: "cut" },
     hypothesis: "Expectation stated in advance",
     result: "Result",
+    cols: { case: "Case", forecast: "Forecast", simulation: "Simulation", reality: "Reality" },
     scoring:
       "Scored by preference attainment per institution relative to the first draft, not as hit or miss.",
   },

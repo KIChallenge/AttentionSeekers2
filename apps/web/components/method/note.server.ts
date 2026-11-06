@@ -61,6 +61,19 @@ export const MethodNoteFile = z.object({
     /** Run ids of the backtest variants and the write-up, when done. */
     runs: z.array(z.string()).optional(),
     doc: z.string().optional(),
+    /** One row per backtest episode: forecast, simulation and the legislative record. */
+    compare: z
+      .array(
+        z.object({
+          case: z.string(),
+          forecast: Bi,
+          simulation: Bi,
+          reality: Bi,
+          runs: z.array(z.string()),
+          doc: z.string(),
+        }),
+      )
+      .optional(),
   }),
 });
 export type MethodNoteFile = z.infer<typeof MethodNoteFile>;

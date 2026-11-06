@@ -300,6 +300,47 @@ export default async function MethodPage() {
                   ) : null}
                 </article>
               </div>
+              {note.backtest.compare?.length ? (
+                <div className="mt-3 overflow-x-auto rounded-2xl border bg-card">
+                  <table className="w-full text-left text-sm">
+                    <thead className="text-muted-foreground">
+                      <tr>
+                        <th className="p-3 font-medium">{t.backtest.cols.case}</th>
+                        <th className="p-3 font-medium">{t.backtest.cols.forecast}</th>
+                        <th className="p-3 font-medium">{t.backtest.cols.simulation}</th>
+                        <th className="p-3 font-medium">{t.backtest.cols.reality}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {note.backtest.compare.map((row) => (
+                        <tr key={row.case} className="border-t align-top">
+                          <td className="p-3">
+                            <div className="font-medium">{row.case}</div>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {row.runs.map((id) => (
+                                <Badge key={id} variant="outline" asChild>
+                                  <Link
+                                    href={`/runs/${encodeURIComponent(id)}`}
+                                    className="font-mono"
+                                  >
+                                    {id}
+                                  </Link>
+                                </Badge>
+                              ))}
+                            </div>
+                            <div className="mt-1 font-mono text-xs text-muted-foreground">
+                              {row.doc}
+                            </div>
+                          </td>
+                          <td className="p-3 text-muted-foreground">{row.forecast[lang]}</td>
+                          <td className="p-3 text-muted-foreground">{row.simulation[lang]}</td>
+                          <td className="p-3 text-muted-foreground">{row.reality[lang]}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : null}
             </Section>
           </>
         ) : null}
