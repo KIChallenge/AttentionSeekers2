@@ -35,7 +35,7 @@ export default async function DashboardPage() {
     }
   }
   return (
-    <Page>
+    <Page width="wide">
       <PageHead
         title={t.dashboard.title}
         sub={t.dashboard.sub}

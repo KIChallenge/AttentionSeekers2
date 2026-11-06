@@ -440,24 +440,27 @@ export function TopicView({
   const sentences = summarySentences(cmp, lang, t);
   const overall = hist.overall;
   return (
-    <div className="flex flex-col gap-6">
-      <section className="rounded-2xl border bg-card p-4 shadow-xs" aria-label={t.summaryTitle}>
-        <h2 className="text-base font-semibold">{t.summaryTitle}</h2>
+    <div className="flex flex-col gap-8">
+      <section
+        className="rounded-2xl border bg-card p-5 shadow-none sm:p-6"
+        aria-label={t.summaryTitle}
+      >
+        <h2 className="text-base font-semibold tracking-tight">{t.summaryTitle}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{cmp.question}</p>
-        <ul className="mt-2 flex max-w-4xl flex-col gap-0.5 text-sm leading-snug">
+        <ul className="mt-4 flex max-w-4xl flex-col gap-1 text-sm leading-relaxed">
           {sentences.map((s) => (
             <li key={s}>{s}</li>
           ))}
         </ul>
-        <p className="mt-2 max-w-4xl border-l-2 border-warning/60 pl-3 text-xs text-muted-foreground">
+        <p className="mt-4 max-w-4xl border-l-2 border-warning/60 pl-3 text-xs text-muted-foreground">
           {t.caveat}
         </p>
       </section>
 
-      <section className="rounded-2xl border bg-card shadow-xs" aria-label={t.topicsTitle}>
-        <div className="p-4 pb-2">
-          <h2 className="text-base font-semibold">{t.topicsTitle}</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">{t.topicsSub}</p>
+      <section className="rounded-2xl border bg-card shadow-none" aria-label={t.topicsTitle}>
+        <div className="p-5 pb-3 sm:px-6">
+          <h2 className="text-base font-semibold tracking-tight">{t.topicsTitle}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t.topicsSub}</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-sm">
@@ -546,10 +549,10 @@ export function TopicView({
       </section>
 
       <Level min="analyst">
-        <section className="rounded-2xl border bg-card shadow-xs" aria-label={t.runsTitle}>
-          <div className="p-4 pb-2">
-            <h2 className="text-base font-semibold">{t.runsTitle}</h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">{t.runsSub}</p>
+        <section className="rounded-2xl border bg-card shadow-none" aria-label={t.runsTitle}>
+          <div className="p-5 pb-3 sm:px-6">
+            <h2 className="text-base font-semibold tracking-tight">{t.runsTitle}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t.runsSub}</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
@@ -670,12 +673,12 @@ export function TopicView({
         </section>
       </Level>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_1fr]">
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-[1.2fr_1fr]">
         <Level min="analyst">
-          <section className="rounded-2xl border bg-card shadow-xs" aria-label={t.seatsTitle}>
-            <div className="p-4 pb-2">
-              <h2 className="text-base font-semibold">{t.seatsTitle}</h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">{t.seatsSub}</p>
+          <section className="rounded-2xl border bg-card shadow-none" aria-label={t.seatsTitle}>
+            <div className="p-5 pb-3 sm:px-6">
+              <h2 className="text-base font-semibold tracking-tight">{t.seatsTitle}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{t.seatsSub}</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[520px] text-sm">
@@ -699,8 +702,11 @@ export function TopicView({
           </section>
         </Level>
 
-        <section className="rounded-2xl border bg-card p-4 shadow-xs" aria-label={t.histTitle}>
-          <h2 className="text-base font-semibold">{t.histTitle}</h2>
+        <section
+          className="rounded-2xl border bg-card p-5 shadow-none sm:p-6"
+          aria-label={t.histTitle}
+        >
+          <h2 className="text-base font-semibold tracking-tight">{t.histTitle}</h2>
           {overall ? (
             <p className="mt-2 text-sm">
               {t.histLead(overall.k, overall.n, Math.round((overall.k / overall.n) * 100))}

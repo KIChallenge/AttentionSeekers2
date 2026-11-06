@@ -248,3 +248,43 @@ lists the versions it actually found and bolds the best value per row; playgroun
 the success and destructive tokens and shows model ids at Engineer; the infra ids and the
 sources line move to Engineer; Executive sees verdict, table (reduced), playground and the
 licence and Hugging Face block.
+
+## Design system (branch `feat/ui-clean`)
+
+Status: 2026-11-06, 07:30. Screenshots before and after live in the scratchpad
+(`pw/clean/before`, `pw/clean/after`), 1440x900 and 1920x1080, light and dark, DE and EN,
+run `reference-wartezeiten-presse`. The pass follows the patterns of the team's earlier
+project (medlyn): shadcn/ui components, one page shell, sections as hairline cards.
+
+What the jury saw before: every screen set its own width and gutter, cards were drawn by hand
+with four paddings and two shadows, section titles came in three weights, filters sat in a row
+of their own above the table, the pinned run carried four equal buttons, and the three zones of
+the negotiation view shared one white surface with hairline borders.
+
+One system, `components/shell/page.tsx`:
+
+- `Page`: 1280px reading width (`wide` 1600px for dashboards with tables, `full` 1800px for
+  the run screens), 2rem gutters, 2rem between direct children. Nothing inside adds an outer
+  margin.
+- `PageHead`: title (2xl semibold), one-line muted description, actions on the right with at
+  most one primary button.
+- `Section`: the only section frame. `card` is a hairline card (`rounded-2xl border bg-card
+  p-5 sm:p-6`, no shadow) with a title row (base semibold, muted description, action);
+  `plain` is the same title row over a separator, for content that is itself a table or a
+  grid of cards. `Panel` on the run screens delegates to it. `SectionHead` alone for pages
+  that keep their own frames.
+- `Eyebrow` (11px, uppercase, muted; the only uppercase text), `Meta` (xs, muted, tabular
+  numbers) and `Stat` (label over value) carry metadata; `EmptyState` wraps the shadcn Empty.
+- Data tables: `components/ui/data-table.tsx` on TanStack Table v8 after the shadcn example.
+  Toolbar with search (InputGroup), faceted filters (dashed outline button, popover with
+  checkboxes and counts), reset; sortable column headers; caption under the table; row
+  actions in one kebab menu.
+- Type: one scale (2xl page title, base section title, sm body, xs metadata). Colour: one
+  accent per meaning as before; surfaces carry the structure (`bg-sidebar` for rails,
+  `bg-card` for sections). Badges only where they carry a state (outcome, verdict, status).
+
+Applied, in the pitch order: dashboard (hero card with one primary action, run list as data
+table with the totals as caption), negotiation view (rails on the sidebar surface, toolbar
+row plus a tinted timeline band, 2.5rem between rounds, cards with p-5 and relaxed leading),
+analysis, agent card, outcome and result, then topics, trace, models, method and the setup
+room. Archive and press viewer were left alone because other branches change them.

@@ -132,12 +132,12 @@ function Section({
   aside?: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border bg-card p-4 sm:p-5">
-      <div className="mb-4 flex items-center gap-2.5">
+    <section className="rounded-2xl border bg-card p-5 sm:p-6">
+      <div className="mb-5 flex items-center gap-3">
         <span className="num inline-grid size-6 place-items-center rounded-full bg-foreground text-xs text-background">
           {n}
         </span>
-        <h2 className="text-base">{title}</h2>
+        <h2 className="text-base font-semibold tracking-tight">{title}</h2>
         <span className="flex-1" />
         {aside}
       </div>
@@ -415,8 +415,8 @@ export function SetupRoom({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_440px]">
-      <div className="min-w-0 space-y-4">
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_440px]">
+      <div className="min-w-0 space-y-6">
         <Section n={1} title={t.setup.step1}>
           <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {TEMPLATES.map((tpl) => (
@@ -718,8 +718,8 @@ export function SetupRoom({
         </Section>
       </div>
 
-      <aside className="space-y-4 lg:sticky lg:top-[66px] lg:self-start">
-        <section className="rounded-2xl border bg-card p-4">
+      <aside className="space-y-6 lg:sticky lg:top-[66px] lg:self-start">
+        <section className="rounded-2xl border bg-card p-5">
           <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
             <span>{t.setup.table}</span>
             <span>{t.setup.climates[cfg.climate]}</span>
@@ -741,8 +741,8 @@ export function SetupRoom({
               ))}
           </div>
         </section>
-        <section className="rounded-2xl border bg-card p-4 text-sm">
-          <h2 className="mb-3 flex items-center gap-2 text-base">
+        <section className="rounded-2xl border bg-card p-5 text-sm">
+          <h2 className="mb-4 flex items-center gap-3 text-base font-semibold tracking-tight">
             <span className="num inline-grid size-6 place-items-center rounded-full bg-foreground text-xs text-background">
               5
             </span>

@@ -328,7 +328,7 @@ export function Waterfall({ rounds, ...ctx }: Ctx & { rounds: TraceRound[] }) {
   const [closed, setClosed] = useState<Record<string, boolean>>({});
   const { t, lang } = ctx;
   return (
-    <div className="rounded-2xl border bg-card shadow-xs">
+    <div className="rounded-2xl border bg-card shadow-none">
       <div
         className={cn(
           ROW,

@@ -56,12 +56,12 @@ export function SummaryHeader({
   const costSub = totals.unpriced ? `${s.costNote}; ${s.unpriced(totals.unpriced)}` : s.costNote;
   const callsSub = totals.markers ? s.markers(totals.markers) : undefined;
   return (
-    <section className="rounded-2xl border bg-card p-4 shadow-xs" aria-label={s.calls}>
-      <p className="mb-3 text-sm">
+    <section className="rounded-2xl border bg-card p-5 shadow-none sm:p-6" aria-label={s.calls}>
+      <p className="mb-5 text-sm leading-relaxed">
         {s.plain(totals.calls, fmtMs(totals.wallMs, lang), cost, totals.byFamily.length)}{" "}
         <Reliability totals={totals} t={t} />
       </p>
-      <div className="grid grid-cols-2 gap-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <Stat label={s.wall} value={fmtMs(totals.wallMs, lang)} sub={callsSub} />
         <Stat
           label={s.tokensIn}

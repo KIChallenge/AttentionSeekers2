@@ -8,8 +8,10 @@ import { Chip, Empty, Panel, Tile } from "@/components/run/bits";
 import { fmtNum, L } from "@/components/run/helpers";
 import { SourceChip } from "@/components/run/provenance";
 import { useRun } from "@/components/run/run-context";
+import { Page, PageHead } from "@/components/shell/page";
 import { Level } from "@/components/shell/providers";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 function fmtFig(f: ImpactFigure, lang: "de" | "en") {
@@ -168,31 +170,25 @@ export function OutcomeView() {
   const wait = pkgFig("wait_change_pct");
 
   return (
-    <main className="mx-auto max-w-[1800px] px-4 sm:px-6 pt-5 pb-12">
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">{t.outcome.title}</h1>
-          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{t.outcome.sub}</p>
-        </div>
-        <div className="flex gap-2">
-          <Link
-            href={`/runs/${runId}/analysis`}
-            className="rounded-control border px-3 py-1.5 text-sm hover:border-foreground/40"
-          >
-            {t.outcome.toAnalysis}
-          </Link>
-          <Link
-            href={`/runs/${runId}/result`}
-            className="rounded-control bg-foreground px-3 py-1.5 text-sm text-background"
-          >
-            {t.outcome.toResult}
-          </Link>
-        </div>
-      </div>
+    <Page width="full">
+      <PageHead
+        title={t.outcome.title}
+        sub={t.outcome.sub}
+        actions={
+          <>
+            <Button asChild variant="outline">
+              <Link href={`/runs/${runId}/analysis`}>{t.outcome.toAnalysis}</Link>
+            </Button>
+            <Button asChild>
+              <Link href={`/runs/${runId}/result`}>{t.outcome.toResult}</Link>
+            </Button>
+          </>
+        }
+      />
 
-      <div className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border bg-card p-4">
-          <div className="num text-2xl font-semibold">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-2xl border bg-card p-5">
+          <div className="num text-2xl font-semibold tracking-tight">
             {classes.consensus} · {classes.majority} · {classes.minority} · {classes.no_result}
           </div>
           <div className="text-xs text-muted-foreground">{t.outcome.classes}</div>
@@ -201,8 +197,12 @@ export function OutcomeView() {
           </div>
         </div>
         {/* A missing figure says so; a lone dot read as a rendering bug. */}
-        <div className="rounded-2xl border bg-card p-4">
-          <div className={sv ? "num text-2xl font-semibold" : "text-base text-muted-foreground"}>
+        <div className="rounded-2xl border bg-card p-5">
+          <div
+            className={
+              sv ? "num text-2xl font-semibold tracking-tight" : "text-base text-muted-foreground"
+            }
+          >
             {sv ? fmtFig(sv, lang) : t.common.notAvailable}
           </div>
           <div className="text-xs text-muted-foreground">{t.outcome.metric.sv_spend_pp}</div>
@@ -210,8 +210,12 @@ export function OutcomeView() {
             {sv ? `${t.outcome.range} ${rangeOf(sv, lang)} · ` : ""}cap +{cap} %
           </div>
         </div>
-        <div className="rounded-2xl border bg-card p-4">
-          <div className={wait ? "num text-2xl font-semibold" : "text-base text-muted-foreground"}>
+        <div className="rounded-2xl border bg-card p-5">
+          <div
+            className={
+              wait ? "num text-2xl font-semibold tracking-tight" : "text-base text-muted-foreground"
+            }
+          >
             {wait ? fmtFig(wait, lang) : t.common.notAvailable}
           </div>
           <div className="text-xs text-muted-foreground">{t.outcome.metric.wait_change_pct}</div>
@@ -220,10 +224,10 @@ export function OutcomeView() {
             {lang === "de" ? "Ziel" : "target"} −20 %
           </div>
         </div>
-        <div className="rounded-2xl border bg-card p-4">
+        <div className="rounded-2xl border bg-card p-5">
           {pkgForecast?.status === "ok" && pkgForecast.k !== null ? (
             <>
-              <div className="num text-2xl font-semibold">
+              <div className="num text-2xl font-semibold tracking-tight">
                 {pkgForecast.k}{" "}
                 <span className="text-base font-normal text-muted-foreground">
                   {t.live.of} {pkgForecast.n}
@@ -247,7 +251,7 @@ export function OutcomeView() {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         <Panel
           title={t.outcome.effects}
           aside={<span className="text-xs text-muted-foreground">{t.outcome.effectsSub}</span>}
@@ -441,6 +445,6 @@ export function OutcomeView() {
           <p className="mt-3 rounded-xl border bg-gray-alpha-50 p-3 text-xs">{t.outcome.readAs}</p>
         </Panel>
       </div>
-    </main>
+    </Page>
   );
 }
