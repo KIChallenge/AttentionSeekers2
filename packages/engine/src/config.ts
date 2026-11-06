@@ -244,18 +244,21 @@ const hasBedrock = () =>
  * SV_SEAT_MODELS="gm=gpt,sv=deepseek,..." (aliases or full ids). GLM-5, Qwen3 235B and
  * Devstral 2 passed the smoke test with the shortest latency tails; DeepSeek V3.2 and Kimi
  * K2.5 were as valid but had p95 latencies of 85 to 170 s, which stalls a parallel round.
- * Nova stays available as an alias but is no default: the quality audit found Nova seats
- * weakest (reply relevance, self-repetition).
+ * Qwen3 235B holds the most seats: with the institution dossier in context it was the best
+ * persona arm of the held-out eval (models/out/eval_dossier.md) on in-character, stance
+ * direction and within-one-step, ahead of gpt-6-sol and DeepSeek, and it was 20/20 valid
+ * in the smoke test. Nova stays available as an alias but is no default: the quality audit
+ * found Nova seats weakest (reply relevance, self-repetition).
  */
 export const DEFAULT_SEAT_PLAN: Record<string, string> = {
   gm: "gpt",
   fm: "gpt",
-  sv: "glm",
-  pf: "glm",
+  sv: "qwen",
   ak: "qwen",
   ka: "qwen",
-  va: "mistral",
-  bl: "mistral",
+  pf: "qwen",
+  va: "glm",
+  bl: "glm",
   pv: "mistral",
 };
 
