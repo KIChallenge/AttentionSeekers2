@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Page, PageHead } from "@/components/shell/page";
 import { topicT } from "@/components/topics/messages";
+import { modelBiasT } from "@/components/topics/model-bias-messages";
 import { TopicView } from "@/components/topics/topic-view";
 import { Button } from "@/components/ui/button";
 import { serverPrefs } from "@/lib/server-prefs";
@@ -23,9 +24,14 @@ export default async function TopicPage({ params }: { params: Promise<{ topicKey
         title={t.title}
         sub={t.sub}
         actions={
-          <Button asChild variant="outline">
-            <Link href="/">{t.back}</Link>
-          </Button>
+          <>
+            <Button asChild variant="outline">
+              <Link href={`/topics/${topicKey}/models`}>{modelBiasT(lang).link}</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/">{t.back}</Link>
+            </Button>
+          </>
         }
       />
       <TopicView cmp={res.cmp} hist={historicRates()} excluded={res.excluded} />
