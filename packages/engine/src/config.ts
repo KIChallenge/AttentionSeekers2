@@ -12,7 +12,15 @@ import {
   type Topic,
   type VetoStatus,
 } from "@sv/contracts";
+import { citationStyleOf } from "./citation-style.ts";
 import { personaOf } from "./persona/index.ts";
+
+function citationStyleField(agentId: string) {
+  const st = citationStyleOf(agentId);
+  return st
+    ? { citationStyle: { propensity: st.propensity, tier: st.tier, measured: st.measured } }
+    : {};
+}
 
 const here = path.dirname(new URL(import.meta.url).pathname);
 export const ENGINE_ROOT = path.resolve(here, "..");
@@ -249,6 +257,7 @@ export function agentConfigOf(
     code: c?.code ?? agentId.toUpperCase().slice(0, 3),
     delegates: delegatesOf(agentId).map((d) => ({ id: d.id, role: bi(d.role) })),
     persona: personaOf(agentId),
+    ...citationStyleField(agentId),
   };
 }
 
