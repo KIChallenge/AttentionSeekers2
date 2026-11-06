@@ -139,11 +139,14 @@ def main():
     md.append("")
     if a.train_summary:
         t = json.loads(Path(a.train_summary).read_text())
-        md += ["## Training v2 (one SageMaker job, per adapter)", "",
-               "| institution | n train | train loss | eval loss | seconds |", "|---|---:|---:|---:|---:|"]
+        ver = next(iter(t.values())).get("version", "adapters").replace("adapters-", "") or "v1"
+        md += [f"## Training {ver} (one SageMaker job, per adapter)", "",
+               "| institution | n train | epochs | steps | train loss | eval loss | seconds |",
+               "|---|---:|---:|---:|---:|---:|---:|"]
         for r, m in t.items():
             ev = (m.get("eval") or {}).get("eval_loss")
-            md.append(f"| {r} | {m['n_train']} | {m['train_loss']:.3f} | {'n/a' if ev is None else f'{ev:.2f}'} | {m['seconds']:.0f} |")
+            md.append(f"| {r} | {m['n_train']} | {m['epochs']:g} | {m.get('steps', 'n/a')} | {m['train_loss']:.3f} | "
+                      f"{'n/a' if ev is None else f'{ev:.2f}'} | {m['seconds']:.0f} |")
         md += ["", "Eval loss is on held-out rows without the stance prefix, so it is not comparable to v1.", ""]
     md += ["Caveats: stance labels come from an LLM judge (spot-check `rows.jsonl`); the v2 training stance labels "
            "come from the same judge, so v2 learned that judge's reading of the training paragraphs; small n for "
