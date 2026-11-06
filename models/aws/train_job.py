@@ -4,6 +4,8 @@ that trains the 9 institution adapters sequentially.
   uv run python -I train_job.py launch [--epochs 3]
   SV_SFT_DIR=../data/v2/sft uv run python -I train_job.py launch --version v2 --epochs 2 --lr 7e-5 --no-upload-base
       (v2: data under data/sft-v2/, adapters under adapters-v2/, v1 objects are never overwritten)
+  SV_SFT_DIR=../data/v2/sft uv run python -I train_job.py launch --version v21 --epochs 3 --lr 1e-4 --min-steps 36 \
+      --no-upload-base   (v2.1: v2 data, v1 schedule, at least 36 steps per adapter)
   uv run python -I train_job.py status [job]       # status, billable seconds, last log lines
   uv run python -I train_job.py cost               # billable seconds x price of every project job
 """
@@ -59,7 +61,7 @@ def launch(a):
     code = upload_code(s3)
     name = f"{PROJECT}-lora{'' if v1 else '-' + a.version}-{time.strftime('%m%d-%H%M%S')}"
     hp = {"roles": ",".join(ROLES), "bucket": bucket(), "epochs": str(a.epochs), "rank": str(a.rank), "max-len": "2048",
-          "lr": str(a.lr), "dropout": "0.05", "out-prefix": "adapters" if v1 else f"adapters-{a.version}",
+          "lr": str(a.lr), "dropout": "0.05", "min-steps": str(a.min_steps), "out-prefix": "adapters" if v1 else f"adapters-{a.version}",
           "upload-base": "1" if a.upload_base else "0"}
     hp = {k: json.dumps(v) for k, v in hp.items()}
     hp.update({"sagemaker_program": json.dumps("sm_train.py"), "sagemaker_submit_directory": json.dumps(code),
@@ -118,6 +120,7 @@ def main():
     p.add_argument("--version", default="v1", help="adapter set: v1 (adapters/) or e.g. v2 (adapters-v2/)")
     p.add_argument("--lr", type=float, default=1e-4)
     p.add_argument("--rank", type=int, default=16)
+    p.add_argument("--min-steps", type=int, default=0, help="per-adapter floor on optimiser steps (epochs raised)")
     p = sub.add_parser("status")
     p.add_argument("job", nargs="?")
     p.add_argument("--lines", type=int, default=25)
