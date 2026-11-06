@@ -13,6 +13,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node scripts/migrate.ts",
     "db:import": "node scripts/import-jsonl.ts",
+    "db:embed": "node scripts/embed.ts",
     "runs:load": "node scripts/load-runs.ts"
   },
   "dependencies": {
