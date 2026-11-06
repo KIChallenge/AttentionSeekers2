@@ -458,6 +458,14 @@ export default async function ModelsPage() {
           <article className="rounded-2xl border border-dashed p-4 text-sm">
             <div className="mb-1 font-medium">{t.hf.title}</div>
             <p className="max-w-4xl text-muted-foreground">{t.hf.text}</p>
+            <a
+              href={t.hf.link}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-block underline underline-offset-2"
+            >
+              {t.hf.linkLabel} ↗
+            </a>
           </article>
         </Section>
 
