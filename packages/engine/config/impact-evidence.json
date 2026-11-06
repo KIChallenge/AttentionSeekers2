@@ -207,7 +207,12 @@
     "svHealthExpenditureMioEur": { "value": 25528.1, "year": 2024, "sources": ["statat-sha-2024"] },
     "contractSpecialists": { "value": 4147, "year": 2025, "sources": ["oeak-2025"] },
     "kvMedicalCareMioEur": { "value": 7239.7, "year": 2024, "sources": ["dvsv-handbuch-2025"] },
-    "unmetNeedWaitingListPct": { "value": 0.6, "eu27": 1.2, "year": 2025, "sources": ["eurostat-silc-08"] },
+    "unmetNeedWaitingListPct": {
+      "value": 0.6,
+      "eu27": 1.2,
+      "year": 2025,
+      "sources": ["eurostat-silc-08"]
+    },
     "specialistWaitingTime": {
       "value": null,
       "note": {
@@ -227,7 +232,10 @@
   },
   "classes": {
     "capacity_expansion": {
-      "label": { "de": "Zusätzliche Kassenstellen und Termine", "en": "Extra contract posts and appointments" },
+      "label": {
+        "de": "Zusätzliche Kassenstellen und Termine",
+        "en": "Extra contract posts and appointments"
+      },
       "group": "supply",
       "basis": "derived",
       "rampYears": 3,
@@ -244,7 +252,10 @@
       "sources": ["siciliani-2003-wp7", "oecd-2020-waiting", "oeak-2025"]
     },
     "fee_incentive": {
-      "label": { "de": "Honorar- und Produktivitätsanreize", "en": "Fee and productivity incentives" },
+      "label": {
+        "de": "Honorar- und Produktivitätsanreize",
+        "en": "Fee and productivity incentives"
+      },
       "group": "supply",
       "basis": "assumption",
       "rampYears": 2,
@@ -257,7 +268,10 @@
       "sources": ["siciliani-2005-hp"]
     },
     "triage_routing": {
-      "label": { "de": "Terminvermittlung 1450 und digitale Facharzt-Triage", "en": "1450 appointment brokering and digital specialist triage" },
+      "label": {
+        "de": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+        "en": "1450 appointment brokering and digital specialist triage"
+      },
       "group": "demand",
       "basis": "derived",
       "rampYears": 2,
@@ -283,7 +297,10 @@
       "sources": ["liddy-2016-econsult", "vimalananda-2015-econsult", "flodgren-2015-cochrane"]
     },
     "scope_of_practice": {
-      "label": { "de": "Erweiterte Kompetenzen der Gesundheitsberufe", "en": "Extended scope for health professions" },
+      "label": {
+        "de": "Erweiterte Kompetenzen der Gesundheitsberufe",
+        "en": "Extended scope for health professions"
+      },
       "group": "demand",
       "basis": "derived",
       "rampYears": 3,
@@ -296,7 +313,10 @@
       "sources": ["laurant-2018-cochrane", "maier-2017-oecd"]
     },
     "access_guarantee": {
-      "label": { "de": "Terminzusage (Vierwochengarantie)", "en": "Appointment guarantee (four weeks)" },
+      "label": {
+        "de": "Terminzusage (Vierwochengarantie)",
+        "en": "Appointment guarantee (four weeks)"
+      },
       "group": "governance",
       "basis": "derived",
       "rampYears": 2,
@@ -309,7 +329,10 @@
       "sources": ["propper-2008-targets", "oecd-2013-policies", "oecd-2020-waiting"]
     },
     "monitoring_transparency": {
-      "label": { "de": "Wartezeiten-Dashboard und Monitoring", "en": "Waiting-time dashboard and monitoring" },
+      "label": {
+        "de": "Wartezeiten-Dashboard und Monitoring",
+        "en": "Waiting-time dashboard and monitoring"
+      },
       "group": "governance",
       "basis": "derived",
       "rampYears": 1,
@@ -322,7 +345,10 @@
       "sources": ["metcalfe-2018-cochrane", "propper-2008-targets"]
     },
     "structural_reform": {
-      "label": { "de": "Strukturreform (PVE, Versorgungspfade, Ambulanzverlagerung)", "en": "Structural reform (primary care units, pathways, outpatient shift)" },
+      "label": {
+        "de": "Strukturreform (PVE, Versorgungspfade, Ambulanzverlagerung)",
+        "en": "Structural reform (primary care units, pathways, outpatient shift)"
+      },
       "group": "structure",
       "basis": "assumption",
       "rampYears": 5,
@@ -365,11 +391,43 @@
     "label": { "de": "Beispielpaket der Angabe", "en": "Example package from the brief" },
     "claimed": { "waitChangePct": -22, "budgetChangePct": 4.3 },
     "components": [
-      { "class": "telemedicine", "restricted": true, "text": { "de": "Telemedizin für ausgewählte Leistungen", "en": "Telemedicine for selected services" } },
-      { "class": "capacity_expansion", "restricted": false, "text": { "de": "Zusätzliche Kassenstellen in Mangelregionen", "en": "Additional contract posts in shortage regions" } },
-      { "class": "triage_routing", "restricted": false, "text": { "de": "Digitale Facharzt-Triage", "en": "Digital specialist triage" } },
-      { "class": "scope_of_practice", "restricted": false, "text": { "de": "Erweiterte Kompetenzen für Gesundheitsberufe", "en": "Extended competences for health professions" } },
-      { "class": "monitoring_transparency", "restricted": false, "text": { "de": "Nationales Wartezeiten-Dashboard", "en": "National waiting-time dashboard" } }
+      {
+        "class": "telemedicine",
+        "restricted": true,
+        "text": {
+          "de": "Telemedizin für ausgewählte Leistungen",
+          "en": "Telemedicine for selected services"
+        }
+      },
+      {
+        "class": "capacity_expansion",
+        "restricted": false,
+        "text": {
+          "de": "Zusätzliche Kassenstellen in Mangelregionen",
+          "en": "Additional contract posts in shortage regions"
+        }
+      },
+      {
+        "class": "triage_routing",
+        "restricted": false,
+        "text": { "de": "Digitale Facharzt-Triage", "en": "Digital specialist triage" }
+      },
+      {
+        "class": "scope_of_practice",
+        "restricted": false,
+        "text": {
+          "de": "Erweiterte Kompetenzen für Gesundheitsberufe",
+          "en": "Extended competences for health professions"
+        }
+      },
+      {
+        "class": "monitoring_transparency",
+        "restricted": false,
+        "text": {
+          "de": "Nationales Wartezeiten-Dashboard",
+          "en": "National waiting-time dashboard"
+        }
+      }
     ]
   }
 }

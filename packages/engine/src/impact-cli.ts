@@ -5,7 +5,7 @@
 //   node --no-warnings packages/engine/src/impact-cli.ts [runId ...]
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { foldRun, parseNdjson, type Proposal, type RunSnapshot } from "@sv/contracts";
+import { foldRun, type Proposal, parseNdjson, type RunSnapshot } from "@sv/contracts";
 import { REPO_ROOT } from "./config.ts";
 import { EVIDENCE, IMPACT_MODEL_VERSION, runImpactFigures } from "./impact.ts";
 
