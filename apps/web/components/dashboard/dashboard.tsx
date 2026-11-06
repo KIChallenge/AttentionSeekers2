@@ -2,14 +2,7 @@
 
 import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  catalogAgent,
-  type LocalizedText,
-  localize,
-  type OutcomeClass,
-  type RunSummary,
-  TEMPLATES,
-} from "@sv/contracts";
+import { catalogAgent, type RunSummary } from "@sv/contracts";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -25,9 +18,9 @@ import { useMemo, useState } from "react";
 import { laneT } from "@/components/entity/messages";
 import { AgentTile } from "@/components/run/agent-tile";
 import { OutcomeBadge } from "@/components/run/outcome-badge";
-import { Eyebrow, Meta, Section, Stat } from "@/components/shell/page";
+import { scenarioT } from "@/components/scenarios/messages";
+import { Meta, Section } from "@/components/shell/page";
 import { Level, usePrefs } from "@/components/shell/providers";
-import { topicT } from "@/components/topics/messages";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,30 +37,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatDate, formatDuration } from "@/lib/format";
-import { topicKeyOf } from "@/lib/topic-compare";
 import { cn } from "@/lib/utils";
 import { ForkButton } from "./fork-button";
-
-export interface PinnedDetail {
-  summary: RunSummary;
-  topics: Array<{
-    id: string;
-    label: LocalizedText;
-    status: OutcomeClass;
-    support: number;
-    oppose: number;
-    of: number;
-  }>;
-  movement: Array<{ agentId: string; len: number }>;
-  endNote: LocalizedText | null;
-}
-
-const STATUS_CELL: Record<OutcomeClass, string> = {
-  consensus: "border-success/40 bg-success/10 text-success",
-  majority: "border-border bg-gray-alpha-100 text-foreground",
-  minority: "border-warning/40 bg-warning/10 text-warning",
-  no_result: "border-dashed text-muted-foreground",
-};
 
 function AgreementMeter({ agreed, of }: { agreed: number; of: number }) {
   return (
@@ -105,133 +76,11 @@ function Moved({ run, lang }: { run: RunSummary; lang: "de" | "en" }) {
   );
 }
 
-/** The reference run: one hero card, one primary action (open the negotiation). */
-function Pinned({ d, forkAvailable }: { d: PinnedDetail; forkAvailable: boolean }) {
-  const { t: base, lang } = usePrefs();
-  const t = laneT(lang);
-  const r = d.summary;
-  const template = TEMPLATES.find((x) => x.id === r.template);
-  const maxLen = Math.max(0.1, ...d.movement.map((m) => m.len));
-  return (
-    <Section aria-label={base.dashboard.reference} className="p-6 sm:p-8">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-12">
-        <div className="flex min-w-0 flex-col gap-5">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <Eyebrow>
-              {base.dashboard.reference} · {t.dash.pinned}
-            </Eyebrow>
-            <Level min="engineer">
-              <Meta className="font-mono">{r.id}</Meta>
-            </Level>
-          </div>
-          <h2 className="max-w-3xl text-xl leading-snug font-semibold tracking-tight sm:text-2xl">
-            {r.question}
-          </h2>
-          <div className="flex flex-wrap items-center gap-2">
-            <OutcomeBadge value={r.outcomeBadge} t={base} />
-            {template ? (
-              <Badge variant="outline" className="text-muted-foreground">
-                {lang === "de" ? template.de : template.en}
-              </Badge>
-            ) : null}
-            {d.endNote ? (
-              <span className="text-sm text-muted-foreground">{localize(d.endNote, lang)}</span>
-            ) : null}
-          </div>
-          <dl className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-4">
-            <Stat label={base.dashboard.agreement}>
-              <AgreementMeter agreed={r.agreementShare.agreed} of={r.agreementShare.of} />
-            </Stat>
-            <Stat label={base.dashboard.proposals}>
-              {r.acceptedProposals} {base.dashboard.accepted} · {r.rejectedProposals}{" "}
-              {base.dashboard.rejected}
-            </Stat>
-            <Stat label={base.dashboard.rounds}>
-              {r.roundsCompleted}/{r.roundLimit}
-            </Stat>
-            <Stat label={base.dashboard.duration}>{formatDuration(r.durationMs)}</Stat>
-          </dl>
-          <div>
-            <div className="mb-2 text-xs text-muted-foreground">{t.replay.perTopic}</div>
-            <div className="flex flex-wrap gap-1.5">
-              {d.topics.map((tp) => (
-                <span
-                  key={tp.id}
-                  className={cn("rounded-md border px-2 py-1 text-xs", STATUS_CELL[tp.status])}
-                  title={`${base.outcome[tp.status]}: +${tp.support} / -${tp.oppose} / ${tp.of}`}
-                >
-                  {localize(tp.label, lang)}
-                  <span className="num ml-1.5 opacity-70">
-                    {tp.support}/{tp.of}
-                  </span>
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
-            <Button asChild>
-              <Link href={`/runs/${r.id}`}>{base.dashboard.open}</Link>
-            </Button>
-            <Button asChild variant="ghost">
-              <Link href={`/replay/${r.id}`}>{base.dashboard.replay}</Link>
-            </Button>
-            <Button asChild variant="ghost">
-              <Link href={`/topics/${topicKeyOf(r)}`}>{topicT(lang).compare}</Link>
-            </Button>
-            <ForkButton
-              runId={r.id}
-              rounds={r.roundsCompleted || r.roundLimit}
-              agents={r.agents}
-              available={forkAvailable}
-              size="sm"
-            />
-          </div>
-        </div>
-        <div className="min-w-0 lg:border-l lg:pl-12">
-          <div className="mb-3 flex items-baseline justify-between gap-2">
-            <div className="text-xs text-muted-foreground">{base.dashboard.movedMost}</div>
-            <Meta>
-              {base.run.round} 1..{r.roundsCompleted}
-            </Meta>
-          </div>
-          <ul className="space-y-2">
-            {d.movement.map((m) => {
-              const a = catalogAgent(m.agentId);
-              return (
-                <li
-                  key={m.agentId}
-                  className="grid grid-cols-[2.75rem_1fr_2.5rem] items-center gap-3 text-sm"
-                >
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <AgentTile agentId={m.agentId} />
-                    <span className="truncate text-xs">{a?.code}</span>
-                  </span>
-                  <span className="h-1.5 overflow-hidden rounded-full bg-gray-alpha-100">
-                    <span
-                      className="block h-full rounded-full"
-                      style={{
-                        width: `${(m.len / maxLen) * 100}%`,
-                        background: a?.color ?? "var(--foreground)",
-                      }}
-                    />
-                  </span>
-                  <span className="num text-right text-xs text-muted-foreground">
-                    {m.len.toFixed(1)}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </div>
-    </Section>
-  );
-}
-
-/** One quiet control per row: open, replay, compare and fork in a menu. */
+/** One quiet control per row: open, replay, stage and fork in a menu. */
 function RowActions({ run: r, forkAvailable }: { run: RunSummary; forkAvailable: boolean }) {
   const { t: base, lang } = usePrefs();
   const t = laneT(lang);
+  const s = scenarioT(lang);
   return (
     <div className="flex justify-end">
       <ForkButton
@@ -254,7 +103,7 @@ function RowActions({ run: r, forkAvailable }: { run: RunSummary; forkAvailable:
                 <Link href={`/replay/${r.id}`}>{base.dashboard.replay}</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/topics/${topicKeyOf(r)}`}>{topicT(lang).compare}</Link>
+                <Link href={`/runs/${r.id}/stage`}>{s.stage}</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -279,25 +128,23 @@ const arrayIncludesSome = (row: { getValue: (id: string) => unknown }, id: strin
   return v.includes(String(cell));
 };
 
-export function Dashboard({
+/** Runs of one scenario as a data table (cards below lg) with filters in the toolbar. */
+export function RunsTable({
   runs,
-  pinned,
   forkAvailable,
+  title,
 }: {
   runs: RunSummary[];
-  pinned: PinnedDetail | null;
   forkAvailable: boolean;
+  title?: string;
 }) {
   const { t: base, lang } = usePrefs();
   const t = laneT(lang);
+  const s = scenarioT(lang);
   const [sorting, setSorting] = useState<SortingState>([{ id: "createdAt", desc: true }]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const variantLabel = (v: string) => (base.variant as Record<string, string>)[v] ?? v;
-  const templateLabel = (v: string) => {
-    const x = TEMPLATES.find((tt) => tt.id === v);
-    return x ? (lang === "de" ? x.de : x.en) : v;
-  };
 
   // columns are cheap to build and depend on language and level, so no memo
   const columns: ColumnDef<RunSummary>[] = [
@@ -384,14 +231,13 @@ export function Dashboard({
       enableSorting: false,
       cell: ({ row }) => <RowActions run={row.original} forkAvailable={forkAvailable} />,
     },
-    // filter-only columns (hidden): variant, template, status, models
+    // filter-only columns (hidden): variant, status, models
     {
       id: "variant",
       accessorKey: "variantKind",
       filterFn: arrayIncludesSome,
       enableHiding: true,
     },
-    { id: "template", accessorKey: "template", filterFn: arrayIncludesSome },
     { id: "status", accessorKey: "status", filterFn: arrayIncludesSome },
     { id: "models", accessorKey: "models", filterFn: arrayIncludesSome },
   ];
@@ -409,7 +255,6 @@ export function Dashboard({
   });
 
   const variants = useMemo(() => [...new Set(runs.map((r) => r.variantKind))], [runs]);
-  const templates = useMemo(() => [...new Set(runs.map((r) => r.template))], [runs]);
   const models = useMemo(() => [...new Set(runs.flatMap((r) => r.models))].sort(), [runs]);
   const modelCounts = useMemo(() => {
     const m = new Map<string, number>();
@@ -439,109 +284,99 @@ export function Dashboard({
   };
 
   return (
-    <>
-      {pinned ? <Pinned d={pinned} forkAvailable={forkAvailable} /> : null}
-
-      <Section
-        variant="plain"
-        title={t.dash.allRuns}
-        aria-label={t.dash.allRuns}
-        bodyClassName="space-y-4"
+    <Section
+      variant="plain"
+      title={title ?? t.dash.allRuns}
+      aria-label={title ?? t.dash.allRuns}
+      bodyClassName="space-y-4"
+    >
+      <DataTableToolbar
+        table={table}
+        search={{ column: "question", placeholder: t.dash.search, label: t.dash.search }}
+        resetLabel={t.dash.reset}
       >
-        <DataTableToolbar
+        <DataTableFacetedFilter
+          column={table.getColumn("variant")}
+          title={t.dash.filterVariant}
+          options={variants.map((v) => ({ value: v, label: variantLabel(v) }))}
+          {...facet}
+        />
+        <DataTableFacetedFilter
+          column={table.getColumn("status")}
+          title={t.dash.filterStatus}
+          options={(["running", "completed", "failed"] as const).map((v) => ({
+            value: v,
+            label: t.dash.status[v],
+          }))}
+          {...facet}
+        />
+        <DataTableFacetedFilter
+          column={table.getColumn("models")}
+          title={t.dash.filterModel}
+          options={models.map((m) => ({ value: m, label: m }))}
+          counts={modelCounts}
+          {...facet}
+        />
+      </DataTableToolbar>
+
+      {/* table at desktop widths */}
+      <div className="hidden lg:block">
+        <DataTableBody
           table={table}
-          search={{ column: "question", placeholder: t.dash.search, label: t.dash.search }}
-          resetLabel={t.dash.reset}
-        >
-          <DataTableFacetedFilter
-            column={table.getColumn("variant")}
-            title={t.dash.filterVariant}
-            options={variants.map((v) => ({ value: v, label: variantLabel(v) }))}
-            {...facet}
-          />
-          <DataTableFacetedFilter
-            column={table.getColumn("template")}
-            title={t.dash.filterTemplate}
-            options={templates.map((v) => ({ value: v, label: templateLabel(v) }))}
-            {...facet}
-          />
-          <DataTableFacetedFilter
-            column={table.getColumn("status")}
-            title={t.dash.filterStatus}
-            options={(["running", "completed", "failed"] as const).map((v) => ({
-              value: v,
-              label: t.dash.status[v],
-            }))}
-            {...facet}
-          />
-          <DataTableFacetedFilter
-            column={table.getColumn("models")}
-            title={t.dash.filterModel}
-            options={models.map((m) => ({ value: m, label: m }))}
-            counts={modelCounts}
-            {...facet}
-          />
-        </DataTableToolbar>
+          caption={totals}
+          empty={runs.length === 0 ? base.dashboard.empty : t.dash.none}
+          rowProps={(r) => ({ "data-run": r.id })}
+        />
+      </div>
 
-        {/* table at desktop widths */}
-        <div className="hidden lg:block">
-          <DataTableBody
-            table={table}
-            caption={totals}
-            empty={runs.length === 0 ? base.dashboard.empty : t.dash.none}
-            rowProps={(r) => ({ "data-run": r.id })}
-          />
-        </div>
-
-        {/* cards below lg */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:hidden">
-          {table.getRowModel().rows.map(({ original: r }) => (
-            <article
-              key={r.id}
-              className="flex flex-col gap-3 rounded-2xl border bg-card p-4"
-              data-run={r.id}
-            >
-              <div className="flex items-center gap-1.5">
-                <OutcomeBadge value={r.outcomeBadge} t={base} />
-                <span className="flex-1" />
-                <Meta>{formatDate(r.createdAt, lang)}</Meta>
-              </div>
-              <Link href={`/runs/${r.id}`} className="leading-snug font-medium hover:underline">
-                {r.question}
-              </Link>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <AgreementMeter agreed={r.agreementShare.agreed} of={r.agreementShare.of} />
-                <span className="num text-right">{formatDuration(r.durationMs)}</span>
-              </div>
-              <div className="text-sm">
-                <Moved run={r} lang={lang} />
-              </div>
-              <div className="flex gap-1">
-                <Button asChild size="sm" variant="outline">
-                  <Link href={`/replay/${r.id}`}>{base.dashboard.replay}</Link>
-                </Button>
-                <Button asChild size="sm" variant="ghost">
-                  <Link href={`/topics/${topicKeyOf(r)}`}>{topicT(lang).compare}</Link>
-                </Button>
-                <ForkButton
-                  runId={r.id}
-                  rounds={r.roundsCompleted || r.roundLimit}
-                  agents={r.agents}
-                  available={forkAvailable}
-                />
-              </div>
-            </article>
-          ))}
-          {shown === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {runs.length === 0 ? base.dashboard.empty : t.dash.none}
-            </p>
-          ) : null}
-        </div>
-        <Meta className="lg:hidden">{totals}</Meta>
-      </Section>
-    </>
+      {/* cards below lg */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:hidden">
+        {table.getRowModel().rows.map(({ original: r }) => (
+          <article
+            key={r.id}
+            className="flex flex-col gap-3 rounded-2xl border bg-card p-4"
+            data-run={r.id}
+          >
+            <div className="flex items-center gap-1.5">
+              <OutcomeBadge value={r.outcomeBadge} t={base} />
+              <span className="flex-1" />
+              <Meta>{formatDate(r.createdAt, lang)}</Meta>
+            </div>
+            <Link href={`/runs/${r.id}`} className="leading-snug font-medium hover:underline">
+              {r.question}
+            </Link>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <AgreementMeter agreed={r.agreementShare.agreed} of={r.agreementShare.of} />
+              <span className="num text-right">{formatDuration(r.durationMs)}</span>
+            </div>
+            <div className="text-sm">
+              <Moved run={r} lang={lang} />
+            </div>
+            <div className="flex gap-1">
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/replay/${r.id}`}>{base.dashboard.replay}</Link>
+              </Button>
+              <Button asChild size="sm" variant="ghost">
+                <Link href={`/runs/${r.id}/stage`}>{s.stage}</Link>
+              </Button>
+              <ForkButton
+                runId={r.id}
+                rounds={r.roundsCompleted || r.roundLimit}
+                agents={r.agents}
+                available={forkAvailable}
+              />
+            </div>
+          </article>
+        ))}
+        {shown === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {runs.length === 0 ? base.dashboard.empty : t.dash.none}
+          </p>
+        ) : null}
+      </div>
+      <Meta className="lg:hidden">{totals}</Meta>
+    </Section>
   );
 }
 
-const hidden = { variant: false, template: false, status: false, models: false };
+const hidden = { variant: false, status: false, models: false };

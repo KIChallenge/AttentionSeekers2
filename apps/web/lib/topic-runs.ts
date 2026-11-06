@@ -85,7 +85,7 @@ export async function loadTopicComparison(
  * with the same id (a dev database can hold an older run under a reference id). Runs that only
  * exist in the database are added after.
  */
-async function loadAll(): Promise<Map<string, { summary: RunSummary; snap: RunSnapshot }>> {
+export async function loadAll(): Promise<Map<string, { summary: RunSummary; snap: RunSnapshot }>> {
   const out = new Map<string, { summary: RunSummary; snap: RunSnapshot }>();
   const dir = replayDir();
   if (existsSync(dir))
