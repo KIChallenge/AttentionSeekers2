@@ -16,7 +16,11 @@ describe("locate index", () => {
   const index = buildLocateIndex(events, "de");
 
   it("lists every utterance with round, speaker, minute and clipped text", () => {
-    expect(index.utterances).toHaveLength(139);
+    const ids = new Set(
+      events.flatMap((e) => (e.type === "utterance.completed" ? [e.utterance.id] : [])),
+    );
+    expect(index.utterances.length).toBe(ids.size);
+    expect(ids.size).toBeGreaterThan(100);
     const u = index.utterances[0];
     expect(u?.round).toBe(1);
     expect(u?.speaker.length).toBeGreaterThan(0);
