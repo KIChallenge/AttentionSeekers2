@@ -27,7 +27,7 @@ const p = await embedMissingSegments(db, {
   limit: arg("limit"),
   log: (x) =>
     console.log(
-      `embedded ${x.done} failed ${x.failed} pending ${x.pending} | ${x.ratePerSec.toFixed(1)}/s | ${x.tokens} tokens ~ ${x.usd.toFixed(4)} USD` +
+      `embedded ${x.done} copied ${x.copied} failed ${x.failed} pending ${x.pending} | ${x.ratePerSec.toFixed(1)}/s | ${x.tokens} tokens ~ ${x.usd.toFixed(4)} USD` +
         (x.ratePerSec > 0 ? ` | eta ${Math.round(x.pending / x.ratePerSec / 60)} min` : ""),
     ),
 });
@@ -35,7 +35,7 @@ const counts = await db.execute<{ model: string; n: string; tokens: string }>(
   sql`select model, count(*) as n, coalesce(sum(tokens), 0) as tokens from segment_embeddings group by model`,
 );
 console.log(
-  `done in ${Math.round((Date.now() - t0) / 1000)} s: ${p.done} embedded, ${p.failed} failed (rerun to retry)`,
+  `done in ${Math.round((Date.now() - t0) / 1000)} s: ${p.done} texts embedded, ${p.copied} segments reused an identical text, ${p.failed} failed (rerun to retry)`,
 );
 for (const r of counts.rows)
   console.log(`  ${r.model}: ${r.n} segments, ${r.tokens} tokens in total`);

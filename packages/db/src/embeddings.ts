@@ -146,9 +146,13 @@ export function embedQuery(text: string): Promise<number[] | null> {
 }
 
 export interface EmbedProgress {
+  /** Distinct texts embedded through the API in this run. */
   done: number;
   failed: number;
+  /** Distinct texts still missing. */
   pending: number;
+  /** Segments that reused the vector of an identical text (no API call). */
+  copied: number;
   tokens: number;
   usd: number;
   ratePerSec: number;
@@ -156,8 +160,10 @@ export interface EmbedProgress {
 
 /**
  * Embeds every segment that has no embedding for EMBED_MODEL yet, or whose text changed
- * since (md5 mismatch). Idempotent and resumable: progress is committed every flush, a
- * rerun picks up where the last one stopped. `segmentIds` limits the job to those rows.
+ * since (md5 mismatch). Identical texts (boilerplate repeated across Stellungnahmen) are
+ * embedded once and the vector is copied to every segment carrying that text. Idempotent
+ * and resumable: results are committed in chunks while the job runs, a rerun picks up
+ * where the last one stopped. `segmentIds` limits the job to those rows.
  */
 export async function embedMissingSegments(
   db: Db,
@@ -174,18 +180,43 @@ export async function embedMissingSegments(
 ): Promise<EmbedProgress> {
   const regions = embedRegions();
   const concurrency = opts.concurrency ?? regions.length * (opts.perRegion ?? 4);
-  const batch = opts.batch ?? 1500;
-  const ids = opts.segmentIds ?? null;
-  const pendingQuery = await db.execute<{ n: string }>(sql`
-    select count(*) as n from segments g
-    left join segment_embeddings e on e.segment_id = g.id and e.model = ${EMBED_MODEL}
-    where length(btrim(g.text)) > 0 and (e.segment_id is null or e.text_hash <> md5(g.text))
-      and (${sql.param(ids)}::text[] is null or g.id = any(${sql.param(ids)}::text[]))`);
+  const batch = opts.batch ?? 600;
+  const ids = sql.param(opts.segmentIds ?? null);
+  const missing = sql`
+    length(btrim(g.text)) > 0
+    and not exists (select 1 from segment_embeddings x
+                    where x.segment_id = g.id and x.model = ${EMBED_MODEL} and x.text_hash = md5(g.text))
+    and (${ids}::text[] is null or g.id = any(${ids}::text[]))`;
+  // Reuse vectors of identical texts before spending API calls on them.
+  const copyPass = async () => {
+    const res = await db.execute(sql`
+      insert into segment_embeddings (segment_id, model, text_hash, tokens, embedding)
+      select distinct on (g.id) g.id, e.model, e.text_hash, 0, e.embedding
+      from segments g
+      join segment_embeddings e on e.model = ${EMBED_MODEL} and e.text_hash = md5(g.text)
+      where ${missing}
+      order by g.id
+      on conflict (segment_id, model) do update set text_hash = excluded.text_hash,
+        tokens = excluded.tokens, embedding = excluded.embedding, created_at = now()`);
+    return res.rowCount ?? 0;
+  };
+  const p: EmbedProgress = {
+    done: 0,
+    failed: 0,
+    pending: 0,
+    copied: await copyPass(),
+    tokens: 0,
+    usd: 0,
+    ratePerSec: 0,
+  };
+  const pendingQuery = await db.execute<{ n: string }>(
+    sql`select count(distinct md5(g.text)) as n from segments g where ${missing}`,
+  );
   const total = Math.min(
     Number(pendingQuery.rows[0]?.n ?? 0),
     opts.limit ?? Number.POSITIVE_INFINITY,
   );
-  const p: EmbedProgress = { done: 0, failed: 0, pending: total, tokens: 0, usd: 0, ratePerSec: 0 };
+  p.pending = total;
   const started = Date.now();
   let lastLog = 0;
   const report = (force = false) => {
@@ -197,25 +228,26 @@ export async function embedMissingSegments(
     p.pending = Math.max(0, total - p.done - p.failed);
     opts.log?.(p);
   };
-  const failedIds = new Set<string>();
+  const failedHashes = new Set<string>();
   while (p.done + p.failed < total) {
     const want = Math.min(batch, total - p.done - p.failed);
-    // Priority order so a partial run is already useful: press and the small source
-    // kinds first, then Stellungnahmen newest first. Rows failed in this run are skipped.
-    const res = await db.execute<{ id: string; text: string }>(sql`
-      select g.id, g.text from segments g
-      join sources s on s.id = g.source_id
-      left join segment_embeddings e on e.segment_id = g.id and e.model = ${EMBED_MODEL}
-      where length(btrim(g.text)) > 0
-        and (e.segment_id is null or e.text_hash <> md5(g.text))
-        and (${sql.param(ids)}::text[] is null or g.id = any(${sql.param(ids)}::text[]))
-        and not (g.id = any(${sql.param([...failedIds])}::text[]))
-      order by (s.kind = 'stellungnahme'), s.date desc, g.id limit ${want}`);
+    // One row per distinct text, in priority order so a partial run is already useful:
+    // press and the small source kinds first, then substantive (>= 60 chars) Stellungnahme
+    // passages newest first, short headings and fragments last.
+    const res = await db.execute<{ id: string; text: string; hash: string }>(sql`
+      select id, text, hash from (
+        select distinct on (md5(g.text)) g.id, g.text, md5(g.text) as hash,
+               (s.kind = 'stellungnahme') as late_kind, (length(g.text) < 60) as short, s.date
+        from segments g join sources s on s.id = g.source_id
+        where ${missing} and not (md5(g.text) = any(${sql.param([...failedHashes])}::text[]))
+        order by md5(g.text), s.date desc
+      ) t
+      order by late_kind, short, date desc, id limit ${want}`);
     const rows = res.rows;
     if (!rows.length) break;
     const out: Array<{ id: string; hash: string; tokens: number; vec: string }> = [];
-    // Results are committed in chunks of 50 while the batch runs, so an interrupted
-    // job loses at most a few in-flight rows.
+    // Committed in chunks of 50 while the batch runs, so an interrupted job loses at
+    // most a few in-flight rows.
     const flush = async (min: number) => {
       if (out.length < min || !out.length) return;
       const chunk = out.splice(0, out.length);
@@ -240,7 +272,7 @@ export async function embedMissingSegments(
             const e = await embedText(row.text, { region, retries: 12 });
             out.push({
               id: row.id,
-              hash: textHash(row.text),
+              hash: row.hash,
               tokens: e.tokens,
               vec: toVectorLiteral(e.vector),
             });
@@ -249,7 +281,7 @@ export async function embedMissingSegments(
             await flush(50);
           } catch (error) {
             p.failed++;
-            failedIds.add(row.id);
+            failedHashes.add(row.hash);
             console.warn(
               "embed_failed",
               row.id,
@@ -261,6 +293,7 @@ export async function embedMissingSegments(
       }),
     );
     await flush(1);
+    p.copied += await copyPass();
   }
   report(true);
   return p;
