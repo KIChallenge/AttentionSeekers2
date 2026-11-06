@@ -1,6 +1,12 @@
 import type { RunSummary } from "@sv/contracts";
 import { describe, expect, it } from "vitest";
-import { groupScenarios, modalRoundLimit, parseScenarioKey, scenarioKey } from "./scenarios";
+import {
+  groupScenarios,
+  isBacktest,
+  modalRoundLimit,
+  parseScenarioKey,
+  scenarioKey,
+} from "./scenarios";
 
 const run = (over: Partial<RunSummary> & { id: string }): RunSummary => ({
   question: "Wie können die Wartezeiten sinken?",
@@ -68,6 +74,11 @@ describe("scenarios", () => {
     expect(main?.families).toEqual(["glm", "gpt", "nova"]);
     expect(main?.roundLimit).toBe(5);
     expect(s[2]?.roundLimit).toBe(2);
+  });
+
+  it("marks backtest templates", () => {
+    expect(isBacktest({ template: "backtest_gtelg_2023" })).toBe(true);
+    expect(isBacktest({ template: "wartezeiten" })).toBe(false);
   });
 
   it("keeps custom questions apart by their hash", () => {

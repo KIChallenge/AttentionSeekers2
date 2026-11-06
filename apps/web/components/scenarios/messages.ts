@@ -15,6 +15,7 @@ const TITLES: Record<string, { de: string; en: string }> = {
     en: "Waiting times for specialist appointments",
   },
   backtest_svog_2018: { de: "SV-OG 2018 Backtest", en: "SV-OG 2018 backtest" },
+  backtest_gtelg_2023: { de: "eImpfpass 2023 Backtest", en: "e-vaccination pass 2023 backtest" },
 };
 
 /** Title of a scenario: the mapped name, else the template name, else the question itself. */
@@ -35,6 +36,7 @@ const de = {
   runs: (n: number) => (n === 1 ? "1 Lauf" : `${n} Läufe`),
   families: "Modellfamilien",
   kind: { main: "", checks: "Prüfläufe", demo: "Demo" } as Record<ScenarioKind, string>,
+  backtests: "Backtests",
   sideGroups: "Prüfläufe und Demo",
   sideGroupsHint:
     "Kurze Kontrollläufe und das handgeschriebene Fixture, nicht Teil des Vergleichs.",
@@ -126,6 +128,7 @@ const en: ScenarioMessages = {
   runs: (n) => (n === 1 ? "1 run" : `${n} runs`),
   families: "Model families",
   kind: { main: "", checks: "Check runs", demo: "Demo" },
+  backtests: "Backtests",
   sideGroups: "Check runs and demo",
   sideGroupsHint: "Short control runs and the hand-written fixture, not part of the comparison.",
   agreedAll: (names, k, n) => `Agreed in all ${n} runs: ${names} (${k} topics).`,
