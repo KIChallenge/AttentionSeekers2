@@ -78,6 +78,9 @@ export interface SpeakerTimelineProps {
   className?: string;
 }
 
+/** Track width per simulated minute in the full view; longer runs scroll sideways. */
+const PX_PER_MIN = 48;
+
 export function SpeakerTimeline({
   snap,
   run,
@@ -107,6 +110,9 @@ export function SpeakerTimeline({
   const trackRef = useRef<HTMLFieldSetElement>(null);
   const trackBox = useRef<HTMLDivElement>(null);
   const [trackW, setTrackW] = useState(900);
+  const scroller = useRef<HTMLDivElement>(null);
+  const [viewW, setViewW] = useState(900);
+  const [scrollX, setScrollX] = useState(0);
 
   // A collapsed collapsible timeline is a strip: the bars stay readable as an overview,
   // the exchange lanes and names go. The explicit compact prop (stage) keeps its lanes.
@@ -120,6 +126,7 @@ export function SpeakerTimeline({
 
   // Track width in px decides whether an exchange label has room for its text; a label
   // is shown whole or not at all (the band keeps its tooltip), never as a fragment.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the track mounts only once there are items or the panel opens
   useEffect(() => {
     const el = trackBox.current;
     if (!el || typeof ResizeObserver === "undefined") return;
@@ -127,8 +134,18 @@ export function SpeakerTimeline({
       if (e) setTrackW(e.contentRect.width);
     });
     ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+    const sc = scroller.current;
+    const ro2 =
+      sc &&
+      new ResizeObserver(([e]) => {
+        if (e) setViewW(e.contentRect.width);
+      });
+    if (sc && ro2) ro2.observe(sc);
+    return () => {
+      ro.disconnect();
+      ro2?.disconnect();
+    };
+  }, [open, model.items.length]);
 
   const active = activeId ? (model.byId.get(activeId) ?? null) : null;
   const focus = focusOf(snap, activeId);
@@ -248,6 +265,17 @@ export function SpeakerTimeline({
     return topic ? `${kind} · ${L(topic.label, lang)}` : `${kind} · ${L(b.exchange.trigger, lang)}`;
   };
 
+  // keep the selected or active turn in view on a wide track
+  const followId = selectedId ?? activeId ?? null;
+  useEffect(() => {
+    const sc = scroller.current;
+    const it = followId ? model.byId.get(followId) : null;
+    if (!sc || !it || sc.scrollWidth <= sc.clientWidth) return;
+    const at = ((it.start - d0) / span) * sc.scrollWidth;
+    if (at < sc.scrollLeft + 24 || at > sc.scrollLeft + sc.clientWidth - 48)
+      sc.scrollTo({ left: Math.max(0, at - sc.clientWidth / 3), behavior: "smooth" });
+  }, [followId, model, d0, span]);
+
   const tip = hover ? model.byId.get(hover) : null;
   const tipText = (() => {
     if (!tip) return "";
@@ -256,7 +284,11 @@ export function SpeakerTimeline({
     return raw.length > 160 ? `${raw.slice(0, 157).trimEnd()}...` : raw;
   })();
 
-  const step = tickStep(span);
+  // the track keeps a readable width per simulated minute and scrolls sideways when the
+  // run is longer than the view, instead of squeezing every turn together
+  const minTrackW = dense ? 0 : Math.round(span * PX_PER_MIN);
+  const stretch = Math.max(1, trackW / Math.max(1, viewW));
+  const step = tickStep(span / stretch);
   const ticks: number[] = [];
   for (let m = Math.ceil(d0 / step) * step; m <= d1 + 1e-6; m += step) ticks.push(m);
 
@@ -421,305 +453,318 @@ export function SpeakerTimeline({
               </div>
 
               {/* track */}
-              <div ref={trackBox} className="relative min-w-0 flex-1">
-                <div className="relative overflow-hidden" style={{ height: lanesH + rowsH }}>
-                  {/* row backgrounds */}
-                  {model.rows.map((id, r) => {
-                    const st = rowState(r);
-                    return (
-                      <div
-                        key={id}
-                        className={cn(
-                          "absolute inset-x-0",
-                          r % 2 === 1 && st === "idle" && "bg-gray-alpha-50",
-                        )}
-                        style={{
-                          top: lanesH + r * rowH,
-                          height: rowH,
-                          background:
-                            st === "active"
-                              ? `color-mix(in srgb, ${look(id).color} 16%, transparent)`
-                              : st === "addressed"
-                                ? `color-mix(in srgb, ${look(id).color} 8%, transparent)`
-                                : undefined,
-                        }}
-                      />
-                    );
-                  })}
-
-                  {/* exchange bands */}
-                  {model.bands.map((b) => {
-                    if (!visible(b.start, b.end)) return null;
-                    const key = exchangeKindKey(b.exchange);
-                    const style = KIND_STYLE[key] ?? KIND_STYLE.plenary;
-                    const left = x(b.start);
-                    const width = x(b.end) - left;
-                    const isActive = activeBand?.exchange.id === b.exchange.id;
-                    const minRow = b.rows[0] ?? 0;
-                    const maxRow = b.rows.at(-1) ?? 0;
-                    return (
-                      <div
-                        key={b.exchange.id}
-                        className={cn(!isActive && activeBand && "opacity-60")}
-                      >
-                        {key === "plenary" ? (
+              <div className="relative min-w-0 flex-1">
+                <div
+                  ref={scroller}
+                  className="overflow-x-auto overflow-y-hidden px-3"
+                  onScroll={(e) => setScrollX(e.currentTarget.scrollLeft)}
+                >
+                  <div ref={trackBox} className="relative" style={{ minWidth: minTrackW }}>
+                    <div className="relative overflow-hidden" style={{ height: lanesH + rowsH }}>
+                      {/* row backgrounds */}
+                      {model.rows.map((id, r) => {
+                        const st = rowState(r);
+                        return (
                           <div
-                            className={cn("absolute", style?.band)}
+                            key={id}
+                            className={cn(
+                              "absolute inset-x-0",
+                              r % 2 === 1 && st === "idle" && "bg-gray-alpha-50",
+                            )}
                             style={{
-                              left: `${left}%`,
-                              width: `${width}%`,
-                              top: lanesH,
-                              height: rowsH,
+                              top: lanesH + r * rowH,
+                              height: rowH,
+                              background:
+                                st === "active"
+                                  ? `color-mix(in srgb, ${look(id).color} 16%, transparent)`
+                                  : st === "addressed"
+                                    ? `color-mix(in srgb, ${look(id).color} 8%, transparent)`
+                                    : undefined,
                             }}
                           />
-                        ) : (
-                          <>
-                            {b.rows.map((r) => (
+                        );
+                      })}
+
+                      {/* exchange bands */}
+                      {model.bands.map((b) => {
+                        if (!visible(b.start, b.end)) return null;
+                        const key = exchangeKindKey(b.exchange);
+                        const style = KIND_STYLE[key] ?? KIND_STYLE.plenary;
+                        const left = x(b.start);
+                        const width = x(b.end) - left;
+                        const isActive = activeBand?.exchange.id === b.exchange.id;
+                        const minRow = b.rows[0] ?? 0;
+                        const maxRow = b.rows.at(-1) ?? 0;
+                        return (
+                          <div
+                            key={b.exchange.id}
+                            className={cn(!isActive && activeBand && "opacity-60")}
+                          >
+                            {key === "plenary" ? (
                               <div
-                                key={r}
                                 className={cn("absolute", style?.band)}
                                 style={{
                                   left: `${left}%`,
                                   width: `${width}%`,
-                                  top: lanesH + r * rowH + 1,
-                                  height: rowH - 2,
+                                  top: lanesH,
+                                  height: rowsH,
                                 }}
                               />
-                            ))}
-                            {/* bracket joining the participants' rows */}
-                            <div
-                              className={cn(
-                                "absolute w-0 border-l-2",
-                                key === "caucus"
-                                  ? "border-dashed border-foreground/40"
-                                  : "border-info/60",
-                              )}
-                              style={{
-                                left: `${left}%`,
-                                top: lanesH + minRow * rowH + 2,
-                                height: (maxRow - minRow + 1) * rowH - 4,
-                              }}
-                            />
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
-
-                  {/* round markers */}
-                  {model.rounds.map((r) =>
-                    r.start > d0 && r.start < d1 ? (
-                      <div
-                        key={r.round}
-                        className="absolute w-0 border-l border-dashed border-foreground/25"
-                        style={{ left: `${x(r.start)}%`, top: 0, height: lanesH + rowsH }}
-                      />
-                    ) : null,
-                  )}
-
-                  {/* reply connectors */}
-                  <svg
-                    className="pointer-events-none absolute inset-x-0"
-                    style={{ top: lanesH, height: rowsH, width: "100%" }}
-                    viewBox={`0 0 1000 ${rowsH}`}
-                    preserveAspectRatio="none"
-                    aria-hidden="true"
-                  >
-                    {model.links.map((l) => {
-                      const a = model.byId.get(l.from);
-                      const b = model.byId.get(l.to);
-                      if (!a || !b) return null;
-                      if (
-                        !visible(
-                          Math.min(a.start, b.start),
-                          Math.max(a.start + a.dur, b.start + b.dur),
-                        )
-                      )
-                        return null;
-                      const hot =
-                        l.to === activeId ||
-                        l.to === selectedId ||
-                        l.to === hover ||
-                        l.to === focusId;
-                      if (dense && !hot) return null;
-                      const x1 = x(a.start + a.dur) * 10;
-                      const x2 = x(b.start) * 10;
-                      const y1 = a.row * rowH + rowH / 2;
-                      const y2 = b.row * rowH + rowH / 2;
-                      const dx = Math.max(12, Math.abs(x2 - x1) * 0.5);
-                      return (
-                        <path
-                          key={`${l.from}-${l.to}`}
-                          d={`M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`}
-                          fill="none"
-                          stroke={hot ? look(b.speaker).color : "currentColor"}
-                          strokeOpacity={hot ? 0.95 : 0.14}
-                          strokeWidth={hot ? 2 : 1}
-                          vectorEffect="non-scaling-stroke"
-                          className="text-foreground"
-                        />
-                      );
-                    })}
-                  </svg>
-
-                  {/* exchange labels (zoom buttons); none in the strip */}
-                  {strip
-                    ? null
-                    : model.bands.map((b) => {
-                        if (!visible(b.start, b.end)) return null;
-                        const key = exchangeKindKey(b.exchange);
-                        const left = Math.max(0, x(b.start));
-                        const right = Math.min(100, x(b.end));
-                        const label = bandLabel(b);
-                        const zoomed =
-                          typeof zoom === "object" && zoom.exchangeId === b.exchange.id;
-                        // whole label, kind only, or a bare pill: never a cut-off fragment
-                        const px = ((right - left) / 100) * trackW;
-                        const text =
-                          px >= label.length * (dense ? 5.2 : 5.8) + 10
-                            ? label
-                            : px >= 52
-                              ? t.kind[key]
-                              : "";
-                        return (
-                          <button
-                            key={b.exchange.id}
-                            type="button"
-                            onClick={() => setZoom(zoomed ? "all" : { exchangeId: b.exchange.id })}
-                            aria-label={t.zoomTo(label)}
-                            aria-pressed={zoomed}
-                            title={[
-                              label,
-                              `${t.trigger}: ${L(b.exchange.trigger, lang)}`,
-                              b.exchange.outcome
-                                ? `${t.outcome}: ${L(b.exchange.outcome, lang)}`
-                                : t.open,
-                              `${fmtMin(b.start)} - ${fmtMin(b.end)}`,
-                            ].join("\n")}
-                            className={cn(
-                              "absolute flex items-center overflow-hidden rounded-[5px] border px-1 text-left leading-none whitespace-nowrap hover:border-foreground/50 focus-visible:outline-2 focus-visible:outline-ring",
-                              dense ? "text-[9px]" : "text-[10px]",
-                              KIND_STYLE[key]?.label,
-                              zoomed && "ring-1 ring-foreground",
+                            ) : (
+                              <>
+                                {b.rows.map((r) => (
+                                  <div
+                                    key={r}
+                                    className={cn("absolute", style?.band)}
+                                    style={{
+                                      left: `${left}%`,
+                                      width: `${width}%`,
+                                      top: lanesH + r * rowH + 1,
+                                      height: rowH - 2,
+                                    }}
+                                  />
+                                ))}
+                                {/* bracket joining the participants' rows */}
+                                <div
+                                  className={cn(
+                                    "absolute w-0 border-l-2",
+                                    key === "caucus"
+                                      ? "border-dashed border-foreground/40"
+                                      : "border-info/60",
+                                  )}
+                                  style={{
+                                    left: `${left}%`,
+                                    top: lanesH + minRow * rowH + 2,
+                                    height: (maxRow - minRow + 1) * rowH - 4,
+                                  }}
+                                />
+                              </>
                             )}
-                            style={{
-                              left: `${left}%`,
-                              width: `calc(${right - left}% - 2px)`,
-                              top: b.lane * laneH + 2,
-                              height: laneH - 4,
-                            }}
-                          >
-                            {text}
-                          </button>
+                          </div>
                         );
                       })}
 
-                  {/* utterance bars */}
-                  <fieldset
-                    ref={trackRef}
-                    className="m-0 min-w-0 border-0 p-0"
-                    aria-label={t.label}
-                    aria-describedby={`${uid}-keys`}
-                    onKeyDown={onKey}
-                  >
-                    {model.items.map((it) => {
-                      if (!visible(it.start, it.start + it.dur)) return null;
-                      const a = look(it.speaker);
-                      const isActive = it.id === activeId;
-                      const isSel = it.id === selectedId;
-                      const future = isFuture(it);
-                      const inActiveRow = focus?.speaker === it.speaker;
-                      const isHit = hits?.has(it.id) ?? false;
-                      const opacity = future
-                        ? 0.18
-                        : hits
-                          ? isHit
-                            ? 1
-                            : 0.25
-                          : !focus || isActive
-                            ? 1
-                            : inActiveRow
-                              ? 0.75
-                              : 0.38;
-                      const u = snap.utterances[it.id];
-                      const line = speakerLine(run, it.speaker, u?.delegateId, lang);
-                      return (
-                        <button
-                          key={it.id}
-                          type="button"
-                          data-tl-item={it.id}
-                          tabIndex={it.id === tabTarget ? 0 : -1}
-                          aria-label={`${it.id}, ${line}, ${u ? kinds[u.kind] : t.speaking}, ${fmtMin(it.start)}`}
-                          aria-current={isActive ? "step" : undefined}
-                          aria-pressed={onSelect ? isSel : undefined}
-                          onClick={() => onSelect?.(it.id)}
-                          onMouseEnter={() => setHover(it.id)}
-                          onMouseLeave={() => setHover((h) => (h === it.id ? null : h))}
-                          onFocus={() => {
-                            setFocusId(it.id);
-                            setHover(it.id);
-                          }}
-                          onBlur={() => setHover((h) => (h === it.id ? null : h))}
-                          className={cn(
-                            "absolute rounded-[3px] transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-                            it.pending && "animate-pulse motion-reduce:animate-none",
-                            isActive &&
-                              "z-10 shadow-[0_0_0_2px_var(--background),0_0_0_3.5px_var(--foreground)]",
-                            isSel && !isActive && "z-10 shadow-[0_0_0_1.5px_var(--foreground)]",
-                            isHit &&
-                              !isActive &&
-                              "z-10 shadow-[0_0_0_2px_var(--background),0_0_0_3px_var(--foreground)]",
-                          )}
-                          style={{
-                            left: `${x(it.start)}%`,
-                            width: `${Math.max(0.25, x(it.start + it.dur) - x(it.start))}%`,
-                            minWidth: 3,
-                            top: lanesH + it.row * rowH + (dense ? 2 : 3),
-                            height: rowH - (dense ? 4 : 6),
-                            background: future ? "transparent" : a.color,
-                            border: future ? `1px dashed ${a.color}` : undefined,
-                            opacity,
-                          }}
-                        />
-                      );
-                    })}
-                  </fieldset>
-
-                  {/* playhead */}
-                  {playhead !== null && playhead >= d0 && playhead <= d1 ? (
-                    <div
-                      className="pointer-events-none absolute z-20 w-0.5 -translate-x-1/2 rounded-full bg-foreground"
-                      style={{ left: `${x(playhead)}%`, top: lanesH - 2, height: rowsH + 4 }}
-                    >
-                      <span className="absolute -top-1 left-1/2 size-2 -translate-x-1/2 rounded-full bg-foreground" />
-                    </div>
-                  ) : null}
-                </div>
-
-                {/* time axis */}
-                <div className={cn("relative border-t", dense ? "h-4" : "h-7")} aria-hidden="true">
-                  {ticks.map((m) => (
-                    <span
-                      key={m}
-                      className="absolute top-0 -translate-x-1/2 font-mono text-[9px] text-muted-foreground"
-                      style={{ left: `${x(m)}%` }}
-                    >
-                      {fmtMin(m)}
-                    </span>
-                  ))}
-                  {dense
-                    ? null
-                    : model.rounds.map((r) =>
-                        r.start >= d0 && r.start < d1 ? (
-                          <span
+                      {/* round markers */}
+                      {model.rounds.map((r) =>
+                        r.start > d0 && r.start < d1 ? (
+                          <div
                             key={r.round}
-                            className="absolute top-3.5 -translate-x-1/2 font-mono text-[9px] font-medium"
-                            style={{ left: `${x(r.start)}%` }}
-                          >
-                            R{r.round}
-                          </span>
+                            className="absolute w-0 border-l border-dashed border-foreground/25"
+                            style={{ left: `${x(r.start)}%`, top: 0, height: lanesH + rowsH }}
+                          />
                         ) : null,
                       )}
+
+                      {/* reply connectors */}
+                      <svg
+                        className="pointer-events-none absolute inset-x-0"
+                        style={{ top: lanesH, height: rowsH, width: "100%" }}
+                        viewBox={`0 0 1000 ${rowsH}`}
+                        preserveAspectRatio="none"
+                        aria-hidden="true"
+                      >
+                        {model.links.map((l) => {
+                          const a = model.byId.get(l.from);
+                          const b = model.byId.get(l.to);
+                          if (!a || !b) return null;
+                          if (
+                            !visible(
+                              Math.min(a.start, b.start),
+                              Math.max(a.start + a.dur, b.start + b.dur),
+                            )
+                          )
+                            return null;
+                          const hot =
+                            l.to === activeId ||
+                            l.to === selectedId ||
+                            l.to === hover ||
+                            l.to === focusId;
+                          if (dense && !hot) return null;
+                          const x1 = x(a.start + a.dur) * 10;
+                          const x2 = x(b.start) * 10;
+                          const y1 = a.row * rowH + rowH / 2;
+                          const y2 = b.row * rowH + rowH / 2;
+                          const dx = Math.max(12, Math.abs(x2 - x1) * 0.5);
+                          return (
+                            <path
+                              key={`${l.from}-${l.to}`}
+                              d={`M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`}
+                              fill="none"
+                              stroke={hot ? look(b.speaker).color : "currentColor"}
+                              strokeOpacity={hot ? 0.95 : 0.14}
+                              strokeWidth={hot ? 2 : 1}
+                              vectorEffect="non-scaling-stroke"
+                              className="text-foreground"
+                            />
+                          );
+                        })}
+                      </svg>
+
+                      {/* exchange labels (zoom buttons); none in the strip */}
+                      {strip
+                        ? null
+                        : model.bands.map((b) => {
+                            if (!visible(b.start, b.end)) return null;
+                            const key = exchangeKindKey(b.exchange);
+                            const left = Math.max(0, x(b.start));
+                            const right = Math.min(100, x(b.end));
+                            const label = bandLabel(b);
+                            const zoomed =
+                              typeof zoom === "object" && zoom.exchangeId === b.exchange.id;
+                            // whole label, kind only, or a bare pill: never a cut-off fragment
+                            const px = ((right - left) / 100) * trackW;
+                            const text =
+                              px >= label.length * (dense ? 5.2 : 5.8) + 10
+                                ? label
+                                : px >= 52
+                                  ? t.kind[key]
+                                  : "";
+                            return (
+                              <button
+                                key={b.exchange.id}
+                                type="button"
+                                onClick={() =>
+                                  setZoom(zoomed ? "all" : { exchangeId: b.exchange.id })
+                                }
+                                aria-label={t.zoomTo(label)}
+                                aria-pressed={zoomed}
+                                title={[
+                                  label,
+                                  `${t.trigger}: ${L(b.exchange.trigger, lang)}`,
+                                  b.exchange.outcome
+                                    ? `${t.outcome}: ${L(b.exchange.outcome, lang)}`
+                                    : t.open,
+                                  `${fmtMin(b.start)} - ${fmtMin(b.end)}`,
+                                ].join("\n")}
+                                className={cn(
+                                  "absolute flex items-center overflow-hidden rounded-[5px] border px-1 text-left leading-none whitespace-nowrap hover:border-foreground/50 focus-visible:outline-2 focus-visible:outline-ring",
+                                  dense ? "text-[9px]" : "text-[10px]",
+                                  KIND_STYLE[key]?.label,
+                                  zoomed && "ring-1 ring-foreground",
+                                )}
+                                style={{
+                                  left: `${left}%`,
+                                  width: `calc(${right - left}% - 2px)`,
+                                  top: b.lane * laneH + 2,
+                                  height: laneH - 4,
+                                }}
+                              >
+                                {text}
+                              </button>
+                            );
+                          })}
+
+                      {/* utterance bars */}
+                      <fieldset
+                        ref={trackRef}
+                        className="m-0 min-w-0 border-0 p-0"
+                        aria-label={t.label}
+                        aria-describedby={`${uid}-keys`}
+                        onKeyDown={onKey}
+                      >
+                        {model.items.map((it) => {
+                          if (!visible(it.start, it.start + it.dur)) return null;
+                          const a = look(it.speaker);
+                          const isActive = it.id === activeId;
+                          const isSel = it.id === selectedId;
+                          const future = isFuture(it);
+                          const inActiveRow = focus?.speaker === it.speaker;
+                          const isHit = hits?.has(it.id) ?? false;
+                          const opacity = future
+                            ? 0.18
+                            : hits
+                              ? isHit
+                                ? 1
+                                : 0.25
+                              : !focus || isActive
+                                ? 1
+                                : inActiveRow
+                                  ? 0.75
+                                  : 0.38;
+                          const u = snap.utterances[it.id];
+                          const line = speakerLine(run, it.speaker, u?.delegateId, lang);
+                          return (
+                            <button
+                              key={it.id}
+                              type="button"
+                              data-tl-item={it.id}
+                              tabIndex={it.id === tabTarget ? 0 : -1}
+                              aria-label={`${it.id}, ${line}, ${u ? kinds[u.kind] : t.speaking}, ${fmtMin(it.start)}`}
+                              aria-current={isActive ? "step" : undefined}
+                              aria-pressed={onSelect ? isSel : undefined}
+                              onClick={() => onSelect?.(it.id)}
+                              onMouseEnter={() => setHover(it.id)}
+                              onMouseLeave={() => setHover((h) => (h === it.id ? null : h))}
+                              onFocus={() => {
+                                setFocusId(it.id);
+                                setHover(it.id);
+                              }}
+                              onBlur={() => setHover((h) => (h === it.id ? null : h))}
+                              className={cn(
+                                "absolute rounded-[3px] transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                                it.pending && "animate-pulse motion-reduce:animate-none",
+                                isActive &&
+                                  "z-10 shadow-[0_0_0_2px_var(--background),0_0_0_3.5px_var(--foreground)]",
+                                isSel && !isActive && "z-10 shadow-[0_0_0_1.5px_var(--foreground)]",
+                                isHit &&
+                                  !isActive &&
+                                  "z-10 shadow-[0_0_0_2px_var(--background),0_0_0_3px_var(--foreground)]",
+                              )}
+                              style={{
+                                left: `${x(it.start)}%`,
+                                width: `${Math.max(0.25, x(it.start + it.dur) - x(it.start))}%`,
+                                minWidth: 3,
+                                top: lanesH + it.row * rowH + (dense ? 2 : 3),
+                                height: rowH - (dense ? 4 : 6),
+                                background: future ? "transparent" : a.color,
+                                border: future ? `1px dashed ${a.color}` : undefined,
+                                opacity,
+                              }}
+                            />
+                          );
+                        })}
+                      </fieldset>
+
+                      {/* playhead */}
+                      {playhead !== null && playhead >= d0 && playhead <= d1 ? (
+                        <div
+                          className="pointer-events-none absolute z-20 w-0.5 -translate-x-1/2 rounded-full bg-foreground"
+                          style={{ left: `${x(playhead)}%`, top: lanesH - 2, height: rowsH + 4 }}
+                        >
+                          <span className="absolute -top-1 left-1/2 size-2 -translate-x-1/2 rounded-full bg-foreground" />
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* time axis */}
+                    <div
+                      className={cn("relative border-t", dense ? "h-4" : "h-7")}
+                      aria-hidden="true"
+                    >
+                      {ticks.map((m) => (
+                        <span
+                          key={m}
+                          className="absolute top-0 -translate-x-1/2 font-mono text-[9px] text-muted-foreground"
+                          style={{ left: `${x(m)}%` }}
+                        >
+                          {fmtMin(m)}
+                        </span>
+                      ))}
+                      {dense
+                        ? null
+                        : model.rounds.map((r) =>
+                            r.start >= d0 && r.start < d1 ? (
+                              <span
+                                key={r.round}
+                                className="absolute top-3.5 -translate-x-1/2 font-mono text-[9px] font-medium"
+                                style={{ left: `${x(r.start)}%` }}
+                              >
+                                R{r.round}
+                              </span>
+                            ) : null,
+                          )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* hover / focus preview */}
@@ -730,9 +775,12 @@ export function SpeakerTimeline({
                       "pointer-events-none absolute z-30 w-[min(22rem,80vw)] rounded-xl border bg-popover p-2.5 text-xs text-popover-foreground shadow-lg",
                     )}
                     style={{
-                      ...(x(tip.start) > 60
-                        ? { right: `${Math.max(0, 100 - x(tip.start + tip.dur))}%` }
-                        : { left: `${Math.max(0, x(tip.start))}%` }),
+                      ...(() => {
+                        const px = (m: number) => (x(m) / 100) * trackW - scrollX;
+                        return px(tip.start) > viewW * 0.6
+                          ? { right: Math.max(0, viewW - px(tip.start + tip.dur)) }
+                          : { left: Math.max(0, px(tip.start)) };
+                      })(),
                       ...(dense || tip.row > model.rows.length / 2
                         ? { bottom: `calc(100% - ${lanesH + tip.row * rowH}px + 4px)` }
                         : { top: lanesH + (tip.row + 1) * rowH + 4 }),
