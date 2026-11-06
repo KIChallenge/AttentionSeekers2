@@ -188,7 +188,7 @@ def remove_running_lines(pages):
 
 
 PARL_STAMP = re.compile(r"^\s*(.*Vollständigkeit des Inhaltes wird von der Parlamentsdirektion|Für die Richtigkeit|\d+/SN-\d+/ME\b.*GP\b|www\.parlament\.gv\.at\s*$|\d+\s+von\s+\d+\s*$)", re.I)
-SIG_LINE = re.compile(r"^[A-ZÄÖÜ(][\w .,:;()/&\-–]{0,70}$")
+SIG_LINE = re.compile(r"^[A-ZÄÖÜ(][\w .,:;()/&\-\u2013]{0,70}$")
 
 
 def strip_lines(lines):

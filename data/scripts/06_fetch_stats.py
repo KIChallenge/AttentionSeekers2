@@ -148,8 +148,8 @@ def bmf(m: Manifest):
 
 def rh_bra(m: Manifest):
     import json
-    wanted = re.compile(r"Finanzierungshaushalt\s*[–-]\s*nach Untergliederung und MVAG|"
-                        r"Ergebnishaushalt\s*[–-]\s*nach Untergliederung und MVAG", re.I)
+    wanted = re.compile(r"Finanzierungshaushalt\s*[\u2013-]\s*nach Untergliederung und MVAG|"
+                        r"Ergebnishaushalt\s*[\u2013-]\s*nach Untergliederung und MVAG", re.I)
     for y, dsid in RH_BRA_DATASETS.items():
         meta = get_json(f"https://www.data.gv.at/api/hub/repo/datasets/{dsid}", subdir="stats_meta")
         if not meta:

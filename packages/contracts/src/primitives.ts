@@ -31,9 +31,14 @@ export const LocalizedText = z.object({
 export type LocalizedText = z.infer<typeof LocalizedText>;
 
 /** Picks the text for a display language, falling back to the original. */
+/** Dash glyphs never reach the screen: model text gets plain hyphens. */
+export function plainDashes(s: string): string {
+  return s.replace(/\s[\u2013\u2014]\s/g, " - ").replace(/[\u2013\u2014]/g, "-");
+}
+
 export function localize(value: LocalizedText, lang: Lang): string {
-  if (value.lang === lang) return value.text;
-  return value.translations[lang] ?? value.text;
+  if (value.lang === lang) return plainDashes(value.text);
+  return plainDashes(value.translations[lang] ?? value.text);
 }
 
 /** -1 harmful, 0 neutral, +1 beneficial (FR-A10 incentives, FR-A11 incentive matrix). */

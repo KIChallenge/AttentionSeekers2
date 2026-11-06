@@ -75,7 +75,7 @@
       "alias": "glm",
       "sample": 1,
       "model": "bedrock/zai.glm-5",
-      "answer": "Ich weiß über dieses Gesetz nicht Bescheid. Das Sozialversicherungs-Organisationsgesetz von 2018 in Österreich ist mir nicht bekannt – ich kann daher keine Auskunft über seinen Beschlussstand, seinen Inhalt oder spätere Entwicklungen geben.",
+      "answer": "Ich weiß über dieses Gesetz nicht Bescheid. Das Sozialversicherungs-Organisationsgesetz von 2018 in Österreich ist mir nicht bekannt - ich kann daher keine Auskunft über seinen Beschlussstand, seinen Inhalt oder spätere Entwicklungen geben.",
       "hits": [],
       "level": "none",
       "cost": 0.000712

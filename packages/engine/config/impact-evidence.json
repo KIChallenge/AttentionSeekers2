@@ -1,6 +1,6 @@
 {
   "version": "evidence-2026-11-06",
-  "note": "Effects are percent reductions of the average specialist waiting time at full scale after phase-in (positive = shorter waits). low = weakest plausible effect, high = strongest. Where a source gives no waiting-time number the range is a documented derivation or an assumption, marked in basis. Every DOI and URL was resolved on 2026-11-06.",
+  "note": "Effects are percent reductions of the average specialist waiting time at full scale after phase-in (positive = shorter waits). low = weakest plausible effect, high = strongest. Where a source gives no waiting-time number the range is a documented derivation or an estimate, marked in basis. Every DOI and URL was resolved on 2026-11-06.",
   "horizonYears": 5,
   "sources": {
     "oecd-2020-waiting": {
@@ -226,8 +226,8 @@
     "overlapDiscount": 0.5,
     "restrictedScope": { "low": 0.3, "central": 0.5, "high": 0.7 },
     "restrictedScopeNote": {
-      "de": "Annahme: Maßnahmen nur für ausgewählte Leistungen, Fachgebiete, Mangelregionen oder als befristeter Versuch wirken auf den bundesweiten Durchschnitt mit dem Faktor 0,3 bis 0,7.",
-      "en": "Assumption: measures limited to selected services, specialties, shortage regions or a time-limited trial act on the national average with a factor of 0.3 to 0.7."
+      "de": "Geschätzt: Maßnahmen nur für ausgewählte Leistungen, Fachgebiete, Mangelregionen oder als befristeter Versuch wirken auf den bundesweiten Durchschnitt mit dem Faktor 0,3 bis 0,7.",
+      "en": "Estimate: measures limited to selected services, specialties, shortage regions or a time-limited trial act on the national average with a factor of 0.3 to 0.7."
     }
   },
   "classes": {
@@ -246,8 +246,8 @@
         "costPerPostMioEur": { "low": 0.3, "central": 0.5, "high": 0.87 }
       },
       "derivation": {
-        "de": "Reduktion = Stellen / 4.147 Kassen-Fachärzte x Besetzungsquote x Elastizität. Elastizität unter eins, weil die Nachfrage mitwächst (OECD 2020); Richtung des Zusammenhangs laut OECD 2003. Besetzungsquote und Stellenzahl ohne Angabe sind Annahmen. Kosten je Stelle: Obergrenze 0,87 Mio. EUR = ärztliche Hilfe 2024 / alle Vertragsärzte; 0,3 bis 0,5 Mio. EUR sind Annahmen.",
-        "en": "Reduction = posts / 4,147 contract specialists x fill rate x elasticity. Elasticity below one because demand rises with supply (OECD 2020); direction of the relation per OECD 2003. Fill rate and the post count when none is stated are assumptions. Cost per post: upper bound EUR 0.87 m = medical care 2024 / all contract doctors; EUR 0.3 to 0.5 m are assumptions."
+        "de": "Reduktion = Stellen / 4.147 Kassen-Fachärzte x Besetzungsquote x Elastizität. Elastizität unter eins, weil die Nachfrage mitwächst (OECD 2020); Richtung des Zusammenhangs laut OECD 2003. Besetzungsquote und Stellenzahl ohne Angabe sind Schätzungen. Kosten je Stelle: Obergrenze 0,87 Mio. EUR = ärztliche Hilfe 2024 / alle Vertragsärzte; 0,3 bis 0,5 Mio. EUR sind Schätzungen.",
+        "en": "Reduction = posts / 4,147 contract specialists x fill rate x elasticity. Elasticity below one because demand rises with supply (OECD 2020); direction of the relation per OECD 2003. Fill rate and the post count when none is stated are estimates. Cost per post: upper bound EUR 0.87 m = medical care 2024 / all contract doctors; EUR 0.3 to 0.5 m are estimates."
       },
       "sources": ["siciliani-2003-wp7", "oecd-2020-waiting", "oeak-2025"]
     },
@@ -262,8 +262,8 @@
       "waitReductionPct": { "low": 0, "central": 1.5, "high": 5 },
       "costMioEurPa": { "low": 20, "central": 80, "high": 250 },
       "derivation": {
-        "de": "Die Literatur nennt Produktivitätsanreize als wirksam, ohne Größe für Facharztwartezeiten; Bandbreite ist eine Annahme.",
-        "en": "The literature names productivity incentives as effective without a size for specialist waits; the range is an assumption."
+        "de": "Die Literatur nennt Produktivitätsanreize als wirksam, ohne Größe für Facharztwartezeiten; Bandbreite ist eine Schätzung.",
+        "en": "The literature names productivity incentives as effective without a size for specialist waits; the range is an estimate."
       },
       "sources": ["siciliani-2005-hp"]
     },
@@ -278,8 +278,8 @@
       "waitReductionPct": { "low": 0.5, "central": 3, "high": 8 },
       "costMioEurPa": { "low": 5, "central": 20, "high": 50 },
       "derivation": {
-        "de": "Strukturierte Überweisung und organisatorische Lenkung ändern Überweisungen (Cochrane 2008), ohne gepoolte Wartezeitgröße. Ableitung (Annahme): 5/10/15 Prozent weniger ungeeignete Facharztkontakte x Durchreichung auf Wartezeit 0,1/0,3/0,55. Kosten sind eine Annahme.",
-        "en": "Structured referral and organisational steering change referrals (Cochrane 2008), without a pooled waiting-time size. Derivation (assumption): 5/10/15 percent fewer unsuitable specialist contacts x pass-through to waiting time 0.1/0.3/0.55. Costs are an assumption."
+        "de": "Strukturierte Überweisung und organisatorische Lenkung ändern Überweisungen (Cochrane 2008), ohne gepoolte Wartezeitgröße. Ableitung (geschätzt): 5/10/15 Prozent weniger ungeeignete Facharztkontakte x Durchreichung auf Wartezeit 0,1/0,3/0,55. Kosten sind eine Schätzung.",
+        "en": "Structured referral and organisational steering change referrals (Cochrane 2008), without a pooled waiting-time size. Derivation (estimated): 5/10/15 percent fewer unsuitable specialist contacts x pass-through to waiting time 0.1/0.3/0.55. Costs are an estimate."
       },
       "sources": ["akbari-2008-cochrane", "oecd-2020-waiting", "zv-2024-2028"]
     },
@@ -291,8 +291,8 @@
       "waitReductionPct": { "low": 0.2, "central": 1.8, "high": 9 },
       "costMioEurPa": { "low": 5, "central": 20, "high": 50 },
       "derivation": {
-        "de": "Anteil geeigneter Überweisungen 5/10/20 Prozent (Annahme) x vermiedene Überweisungen 12/30/50 Prozent (Spanne 12 bis 84 Prozent laut Review) x Durchreichung auf Wartezeit 0,3/0,6/0,9. Kosten sind eine Annahme.",
-        "en": "Share of suitable referrals 5/10/20 percent (assumption) x avoided referrals 12/30/50 percent (review range 12 to 84 percent) x pass-through to waiting time 0.3/0.6/0.9. Costs are an assumption."
+        "de": "Anteil geeigneter Überweisungen 5/10/20 Prozent (geschätzt) x vermiedene Überweisungen 12/30/50 Prozent (Spanne 12 bis 84 Prozent laut Review) x Durchreichung auf Wartezeit 0,3/0,6/0,9. Kosten sind eine Schätzung.",
+        "en": "Share of suitable referrals 5/10/20 percent (estimated) x avoided referrals 12/30/50 percent (review range 12 to 84 percent) x pass-through to waiting time 0.3/0.6/0.9. Costs are an estimate."
       },
       "sources": ["liddy-2016-econsult", "vimalananda-2015-econsult", "flodgren-2015-cochrane"]
     },
@@ -307,8 +307,8 @@
       "waitReductionPct": { "low": 0, "central": 1, "high": 3 },
       "costMioEurPa": { "low": 10, "central": 40, "high": 100 },
       "derivation": {
-        "de": "Pflege als Substitut erreicht gleiche Qualität, Überweisungen bleiben laut Cochrane 2018 wahrscheinlich gleich; die Wirkung auf Facharztwartezeiten ist daher klein. Kosten sind eine Annahme.",
-        "en": "Nurse substitution reaches equal quality, but referrals probably stay the same per Cochrane 2018, so the effect on specialist waits is small. Costs are an assumption."
+        "de": "Pflege als Substitut erreicht gleiche Qualität, Überweisungen bleiben laut Cochrane 2018 wahrscheinlich gleich; die Wirkung auf Facharztwartezeiten ist daher klein. Kosten sind eine Schätzung.",
+        "en": "Nurse substitution reaches equal quality, but referrals probably stay the same per Cochrane 2018, so the effect on specialist waits is small. Costs are an estimate."
       },
       "sources": ["laurant-2018-cochrane", "maier-2017-oecd"]
     },
@@ -339,8 +339,8 @@
       "waitReductionPct": { "low": 0, "central": 0.5, "high": 2 },
       "costMioEurPa": { "low": 1, "central": 3, "high": 10 },
       "derivation": {
-        "de": "Veröffentlichung allein ändert die Inanspruchnahme wenig (Cochrane 2018); sie ist Voraussetzung für durchgesetzte Ziele. Kosten sind eine Annahme.",
-        "en": "Publication alone changes utilisation little (Cochrane 2018); it is a precondition for enforced targets. Costs are an assumption."
+        "de": "Veröffentlichung allein ändert die Inanspruchnahme wenig (Cochrane 2018); sie ist Voraussetzung für durchgesetzte Ziele. Kosten sind eine Schätzung.",
+        "en": "Publication alone changes utilisation little (Cochrane 2018); it is a precondition for enforced targets. Costs are an estimate."
       },
       "sources": ["metcalfe-2018-cochrane", "propper-2008-targets"]
     },
@@ -355,8 +355,8 @@
       "waitReductionPct": { "low": -2, "central": 1, "high": 5 },
       "costMioEurPa": { "low": 0, "central": 50, "high": 200 },
       "derivation": {
-        "de": "Keine Evidenz, Annahme: keine Quelle beziffert die Wirkung auf Facharztwartezeiten; die Spanne schließt eine Verschlechterung in der Umstellung ein.",
-        "en": "No evidence, assumption: no source quantifies the effect on specialist waits; the range includes a worsening during transition."
+        "de": "Keine Evidenz, geschätzt: keine Quelle beziffert die Wirkung auf Facharztwartezeiten; die Spanne schließt eine Verschlechterung in der Umstellung ein.",
+        "en": "No evidence, estimate: no source quantifies the effect on specialist waits; the range includes a worsening during transition."
       },
       "sources": []
     },
@@ -368,8 +368,8 @@
       "waitReductionPct": { "low": -1, "central": 0, "high": 1 },
       "costMioEurPa": { "low": 0, "central": 0, "high": 0 },
       "derivation": {
-        "de": "Keine Evidenz, Annahme: eine Finanzierungsregel verschiebt Mittel, ändert aber selbst keine Kapazität.",
-        "en": "No evidence, assumption: a financing rule moves funds but does not change capacity by itself."
+        "de": "Keine Evidenz, geschätzt: eine Finanzierungsregel verschiebt Mittel, ändert aber selbst keine Kapazität.",
+        "en": "No evidence, estimate: a financing rule moves funds but does not change capacity by itself."
       },
       "sources": []
     },
@@ -381,8 +381,8 @@
       "waitReductionPct": { "low": -1, "central": 0.5, "high": 3 },
       "costMioEurPa": { "low": 0, "central": 20, "high": 100 },
       "derivation": {
-        "de": "Keine Evidenz, Annahme: Maßnahme passt in keine belegte Klasse.",
-        "en": "No evidence, assumption: the measure fits no class with evidence."
+        "de": "Keine Evidenz, geschätzt: Maßnahme passt in keine belegte Klasse.",
+        "en": "No evidence, estimate: the measure fits no class with evidence."
       },
       "sources": []
     }

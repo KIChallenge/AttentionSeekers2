@@ -106,7 +106,7 @@ export function ProposalList({ s, lang }: { s: RunSnapshot; lang: Lang }) {
         {t.replay.proposals} <span className="num">{list.length}</span>
       </div>
       {list.length === 0 ? (
-        <p className="text-xs text-muted-foreground">–</p>
+        <p className="text-xs text-muted-foreground">-</p>
       ) : (
         <ul className="space-y-2">
           {list.map((p) => (

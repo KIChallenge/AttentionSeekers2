@@ -64,7 +64,7 @@ function AgreementMeter({ agreed, of }: { agreed: number; of: number }) {
 
 function Moved({ run, lang }: { run: RunSummary; lang: "de" | "en" }) {
   const a = run.movedMost ? catalogAgent(run.movedMost.agentId) : null;
-  if (!a || !run.movedMost) return <span className="text-muted-foreground">–</span>;
+  if (!a || !run.movedMost) return <span className="text-muted-foreground">-</span>;
   return (
     <span className="inline-flex items-center gap-1.5">
       <AgentTile agentId={a.id} />

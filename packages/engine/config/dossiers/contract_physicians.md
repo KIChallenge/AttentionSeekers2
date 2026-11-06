@@ -66,7 +66,7 @@ Skala -2 bis +2, Mittelwert nach Aktualität gewichtet (Halbwertszeit fünf Jahr
 
 ## Verhalten in früheren Reformen
 
-- 2017, Gesundheitsreformumsetzungsgesetz 2017 – GRUG 2017: Haltung nicht gelabelt, 19 Absätze; Ausgang umgesetzt. Kern: Die Institution kritisiert am GRUG 2017 eingeschränkten ärztlichen Einfluss, leichter kündbare Verträge und stark ausgeweitete Ordinationszeiten. [EP-XXV-ME-312]
+- 2017, Gesundheitsreformumsetzungsgesetz 2017 - GRUG 2017: Haltung nicht gelabelt, 19 Absätze; Ausgang umgesetzt. Kern: Die Institution kritisiert am GRUG 2017 eingeschränkten ärztlichen Einfluss, leichter kündbare Verträge und stark ausgeweitete Ordinationszeiten. [EP-XXV-ME-312]
 
 ## Verwendung
 

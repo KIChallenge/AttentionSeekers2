@@ -83,7 +83,7 @@ function Matrix({ cp }: { cp: CoalitionPatterns }) {
                           : undefined
                       }
                     >
-                      {b ? `${s}/${b}` : "–"}
+                      {b ? `${s}/${b}` : "-"}
                     </div>
                   </td>
                 );
