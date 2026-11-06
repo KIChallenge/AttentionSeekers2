@@ -284,7 +284,7 @@ export function ReplayPlayer({ runId, events }: { runId: string; events: RunEven
           <div className="mb-1 flex flex-wrap items-center gap-1.5">
             <Badge variant="outline">{base.replay.title}</Badge>
             <Badge variant="outline" className="num">
-              {base.run.round} {s.currentRound || "–"} ·{" "}
+              {base.run.round} {s.currentRound || "-"} ·{" "}
               {phase ? (lang === "de" ? phase.de : phase.en) : ""}
             </Badge>
             {s.activeSpeaker ? (

@@ -29,7 +29,7 @@
         },
         {
           "episodeId": "EP-XXVII-ME-343",
-          "title": "MTD-Gesetz 2024 – MTDG",
+          "title": "MTD-Gesetz 2024 - MTDG",
           "date": "2024-05-15",
           "outcome": "implemented"
         },
@@ -105,7 +105,7 @@
       "analogs": [
         {
           "episodeId": "EP-XXVII-ME-151",
-          "title": "Hospiz- und Palliativfondsgesetz – HosPalFG",
+          "title": "Hospiz- und Palliativfondsgesetz - HosPalFG",
           "date": "2021-10-23",
           "outcome": "implemented"
         },
@@ -180,7 +180,7 @@
       "analogs": [
         {
           "episodeId": "EP-XXVII-ME-326",
-          "title": "Netz- und Informationssystemsicherheitsgesetz 2024 – NISG 2024; Telekommunikationsgesetz, Gesundheitstelematikgesetz, Änderung",
+          "title": "Netz- und Informationssystemsicherheitsgesetz 2024 - NISG 2024; Telekommunikationsgesetz, Gesundheitstelematikgesetz, Änderung",
           "date": "2024-04-03",
           "outcome": "partially_implemented"
         },
@@ -192,7 +192,7 @@
         },
         {
           "episodeId": "EP-XXVII-ME-259",
-          "title": "eEltern-Kind-Pass-Gesetz – EKPG; Eltern-Kind-Pass-Gesetz, Änderung",
+          "title": "eEltern-Kind-Pass-Gesetz - EKPG; Eltern-Kind-Pass-Gesetz, Änderung",
           "date": "2023-04-03",
           "outcome": "partially_implemented"
         },
@@ -262,7 +262,7 @@
         },
         {
           "episodeId": "EP-XXVII-ME-343",
-          "title": "MTD-Gesetz 2024 – MTDG",
+          "title": "MTD-Gesetz 2024 - MTDG",
           "date": "2024-05-15",
           "outcome": "implemented"
         },
@@ -326,7 +326,7 @@
         },
         {
           "episodeId": "EP-XXVII-ME-164",
-          "title": "COVID-19-Impfpflichtgesetz – COVID-19-IG",
+          "title": "COVID-19-Impfpflichtgesetz - COVID-19-IG",
           "date": "2021-12-09",
           "outcome": "partially_implemented"
         },
@@ -361,7 +361,7 @@
         },
         {
           "episodeId": "EP-XXVII-ME-343",
-          "title": "MTD-Gesetz 2024 – MTDG",
+          "title": "MTD-Gesetz 2024 - MTDG",
           "date": "2024-05-15",
           "outcome": "implemented"
         },
@@ -437,7 +437,7 @@
       "analogs": [
         {
           "episodeId": "EP-XXVII-ME-151",
-          "title": "Hospiz- und Palliativfondsgesetz – HosPalFG",
+          "title": "Hospiz- und Palliativfondsgesetz - HosPalFG",
           "date": "2021-10-23",
           "outcome": "implemented"
         },
@@ -501,13 +501,13 @@
       "analogs": [
         {
           "episodeId": "EP-XXVII-ME-171",
-          "title": "Fachzahnarzt-Kieferorthopädie-Gesetz – FZA-KFO-G",
+          "title": "Fachzahnarzt-Kieferorthopädie-Gesetz - FZA-KFO-G",
           "date": "2022-01-03",
           "outcome": "implemented"
         },
         {
           "episodeId": "EP-XXVI-ME-123",
-          "title": "Strahlenschutzgesetz 2019 – StrSchG 2019",
+          "title": "Strahlenschutzgesetz 2019 - StrSchG 2019",
           "date": "2019-02-27",
           "outcome": "implemented"
         },
@@ -519,7 +519,7 @@
         },
         {
           "episodeId": "EP-XXVI-ME-30",
-          "title": "Datenschutz-Anpassungsgesetz 2018 – Gesundheit",
+          "title": "Datenschutz-Anpassungsgesetz 2018 - Gesundheit",
           "date": "2018-03-15",
           "outcome": "partially_implemented"
         },

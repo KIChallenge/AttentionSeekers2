@@ -194,7 +194,7 @@ function DirectionChart({
               <div
                 className="relative h-5"
                 role="img"
-                aria-label={`${runLabel(run, topicT(lang))}: ${v === null ? "–" : signed(v, lang)} ${
+                aria-label={`${runLabel(run, topicT(lang))}: ${v === null ? "-" : signed(v, lang)} ${
                   v === null ? "" : v >= 0 ? t.more(plus ?? "") : t.more(neg ?? "")
                 }`}
                 title={v === null ? undefined : `${signed(v, lang)} · ${v >= 0 ? plus : neg}`}
@@ -209,7 +209,7 @@ function DirectionChart({
                   }}
                 />
               </div>
-              <span className="num text-right text-xs">{v === null ? "–" : signed(v, lang)}</span>
+              <span className="num text-right text-xs">{v === null ? "-" : signed(v, lang)}</span>
             </div>
           );
         })}
@@ -453,7 +453,7 @@ function PositionMap({
                 const d = (k: "x" | "y") =>
                   e && f && e[k] !== null && f[k] !== null
                     ? signed((f[k] as number) - (e[k] as number), lang)
-                    : "–";
+                    : "-";
                 return (
                   <TableRow key={a}>
                     <TableCell>
@@ -531,13 +531,13 @@ function Heatmap({
                           className="num rounded-sm px-1 py-1.5 text-center text-xs"
                           style={v === null ? undefined : { background: shade(v) }}
                         >
-                          {v === null ? "–" : fmt(v, lang, 1)}
+                          {v === null ? "-" : fmt(v, lang, 1)}
                         </div>
                       </TableCell>
                     );
                   })}
                   <TableCell className="num border-l text-right font-semibold">
-                    {r.stanceDev === null ? "–" : fmt(r.stanceDev, lang)}
+                    {r.stanceDev === null ? "-" : fmt(r.stanceDev, lang)}
                   </TableCell>
                   <TableCell className="num text-right text-muted-foreground">
                     {pe ? pct(pe.stanceAgreement) : t.noEval}
@@ -619,7 +619,7 @@ function TemperamentTable({
                     </span>
                   </TableCell>
                   <TableCell className="num text-right">
-                    {gap === null ? "–" : `${signed(gap * 100, lang, 0)} pp`}
+                    {gap === null ? "-" : `${signed(gap * 100, lang, 0)} pp`}
                   </TableCell>
                   <TableCell className="num text-right">{fmt(m.movesPerRound, lang, 1)}</TableCell>
                   <TableCell className="num text-right">
@@ -629,7 +629,7 @@ function TemperamentTable({
                     {m.touched}/{m.redLines}
                   </TableCell>
                   <TableCell className="num text-right">
-                    {m.conditionalShare === null ? "–" : pct(m.conditionalShare)}
+                    {m.conditionalShare === null ? "-" : pct(m.conditionalShare)}
                     <span className="ml-1.5 text-muted-foreground">({m.votes})</span>
                   </TableCell>
                 </TableRow>

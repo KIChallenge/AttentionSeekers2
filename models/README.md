@@ -247,7 +247,7 @@ Delete with `models/aws/teardown.sh --execute` right after the jury (hosting bil
 Download the adapters first if they should outlive the bucket:
 `aws s3 sync s3://<bucket>/adapters/ out/lora-sagemaker/ --exclude "summary.json"`.
 
-**Publishing the adapters to Hugging Face (prepared, not done):** see "Hugging Face prep (4)" below;
+**Publishing the adapters to Hugging Face (done, private):** see "Hugging Face prep (4)" below;
 `models/hf/fetch_adapters.sh` downloads the adapters, `models/hf/publish.py` writes the cards and uploads
 to private repos only with `--execute`.
 
@@ -359,7 +359,16 @@ aws sso login                                   # the SSO session expires after 
 models/hf/fetch_adapters.sh                     # s3://<bucket>/adapters/<role>/ -> models/out/lora-sagemaker/<role>/
 python3 -I models/hf/publish.py                 # DRY RUN (default): cards in models/out/hf/<role>/, plan printed
 uv run --with huggingface_hub python -I models/hf/publish.py --execute   # private repos + upload
+# v2 / v2.1: SV_ADAPTER_PREFIX=adapters-v2 models/hf/fetch_adapters.sh models/out/lora-sagemaker-v2
+#            SV_ADAPTER_PREFIX=adapters-v21 models/hf/fetch_adapters.sh models/out/lora-sagemaker-v21
+#            then publish.py --version v2 / --version v2.1 (repos ...-lora-v2 / ...-lora-v21)
 ```
+
+- Uploaded (private): v1 first, then v2 and v2.1 on 2026-11-06, 27 repos under `Aryt3`. The v2 and v2.1
+  cards add a comparison table (that version, v1 + fix, prompted base, dossier on qwen3-235b; stance direction
+  and in-character from `out/persona_fidelity.json` `versions`) and the verdict: v2 weaker than v1 and the base
+  (kept for transparency), v2.1 ahead of the base on stance for five institutions and behind the dossier
+  approach on average. The v1 cards are unchanged (publish.py has no card-only update path).
 
 - Repos: `Aryt3/sv-persona-<role>-qwen3-8b-lora` (`--hf-user` to change), always created with
   `private=True`; `--execute` refuses the whole run if any target repo already exists and is public, or if
