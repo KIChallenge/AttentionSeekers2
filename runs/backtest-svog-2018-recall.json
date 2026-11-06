@@ -1,0 +1,132 @@
+{
+  "question": "Was ist mit dem 2018 in Österreich vorgelegten Sozialversicherungs-Organisationsgesetz geschehen? Antworte knapp mit dem, was du über Beschluss, Inhalt und spätere Entwicklungen weißt. Wenn du es nicht weißt, sag das.",
+  "date": "2026-11-06",
+  "results": [
+    {
+      "alias": "gpt",
+      "sample": 1,
+      "model": "azure/gpt-6-sol",
+      "answer": "Das Sozialversicherungs-Organisationsgesetz wurde im Dezember 2018 beschlossen. Es reduzierte die Zahl der Sozialversicherungsträger von 21 auf fünf; insbesondere wurden die neun Gebietskrankenkassen zur Österreichischen Gesundheitskasse (ÖGK) zusammengeführt. Die neue Struktur nahm 2020 ihre Arbeit auf. Der Verfassungsgerichtshof prüfte die Reform später und hob einzelne Bestimmungen auf, nicht aber die Zusammenlegung insgesamt.",
+      "hits": [
+        "adopted",
+        "fiveCarriers",
+        "oegk",
+        "court"
+      ],
+      "level": "outcome_detail",
+      "cost": 0.002388
+    },
+    {
+      "alias": "gpt",
+      "sample": 2,
+      "model": "azure/gpt-6-sol",
+      "answer": "Das Sozialversicherungs-Organisationsgesetz wurde Ende 2018 beschlossen und trat in seinen wesentlichen Teilen 2020 in Kraft. Es verringerte die Zahl der Sozialversicherungsträger von 21 auf fünf: Unter anderem wurden die neun Gebietskrankenkassen zur Österreichischen Gesundheitskasse (ÖGK) zusammengelegt und der Hauptverband durch einen Dachverband ersetzt. Der Verfassungsgerichtshof prüfte die Reform 2019, bestätigte sie im Wesentlichen, hob aber einzelne Bestimmungen auf. Die neue Organisationsstruktur blieb bestehen.",
+      "hits": [
+        "adopted",
+        "fiveCarriers",
+        "oegk",
+        "court"
+      ],
+      "level": "outcome_detail",
+      "cost": 0.003328
+    },
+    {
+      "alias": "gpt",
+      "sample": 3,
+      "model": "azure/gpt-6-sol",
+      "answer": "Das Sozialversicherungs-Organisationsgesetz wurde Ende 2018 beschlossen. Es reduzierte die Zahl der österreichischen Sozialversicherungsträger von 21 auf fünf; unter anderem gingen die neun Gebietskrankenkassen in der Österreichischen Gesundheitskasse (ÖGK) auf. Die neue Struktur gilt seit 2020. Der Verfassungsgerichtshof hob später einzelne Bestimmungen auf, die Reform als Ganzes blieb aber bestehen.",
+      "hits": [
+        "adopted",
+        "fiveCarriers",
+        "oegk",
+        "court"
+      ],
+      "level": "outcome_detail",
+      "cost": 0.002578
+    },
+    {
+      "alias": "qwen",
+      "sample": 1,
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "answer": "Ich weiß es nicht.",
+      "hits": [],
+      "level": "none",
+      "cost": 0.000072
+    },
+    {
+      "alias": "qwen",
+      "sample": 2,
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "answer": "Ich weiß es nicht.",
+      "hits": [],
+      "level": "none",
+      "cost": 0.000072
+    },
+    {
+      "alias": "qwen",
+      "sample": 3,
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "answer": "Ich weiß es nicht.",
+      "hits": [],
+      "level": "none",
+      "cost": 0.000072
+    },
+    {
+      "alias": "glm",
+      "sample": 1,
+      "model": "bedrock/zai.glm-5",
+      "answer": "Ich weiß über dieses Gesetz nicht Bescheid. Das Sozialversicherungs-Organisationsgesetz von 2018 in Österreich ist mir nicht bekannt – ich kann daher keine Auskunft über seinen Beschlussstand, seinen Inhalt oder spätere Entwicklungen geben.",
+      "hits": [],
+      "level": "none",
+      "cost": 0.000712
+    },
+    {
+      "alias": "glm",
+      "sample": 2,
+      "model": "bedrock/zai.glm-5",
+      "answer": "Ich weiß über dieses konkrete Gesetz nur in Grundzügen Bescheid und kann keine vollständige Auskunft geben. Meines Wissens war das Sozialversicherungs-Organisationsgesetz 2018 ein Reformvorhaben zur Neustrukturierung des österreichischen Sozialversicherungssystems, das auf eine Vereinheitlichung und Straffung der Sozialversicherungsträger abzielte. Über den genauen Beschlussstand, die konkreten Inhalte und die weitere Entwicklung habe ich keine ausreichend gesicherten Informationen. Ich empfehle, offizielle Regierungsquellen oder juristische Fachpublikationen zu konsultieren, um verlässliche Details zu diesem Gesetz zu erhalten.",
+      "hits": [],
+      "level": "none",
+      "cost": 0.001173
+    },
+    {
+      "alias": "glm",
+      "sample": 3,
+      "model": "bedrock/zai.glm-5",
+      "answer": "Ich weiß darüber Folgendes: Das Sozialversicherungs-Organisationsgesetz (SV-OrgG) wurde 2018 von der österreichischen Regierung beschlossen und sollte die Struktur der Sozialversicherung grundlegend reformieren. Kerninhalt war die Zusammenführung der bestehenden Sozialversicherungsträger zu größeren Einheiten, insbesondere die Fusion der Gebietskrankenkassen zu einer einzigen \"Österreichischen Gesundheitskasse\". Das Gesetz trat mit 1.1.2020 in Kraft.",
+      "hits": [
+        "adopted",
+        "oegk"
+      ],
+      "level": "outcome_detail",
+      "cost": 0.001934
+    },
+    {
+      "alias": "mistral",
+      "sample": 1,
+      "model": "bedrock/mistral.devstral-2-123b",
+      "answer": "Ich weiß es nicht.",
+      "hits": [],
+      "level": "none",
+      "cost": 0.000088
+    },
+    {
+      "alias": "mistral",
+      "sample": 2,
+      "model": "bedrock/mistral.devstral-2-123b",
+      "answer": "Das Sozialversicherungs-Organisationsgesetz in Österreich 2018",
+      "hits": [],
+      "level": "none",
+      "cost": 0.00011
+    },
+    {
+      "alias": "mistral",
+      "sample": 3,
+      "model": "bedrock/mistral.devstral-2-123b",
+      "answer": "2018 in Österreich Sozialversicherungs-Organisationsgesetz",
+      "hits": [],
+      "level": "none",
+      "cost": 0.000106
+    }
+  ]
+}

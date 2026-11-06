@@ -58,6 +58,9 @@ export const MethodNoteFile = z.object({
     status: z.enum(["pending", "running", "done", "cut"]),
     hypothesis: Bi,
     result: Bi.nullable(),
+    /** Run ids of the backtest variants and the write-up, when done. */
+    runs: z.array(z.string()).optional(),
+    doc: z.string().optional(),
   }),
 });
 export type MethodNoteFile = z.infer<typeof MethodNoteFile>;

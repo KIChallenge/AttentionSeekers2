@@ -54,6 +54,10 @@ export function quorumFor(
     if (qm && qm.of > 0) return Math.min(n, Math.ceil((qm.needed / qm.of) * n));
     return Math.ceil((2 * n) / 3);
   }
+  // Veto players with an explicit quorum: e.g. a government majority that needs only its
+  // own veto players plus a third of the table (SV-OG 2018 backtest).
+  if (rule === "veto_players" && qm && qm.of > 0)
+    return Math.min(n, Math.ceil((qm.needed / qm.of) * n));
   return Math.floor(n / 2) + 1;
 }
 

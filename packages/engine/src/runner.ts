@@ -46,6 +46,7 @@ import {
   profileOf,
   REPO_ROOT,
   redLinesOf,
+  setActiveTemplate,
   verifierFor,
 } from "./config.ts";
 import {
@@ -193,6 +194,7 @@ interface At {
 export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
   const started = performance.now();
   const usage0 = { ...usage };
+  setActiveTemplate(opts.room.template);
   let room = opts.room;
   let mandate = opts.mandate;
   let mandateMeta: CallMeta | null = null;
