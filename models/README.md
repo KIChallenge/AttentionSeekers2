@@ -206,6 +206,12 @@ uv run python -I proxy.py                          # OpenAI-compatible on http:/
 - **Serving**: `deploy.py single --sets v1,v2` stages v2 as `<role>_v2` next to v1 and recreates the endpoint
   (one-instance quota, about 10 min downtime); proxy ids `sv2-<role>`, the stance prefix comes back as
   `x_stance`. Rollback: `deploy.py single --sets v1`.
+- **Result** (run 20261106-025255, `out/eval_v2.md`): **v2 does not win.** Stance sign 0.30 (v1-fix 0.50, base
+  0.57), within one step 0.75 (base 0.64, inflated by 135 of 244 neutral judgements), in-character 0.26 (base 0.46),
+  0 loops. The small-role adapters are underfit (about 24 steps at lr 7e-5) and open with a letter salutation that
+  the one-paragraph stop cuts to nothing. Training job `sv-ki-challenge-lora-v2-1106-013811`, 2,416 billable s,
+  about 1.85 USD. Endpoint now serves v1 and v2 (`sv-ki-challenge-single-config-v1-v2`); for the demo use
+  `sv-<role>` (v1 with the fix) or `sv-base`.
 - **Report**: `eval_v2_report.py --run v1=<dir> --run v1-fix=<dir> --run v2=<dir> --proxy-log <log>` writes
   `out/eval_v2.md` and a `versions` block in `out/persona_fidelity.json` (top-level v1 numbers unchanged),
   shown on the Modelle tab.
