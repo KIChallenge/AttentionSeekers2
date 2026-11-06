@@ -7,7 +7,8 @@ No adapter is registered at runtime, so a worker restart comes back with every a
 
   uv run python -I deploy.py single        # stage adapters, model, config, (re)create endpoint, ~10 min
   uv run python -I deploy.py single --sets v1,v2   # v1 as "<role>" plus v2 as "<role>_v2" (sv2-<role> in the proxy)
-  uv run python -I deploy.py single --sets v1      # rollback: v1 only, v2 staging removed
+  uv run python -I deploy.py single --sets v1,v21  # v1 plus v2.1 as "<role>_v21" (sv21-<role>), v2 unstaged
+  uv run python -I deploy.py single --sets v1      # rollback: v1 only, v2/v2.1 staging removed
 
 Adapter sets live in separate S3 prefixes (v1: adapters/, v2: adapters-v2/) and are never overwritten; only
 the staged copies under base/Qwen3-8B/adapters/ change. LMI loads adapters only at startup and the quota is one
@@ -51,7 +52,7 @@ def sm():
     return session().client("sagemaker")
 
 
-SETS = {"v1": ("adapters", ""), "v2": ("adapters-v2", "_v2")}  # set -> (S3 prefix, LMI adapter name suffix)
+SETS = {"v1": ("adapters", ""), "v2": ("adapters-v2", "_v2"), "v21": ("adapters-v21", "_v21")}  # set -> (S3 prefix, LMI adapter name suffix)
 
 
 def lmi_env(n_adapters: int = 9):
