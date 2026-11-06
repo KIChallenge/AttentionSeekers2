@@ -34,7 +34,11 @@ export interface ScenarioCard {
   updatedAt: string;
 }
 
-function baseRateOf(cmp: TopicComparison | null, hist: HistoricRates): ScenarioCard["baseRate"] {
+function baseRateOf(
+  cmp: TopicComparison | null,
+  hist: HistoricRates,
+  template: RunSummary["template"],
+): ScenarioCard["baseRate"] {
   if (!cmp) return null;
   // Rate for the measure class the scenario's proposals use most, else the overall rate.
   const classes = new Map<string, number>();
@@ -43,7 +47,9 @@ function baseRateOf(cmp: TopicComparison | null, hist: HistoricRates): ScenarioC
   const top = [...classes.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
   const rate = top ? hist.classes[top] : undefined;
   if (rate && rate.n > 0 && !rate.smallN) return { k: rate.k, n: rate.n };
-  return hist.overall ? { k: hist.overall.k, n: hist.overall.n } : null;
+  // The overall rate is over health drafts, so a custom question gets no fallback.
+  if (template === "custom" || !hist.overall) return null;
+  return { k: hist.overall.k, n: hist.overall.n };
 }
 
 function comparable(s: Scenario, loaded: Map<string, ScenarioItem>): ScenarioItem[] {
@@ -78,7 +84,7 @@ export async function loadScenarioCards(): Promise<ScenarioCard[]> {
       outcomeBadge: ref?.outcomeBadge ?? "no_result",
       agreedAll: cmp ? cmp.topics.filter((t) => t.agreedIn === n).map((t) => t.label) : [],
       topicsOf: cmp?.topics.length ?? 0,
-      baseRate: s.kind === "main" ? baseRateOf(cmp, hist) : null,
+      baseRate: s.kind === "main" ? baseRateOf(cmp, hist, s.template) : null,
       updatedAt: s.updatedAt,
     };
   });
