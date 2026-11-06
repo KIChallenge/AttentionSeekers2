@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { CAPTION_MAX, captionChunks, chunkAt, meetingLayout } from "./meeting-logic";
+import {
+  CAPTION_MAX,
+  callCoalitions,
+  captionChunks,
+  chunkAt,
+  meetingLayout,
+} from "./meeting-logic";
 
 const text =
   "Wir können einer gestaffelten Erweiterung der Kassenstellen zustimmen, wenn die Finanzierung ohne Verschiebung auf unsere Budgets gesichert ist. Eine eigene Tarifposition und planbare Kontingente sind für uns ebenfalls wichtig, um die Terminzusagen honorieren zu können. Danke.";
@@ -74,5 +80,43 @@ describe("meeting layout", () => {
     const r = meetingLayout(ids, null, 1600, 900);
     const areas = ids.map((id) => (r[id]?.w ?? 0) * (r[id]?.h ?? 0));
     expect(Math.max(...areas)).toBe(Math.min(...areas));
+  });
+});
+
+describe("call coalitions", () => {
+  const note = (text: string) => ({ text, translations: {} });
+  const calculi = [
+    {
+      round: 1,
+      coalitions: [
+        {
+          id: "a",
+          members: ["ak", "pf", "pv"],
+          topicIds: ["t-4wo"],
+          note: note("Gleiche Richtung"),
+        },
+        { id: "b", members: ["fm", "va"], topicIds: ["t-4wo"], note: note("Gemeinsam dagegen") },
+        { id: "c", members: ["gm", "sv"], topicIds: ["t-tele"], note: note("Gleiche Richtung") },
+      ],
+    },
+    {
+      round: 3,
+      coalitions: [{ id: "d", members: ["ak", "va"], topicIds: ["t-4wo"], note: note("x") }],
+    },
+  ];
+  const seated = ["ak", "pf", "pv", "fm", "va", "gm", "sv"];
+
+  it("keeps the topic's groups from the latest calculus up to the round", () => {
+    const c = callCoalitions(calculi, 2, "t-4wo", seated);
+    expect(c.map((x) => x.id)).toEqual(["a", "b"]);
+    expect(c[1]?.against).toBe(true);
+    expect(c[0]?.color).not.toBe(c[1]?.color);
+    expect(callCoalitions(calculi, 3, "t-4wo", seated).map((x) => x.id)).toEqual(["d"]);
+  });
+
+  it("needs a topic, a round and two seated members", () => {
+    expect(callCoalitions(calculi, 2, null, seated)).toEqual([]);
+    expect(callCoalitions(calculi, null, "t-4wo", seated)).toEqual([]);
+    expect(callCoalitions(calculi, 2, "t-4wo", ["ak", "fm"])).toEqual([]);
   });
 });

@@ -168,3 +168,52 @@ function grid(
     };
   });
 }
+
+/** Coalition colors in the call: distinct from the seat colors, readable on the dark stage. */
+export const COALITION_COLORS = ["#38bdf8", "#f472b6", "#facc15", "#a3e635"] as const;
+
+export interface CallCoalition {
+  id: string;
+  members: string[];
+  /** Joint opposition ("Gemeinsam dagegen") rather than a shared direction. */
+  against: boolean;
+  color: string;
+}
+
+interface CoalitionSource {
+  round: number;
+  coalitions: Array<{
+    id: string;
+    members: string[];
+    topicIds: string[];
+    note: { text: string; translations?: Record<string, string | undefined> };
+  }>;
+}
+
+/**
+ * Coalitions on the topic under discussion, from the latest calculus up to this round. Only
+ * groups of two or more seated institutions count; the larger groups come first and get the
+ * first colors.
+ */
+export function callCoalitions(
+  calculi: readonly CoalitionSource[],
+  round: number | null,
+  topicId: string | null,
+  seated: readonly string[],
+): CallCoalition[] {
+  if (!topicId || round === null) return [];
+  const calc = [...calculi].filter((c) => c.round <= round).sort((a, b) => b.round - a.round)[0];
+  if (!calc) return [];
+  const on = new Set(seated);
+  return calc.coalitions
+    .filter((c) => c.topicIds.includes(topicId))
+    .map((c) => ({
+      id: c.id,
+      members: c.members.filter((m) => on.has(m)),
+      against: /dagegen|against/i.test(`${c.note.text} ${c.note.translations?.en ?? ""}`),
+    }))
+    .filter((c) => c.members.length >= 2)
+    .sort((a, b) => b.members.length - a.members.length)
+    .slice(0, COALITION_COLORS.length)
+    .map((c, i) => ({ ...c, color: COALITION_COLORS[i] ?? COALITION_COLORS[0] }));
+}

@@ -33,6 +33,7 @@ import {
   type SeatState,
 } from "./avatar/avatar-stage";
 import type { FigureKind } from "./avatar/figure-style";
+import type { CallCoalition } from "./meeting-logic";
 import { captionChunks, chunkAt, meetingLayout, type Rect } from "./meeting-logic";
 import { StageFigure } from "./stage-tile";
 import type { StageStrings } from "./strings";
@@ -73,6 +74,8 @@ export function MeetingView({
   onFail3d,
   onExit,
   round,
+  coalitions = [],
+  coalitionTopic = null,
 }: {
   seats: AvatarSeat[];
   cue: StageCue;
@@ -85,6 +88,9 @@ export function MeetingView({
   onFail3d: (why: string) => void;
   onExit: () => void;
   round: number | null;
+  /** Coalitions on the topic under discussion; members get a colored frame and a badge. */
+  coalitions?: CallCoalition[];
+  coalitionTopic?: string | null;
 }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const areaRef = useRef<HTMLDivElement | null>(null);
@@ -158,22 +164,46 @@ export function MeetingView({
     return () => window.removeEventListener("keydown", onKey);
   }, [wake, toggleFull, cycleSpeed, exit]);
 
+  const coalitionOf = (id: string) => coalitions.find((c) => c.members.includes(id)) ?? null;
+  const letter = (c: CallCoalition) => String.fromCharCode(65 + coalitions.indexOf(c));
+
   const seatState = (id: string): SeatState => {
     const active = cue.speaker === id;
     return { active, addressed: !active && addressees.includes(id), answered: false };
   };
   const frameClass = (_: AvatarSeat, st: SeatState) =>
     cn("rounded-xl", st.active ? "z-20" : "z-10");
-  const frameStyle = (seat: AvatarSeat, st: SeatState): CSSProperties => ({
-    boxShadow: st.active
-      ? `0 0 0 3px ${seat.color}, 0 0 0 calc(3px + var(--amp, 0) * 7px) color-mix(in srgb, ${seat.color} 45%, transparent), 0 18px 48px -12px rgb(0 0 0 / 0.7)`
-      : st.addressed
-        ? `0 0 0 2px color-mix(in srgb, ${seat.color} 75%, transparent)`
-        : "0 0 0 1px rgb(255 255 255 / 0.06)",
-  });
-  const plate = (seat: AvatarSeat, st: SeatState) => (
-    <NamePlate seat={seat} st={st} big={(rects[seat.id]?.w ?? 0) > 560} s={s} />
-  );
+  const frameStyle = (seat: AvatarSeat, st: SeatState): CSSProperties => {
+    const co = coalitionOf(seat.id);
+    // a coalition member keeps a frame in its coalition's color; speaking adds the seat glow
+    const ring = co ? `0 0 0 3px ${co.color}` : null;
+    return {
+      boxShadow: st.active
+        ? `${ring ? `${ring}, ` : ""}0 0 0 ${ring ? 6 : 3}px ${seat.color}, 0 0 0 calc(${ring ? 6 : 3}px + var(--amp, 0) * 7px) color-mix(in srgb, ${seat.color} 45%, transparent), 0 18px 48px -12px rgb(0 0 0 / 0.7)`
+        : ring
+          ? ring
+          : st.addressed
+            ? `0 0 0 2px color-mix(in srgb, ${seat.color} 75%, transparent)`
+            : "0 0 0 1px rgb(255 255 255 / 0.06)",
+    };
+  };
+  const plate = (seat: AvatarSeat, st: SeatState) => {
+    const co = coalitionOf(seat.id);
+    return (
+      <>
+        {co ? (
+          <span
+            className="absolute top-2 right-2 inline-grid h-6 min-w-6 place-items-center rounded-md px-1.5 text-xs font-bold text-black"
+            style={{ background: co.color }}
+            title={co.against ? s.coalitionAgainst : s.coalitionWith}
+          >
+            {letter(co)}
+          </span>
+        ) : null}
+        <NamePlate seat={seat} st={st} big={(rects[seat.id]?.w ?? 0) > 560} s={s} />
+      </>
+    );
+  };
   const layout: AvatarLayout = {
     rects,
     tint: [0.1, 0.16],
@@ -219,6 +249,35 @@ export function MeetingView({
         <span className="flex-1" />
         <span className="hidden text-xs text-white/45 md:inline">{s.meetingKeys}</span>
       </div>
+
+      {coalitions.length ? (
+        <div className="pointer-events-none absolute top-3 left-1/2 z-30 flex max-w-[70vw] -translate-x-1/2 flex-wrap items-center justify-center gap-2 text-sm">
+          {coalitionTopic ? (
+            <span className="rounded-full bg-black/50 px-3 py-1 text-white/80 backdrop-blur-sm">
+              {s.coalitions} · {coalitionTopic}
+            </span>
+          ) : null}
+          {coalitions.map((c) => (
+            <span
+              key={c.id}
+              className="inline-flex items-center gap-1.5 rounded-full bg-black/50 py-1 pr-3 pl-1 backdrop-blur-sm"
+            >
+              <span
+                className="inline-grid h-5 min-w-5 place-items-center rounded-full px-1 text-[11px] font-bold text-black"
+                style={{ background: c.color }}
+              >
+                {letter(c)}
+              </span>
+              <span className="text-white/90">
+                {c.members.map((m) => seats.find((x) => x.id === m)?.code ?? m).join(" · ")}
+              </span>
+              <span className="text-white/55">
+                {c.against ? s.coalitionAgainst : s.coalitionWith}
+              </span>
+            </span>
+          ))}
+        </div>
+      ) : null}
 
       <div className="relative min-h-0 flex-1 px-[clamp(12px,2vw,32px)] pt-[clamp(40px,5vh,56px)]">
         <div ref={areaRef} className="relative h-full w-full">

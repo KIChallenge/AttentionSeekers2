@@ -20,6 +20,7 @@ import { SpeakerTimeline } from "@/components/timeline/speaker-timeline";
 import { cn } from "@/lib/utils";
 import { type AvatarSeat, AvatarStage } from "./avatar/avatar-stage";
 import { stageColumns } from "./avatar/figure-style";
+import { callCoalitions } from "./meeting-logic";
 import { MeetingView } from "./meeting-view";
 import { latestShift, orderedUtterances, pickSharpestExchange, stageSpeakers } from "./stage-logic";
 import { StageTile, type TileRole } from "./stage-tile";
@@ -251,6 +252,13 @@ export function StageView() {
     kind: u?.kind ?? "",
   };
 
+  // coalitions on the topic of the running exchange, so the call shows who works together
+  const callTopicId = u?.exchangeId
+    ? (snap.exchanges.find((x) => x.id === u.exchangeId)?.topicId ?? null)
+    : null;
+  const callTopic = callTopicId ? run.mandate.topics.find((x) => x.id === callTopicId) : null;
+  const coalitions = callCoalitions(snap.calculi, u?.round ?? null, callTopicId, speakers);
+
   if (view === "meeting") {
     return (
       <main ref={rootRef} style={{ ["--amp" as string]: 0 }}>
@@ -276,6 +284,8 @@ export function StageView() {
           onFail3d={setFailed3d}
           onExit={exitMeeting}
           round={u?.round ?? null}
+          coalitions={coalitions}
+          coalitionTopic={callTopic ? L(callTopic.label, lang) : null}
         />
       </main>
     );

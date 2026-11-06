@@ -69,6 +69,9 @@ const de = {
   viewMeetingHint:
     "Als Videokonferenz: nur die Teilnehmenden, Sprecher im Fokus, Live-Untertitel (F Vollbild, Esc beendet)",
   meetingLabel: "Verhandlung als Videokonferenz",
+  coalitions: "Koalitionen",
+  coalitionWith: "gleiche Richtung",
+  coalitionAgainst: "gemeinsam dagegen",
   meetingKeys: "Leertaste Wiedergabe · ← → Wortmeldung · S Tempo · F Vollbild · Esc beenden",
   meetingWaiting: "Wartet auf die erste Wortmeldung",
   meetingFullscreen: "Vollbild",
@@ -147,6 +150,9 @@ const en: StageStrings = {
   viewMeetingHint:
     "As a video call: participants only, speaker in the spotlight, live captions (F fullscreen, Esc leaves)",
   meetingLabel: "Negotiation as a video call",
+  coalitions: "Coalitions",
+  coalitionWith: "same direction",
+  coalitionAgainst: "jointly against",
   meetingKeys: "Space play · ← → utterance · S speed · F fullscreen · Esc leave",
   meetingWaiting: "Waiting for the first utterance",
   meetingFullscreen: "Fullscreen",
