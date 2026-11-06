@@ -1085,6 +1085,13 @@
                   "type": "integer",
                   "minimum": -9007199254740991,
                   "maximum": 9007199254740991
+                },
+                "pace": {
+                  "type": "string",
+                  "enum": [
+                    "fast",
+                    "full"
+                  ]
                 }
               },
               "required": [
@@ -6687,6 +6694,24 @@
               },
               "notModelled": {
                 "type": "boolean"
+              },
+              "basis": {
+                "type": "string",
+                "enum": [
+                  "evidence",
+                  "proposer"
+                ]
+              },
+              "evidenceClasses": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "sourceCount": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               }
             },
             "required": [
@@ -8190,6 +8215,640 @@
         "tMs",
         "type",
         "gate"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "number",
+          "const": 1
+        },
+        "runId": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "tMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "compromise.proposed"
+        },
+        "compromise": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "round": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "title": {
+              "type": "object",
+              "properties": {
+                "lang": {
+                  "type": "string",
+                  "enum": [
+                    "de",
+                    "en"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                },
+                "translations": {
+                  "default": {},
+                  "type": "object",
+                  "properties": {
+                    "de": {
+                      "type": "string"
+                    },
+                    "en": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "lang",
+                "text"
+              ]
+            },
+            "rationale": {
+              "type": "object",
+              "properties": {
+                "lang": {
+                  "type": "string",
+                  "enum": [
+                    "de",
+                    "en"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                },
+                "translations": {
+                  "default": {},
+                  "type": "object",
+                  "properties": {
+                    "de": {
+                      "type": "string"
+                    },
+                    "en": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "lang",
+                "text"
+              ]
+            },
+            "components": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "object",
+                    "properties": {
+                      "lang": {
+                        "type": "string",
+                        "enum": [
+                          "de",
+                          "en"
+                        ]
+                      },
+                      "text": {
+                        "type": "string"
+                      },
+                      "translations": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "de": {
+                            "type": "string"
+                          },
+                          "en": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "lang",
+                      "text"
+                    ]
+                  },
+                  "proposalIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "text",
+                  "proposalIds"
+                ]
+              }
+            },
+            "conditions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "financing",
+                      "evaluation",
+                      "sunset",
+                      "pilot",
+                      "governance",
+                      "other"
+                    ]
+                  },
+                  "text": {
+                    "type": "object",
+                    "properties": {
+                      "lang": {
+                        "type": "string",
+                        "enum": [
+                          "de",
+                          "en"
+                        ]
+                      },
+                      "text": {
+                        "type": "string"
+                      },
+                      "translations": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "de": {
+                            "type": "string"
+                          },
+                          "en": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "lang",
+                      "text"
+                    ]
+                  }
+                },
+                "required": [
+                  "kind",
+                  "text"
+                ]
+              }
+            },
+            "basedOn": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "expected": {
+              "type": "object",
+              "properties": {
+                "support": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z]{2,4}$"
+                  }
+                },
+                "conditional": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z]{2,4}$"
+                  }
+                },
+                "oppose": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "agentId": {
+                        "type": "string",
+                        "pattern": "^[a-z]{2,4}$"
+                      },
+                      "reason": {
+                        "type": "object",
+                        "properties": {
+                          "lang": {
+                            "type": "string",
+                            "enum": [
+                              "de",
+                              "en"
+                            ]
+                          },
+                          "text": {
+                            "type": "string"
+                          },
+                          "translations": {
+                            "default": {},
+                            "type": "object",
+                            "properties": {
+                              "de": {
+                                "type": "string"
+                              },
+                              "en": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "required": [
+                          "lang",
+                          "text"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "agentId",
+                      "reason"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "support",
+                "conditional",
+                "oppose"
+              ]
+            },
+            "redLinesTouched": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "redLineId": {
+                    "type": "string"
+                  },
+                  "agentId": {
+                    "type": "string",
+                    "pattern": "^[a-z]{2,4}$"
+                  },
+                  "note": {
+                    "type": "object",
+                    "properties": {
+                      "lang": {
+                        "type": "string",
+                        "enum": [
+                          "de",
+                          "en"
+                        ]
+                      },
+                      "text": {
+                        "type": "string"
+                      },
+                      "translations": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "de": {
+                            "type": "string"
+                          },
+                          "en": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "lang",
+                      "text"
+                    ]
+                  }
+                },
+                "required": [
+                  "redLineId",
+                  "agentId",
+                  "note"
+                ]
+              }
+            },
+            "utteranceId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "round",
+            "title",
+            "rationale",
+            "components",
+            "conditions",
+            "basedOn",
+            "expected",
+            "redLinesTouched",
+            "utteranceId"
+          ]
+        }
+      },
+      "required": [
+        "v",
+        "runId",
+        "seq",
+        "tMs",
+        "type",
+        "compromise"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "number",
+          "const": 1
+        },
+        "runId": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "tMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "compromise.vote"
+        },
+        "vote": {
+          "type": "object",
+          "properties": {
+            "packageId": {
+              "type": "string"
+            },
+            "agentId": {
+              "type": "string",
+              "pattern": "^[a-z]{2,4}$"
+            },
+            "stance": {
+              "type": "string",
+              "enum": [
+                "support",
+                "conditional",
+                "oppose"
+              ]
+            },
+            "condition": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "lang": {
+                      "type": "string",
+                      "enum": [
+                        "de",
+                        "en"
+                      ]
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "translations": {
+                      "default": {},
+                      "type": "object",
+                      "properties": {
+                        "de": {
+                          "type": "string"
+                        },
+                        "en": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "lang",
+                    "text"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "reason": {
+              "type": "object",
+              "properties": {
+                "lang": {
+                  "type": "string",
+                  "enum": [
+                    "de",
+                    "en"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                },
+                "translations": {
+                  "default": {},
+                  "type": "object",
+                  "properties": {
+                    "de": {
+                      "type": "string"
+                    },
+                    "en": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "lang",
+                "text"
+              ]
+            },
+            "redLinesTouched": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "utteranceId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "model": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "packageId",
+            "agentId",
+            "stance",
+            "condition",
+            "reason",
+            "redLinesTouched",
+            "utteranceId",
+            "model"
+          ]
+        }
+      },
+      "required": [
+        "v",
+        "runId",
+        "seq",
+        "tMs",
+        "type",
+        "vote"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "number",
+          "const": 1
+        },
+        "runId": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "tMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "compromise.result"
+        },
+        "result": {
+          "type": "object",
+          "properties": {
+            "packageId": {
+              "type": "string"
+            },
+            "support": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z]{2,4}$"
+              }
+            },
+            "conditional": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z]{2,4}$"
+              }
+            },
+            "oppose": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z]{2,4}$"
+              }
+            },
+            "passes": {
+              "type": "boolean"
+            },
+            "rule": {
+              "type": "string",
+              "enum": [
+                "consensus",
+                "qualified_majority",
+                "veto_players"
+              ]
+            },
+            "needed": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "missingVetoPlayers": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z]{2,4}$"
+              }
+            },
+            "note": {
+              "type": "object",
+              "properties": {
+                "lang": {
+                  "type": "string",
+                  "enum": [
+                    "de",
+                    "en"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                },
+                "translations": {
+                  "default": {},
+                  "type": "object",
+                  "properties": {
+                    "de": {
+                      "type": "string"
+                    },
+                    "en": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "lang",
+                "text"
+              ]
+            }
+          },
+          "required": [
+            "packageId",
+            "support",
+            "conditional",
+            "oppose",
+            "passes",
+            "rule",
+            "needed",
+            "missingVetoPlayers",
+            "note"
+          ]
+        }
+      },
+      "required": [
+        "v",
+        "runId",
+        "seq",
+        "tMs",
+        "type",
+        "result"
       ]
     },
     {

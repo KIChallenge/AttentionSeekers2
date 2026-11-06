@@ -2,7 +2,14 @@ import type { Position } from "./agents.ts";
 import type { Claim } from "./claims.ts";
 import type { RunEvent } from "./events.ts";
 import type { LlmCall } from "./llm-calls.ts";
-import type { Forecast, ImpactFigure, RatificationVote } from "./outcome.ts";
+import type {
+  CompromisePackage,
+  CompromiseResult,
+  CompromiseVote,
+  Forecast,
+  ImpactFigure,
+  RatificationVote,
+} from "./outcome.ts";
 import type { AgentId, LocalizedText, ModelId, SpeakerId } from "./primitives.ts";
 import type { OutcomeClass, Proposal, RoundSummary } from "./proposals.ts";
 import type { ModerationGate } from "./quality.ts";
@@ -85,6 +92,12 @@ export interface RunSnapshot {
   forecasts: Forecast[];
   extractorVersion: string | null;
   votes: Record<string, RatificationVote>;
+  /** Moderator's compromise package (RunEvent "compromise.proposed"); absent in older runs. */
+  compromise?: CompromisePackage | null;
+  /** Ratification answers per institution (RunEvent "compromise.vote"). */
+  compromiseVotes?: Record<string, CompromiseVote>;
+  /** Tally against the decision rule (RunEvent "compromise.result"). */
+  compromiseResult?: CompromiseResult | null;
   activeSpeaker: SpeakerId | null;
   endCondition: EndCondition | null;
   error: { message: string; retryable: boolean } | null;
@@ -139,6 +152,9 @@ export function emptySnapshot(): RunSnapshot {
     forecasts: [],
     extractorVersion: null,
     votes: {},
+    compromise: null,
+    compromiseVotes: {},
+    compromiseResult: null,
     activeSpeaker: null,
     endCondition: null,
     error: null,
@@ -379,6 +395,18 @@ export function reduceRun(s: RunSnapshot, e: RunEvent, opts: ReduceOptions = {})
 
     case "moderation.gate":
       return { ...base, moderationGates: [...(base.moderationGates ?? []), e.gate] };
+
+    case "compromise.proposed":
+      return { ...base, compromise: e.compromise, compromiseVotes: {}, compromiseResult: null };
+
+    case "compromise.vote":
+      return {
+        ...base,
+        compromiseVotes: { ...(base.compromiseVotes ?? {}), [e.vote.agentId]: e.vote },
+      };
+
+    case "compromise.result":
+      return { ...base, compromiseResult: e.result };
 
     case "heartbeat":
       return base;

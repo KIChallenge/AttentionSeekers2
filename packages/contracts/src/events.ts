@@ -2,7 +2,14 @@ import { z } from "zod";
 import { Position } from "./agents.ts";
 import { Claim } from "./claims.ts";
 import { LlmCall } from "./llm-calls.ts";
-import { Forecast, ImpactFigure, RatificationVote } from "./outcome.ts";
+import {
+  CompromisePackage,
+  CompromiseResult,
+  CompromiseVote,
+  Forecast,
+  ImpactFigure,
+  RatificationVote,
+} from "./outcome.ts";
 import { AgentId, Lang, LocalizedText, ModelId, SpeakerId, UtteranceId } from "./primitives.ts";
 import { Proposal, RoundSummary } from "./proposals.ts";
 import { ModerationGate } from "./quality.ts";
@@ -123,6 +130,12 @@ export const RunEvent = z.discriminatedUnion("type", [
   z.object({ ...Envelope, type: z.literal("llm.call"), call: LlmCall }),
   /** Added 2026-11-06 (debate quality): a moderation gate decision. */
   z.object({ ...Envelope, type: z.literal("moderation.gate"), gate: ModerationGate }),
+  /** Added 2026-11-06 (compromise synthesis): the moderator's package after the end condition. */
+  z.object({ ...Envelope, type: z.literal("compromise.proposed"), compromise: CompromisePackage }),
+  /** Added 2026-11-06: one institution's answer in the ratification round. */
+  z.object({ ...Envelope, type: z.literal("compromise.vote"), vote: CompromiseVote }),
+  /** Added 2026-11-06: the tally of the ratification round against the decision rule. */
+  z.object({ ...Envelope, type: z.literal("compromise.result"), result: CompromiseResult }),
   z.object({ ...Envelope, type: z.literal("heartbeat") }),
 ]);
 export type RunEvent = z.infer<typeof RunEvent>;

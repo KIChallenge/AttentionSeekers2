@@ -77,5 +77,10 @@ export const RoomConfig = z.object({
   scheduledEvents: z.array(ScheduledEvent),
   coldRatification: z.boolean(),
   seed: z.number().int(),
+  /**
+   * Added 2026-11-06: "fast" is the live-demo preset (fewer focused talks, faster seats);
+   * absent means the full setting.
+   */
+  pace: z.enum(["fast", "full"]).optional(),
 });
 export type RoomConfig = z.infer<typeof RoomConfig>;
