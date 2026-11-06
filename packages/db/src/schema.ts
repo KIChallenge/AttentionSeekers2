@@ -69,6 +69,31 @@ export const segments = pgTable(
   ],
 );
 
+/**
+ * Semantic branch: one row per (segment, embedding model), kept apart from
+ * segments.embedding (768-dim, never filled) so the change stays additive for the
+ * running app. text_hash lets the embed job skip unchanged segments and redo edited ones.
+ */
+export const SEMANTIC_DIMENSIONS = 1024;
+
+export const segmentEmbeddings = pgTable(
+  "segment_embeddings",
+  {
+    segmentId: text("segment_id")
+      .notNull()
+      .references(() => segments.id, { onDelete: "cascade" }),
+    model: text("model").notNull(),
+    textHash: text("text_hash").notNull(),
+    tokens: integer("tokens"),
+    embedding: vector("embedding", { dimensions: SEMANTIC_DIMENSIONS }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.segmentId, t.model] }),
+    index("segment_embeddings_hnsw_idx").using("hnsw", t.embedding.op("vector_cosine_ops")),
+  ],
+);
+
 export const stanceProfiles = pgTable(
   "stance_profiles",
   {

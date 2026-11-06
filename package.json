@@ -15,6 +15,7 @@
     "db:generate": "pnpm --filter @sv/db db:generate",
     "db:migrate": "pnpm --filter @sv/db db:migrate",
     "db:import": "pnpm --filter @sv/db db:import",
+    "db:embed": "pnpm --filter @sv/db db:embed",
     "runs:load": "pnpm --filter @sv/db runs:load",
     "contracts:schema": "pnpm --filter @sv/contracts schema",
     "fixture": "pnpm --filter @sv/contracts fixture",

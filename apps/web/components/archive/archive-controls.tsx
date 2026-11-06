@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
+
+type Mode = "hybrid" | "fulltext" | "semantic";
+const MODES: Mode[] = ["hybrid", "fulltext", "semantic"];
 
 const DAY = 86_400_000;
 const toDay = (iso: string) => Math.floor(Date.parse(`${iso}T00:00:00Z`) / DAY);
@@ -23,6 +27,8 @@ export function ArchiveControls({ min, max }: { min: string | null; max: string 
   const [pending, startTransition] = useTransition();
   const [q, setQ] = useState(params.get("q") ?? "");
   const asOfParam = params.get("asOf");
+  const modeParam = params.get("mode");
+  const mode: Mode = modeParam === "fulltext" || modeParam === "semantic" ? modeParam : "hybrid";
   const lo = useMemo(() => toDay(min ?? "2000-01-01"), [min]);
   const hi = useMemo(
     () =>
@@ -81,6 +87,32 @@ export function ArchiveControls({ min, max }: { min: string | null; max: string 
           {t.archive.search}
         </Button>
       </form>
+      <fieldset className="flex flex-wrap items-center gap-2">
+        <legend className="sr-only">{t.archive.mode}</legend>
+        <div className="inline-flex rounded-lg border bg-card p-0.5">
+          {MODES.map((m) => {
+            const on = mode === m;
+            return (
+              <button
+                key={m}
+                type="button"
+                aria-pressed={on}
+                title={t.archive.modeHint[m]}
+                onClick={() => push({ mode: m === "hybrid" ? null : m })}
+                className={cn(
+                  "rounded-md px-2.5 py-1 text-xs transition-colors",
+                  on
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {t.archive.modes[m]}
+              </button>
+            );
+          })}
+        </div>
+        <span className="text-xs text-muted-foreground">{t.archive.modeHint[mode]}</span>
+      </fieldset>
       <div className="rounded-2xl border bg-card p-3">
         <div className="flex flex-wrap items-center gap-3">
           <span className="flex items-center gap-2 text-sm font-medium">

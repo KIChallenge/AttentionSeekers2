@@ -6,6 +6,7 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { RedLine, Segment, Source, SourceKind, StanceProfile } from "@sv/contracts";
+import { FIXTURE_REVISION } from "@sv/engine/retrieval";
 import { replayDir } from "@/lib/runs";
 
 export const MASK_TOKEN = "[...]";
@@ -13,8 +14,13 @@ const PAGE_SIZE = 30;
 /** Press items: metadata and short snippets only until licensing is settled. */
 export const PRESS_SNIPPET_CHARS = 280;
 
+/** Volltext (German FTS), Semantisch (Titan v2 vectors), Kombiniert (RRF of both). */
+export type SearchMode = "fulltext" | "semantic" | "hybrid";
+export const SEARCH_MODES: SearchMode[] = ["hybrid", "fulltext", "semantic"];
+
 export interface ArchiveQuery {
   q: string;
+  mode: SearchMode;
   kinds: string[];
   institutions: string[];
   years: string[];
@@ -35,6 +41,13 @@ export interface ArchiveHit {
   afterAsOf: boolean;
   draftLaw: string | null;
   licenceLabel: string;
+  /** Why the hit matched: full-text keyword and/or cosine similarity of the best passage. */
+  match: Match;
+}
+
+export interface Match {
+  keyword: boolean;
+  similarity: number | null;
 }
 
 export interface Facet {
@@ -57,6 +70,9 @@ export interface ArchiveResult {
   };
   dateRange: { min: string | null; max: string | null };
   backend: "postgres" | "file";
+  /** Mode actually used; falls back to fulltext when no query embedding is available. */
+  mode: SearchMode;
+  semanticUnavailable: boolean;
 }
 
 /** The eligibility rule the engine applies to retrieval (FR-H2): published on or before asOf. */
@@ -100,15 +116,70 @@ export function licenceOf(s: Source): string {
   return KIND_LICENCE[s.kind] ?? "unknown";
 }
 
+/**
+ * The UI fixture corpus (FIXTURE_REVISION) is invented. Archive lists, facets, counts and
+ * the palette leave it out unless SV_INCLUDE_FIXTURE=1, as live engine runs do; a fixture
+ * source opened directly (the fixture run cites them) gets a banner instead.
+ */
+export function isFixtureSource(s: Source): boolean {
+  return s.corpusRevision === FIXTURE_REVISION;
+}
+
+/** SQL predicate on sources.corpus_revision (`alias` like "s."); constant strings only. */
+function live(alias = ""): string {
+  return process.env.SV_INCLUDE_FIXTURE === "1"
+    ? "true"
+    : `${alias}corpus_revision <> '${FIXTURE_REVISION}'`;
+}
+
 export function isPress(s: Source): boolean {
   return s.kind === "press";
 }
 
 // ---------------- database access ----------------
 
-type Pool = {
+type Client = {
   query: <R = Record<string, unknown>>(text: string, params?: unknown[]) => Promise<{ rows: R[] }>;
 };
+type Pool = Client & { connect: () => Promise<Client & { release: () => void }> };
+
+/**
+ * Runs vector queries on one connection with a wider HNSW candidate list and iterative
+ * scans (pgvector >= 0.8), so filters and LIMITs above the default ef_search of 40 still
+ * return the true nearest rows.
+ */
+async function withVectorSession<T>(db: Pool, ef: number, fn: (c: Client) => Promise<T>) {
+  const c = await db.connect();
+  try {
+    await c.query("begin");
+    await c.query(`set local hnsw.ef_search = ${Math.round(ef)}`);
+    await c.query("set local hnsw.iterative_scan = relaxed_order");
+    const out = await fn(c);
+    await c.query("commit");
+    return out;
+  } catch (error) {
+    await c.query("rollback").catch(() => undefined);
+    throw error;
+  } finally {
+    c.release();
+  }
+}
+
+async function queryVector(q: string): Promise<{ literal: string; model: string } | null> {
+  try {
+    const store = await import("@sv/db");
+    const v = await store.embedQuery(q);
+    return v ? { literal: store.toVectorLiteral(v), model: store.EMBED_MODEL } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Below this cosine similarity a semantic neighbour is noise, not a hit. */
+const SEMANTIC_MIN_SIMILARITY = 0.15;
+const SEMANTIC_SOURCES = 200;
+/** Headings and fragments ("Datum", "Zu § 3") sit close to every short query; skip them. */
+const SEMANTIC_MIN_CHARS = 50;
 
 async function pool(): Promise<Pool | null> {
   if (!process.env.DATABASE_URL) return null;
@@ -183,9 +254,18 @@ interface Candidate {
   snippet: string;
   segmentId: string | null;
   rank: number;
+  match?: Match;
 }
 
-function finish(cands: Candidate[], query: ArchiveQuery, backend: ArchiveResult["backend"]) {
+function finish(
+  cands: Candidate[],
+  query: ArchiveQuery,
+  backend: ArchiveResult["backend"],
+  used: { mode: SearchMode; semanticUnavailable: boolean } = {
+    mode: "fulltext",
+    semanticUnavailable: false,
+  },
+) {
   // Facets are computed over the query result before facet filters (simple OR-within, AND-across).
   const enrich = cands.map((c) => ({
     ...c,
@@ -243,8 +323,10 @@ function finish(cands: Candidate[], query: ArchiveQuery, backend: ArchiveResult[
     afterAsOf: c.afterAsOf,
     draftLaw: c.draftLaw,
     licenceLabel: c.licenceLabel,
+    match: c.match ?? { keyword: query.q.trim() !== "", similarity: null },
   }));
   return {
+    ...used,
     hits,
     total: filtered.length,
     page,
@@ -257,62 +339,177 @@ function finish(cands: Candidate[], query: ArchiveQuery, backend: ArchiveResult[
 
 const CANDIDATE_LIMIT = 2000;
 
+/** Full-text branch: best segment per source by ts_rank, highlighted snippet, plus
+ * title / institution / legal-ref substring matches. */
+async function lexicalCandidates(db: Pool, q: string): Promise<Candidate[]> {
+  // Best segment per source by ts_rank, plus a highlighted snippet.
+  const { rows } = await db.query<{
+    data: unknown;
+    segment_id: string;
+    rank: number;
+    snippet: string;
+  }>(
+    `with q as (select websearch_to_tsquery('german', $1) as tsq),
+     hits as (
+       select distinct on (g.source_id) g.source_id, g.id as segment_id, g.text,
+              ts_rank(g.tsv, q.tsq) as rank
+       from segments g, q
+       where g.tsv @@ q.tsq
+       order by g.source_id, ts_rank(g.tsv, q.tsq) desc
+     )
+     select s.data, h.segment_id, h.rank,
+            ts_headline('german', h.text, q.tsq,
+              'StartSel=' || chr(1) || ',StopSel=' || chr(2) || ',MaxWords=45,MinWords=18,MaxFragments=2,FragmentDelimiter= … ') as snippet
+     from hits h join sources s on s.id = h.source_id, q
+     where s.person_filtered = true and ${live("s.")}
+     order by h.rank desc, s.date desc
+     limit ${CANDIDATE_LIMIT}`,
+    [q],
+  );
+  const cands: Candidate[] = rows.flatMap((r) => {
+    const source = asSource(r.data);
+    return source
+      ? [{ source, snippet: r.snippet, segmentId: r.segment_id, rank: Number(r.rank) }]
+      : [];
+  });
+  // Title and institution matches that FTS on segment text misses.
+  const seen = new Set(cands.map((c) => c.source.id));
+  const { rows: extra } = await db.query<{
+    data: unknown;
+    segment_id: string | null;
+    text: string | null;
+  }>(
+    `select s.data, g.id as segment_id, g.text from sources s
+     left join lateral (select id, text from segments where source_id = s.id order by ordinal limit 1) g on true
+     where s.person_filtered = true and ${live("s.")}
+       and (s.title ilike $1 or s.institution_code ilike $1 or s.legal_ref ilike $1
+            or s.data->'institution'->>'nameDe' ilike $1)
+     order by s.date desc limit 200`,
+    [`%${q}%`],
+  );
+  for (const r of extra) {
+    const source = asSource(r.data);
+    if (!source || seen.has(source.id)) continue;
+    cands.push({ source, snippet: r.text ?? "", segmentId: r.segment_id, rank: 0 });
+  }
+  return cands;
+}
+
+/**
+ * Semantic branch: nearest segments to the query embedding (HNSW cosine), best segment
+ * per source. With "hide later documents" on, the as-of predicate runs inside the vector
+ * scan so the top-k is filled with eligible sources. Null when no query vector is available.
+ */
+async function semanticCandidates(
+  db: Pool,
+  q: string,
+  query: ArchiveQuery,
+): Promise<Candidate[] | null> {
+  const qv = await queryVector(q);
+  if (!qv) return null;
+  const cutoff = query.hideAfter && query.asOf ? query.asOf : null;
+  try {
+    const rows = await withVectorSession(db, 400, async (c) => {
+      const res = await c.query<{
+        data: unknown;
+        segment_id: string;
+        text: string;
+        similarity: number;
+      }>(
+        `with nn as (
+           select e.segment_id, e.embedding <=> $1::vector as dist
+           from segment_embeddings e
+           join segments g0 on g0.id = e.segment_id
+           join sources s0 on s0.id = g0.source_id
+           where e.model = $2 and length(g0.text) >= ${SEMANTIC_MIN_CHARS}
+             and ($3::date is null or s0.date <= $3::date)
+           order by e.embedding <=> $1::vector
+           limit 400
+         ), best as (
+           select distinct on (g.source_id) g.source_id, g.id as segment_id, g.text, nn.dist
+           from nn join segments g on g.id = nn.segment_id
+           order by g.source_id, nn.dist
+         )
+         select s.data, b.segment_id, b.text, 1 - b.dist as similarity
+         from best b join sources s on s.id = b.source_id
+         where s.person_filtered = true and ${live("s.")} and 1 - b.dist >= $4
+         order by b.dist
+         limit ${SEMANTIC_SOURCES}`,
+        [qv.literal, qv.model, cutoff, SEMANTIC_MIN_SIMILARITY],
+      );
+      return res.rows;
+    });
+    return rows.flatMap((r) => {
+      const source = asSource(r.data);
+      const similarity = Math.round(Number(r.similarity) * 1000) / 1000;
+      return source
+        ? [
+            {
+              source,
+              snippet: r.text,
+              segmentId: r.segment_id,
+              rank: similarity,
+              match: { keyword: false, similarity },
+            },
+          ]
+        : [];
+    });
+  } catch (error) {
+    console.warn("archive_semantic_failed", error instanceof Error ? error.message : error);
+    return null;
+  }
+}
+
+/**
+ * Reciprocal rank fusion (k = 60) of the full-text and semantic source rankings. A source
+ * found by both keeps the highlighted full-text snippet and carries both match reasons.
+ */
+export function fuseArchive(lexical: Candidate[], semantic: Candidate[], k = 60): Candidate[] {
+  const out = new Map<string, Candidate & { score: number }>();
+  lexical.forEach((c, i) => {
+    out.set(c.source.id, {
+      ...c,
+      match: { keyword: true, similarity: null },
+      score: 1 / (k + i + 1),
+    });
+  });
+  semantic.forEach((c, i) => {
+    const s = 1 / (k + i + 1);
+    const prev = out.get(c.source.id);
+    if (prev) {
+      prev.score += s;
+      prev.match = { keyword: true, similarity: c.match?.similarity ?? null };
+    } else out.set(c.source.id, { ...c, score: s });
+  });
+  return [...out.values()]
+    .sort((a, b) => b.score - a.score)
+    .map(({ score, ...c }) => ({ ...c, rank: Math.round(score * 1e5) / 1e5 }));
+}
+
 export async function searchArchive(query: ArchiveQuery): Promise<ArchiveResult> {
   const db = await pool();
   const q = query.q.trim();
   if (db) {
     if (q) {
-      // Best segment per source by ts_rank, plus a highlighted snippet.
-      const { rows } = await db.query<{
-        data: unknown;
-        segment_id: string;
-        rank: number;
-        snippet: string;
-      }>(
-        `with q as (select websearch_to_tsquery('german', $1) as tsq),
-         hits as (
-           select distinct on (g.source_id) g.source_id, g.id as segment_id, g.text,
-                  ts_rank(g.tsv, q.tsq) as rank
-           from segments g, q
-           where g.tsv @@ q.tsq
-           order by g.source_id, ts_rank(g.tsv, q.tsq) desc
-         )
-         select s.data, h.segment_id, h.rank,
-                ts_headline('german', h.text, q.tsq,
-                  'StartSel=' || chr(1) || ',StopSel=' || chr(2) || ',MaxWords=45,MinWords=18,MaxFragments=2,FragmentDelimiter= … ') as snippet
-         from hits h join sources s on s.id = h.source_id, q
-         where s.person_filtered = true
-         order by h.rank desc, s.date desc
-         limit ${CANDIDATE_LIMIT}`,
-        [q],
-      );
-      const cands: Candidate[] = rows.flatMap((r) => {
-        const source = asSource(r.data);
-        return source
-          ? [{ source, snippet: r.snippet, segmentId: r.segment_id, rank: Number(r.rank) }]
-          : [];
-      });
-      // Title and institution matches that FTS on segment text misses.
-      const seen = new Set(cands.map((c) => c.source.id));
-      const { rows: extra } = await db.query<{
-        data: unknown;
-        segment_id: string | null;
-        text: string | null;
-      }>(
-        `select s.data, g.id as segment_id, g.text from sources s
-         left join lateral (select id, text from segments where source_id = s.id order by ordinal limit 1) g on true
-         where s.person_filtered = true
-           and (s.title ilike $1 or s.institution_code ilike $1 or s.legal_ref ilike $1
-                or s.data->'institution'->>'nameDe' ilike $1)
-         order by s.date desc limit 200`,
-        [`%${q}%`],
-      );
-      for (const r of extra) {
-        const source = asSource(r.data);
-        if (!source || seen.has(source.id)) continue;
-        cands.push({ source, snippet: r.text ?? "", segmentId: r.segment_id, rank: 0 });
+      const [lexical, semantic] = await Promise.all([
+        query.mode === "semantic" ? null : lexicalCandidates(db, q),
+        query.mode === "fulltext" ? null : semanticCandidates(db, q, query),
+      ]);
+      const semanticUnavailable = query.mode !== "fulltext" && semantic === null;
+      if (semanticUnavailable || query.mode === "fulltext") {
+        // Fallback keeps the archive useful when Bedrock or the vectors are unavailable.
+        const cands = lexical ?? (await lexicalCandidates(db, q));
+        return finish(cands, query, "postgres", { mode: "fulltext", semanticUnavailable });
       }
-      return finish(cands, query, "postgres");
+      if (query.mode === "semantic" || !lexical)
+        return finish(semantic ?? [], query, "postgres", {
+          mode: "semantic",
+          semanticUnavailable: false,
+        });
+      return finish(fuseArchive(lexical, semantic ?? []), query, "postgres", {
+        mode: "hybrid",
+        semanticUnavailable: false,
+      });
     }
     const { rows } = await db.query<{
       data: unknown;
@@ -323,7 +520,7 @@ export async function searchArchive(query: ArchiveQuery): Promise<ArchiveResult>
        left join lateral (
          select id, text from segments where source_id = s.id and length(text) > 60
          order by ordinal limit 1) g on true
-       where s.person_filtered = true
+       where s.person_filtered = true and ${live("s.")}
        order by s.date desc limit ${CANDIDATE_LIMIT}`,
     );
     return finish(
@@ -417,6 +614,77 @@ export async function getSource(id: string): Promise<SourceDetail | null> {
   };
 }
 
+export interface SimilarPassage {
+  source: Source;
+  segmentId: string;
+  text: string;
+  similarity: number;
+}
+
+/**
+ * "Similar passages" on the source detail page: nearest segments of other sources to
+ * the centroid of this source's segment vectors, best passage per source. Empty when
+ * the source has no embeddings yet or the database is down.
+ */
+export async function similarPassages(sourceId: string, limit = 6): Promise<SimilarPassage[]> {
+  const db = await pool();
+  if (!db) return [];
+  try {
+    const store = await import("@sv/db");
+    const rows = await withVectorSession(db, 200, async (c) => {
+      const { rows: centroid } = await c.query<{ v: string | null }>(
+        `select avg(e.embedding)::text as v from segment_embeddings e
+         join segments g on g.id = e.segment_id
+         where g.source_id = $1 and e.model = $2`,
+        [sourceId, store.EMBED_MODEL],
+      );
+      const v = centroid[0]?.v;
+      if (!v) return [];
+      const res = await c.query<{
+        data: unknown;
+        segment_id: string;
+        text: string;
+        similarity: number;
+      }>(
+        `with nn as (
+           select e.segment_id, e.embedding <=> $1::vector as dist
+           from segment_embeddings e
+           join segments g0 on g0.id = e.segment_id
+           where e.model = $2 and g0.source_id <> $3 and length(g0.text) >= ${SEMANTIC_MIN_CHARS}
+           order by e.embedding <=> $1::vector
+           limit 120
+         ), best as (
+           select distinct on (g.source_id) g.source_id, g.id as segment_id, g.text, nn.dist
+           from nn join segments g on g.id = nn.segment_id
+           order by g.source_id, nn.dist
+         )
+         select s.data, b.segment_id, b.text, 1 - b.dist as similarity
+         from best b join sources s on s.id = b.source_id
+         where s.person_filtered = true and ${live("s.")}
+         order by b.dist
+         limit ${Math.max(1, Math.min(20, limit))}`,
+        [v, store.EMBED_MODEL, sourceId],
+      );
+      return res.rows;
+    });
+    return rows.flatMap((r) => {
+      const source = asSource(r.data);
+      if (!source) return [];
+      return [
+        {
+          source,
+          segmentId: r.segment_id,
+          text: clipPress(source, r.text),
+          similarity: Math.round(Number(r.similarity) * 1000) / 1000,
+        },
+      ];
+    });
+  } catch (error) {
+    console.warn("archive_similar_failed", error instanceof Error ? error.message : error);
+    return [];
+  }
+}
+
 /** Lightweight lookup for previews and backlinks. */
 export async function getSourcesByIds(ids: string[]): Promise<Map<string, Source>> {
   const out = new Map<string, Source>();
@@ -471,7 +739,7 @@ export async function sourcesFor(filter: { code?: string; role?: string }, limit
   const db = await pool();
   if (db) {
     const { rows } = await db.query<{ data: unknown }>(
-      `select data from sources where person_filtered = true
+      `select data from sources where person_filtered = true and ${live()}
        and ($1::text is null or institution_code = $1)
        and ($2::text is null or institution_role = $2)
        order by date desc limit ${limit}`,
@@ -498,7 +766,7 @@ export async function sourcesForDraftLaw(caseId: string, limit = 120) {
   const db = await pool();
   if (db) {
     const { rows } = await db.query<{ data: unknown }>(
-      `select data from sources where person_filtered = true
+      `select data from sources where person_filtered = true and ${live()}
        and legal_ref like $1 and id like $2
        order by date asc limit ${limit}`,
       [`%SN-${num}/ME`, `${gp}/%`],
@@ -512,7 +780,9 @@ export async function archiveStats() {
   const db = await pool();
   if (db) {
     const { rows } = await db.query<{ sources: string; segments: string }>(
-      "select (select count(*) from sources where person_filtered) as sources, (select count(*) from segments) as segments",
+      `select (select count(*) from sources where person_filtered and ${live()}) as sources,
+              (select count(*) from segments g join sources s on s.id = g.source_id
+                where ${live("s.")}) as segments`,
     );
     return { sources: Number(rows[0]?.sources ?? 0), segments: Number(rows[0]?.segments ?? 0) };
   }
@@ -525,7 +795,7 @@ export async function quickSources(q: string, limit = 8): Promise<Source[]> {
   const db = await pool();
   if (db) {
     const { rows } = await db.query<{ data: unknown }>(
-      `select s.data from sources s where s.person_filtered = true and (
+      `select s.data from sources s where s.person_filtered = true and ${live("s.")} and (
          s.id ilike $1 or s.title ilike $1 or s.legal_ref ilike $1
          or s.data->'institution'->>'nameDe' ilike $1
          or exists (select 1 from segments g where g.source_id = s.id
@@ -567,7 +837,7 @@ export async function institutions(): Promise<InstitutionRow[]> {
     }>(
       `select institution_code as code, max(data->'institution'->>'nameDe') as name,
               max(data->'institution'->>'glossEn') as gloss, max(institution_role) as role, count(*) as n
-       from sources where person_filtered = true group by institution_code order by count(*) desc`,
+       from sources where person_filtered = true and ${live()} group by institution_code order by count(*) desc`,
     );
     return rows.map((r) => ({
       code: r.code,
