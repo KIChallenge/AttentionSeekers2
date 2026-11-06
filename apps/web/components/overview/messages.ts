@@ -21,6 +21,16 @@ const de = {
     } as Record<string, string>,
     archive: "Archiv",
     press_browser: "Presse",
+    funnel: {
+      title: "Pressearchiv (SV-Box) vollständig durchsucht",
+      editions: "Ausgaben",
+      pages: "Seiten",
+      hits: "Seitentreffer mit Institution",
+      candidates: "Kandidaten-Passagen",
+      evaluated: "ausgewertet",
+      positions: "Positionen",
+      range: (a: string, b: string) => `${a} bis ${b}`,
+    },
     fileBackend: "Datenbank nicht erreichbar, Zahlen aus der Datei-Kopie.",
   },
   models: {
@@ -100,6 +110,16 @@ const en: typeof de = {
     kinds: { stellungnahme: "Statements", press: "Press", law: "Law", other: "Other" },
     archive: "Archive",
     press_browser: "Press",
+    funnel: {
+      title: "Press archive (SV-Box) fully searched",
+      editions: "editions",
+      pages: "pages",
+      hits: "page hits naming an institution",
+      candidates: "candidate passages",
+      evaluated: "evaluated",
+      positions: "positions",
+      range: (a: string, b: string) => `${a} to ${b}`,
+    },
     fileBackend: "Database unreachable, counts from the file copy.",
   },
   models: {
