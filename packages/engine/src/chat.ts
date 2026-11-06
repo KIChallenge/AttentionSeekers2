@@ -2,7 +2,9 @@
 // carries the persona the seat had in the run (dossier or profile), its red lines with
 // tiers, positions per round, own utterances, votes, lessons and strategy, so the answer
 // stays consistent with what the institution said and did. Evidence comes from the engine
-// retrieval as of the run's as-of date. Output passes the person-name guard while streaming.
+// retrieval as of the run's as-of date. The answer comes from a strong chat model (not the seat's
+// run model, which may be a weaker one), at low temperature, through the output gate
+// (chat-gate.ts) and the person-name guard while streaming.
 import {
   type CitationRef,
   catalogAgent,
@@ -12,6 +14,13 @@ import {
   type RunSnapshot,
 } from "@sv/contracts";
 import { z } from "zod";
+import {
+  type GateContext,
+  type GateResult,
+  gateAnswer,
+  MIN_KEPT,
+  splitSentences,
+} from "./chat-gate.ts";
 import { profileOf, redLinesOf } from "./config.ts";
 import { findPersonNames } from "./guard.ts";
 import {
@@ -192,6 +201,17 @@ export function seatFacts(snap: RunSnapshot, agentId: string): SeatFacts | null 
         .join(" ") || null,
     citations,
   };
+}
+
+/** Every German text of the run (utterances, rationales, summaries): the gate's lexicon. */
+export function runText(snap: RunSnapshot): string {
+  const parts: string[] = [];
+  for (const id of snap.utteranceOrder) parts.push(de(snap.utterances[id]?.text));
+  for (const byTopic of Object.values(snap.positions))
+    for (const list of Object.values(byTopic ?? {}))
+      for (const p of list ?? []) parts.push(de(p.rationale));
+  for (const s of snap.summaries) parts.push(de(s.text));
+  return parts.join("\n");
 }
 
 const TIER_DE: Record<string, string> = {
@@ -428,6 +448,23 @@ export function nameStreamGuard(placeholder = "[Institution]") {
 
 // ---------- model streaming ----------
 
+/**
+ * The model that answers in the chat. The seat may have been played by a weaker model in the
+ * run; its persona, positions and red lines come from the run as context, the words from this
+ * model. Default gpt-6-sol; qwen3-235b with the dossier won the persona eval and is the
+ * alternative (SV_CHAT_MODEL=bedrock/qwen.qwen3-235b-a22b-2507-v1:0).
+ */
+export const CHAT_MODEL = () => process.env.SV_CHAT_MODEL ?? "azure/gpt-6-sol";
+/** The model that regenerates once when the gate drops too much of an answer. */
+export const CHAT_REPAIR_MODEL = "azure/gpt-6-sol";
+/** Low temperature keeps weaker models from drifting late in the answer. */
+export const CHAT_TEMPERATURE = 0.3;
+/** About 150 words of German plus markers fit with room; the gate drops an unfinished tail. */
+export const CHAT_MAX_TOKENS = 700;
+
+/** gpt-6 accepts a temperature other than 1 only without reasoning. */
+const noReasoning = (model: string) => /gpt-6/.test(model);
+
 export interface StreamOptions {
   signal?: AbortSignal;
   timeoutMs?: number;
@@ -463,8 +500,13 @@ async function* gatewayStream(model: string, messages: Message[], o: StreamOptio
       model: wireModel(model),
       messages,
       stream: true,
-      max_completion_tokens: 4000,
-      reasoning_effort: "low",
+      ...(noReasoning(model)
+        ? {
+            max_completion_tokens: CHAT_MAX_TOKENS,
+            reasoning_effort: "none",
+            temperature: CHAT_TEMPERATURE,
+          }
+        : { max_completion_tokens: CHAT_MAX_TOKENS * 3, reasoning_effort: "low" }),
     }),
     signal: AbortSignal.any([
       AbortSignal.timeout(o.timeoutMs ?? 90_000),
@@ -556,7 +598,11 @@ async function* bedrockStream(model: string, messages: Message[], o: StreamOptio
     {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ system, messages: turns, inferenceConfig: { maxTokens: 1200 } }),
+      body: JSON.stringify({
+        system,
+        messages: turns,
+        inferenceConfig: { maxTokens: CHAT_MAX_TOKENS, temperature: CHAT_TEMPERATURE },
+      }),
       signal: AbortSignal.any([
         AbortSignal.timeout(o.timeoutMs ?? 90_000),
         ...(o.signal ? [o.signal] : []),
@@ -615,11 +661,130 @@ export async function* streamAnswer(
         message: redact(error instanceof Error ? error.message : String(error)),
       }),
     );
-    const r = await structured(model, "institution_answer", AnswerOut, messages, {
-      reasoningEffort: "low",
-      maxOutputTokens: 4000,
-    });
+    const r = await structured(
+      model,
+      "institution_answer",
+      AnswerOut,
+      messages,
+      noReasoning(model)
+        ? { reasoningEffort: "none", temperature: CHAT_TEMPERATURE, maxOutputTokens: 1500 }
+        : { reasoningEffort: "low", maxOutputTokens: 4000 },
+    );
     if (!r.data.answer.trim()) throw new StructuredOutputError("empty answer");
     yield r.data.answer;
   }
+}
+
+// ---------- gated answer ----------
+
+export type GateEvent =
+  | { type: "delta"; text: string }
+  /** Drop what was sent so far: a regenerated answer follows. */
+  | { type: "reset" }
+  | {
+      type: "gate";
+      answeredBy: string;
+      cut: boolean;
+      regenerated: boolean;
+      reasons: string[];
+      flagged: string[];
+    };
+
+type Stream = (model: string, messages: Message[], o: StreamOptions) => AsyncIterable<string>;
+
+/**
+ * One pass: streams sentences as soon as they are finished and clean, keeps reading after the
+ * first bad one (to know how much was lost), and returns the gate result for the whole answer.
+ */
+async function* gatedPass(
+  stream: Stream,
+  model: string,
+  messages: Message[],
+  lang: Lang,
+  ctx: GateContext,
+  o: StreamOptions,
+): AsyncGenerator<GateEvent, GateResult> {
+  let raw = "";
+  let sent = "";
+  let clean = true;
+  let checked = 0;
+  for await (const d of stream(model, messages, o)) {
+    raw += d;
+    if (!clean) continue;
+    const parts = splitSentences(raw);
+    // the last part may still grow; everything before it is final
+    for (let i = checked; i < parts.length - 1; i++) {
+      const g = gateAnswer(raw.slice(0, parts[i]?.end ?? 0), lang, ctx);
+      if (g.cut || !g.text.startsWith(sent)) {
+        clean = false;
+        break;
+      }
+      if (g.text.length > sent.length) yield { type: "delta", text: g.text.slice(sent.length) };
+      sent = g.text;
+      checked = i + 1;
+    }
+  }
+  const g = gateAnswer(raw, lang, ctx);
+  if (g.text.startsWith(sent) && g.text.length > sent.length)
+    yield { type: "delta", text: g.text.slice(sent.length) };
+  return g;
+}
+
+/**
+ * The chat answer through the output gate: answer with `model`; when less than MIN_KEPT of it
+ * survives, regenerate once with the repair model and keep whichever clean answer is longer.
+ */
+export async function* gatedAnswer(
+  model: string,
+  messages: Message[],
+  lang: Lang,
+  ctx: GateContext,
+  o: StreamOptions & { repairModel?: string; stream?: Stream } = {},
+): AsyncGenerator<GateEvent> {
+  const stream = o.stream ?? streamAnswer;
+  const repair = o.repairModel ?? CHAT_REPAIR_MODEL;
+  const first = yield* gatedPass(stream, model, messages, lang, ctx, o);
+  if (first.kept >= MIN_KEPT || o.signal?.aborted) {
+    yield {
+      type: "gate",
+      answeredBy: model,
+      cut: first.cut,
+      regenerated: false,
+      reasons: first.reasons,
+      flagged: first.flagged,
+    };
+    return;
+  }
+  console.warn(
+    "chat_gate_regenerate",
+    JSON.stringify({ model, reasons: first.reasons, kept: first.kept }),
+  );
+  yield { type: "reset" };
+  let second: GateResult | null = null;
+  try {
+    second = yield* gatedPass(stream, repair, messages, lang, ctx, o);
+  } catch (error) {
+    if (o.signal?.aborted) throw error;
+    console.warn(
+      "chat_gate_repair_failed",
+      error instanceof Error ? error.message.slice(0, 160) : error,
+    );
+  }
+  const reasons = [...new Set([...first.reasons, ...(second?.reasons ?? [])])];
+  const flagged = [...new Set([...first.flagged, ...(second?.flagged ?? [])])];
+  if (second && second.text.length >= first.text.length) {
+    yield {
+      type: "gate",
+      answeredBy: repair,
+      cut: second.cut,
+      regenerated: true,
+      reasons,
+      flagged,
+    };
+    return;
+  }
+  // the repair did worse or failed: fall back to the clean part of the first answer
+  yield { type: "reset" };
+  if (first.text) yield { type: "delta", text: first.text };
+  yield { type: "gate", answeredBy: model, cut: true, regenerated: true, reasons, flagged };
 }
