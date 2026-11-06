@@ -1,9 +1,10 @@
 // Server-only: loads every run once and derives the scenario cards for the home page and the
 // full data of one scenario page (runs, topic comparison, perspectives, coalitions, and the
 // reference run's snapshot for the agent chat).
-import type { LocalizedText, RunSnapshot, RunSummary } from "@sv/contracts";
+import type { CompromiseConsistency, LocalizedText, RunSnapshot, RunSummary } from "@sv/contracts";
 import type { Evidence } from "@/components/run/evidence";
 import { loadEvidence } from "@/components/run/evidence-server";
+import { loadCompromiseSidecar } from "./runs";
 import {
   type CoalitionPatterns,
   coalitionPatterns,
@@ -102,6 +103,8 @@ export interface ScenarioData {
   coalitions: CoalitionPatterns;
   /** Room-setting variants of the question with the reference run (Szenarien tab). */
   variants: VariantComparison | null;
+  /** Experte consistency check of the reference run's compromise (sidecar). */
+  referenceConsistency: CompromiseConsistency | null;
   /** Reference run for the agent chat; null when its snapshot is not loadable. */
   reference: { snap: RunSnapshot; evidence: Evidence } | null;
 }
@@ -113,13 +116,19 @@ export async function loadScenario(key: string): Promise<ScenarioData | null> {
   if (!scenario) return null;
   const items = comparable(scenario, loaded);
   const refItem = loaded.get(scenario.referenceRunId);
+  const sidecars = new Map(
+    await Promise.all(
+      items.map(async (x) => [x.summary.id, await loadCompromiseSidecar(x.summary.id)] as const),
+    ),
+  );
   return {
     scenario,
     cmp: items.length ? compareRuns(scenario.baseKey, items) : null,
     hist: historicRates(),
     perspectives: perspectives(items),
     coalitions: coalitionPatterns(items),
-    variants: compareVariants(items, scenario.referenceRunId),
+    variants: compareVariants(items, scenario.referenceRunId, (id) => sidecars.get(id) ?? null),
+    referenceConsistency: sidecars.get(scenario.referenceRunId) ?? null,
     reference: refItem?.snap.run
       ? { snap: refItem.snap, evidence: await loadEvidence(scenario.referenceRunId) }
       : null,

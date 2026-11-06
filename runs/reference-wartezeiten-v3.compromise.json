@@ -1,0 +1,51 @@
+{
+  "runId": "reference-wartezeiten-v3",
+  "packageId": "k-5",
+  "verdict": "carries",
+  "label": {
+    "lang": "de",
+    "text": "trägt",
+    "translations": {
+      "en": "carries"
+    }
+  },
+  "conditions": [
+    {
+      "agentId": "sv",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Umschichtung erfolgt ausschließlich aus unmittelbar steuerbaren ambulanten Ausgaben gemäß unserer Gebarungsvorschau, und der jährliche Ausgabendeckel von 5 % wird strikt eingehalten.",
+        "translations": {
+          "en": "The reallocation must come exclusively from directly manageable ambulatory expenditures according to our budget forecast, and the annual spending cap of 5% must be strictly adhered to."
+        }
+      }
+    },
+    {
+      "agentId": "ka",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Umschichtung aus bestehenden ambulanten Ausgaben muss messbar zu einer Entlastung der Spitalsambulanzen führen, die jährlich evaluiert wird.",
+        "translations": {
+          "en": "The reallocation from existing outpatient expenditures must lead to a measurable reduction in hospital outpatient department workload, evaluated annually."
+        }
+      }
+    },
+    {
+      "agentId": "pv",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Veröffentlichung der Wartezeiten und Umschichtungen muss jährlich und transparent erfolgen.",
+        "translations": {
+          "en": "The publication of waiting times and reallocations must be done annually and transparently."
+        }
+      }
+    }
+  ],
+  "pairsChecked": 3,
+  "conflicts": [],
+  "model": "azure/gpt-6-sol",
+  "checkedAt": "2026-11-06T06:10:05.589Z"
+}

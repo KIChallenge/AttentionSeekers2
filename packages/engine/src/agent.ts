@@ -9,6 +9,7 @@ import {
   type StrategicAssessment,
 } from "@sv/contracts";
 import { z } from "zod";
+import { citationStyleLine } from "./citation-style.ts";
 import { L, profileOf, redLinesOf } from "./config.ts";
 import { findPersonNames } from "./guard.ts";
 import { DEFAULT_BASELINE_EUR_BN } from "./impact.ts";
@@ -240,6 +241,11 @@ export function evidenceBlock(passages: Passage[]): string {
         `${p.handle} [${p.kind}, ${p.institutionCode}, ${p.date}, Gewicht ${p.recencyWeight}${p.ownInstitution ? ", eigene Institution" : ""}${p.title ? `, "${p.title}"` : ""}]: ${p.text}`,
     )
     .join("\n");
+}
+
+/** Citation habit after the evidence block (style only, see citation-style.ts). */
+export function citationHint(agentId: string, passages: Passage[]): string {
+  return passages.length ? `\n\n${citationStyleLine(agentId)}` : "";
 }
 
 function transcriptBlock(s: RunState, round: number): string {
@@ -474,7 +480,7 @@ export function turnMessages(
       : "lessonApplied: applied = false, note leer.",
     "deliberation: zwei erwogene Optionen mit je einem Pro und Contra, genau eine chosen; decision; wouldChangeMind (ein bis zwei Punkte); read/weighed/wouldMoveIt je ein kurzer Satz.",
   ].join("\n");
-  const ev = `Belege (Stichtag ${s.room.asOf}, nach Aktualität gewichtet):\n${evidenceBlock(c.passages)}`;
+  const ev = `Belege (Stichtag ${s.room.asOf}, nach Aktualität gewichtet):\n${evidenceBlock(c.passages)}${citationHint(c.agentId, c.passages)}`;
   const blocks: PromptBlock[] = [
     { role: "system", title: "Rolle, Charakter, Regeln", tokens: estimateTokens(sys), text: sys },
     { role: "user", title: "Mandat und Phase", tokens: estimateTokens(mandate), text: mandate },
@@ -659,7 +665,7 @@ export function exchangeTurnMessages(
       : "lessonApplied: applied = false, note leer.",
     "deliberation: decision, read, weighed, wouldMoveIt je ein kurzer Satz.",
   ].join("\n");
-  const ev = `Belege:\n${evidenceBlock(c.passages)}`;
+  const ev = `Belege:\n${evidenceBlock(c.passages)}${citationHint(c.agentId, c.passages)}`;
   const blocks: PromptBlock[] = [
     { role: "system", title: "Rolle, Charakter, Regeln", tokens: estimateTokens(sys), text: sys },
     { role: "user", title: "Lage und Thema", tokens: estimateTokens(frame), text: frame },

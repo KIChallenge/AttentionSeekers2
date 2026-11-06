@@ -43,7 +43,16 @@ export default async function ScenarioPage({
   if (!data) notFound();
   const { lang, t } = await serverPrefs();
   const s = scenarioT(lang);
-  const { scenario, cmp, hist, perspectives, coalitions, reference, variants } = data;
+  const {
+    scenario,
+    cmp,
+    hist,
+    perspectives,
+    coalitions,
+    reference,
+    variants,
+    referenceConsistency,
+  } = data;
   const refSnap = reference?.snap;
   const modelBias = scenario.kind === "main" ? await loadModelBias(scenario.baseKey) : null;
   const labels: Record<string, string> = {};
@@ -115,6 +124,7 @@ export default async function ScenarioPage({
                     compromise={refSnap.compromise}
                     votes={refSnap.compromiseVotes ?? {}}
                     result={refSnap.compromiseResult ?? null}
+                    consistency={referenceConsistency}
                     lang={lang}
                   />
                 </section>

@@ -143,12 +143,16 @@ export function ScenarioVariants({ cmp }: { cmp: VariantComparison | null }) {
                           <span
                             className={cn(
                               "w-fit rounded-md border px-1.5 py-0.5 text-xs",
-                              c.compromiseResult.passes
+                              (
+                                c.consistency
+                                  ? c.consistency.verdict === "carries"
+                                  : c.compromiseResult.passes
+                              )
                                 ? "border-success/30 bg-success/10 text-success"
                                 : "border-warning/40 text-warning",
                             )}
                           >
-                            {compromiseTally(c.compromiseResult, lang)}
+                            {compromiseTally(c.compromiseResult, lang, c.consistency)}
                           </span>
                         ) : null}
                       </div>

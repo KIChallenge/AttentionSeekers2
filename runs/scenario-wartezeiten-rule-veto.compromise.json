@@ -1,0 +1,98 @@
+{
+  "runId": "scenario-wartezeiten-rule-veto",
+  "packageId": "k-5",
+  "verdict": "carries_if_reconciled",
+  "label": {
+    "lang": "de",
+    "text": "trägt nur, wenn die Bedingungen vereinbar sind",
+    "translations": {
+      "en": "carries only if the conditions can be reconciled"
+    }
+  },
+  "conditions": [
+    {
+      "agentId": "sv",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Finanzierung der zusätzlichen Kapazitäten erfolgt ausschließlich aus bestehenden Bundesmitteln, die im Finanzausgleichsgesetz versorgungsneutral umschichtet werden, ohne dass die Beitragssätze der Sozialversicherung erhöht werden müssen.",
+        "translations": {
+          "en": "The financing of additional capacities will exclusively be sourced from existing federal funds reallocated in a healthcare-neutral manner within the financial equalization system, without requiring any increase in social insurance contribution rates."
+        }
+      }
+    },
+    {
+      "agentId": "pf",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die vertragliche Vereinbarung zur Ausweitung ärztlicher Kapazitäten muss gleichzeitig die Integration von Community Nursing im Rahmen der PVE-Verträge verpflichtend vorsehen, mit klarer Leistungsbeschreibung und angemessener Finanzierung über den Gesamtvertrag.",
+        "translations": {
+          "en": "The contractual agreement on expanded medical capacities must simultaneously mandate the integration of Community Nursing within PVE contracts, with clear service specifications and appropriate financing through the overall contract."
+        }
+      }
+    },
+    {
+      "agentId": "gm",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Bundesmittel für das Paket werden ausschließlich über den Finanzausgleich bereitgestellt.",
+        "translations": {
+          "en": "Federal funding for the package must be provided exclusively through the fiscal equalization framework."
+        }
+      }
+    },
+    {
+      "agentId": "ka",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Umsetzung der zusätzlichen Kapazitäten und die Entlastung der Spitalsambulanzen werden im Evaluationsergebnis des Pilotprojekts explizit quantifiziert und müssen nachweislich mindestens 20 % Reduktion der Ambulanzfrequenzen in den betroffenen Versorgungsbereichen zeigen.",
+        "translations": {
+          "en": "The implementation of additional capacities and the relief of hospital outpatient departments must be explicitly quantified in the pilot project's evaluation results and must demonstrably achieve at least a 20% reduction in outpatient department frequencies in the affected care areas."
+        }
+      }
+    },
+    {
+      "agentId": "ak",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die zusätzlichen Termine und Kassenstellen werden vertraglich im Gesamtvertrag festgelegt, ohne dass die regionale Zielsteuerung in die Stellenplanung eingreift. Eine konkrete Deckungsposition im Bundesbudget muss vor Vertragsabschluss nachgewiesen sein.",
+        "translations": {
+          "en": "The additional appointments and contract positions must be contractually secured within the global agreement, without regional target steering encroaching on staffing planning. A concrete budgetary allocation must be verified before the contract is concluded."
+        }
+      }
+    }
+  ],
+  "pairsChecked": 10,
+  "conflicts": [
+    {
+      "a": "sv",
+      "b": "pf",
+      "severity": "tension",
+      "note": {
+        "lang": "de",
+        "text": "Die verpflichtende Finanzierung von Community Nursing erfordert zusätzliche Deckung aus den begrenzten, versorgungsneutral umschichtbaren Bundesmitteln.",
+        "translations": {
+          "en": "Mandatory funding for community nursing requires additional coverage from the limited federal funds available for reallocation without reducing care."
+        }
+      }
+    },
+    {
+      "a": "pf",
+      "b": "ak",
+      "severity": "tension",
+      "note": {
+        "lang": "de",
+        "text": "Die verpflichtende Finanzierung von Community Nursing muss zusätzlich zur ärztlichen Kapazität durch eine konkrete Bundesbudgetposition gedeckt sein.",
+        "translations": {
+          "en": "Mandatory funding for community nursing needs a specific federal budget allocation in addition to funding for physician capacity."
+        }
+      }
+    }
+  ],
+  "model": "azure/gpt-6-sol",
+  "checkedAt": "2026-11-06T06:04:23.045Z"
+}

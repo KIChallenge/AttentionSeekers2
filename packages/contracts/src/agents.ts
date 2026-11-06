@@ -123,5 +123,18 @@ export const AgentConfig = z.object({
       sha256: z.string().nullable(),
     })
     .optional(),
+  /**
+   * Added 2026-11-06 (citation style): the institution's historical citation propensity
+   * (share of corpus segments with legal, figure or study references; see
+   * packages/engine/config/citation-style.json) that phrased the evidence hint. Style only,
+   * never a gate. Absent in runs recorded before this field existed.
+   */
+  citationStyle: z
+    .object({
+      propensity: z.number(),
+      tier: z.enum(["high", "medium", "low"]),
+      measured: z.boolean(),
+    })
+    .optional(),
 });
 export type AgentConfig = z.infer<typeof AgentConfig>;

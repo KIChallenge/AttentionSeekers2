@@ -160,7 +160,7 @@ export function OutcomeView({
   brief: ImpactFigure[];
   evidence: EvidenceInfo;
 }) {
-  const { snap, run, t, lang, runId } = useRun();
+  const { snap, run, t, lang, runId, consistency } = useRun();
   const figures = impact ?? snap.figures;
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const proposals = snap.proposalOrder.map((id) => snap.proposals[id]).filter((p) => !!p);
@@ -284,6 +284,7 @@ export function OutcomeView({
               votes={snap.compromiseVotes ?? {}}
               result={snap.compromiseResult ?? null}
               lang={lang}
+              consistency={consistency}
             />
           </Panel>
         ) : null}

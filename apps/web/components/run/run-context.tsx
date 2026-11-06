@@ -1,6 +1,12 @@
 "use client";
 
-import { emptySnapshot, type Lang, type Run, type RunSnapshot } from "@sv/contracts";
+import {
+  type CompromiseConsistency,
+  emptySnapshot,
+  type Lang,
+  type Run,
+  type RunSnapshot,
+} from "@sv/contracts";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { usePrefs } from "@/components/shell/providers";
 import { type StreamState, useRunStream } from "@/lib/use-run-stream";
@@ -13,6 +19,8 @@ interface RunCtx {
   /** Run config from the server snapshot; stable while a replay starts from zero. */
   run: Run;
   evidence: Evidence;
+  /** Experte consistency check of the compromise (sidecar), null when absent. */
+  consistency: CompromiseConsistency | null;
   lang: Lang;
   t: RunStrings;
   /** True while this tab is folding the stream itself (live tail or "play live"). */
@@ -37,11 +45,13 @@ export function RunProvider({
   runId,
   initial,
   evidence,
+  consistency = null,
   children,
 }: {
   runId: string;
   initial: RunSnapshot & { run: Run };
   evidence: Evidence;
+  consistency?: CompromiseConsistency | null;
   children: ReactNode;
 }) {
   const { lang } = usePrefs();
@@ -78,6 +88,7 @@ export function RunProvider({
     snap: mode === "replay" && stream.snapshot.lastSeq < 0 ? emptySnapshot() : snap,
     run: initial.run,
     evidence,
+    consistency,
     lang,
     t: runStrings[lang],
     streaming,

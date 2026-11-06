@@ -1,25 +1,37 @@
 // The moderator's compromise package with its real support from the ratification round.
 // Presentational only, so the outcome page, the result document and the scenario tabs share it.
-import type { CompromisePackage, CompromiseResult, CompromiseVote } from "@sv/contracts";
+import type {
+  CompromiseConsistency,
+  CompromisePackage,
+  CompromiseResult,
+  CompromiseVote,
+} from "@sv/contracts";
 import { AgentTile } from "@/components/run/agent-tile";
 import { Chip } from "@/components/run/bits";
 import { cn } from "@/lib/utils";
-import { COMPROMISE_T, compromiseTally, nameOf, tx } from "./compromise-strings";
+import { COMPROMISE_T, compromiseTally, consistencyLines, nameOf, tx } from "./compromise-strings";
 
 export { COMPROMISE_T, compromiseTally };
 
 type Lang = "de" | "en";
 
-export function CompromiseVerdict({ result, lang }: { result: CompromiseResult; lang: Lang }) {
+export function CompromiseVerdict({
+  result,
+  lang,
+  consistency = null,
+}: {
+  result: CompromiseResult;
+  lang: Lang;
+  consistency?: CompromiseConsistency | null;
+}) {
+  const ok = consistency ? consistency.verdict === "carries" : result.passes;
   return (
     <Chip
       className={cn(
-        result.passes
-          ? "border-success/30 bg-success/10 text-success"
-          : "border-warning/40 text-warning",
+        ok ? "border-success/30 bg-success/10 text-success" : "border-warning/40 text-warning",
       )}
     >
-      {compromiseTally(result, lang)}
+      {compromiseTally(result, lang, consistency)}
     </Chip>
   );
 }
@@ -30,13 +42,17 @@ export function CompromiseBlock({
   result,
   lang,
   compact = false,
+  consistency = null,
 }: {
   compromise: CompromisePackage;
   votes: Record<string, CompromiseVote>;
   result: CompromiseResult | null;
   lang: Lang;
   compact?: boolean;
+  /** Experte consistency check (sidecar); preferred over the bare tally when present. */
+  consistency?: CompromiseConsistency | null;
 }) {
+  const k = consistency && consistency.packageId === compromise.id ? consistency : null;
   const c = COMPROMISE_T[lang];
   const order = { support: 0, conditional: 1, oppose: 2 } as const;
   const list = Object.values(votes).sort((a, b) => order[a.stance] - order[b.stance]);
@@ -45,7 +61,7 @@ export function CompromiseBlock({
       <div className="space-y-1.5">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-base font-semibold tracking-tight">{tx(compromise.title, lang)}</h3>
-          {result ? <CompromiseVerdict result={result} lang={lang} /> : null}
+          {result ? <CompromiseVerdict result={result} lang={lang} consistency={k} /> : null}
         </div>
         {result && !result.passes ? (
           <p className="text-sm text-warning">{tx(result.note, lang)}</p>
@@ -54,6 +70,27 @@ export function CompromiseBlock({
           {tx(compromise.rationale, lang)}
         </p>
       </div>
+      {k && result?.passes ? (
+        <div
+          className={cn(
+            "rounded-xl border p-3 text-sm",
+            k.verdict === "carries_if_reconciled" && "border-warning/40",
+          )}
+        >
+          <div className="mb-1 text-xs text-muted-foreground">
+            {c.consistency} · {k.pairsChecked} {c.pairs}
+          </div>
+          {k.conflicts.length ? (
+            <ul className="space-y-1">
+              {consistencyLines(k, lang).map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>{c.compatible}</p>
+          )}
+        </div>
+      ) : null}
       <div className={cn("grid gap-4", !compact && "lg:grid-cols-2")}>
         <div>
           <div className="mb-1.5 text-xs text-muted-foreground">{c.components}</div>
