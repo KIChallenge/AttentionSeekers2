@@ -283,7 +283,12 @@ async function smokeModel(alias: string, cases: Case[]): Promise<Row> {
     } catch {
       // counted from the failed CallRecord
     }
-    for (const r of kindRecords) records.push({ ...r, kind: c.kind });
+    for (const r of kindRecords) {
+      records.push({ ...r, kind: c.kind });
+      console.error(
+        `smoke_call ${alias} ${c.kind} ${r.status} ${r.durationMs}ms in=${r.tokensIn} out=${r.tokensOut} attempts=${r.attempts}`,
+      );
+    }
     kindRecords = [];
   });
   const lat = records.map((r) => r.durationMs);
