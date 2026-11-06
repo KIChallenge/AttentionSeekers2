@@ -1,8 +1,7 @@
 "use client";
 
-import { localize, TEMPLATES } from "@sv/contracts";
+import { localize } from "@sv/contracts";
 import Link from "next/link";
-import { OutcomeBadge } from "@/components/run/outcome-badge";
 import { EmptyState, Eyebrow, Meta } from "@/components/shell/page";
 import { usePrefs } from "@/components/shell/providers";
 import { topicT } from "@/components/topics/messages";
@@ -10,20 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ScenarioCard } from "@/lib/scenario-runs";
 import { cn } from "@/lib/utils";
-import { type ScenarioMessages, scenarioT, scenarioTitle } from "./messages";
+import { type ScenarioMessages, scenarioT, scenarioTitleOf } from "./messages";
 
 type Lang = "de" | "en";
-
-export function cardTitle(
-  c: Pick<ScenarioCard, "baseKey" | "template" | "question" | "kind">,
-  lang: Lang,
-  s: ScenarioMessages,
-): string {
-  const tpl = TEMPLATES.find((x) => x.id === c.template);
-  const base =
-    scenarioTitle(c.baseKey, lang) ?? (tpl ? (lang === "de" ? tpl.de : tpl.en) : c.question);
-  return c.kind === "main" ? base : `${base}: ${s.kind[c.kind]}`;
-}
 
 function joinList(xs: string[], lang: Lang) {
   if (xs.length <= 1) return xs.join("");
@@ -43,7 +31,7 @@ function headline(c: ScenarioCard, lang: Lang, s: ScenarioMessages): string | nu
 }
 
 function Card({ c, compact = false }: { c: ScenarioCard; compact?: boolean }) {
-  const { t: base, lang } = usePrefs();
+  const { lang } = usePrefs();
   const s = scenarioT(lang);
   const fam = topicT(lang).fam;
   const line = headline(c, lang, s);
@@ -55,17 +43,14 @@ function Card({ c, compact = false }: { c: ScenarioCard; compact?: boolean }) {
       )}
       data-scenario={c.key}
     >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <Eyebrow>{c.kind === "main" ? s.runs(c.runCount) : s.kind[c.kind]}</Eyebrow>
-        <OutcomeBadge value={c.outcomeBadge} t={base} />
-      </div>
+      <Eyebrow>{c.kind === "main" ? s.runs(c.runCount) : s.kind[c.kind]}</Eyebrow>
       <h2
         className={cn(
           "leading-snug font-semibold tracking-tight",
           compact ? "text-base" : "text-lg",
         )}
       >
-        {cardTitle(c, lang, s)}
+        {scenarioTitleOf(c, lang)}
       </h2>
       <p className="line-clamp-2 text-sm text-muted-foreground" title={c.question}>
         {c.question}

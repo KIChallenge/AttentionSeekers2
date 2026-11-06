@@ -131,16 +131,21 @@ const arrayIncludesSome = (row: { getValue: (id: string) => unknown }, id: strin
 /** Runs of one scenario as a data table (cards below lg) with filters in the toolbar. */
 export function RunsTable({
   runs,
+  labels = {},
   forkAvailable,
   title,
 }: {
   runs: RunSummary[];
+  /** Short name per run (reference, ensemble label); rows without one show the question. */
+  labels?: Record<string, string>;
   forkAvailable: boolean;
-  title?: string;
+  /** Section title; null renders the table without a title row (inside a tab). */
+  title?: string | null;
 }) {
   const { t: base, lang } = usePrefs();
   const t = laneT(lang);
   const s = scenarioT(lang);
+  const hasLabels = Object.keys(labels).length > 0;
   const [sorting, setSorting] = useState<SortingState>([{ id: "createdAt", desc: true }]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
@@ -151,17 +156,22 @@ export function RunsTable({
     {
       id: "question",
       accessorKey: "question",
-      header: () => t.dash.question,
+      header: () => (hasLabels ? t.dash.run : t.dash.question),
       filterFn: (row, _id, v: string) =>
         !v ||
         row.original.question.toLowerCase().includes(v.toLowerCase()) ||
+        (labels[row.original.id] ?? "").toLowerCase().includes(v.toLowerCase()) ||
         row.original.id.includes(v),
       cell: ({ row }) => {
         const r = row.original;
         return (
           <div className="max-w-[32rem] min-w-[16rem] whitespace-normal">
-            <Link href={`/runs/${r.id}`} className="line-clamp-2 font-medium hover:underline">
-              {r.question}
+            <Link
+              href={`/runs/${r.id}`}
+              className="line-clamp-2 font-medium hover:underline"
+              title={r.question}
+            >
+              {labels[r.id] ?? r.question}
             </Link>
             <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
               {r.isReference ? (
@@ -286,7 +296,7 @@ export function RunsTable({
   return (
     <Section
       variant="plain"
-      title={title ?? t.dash.allRuns}
+      title={title === null ? undefined : (title ?? t.dash.allRuns)}
       aria-label={title ?? t.dash.allRuns}
       bodyClassName="space-y-4"
     >
@@ -342,8 +352,12 @@ export function RunsTable({
               <span className="flex-1" />
               <Meta>{formatDate(r.createdAt, lang)}</Meta>
             </div>
-            <Link href={`/runs/${r.id}`} className="leading-snug font-medium hover:underline">
-              {r.question}
+            <Link
+              href={`/runs/${r.id}`}
+              className="leading-snug font-medium hover:underline"
+              title={r.question}
+            >
+              {labels[r.id] ?? r.question}
             </Link>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <AgreementMeter agreed={r.agreementShare.agreed} of={r.agreementShare.of} />

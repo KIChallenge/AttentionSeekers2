@@ -1,6 +1,9 @@
 // Strings for the scenario grid and the scenario page (DE/EN). Kept local like the topic
 // strings so the shared message files stay small.
+import { TEMPLATES, type Template } from "@sv/contracts";
+import { topicT } from "@/components/topics/messages";
 import type { ScenarioKind } from "@/lib/scenarios";
+import type { RunColumn } from "@/lib/topic-compare";
 
 type Lang = "de" | "en";
 
@@ -13,9 +16,15 @@ const TITLES: Record<string, { de: string; en: string }> = {
   backtest_svog_2018: { de: "SV-OG 2018 Backtest", en: "SV-OG 2018 backtest" },
 };
 
-export function scenarioTitle(baseKey: string, lang: Lang): string | null {
-  const t = TITLES[baseKey];
-  return t ? t[lang] : null;
+/** Title of a scenario: the mapped name, else the template name, else the question itself. */
+export function scenarioTitleOf(
+  c: { baseKey: string; template: Template; question: string; kind: ScenarioKind },
+  lang: Lang,
+): string {
+  const tpl = TEMPLATES.find((x) => x.id === c.template);
+  const base = TITLES[c.baseKey]?.[lang] ?? (tpl ? (lang === "de" ? tpl.de : tpl.en) : c.question);
+  const kind = scenarioT(lang).kind[c.kind];
+  return kind ? `${base}: ${kind}` : base;
 }
 
 const de = {
@@ -192,3 +201,11 @@ const en: ScenarioMessages = {
 };
 
 export const scenarioT = (lang: Lang): ScenarioMessages => (lang === "de" ? de : en);
+
+/** Same reading of a run column as the topic comparison: reference, ensemble label or variant. */
+export function runLabelOf(r: RunColumn, lang: Lang): string {
+  const t = topicT(lang);
+  if (r.isReference) return `${t.reference}${r.id.endsWith("presse") ? " + Presse" : ""}`;
+  const all = r.label.match(/^all_(.+)$/)?.[1];
+  return t.label[r.label] ?? (all ? t.allSeats(t.fam[all] ?? all) : r.label);
+}
