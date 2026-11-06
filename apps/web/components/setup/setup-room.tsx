@@ -250,6 +250,75 @@ export function SetupRoom({
   const [open, setOpen] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: "error" | "info"; text: string } | null>(null);
+  const [reading, setReading] = useState(false);
+  const [recognized, setRecognized] = useState<string | null>(null);
+  // Free text to settings: the model reads question, rule, rounds, budget, climate, pressures,
+  // seats and cutoff; only what the text says is changed, the rest stays as set.
+  const fromText = async () => {
+    setReading(true);
+    setRecognized(null);
+    try {
+      const res = await fetch("/api/setup/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: cfg.question, lang }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      const p = (await res.json()) as {
+        question: string;
+        decisionRule: RoomConfig["decisionRule"] | null;
+        roundLimit: number | null;
+        budgetMaxIncreasePct: number | null;
+        climate: RoomConfig["climate"] | null;
+        pressureTime: RoomConfig["pressures"]["time"] | null;
+        pressureBudget: RoomConfig["pressures"]["budget"] | null;
+        pressurePublic: RoomConfig["pressures"]["public"] | null;
+        include: string[];
+        exclude: string[];
+        asOf: string | null;
+        summary: string;
+      };
+      setCfg((c) => {
+        const agents = c.agents.map((a) =>
+          p.exclude.includes(a.agentId)
+            ? { ...a, enabled: false }
+            : p.include.includes(a.agentId)
+              ? { ...a, enabled: true }
+              : a,
+        );
+        const of = agents.filter((a) => a.enabled).length;
+        const rule = p.decisionRule ?? c.decisionRule;
+        return {
+          ...c,
+          template: "custom",
+          question: p.question || c.question,
+          decisionRule: rule,
+          qualifiedMajority:
+            rule === "qualified_majority"
+              ? { of, needed: Math.min(of, Math.max(1, Math.ceil((of * 2) / 3))) }
+              : null,
+          roundLimit: p.roundLimit ?? c.roundLimit,
+          budgetCeiling:
+            p.budgetMaxIncreasePct === null
+              ? c.budgetCeiling
+              : { ...c.budgetCeiling, maxIncreasePct: p.budgetMaxIncreasePct },
+          climate: p.climate ?? c.climate,
+          pressures: {
+            time: p.pressureTime ?? c.pressures.time,
+            budget: p.pressureBudget ?? c.pressures.budget,
+            public: p.pressurePublic ?? c.pressures.public,
+          },
+          asOf: p.asOf ?? c.asOf,
+          agents,
+        };
+      });
+      setRecognized(p.summary);
+    } catch {
+      setRecognized(t.setup.fromTextFailed);
+    } finally {
+      setReading(false);
+    }
+  };
   const [copied, setCopied] = useState(false);
 
   const enabled = cfg.agents.filter((a) => a.enabled);
@@ -488,6 +557,20 @@ export function SetupRoom({
               }
               rows={3}
             />
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={reading || cfg.question.trim().length < 5}
+                onClick={() => void fromText()}
+              >
+                {reading ? t.setup.fromTextBusy : t.setup.fromText}
+              </Button>
+              {recognized ? (
+                <span className="text-xs text-muted-foreground">{recognized}</span>
+              ) : null}
+            </div>
           </div>
           <div className="mt-3 flex items-center gap-3">
             <span className="text-xs text-muted-foreground">{t.setup.pace}</span>
