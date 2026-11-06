@@ -18,8 +18,7 @@ import {
   EXPERT_MODEL,
   L,
   profileOf,
-  SECOND_FAMILY_AGENTS,
-  SECOND_MODEL,
+  seatModelOf,
   seedAxes,
   seedEvents,
   seedTopics,
@@ -64,9 +63,8 @@ export function defaultRoom(input: RoomInput): RoomConfig {
   const template = input.template ?? "custom";
   const seed = templateSeed(template);
   const model = input.model ?? DEFAULT_MODEL();
-  // Two-family floor (FR-X1): unless one model is forced, some seats use the second family.
-  const second = input.model ? null : SECOND_MODEL();
-  const secondSeats = new Set(second ? SECOND_FAMILY_AGENTS() : []);
+  // Multi-family seats (FR-X1): unless one model is forced, the seat plan spreads the
+  // institutions over four families (DEFAULT_SEAT_PLAN in config.ts).
   const ids = input.agentIds ?? seed?.agents ?? [...CORE_AGENT_IDS];
   return {
     template,
@@ -81,7 +79,7 @@ export function defaultRoom(input: RoomInput): RoomConfig {
         mode: c?.mode ?? "prompted",
         suggestedByModerator: true,
         reason: L(profileOf(agentId).vetoBasis.de, profileOf(agentId).vetoBasis.en),
-        model: secondSeats.has(agentId) && second ? second : model,
+        model: input.model ?? seatModelOf(agentId),
         temperament: defaultTemperament(agentId),
       };
     }),

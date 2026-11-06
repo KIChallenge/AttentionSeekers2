@@ -93,8 +93,10 @@ export async function runExpert(
   s: RunState,
   fresh: Claim[],
   expertModel: string,
-  verifierModel: string,
+  /** One verifier, or one per claim (the speaker's family must not verify itself). */
+  verifier: string | ((claim: Claim) => string),
 ): Promise<ExpertResult> {
+  const verifierOf = typeof verifier === "string" ? () => verifier : verifier;
   const checkable = fresh.filter((c) => c.kind !== "normative");
   const result: ExpertResult = { updated: [], notes: [], metas: [], checked: checkable.length };
   if (checkable.length === 0) return result;
@@ -102,21 +104,31 @@ export async function runExpert(
   const earlier = [...s.claims.values()].filter(
     (c) => !freshIds.has(c.id) && c.kind !== "normative",
   );
-  const [a, b] = await Promise.all([
+  // Second checks grouped by verifier model, so each claim is verified outside its family.
+  const groups = new Map<string, Claim[]>();
+  for (const c of checkable) {
+    const m = verifierOf(c);
+    groups.set(m, [...(groups.get(m) ?? []), c]);
+  }
+  const [a, ...bs] = await Promise.all([
     check(s, expertModel, "expert_check", "Erste Prüfung.", checkable, earlier),
-    check(
-      s,
-      verifierModel,
-      "expert_verify",
-      "Unabhängige Zweitprüfung: sei streng, akzeptiere nur, was der Beleg wörtlich oder rechnerisch trägt.",
-      checkable,
-      earlier,
+    ...[...groups].map(([m, claims]) =>
+      check(s, m, "expert_verify", VERIFY_STANCE, claims, earlier),
     ),
   ]);
-  for (const r of [a, b]) if (r) result.metas.push(r.meta);
+  for (const r of [a, ...bs]) if (r) result.metas.push(r.meta);
   const byId = (r: typeof a) => new Map((r?.checks ?? []).map((c) => [c.claimId, c]));
   const ca = byId(a);
-  const cb = byId(b);
+  // A verifier may only answer for the claims it was given.
+  const cb = new Map(
+    [...groups].flatMap(([, claims], i) => {
+      const got = byId(bs[i] ?? null);
+      return claims.flatMap((c) => {
+        const v = got.get(c.id);
+        return v ? [[c.id, { ...v, model: bs[i]?.meta.model ?? verifierOf(c) }] as const] : [];
+      });
+    }),
+  );
   const known = new Map([...s.claims.values()].map((c) => [c.id, c]));
   const pairs = new Set<string>();
   for (const claim of checkable) {
@@ -131,9 +143,9 @@ export async function runExpert(
       });
     if (y)
       verdicts.push({
-        model: b?.meta.model ?? verifierModel,
+        model: y.model,
         verdict: y.verdict,
-        reason: `${y.reason.slice(0, 280)}${verifierModel === expertModel ? " (Zweitprüfung, gleiches Modell)" : ""}`,
+        reason: `${y.reason.slice(0, 280)}${y.model === expertModel ? " (Zweitprüfung, gleiches Modell)" : ""}`,
       });
     if (verdicts.length === 0) continue;
     const contra = [x, y].find(
