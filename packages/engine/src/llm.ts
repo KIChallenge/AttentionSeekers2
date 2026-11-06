@@ -188,12 +188,40 @@ export const isBedrock = (model: string) => model.startsWith(BEDROCK_PREFIX);
 /** Structured-output reliability per model: calls, invalid outputs, final failures. */
 export const structuredStats: Record<
   string,
-  { calls: number; attempts: number; invalid: number; failed: number; repaired: number }
+  {
+    calls: number;
+    attempts: number;
+    invalid: number;
+    failed: number;
+    /** Fixed locally by repairToSchema (missing empty fields, numeric strings). */
+    repaired: number;
+    /** Valid only after the repair turn. */
+    retryRepaired: number;
+  }
 > = {};
 const statOf = (model: string) => {
-  structuredStats[model] ??= { calls: 0, attempts: 0, invalid: 0, failed: 0, repaired: 0 };
+  structuredStats[model] ??= {
+    calls: 0,
+    attempts: 0,
+    invalid: 0,
+    failed: 0,
+    repaired: 0,
+    retryRepaired: 0,
+  };
   return structuredStats[model];
 };
+
+/** The repair turn: names the first validation problems so the model can fix them. */
+export function repairPrompt(error: unknown): string {
+  const issues =
+    error instanceof z.ZodError
+      ? error.issues
+          .slice(0, 8)
+          .map((i) => `${i.path.join(".") || "(Wurzel)"}: ${i.message}`)
+          .join("; ")
+      : redact(error instanceof Error ? error.message : String(error)).slice(0, 300);
+  return `Deine Antwort war kein gültiges JSON für das Schema (${issues}). Gib das vollständige, korrigierte JSON-Objekt zurück, nur das Objekt, alle Felder.`;
+}
 
 export function hasBedrock(): boolean {
   return Boolean(process.env.BIFROST_SEED_BEDROCK_KEY && process.env.BIFROST_SEED_BEDROCK_REGION);
@@ -206,19 +234,80 @@ export function toolSchema(schema: Record<string, unknown>): Record<string, unkn
 }
 
 /**
- * Maps chat messages to Converse and forces one tool whose inputSchema is the JSON schema,
- * so the tool input is the structured output. System messages go to `system`; consecutive
- * same-role messages are merged because Converse requires alternating turns.
+ * How one Bedrock model is driven. Every family verified on 2026-11-06 accepts a forced tool,
+ * but some fill it better with toolChoice "any" (the probe saw DeepSeek put prose before a
+ * half-empty tool input under a named choice). "json" asks for JSON in the text instead and
+ * relies on the strict parse plus one repair turn; it is the fallback for models whose tool
+ * use is unreliable. Overridable per process with SV_BEDROCK_STRUCTURED=tool|json.
+ */
+export interface BedrockProfile {
+  family: string;
+  structured: "tool" | "json";
+  toolChoice: "tool" | "any";
+  /** Output cap per call; reasoning models spend part of it before the answer. */
+  maxTokens: number;
+  /** Concurrent requests per model id (quotas are per model). */
+  concurrency: number;
+  /** Retries on throttling or a transient 5xx before the call fails. */
+  throttleRetries: number;
+}
+
+const PROFILE_DEFAULT: BedrockProfile = {
+  family: "bedrock",
+  structured: "tool",
+  toolChoice: "tool",
+  maxTokens: 8192,
+  concurrency: 6,
+  throttleRetries: 4,
+};
+
+export const BEDROCK_PROFILES: ReadonlyArray<{ match: RegExp } & Partial<BedrockProfile>> = [
+  { match: /nova/, family: "nova" },
+  { match: /deepseek/, family: "deepseek", toolChoice: "any" },
+  { match: /kimi|moonshot/, family: "kimi", toolChoice: "any" },
+  { match: /qwen/, family: "qwen" },
+  { match: /glm|zai\./, family: "glm" },
+  { match: /mistral|devstral|pixtral/, family: "mistral" },
+  { match: /gpt-oss/, family: "gpt-oss", maxTokens: 12_000 },
+  { match: /minimax/, family: "minimax", structured: "json", maxTokens: 12_000 },
+];
+
+export function bedrockProfile(model: string): BedrockProfile {
+  const id = model.startsWith(BEDROCK_PREFIX) ? model.slice(BEDROCK_PREFIX.length) : model;
+  const { match: _m, ...hit } = BEDROCK_PROFILES.find((p) => p.match.test(id)) ?? {
+    match: /$^/,
+  };
+  const p: BedrockProfile = { ...PROFILE_DEFAULT, ...hit };
+  const forced = process.env.SV_BEDROCK_STRUCTURED;
+  if (forced === "tool" || forced === "json") p.structured = forced;
+  return p;
+}
+
+/** System instruction for JSON-in-text mode: the schema itself is the contract. */
+export function jsonInstruction(schema: Record<string, unknown>): string {
+  return [
+    "Antworte ausschließlich mit genau einem JSON-Objekt, das exakt diesem JSON-Schema entspricht.",
+    "Alle Felder sind Pflicht (null, wo erlaubt), keine zusätzlichen Felder, kein Text davor oder danach, keine Code-Fences.",
+    `JSON-Schema:\n${JSON.stringify(toolSchema(schema))}`,
+  ].join("\n");
+}
+
+/**
+ * Maps chat messages to Converse. Tool mode forces one tool whose inputSchema is the JSON
+ * schema, so the tool input is the structured output; JSON mode sends no tools and appends
+ * the schema to the system prompt. System messages go to `system`; consecutive same-role
+ * messages are merged because Converse requires alternating turns.
  */
 export function converseBody(
   messages: Message[],
   name: string,
   schema: Record<string, unknown>,
   maxTokens: number,
-  choice: "tool" | "any" = "tool",
+  choice: "tool" | "any" | "json" = "tool",
   temperature: number | null = null,
 ): Record<string, unknown> {
   const system = messages.filter((m) => m.role === "system").map((m) => ({ text: m.content }));
+  if (choice === "json") system.push({ text: jsonInstruction(schema) });
   const turns: Array<{ role: "user" | "assistant"; content: Array<{ text: string }> }> = [];
   for (const m of messages) {
     if (m.role === "system") continue;
@@ -230,19 +319,71 @@ export function converseBody(
     ...(system.length ? { system } : {}),
     messages: turns,
     inferenceConfig: temperature === null ? { maxTokens } : { maxTokens, temperature },
-    toolConfig: {
-      tools: [
-        {
-          toolSpec: {
-            name,
-            description: `Return the result as the input of this tool (${name}).`,
-            inputSchema: { json: toolSchema(schema) },
+    ...(choice === "json"
+      ? {}
+      : {
+          toolConfig: {
+            tools: [
+              {
+                toolSpec: {
+                  name,
+                  description: `Return the result as the input of this tool (${name}).`,
+                  inputSchema: { json: toolSchema(schema) },
+                },
+              },
+            ],
+            toolChoice: choice === "tool" ? { tool: { name } } : { any: {} },
           },
-        },
-      ],
-      toolChoice: choice === "tool" ? { tool: { name } } : { any: {} },
-    },
+        }),
   };
+}
+
+/** One Converse content block (only the kinds the engine reads). */
+export type ConverseBlock = {
+  text?: string;
+  toolUse?: { name?: string; input?: unknown };
+  reasoningContent?: { reasoningText?: { text?: string }; redactedContent?: string };
+};
+
+/**
+ * Splits a Converse answer into the structured payload and the reasoning. Reasoning blocks
+ * (and inline <think> sections) are telemetry, never the answer; the payload is the tool
+ * input when there is one, else the JSON object found in the final text.
+ */
+export function readConverse(parts: ConverseBlock[]): { content: string; reasoning: string } {
+  const reasoning: string[] = [];
+  const texts: string[] = [];
+  for (const p of parts) {
+    const r = p.reasoningContent?.reasoningText?.text;
+    if (r) reasoning.push(r);
+    if (typeof p.text === "string") {
+      const think = p.text.match(/<think>([\s\S]*?)<\/think>/g) ?? [];
+      for (const t of think) reasoning.push(t.replace(/<\/?think>/g, ""));
+      texts.push(p.text.replace(/<think>[\s\S]*?<\/think>/g, ""));
+    }
+  }
+  const input = parts.find((p) => p.toolUse)?.toolUse?.input;
+  const content =
+    typeof input === "string"
+      ? input
+      : input !== undefined && input !== null
+        ? JSON.stringify(input)
+        : extractJson(texts.join("\n"));
+  return { content, reasoning: reasoning.join("\n") };
+}
+
+/**
+ * The JSON object inside a text answer: strips code fences and any prose around the
+ * outermost braces. Returns the trimmed text unchanged when there is no object, so the
+ * strict JSON.parse that follows reports the real problem.
+ */
+export function extractJson(text: string): string {
+  const t = text.trim();
+  const fenced = t.match(/```(?:json)?\s*([\s\S]*?)```/i)?.[1]?.trim();
+  const body = fenced ?? t;
+  const a = body.indexOf("{");
+  const b = body.lastIndexOf("}");
+  return a >= 0 && b > a ? body.slice(a, b + 1) : body;
 }
 
 type JsonSchema = {
@@ -311,25 +452,43 @@ export function repairToSchema(data: unknown, schema: JsonSchema): unknown {
 /** Models that refuse a named toolChoice fall back to "any" (one tool, same effect). */
 const anyChoice = new Set<string>();
 
-const BEDROCK_THROTTLE_RETRIES = 3;
-/** HTTP 429 responses per model (reported with the structured-output stats). */
+/** Throttling (429) and transient 5xx responses per model (reported with the stats). */
 export const throttled: Record<string, number> = {};
 
-// Bedrock quotas are per account and low; a separate, smaller concurrency slot.
-let bedrockActive = 0;
-const bedrockWaiting: Array<() => void> = [];
-function bedrockLimit(): number {
-  const v = Number(process.env.SV_BEDROCK_CONCURRENCY ?? 6);
-  return Number.isSafeInteger(v) && v > 0 ? v : 6;
+/** Statuses worth a retry: throttling, timeouts and transient service errors. */
+const RETRY_STATUS = new Set([408, 429, 500, 502, 503, 504]);
+
+/** Backoff before retry i (0-based): Retry-After when sent, else 1.5 s doubling, with jitter. */
+export function backoffMs(i: number, retryAfter: string | null, random = Math.random()): number {
+  const after = Number(retryAfter);
+  if (Number.isFinite(after) && after > 0) return Math.min(after * 1000, 30_000);
+  return Math.min(1500 * 2 ** i, 20_000) * (0.75 + 0.5 * random);
 }
-async function bedrockSlot<T>(run: () => Promise<T>): Promise<T> {
-  if (bedrockActive >= bedrockLimit()) await new Promise<void>((r) => bedrockWaiting.push(r));
-  bedrockActive++;
+
+// Bedrock quotas are per account and model and low: one slot pool per model id.
+const bedrockPools = new Map<string, { active: number; waiting: Array<() => void> }>();
+function bedrockLimit(profile: BedrockProfile): number {
+  const v = Number(process.env.SV_BEDROCK_CONCURRENCY ?? profile.concurrency);
+  return Number.isSafeInteger(v) && v > 0 ? Math.min(v, profile.concurrency) : profile.concurrency;
+}
+async function bedrockSlot<T>(
+  modelId: string,
+  profile: BedrockProfile,
+  run: () => Promise<T>,
+): Promise<T> {
+  let pool = bedrockPools.get(modelId);
+  if (!pool) {
+    pool = { active: 0, waiting: [] };
+    bedrockPools.set(modelId, pool);
+  }
+  const p = pool;
+  if (p.active >= bedrockLimit(profile)) await new Promise<void>((r) => p.waiting.push(r));
+  p.active++;
   try {
     return await run();
   } finally {
-    bedrockActive--;
-    bedrockWaiting.shift()?.();
+    p.active--;
+    p.waiting.shift()?.();
   }
 }
 
@@ -341,36 +500,45 @@ async function completeBedrock(
   maxTokens: number,
   timeoutMs: number,
   temperature: number | null = null,
-): Promise<{ content: string; meta: Omit<CallMeta, "retries"> }> {
+): Promise<{ content: string; reasoning: string; meta: Omit<CallMeta, "retries"> }> {
   const key = process.env.BIFROST_SEED_BEDROCK_KEY;
   const region = process.env.BIFROST_SEED_BEDROCK_REGION;
   if (!key || !region) throw new Error("Bedrock key or region is not set");
   const modelId = model.slice(BEDROCK_PREFIX.length);
-  return bedrockSlot(async () => {
+  const profile = bedrockProfile(model);
+  const choiceNow = (): "tool" | "any" | "json" =>
+    profile.structured === "json" ? "json" : anyChoice.has(modelId) ? "any" : profile.toolChoice;
+  return bedrockSlot(modelId, profile, async () => {
     const started = performance.now();
     let status: number | undefined;
     try {
-      const send = (choice: "tool" | "any") =>
+      const send = (choice: "tool" | "any" | "json") =>
         fetch(
           `https://bedrock-runtime.${region}.amazonaws.com/model/${encodeURIComponent(modelId)}/converse`,
           {
             method: "POST",
             headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
             body: JSON.stringify(
-              converseBody(messages, name, schema, maxTokens, choice, temperature),
+              converseBody(
+                messages,
+                name,
+                schema,
+                Math.min(maxTokens, profile.maxTokens),
+                choice,
+                temperature,
+              ),
             ),
             signal: AbortSignal.timeout(timeoutMs),
           },
         );
-      let res = await send(anyChoice.has(modelId) ? "any" : "tool");
-      // Throttling: back off and retry (1.5 s, 3 s, 6 s) before giving up.
-      for (let i = 0; res.status === 429 && i < BEDROCK_THROTTLE_RETRIES; i++) {
+      let res = await send(choiceNow());
+      for (let i = 0; RETRY_STATUS.has(res.status) && i < profile.throttleRetries; i++) {
         throttled[model] = (throttled[model] ?? 0) + 1;
         await res.text();
-        await new Promise((r) => setTimeout(r, 1500 * 2 ** i));
-        res = await send(anyChoice.has(modelId) ? "any" : "tool");
+        await new Promise((r) => setTimeout(r, backoffMs(i, res.headers.get("retry-after"))));
+        res = await send(choiceNow());
       }
-      if (res.status === 400 && !anyChoice.has(modelId)) {
+      if (res.status === 400 && choiceNow() === "tool") {
         const text = await res.text();
         if (!/toolChoice|tool choice/i.test(text))
           throw new Error(`Bedrock 400: ${redact(text.slice(0, 300))}`);
@@ -381,37 +549,33 @@ async function completeBedrock(
       if (!res.ok)
         throw new Error(`Bedrock ${res.status}: ${redact((await res.text()).slice(0, 300))}`);
       const json = (await res.json()) as {
-        output?: {
-          message?: {
-            content?: Array<{ text?: string; toolUse?: { name?: string; input?: unknown } }>;
-          };
-        };
+        output?: { message?: { content?: ConverseBlock[] } };
         stopReason?: string;
         usage?: { inputTokens?: number; outputTokens?: number; cacheReadInputTokens?: number };
       };
       const u = json.usage ?? {};
+      const { content, reasoning } = readConverse(json.output?.message?.content ?? []);
+      // Converse reports no separate reasoning count; estimate it from the reasoning text.
+      // outputTokens already include it (as completion_tokens do on the gateway).
+      const reasoningTokens = reasoning
+        ? Math.min(estimateTokens(reasoning), u.outputTokens ?? 0)
+        : 0;
       usage.calls++;
       usage.tokensIn += u.inputTokens ?? 0;
       usage.tokensOut += u.outputTokens ?? 0;
+      usage.reasoningTokens += reasoningTokens;
       if (json.stopReason === "max_tokens")
         throw new StructuredOutputError(`LLM ${name}: truncated`);
-      const parts = json.output?.message?.content ?? [];
-      const input = parts.find((p) => p.toolUse)?.toolUse?.input;
-      const content =
-        typeof input === "string"
-          ? input
-          : input !== undefined
-            ? JSON.stringify(input)
-            : (parts.find((p) => p.text)?.text ?? "");
       if (!content.trim()) throw new StructuredOutputError(`LLM ${name}: empty response`);
       return {
         content,
+        reasoning,
         meta: {
           model,
           latencyMs: Math.round(performance.now() - started),
           tokensIn: u.inputTokens ?? 0,
           tokensOut: u.outputTokens ?? 0,
-          reasoningTokens: 0,
+          reasoningTokens,
           tokensCached: u.cacheReadInputTokens ?? 0,
           gatewayRequestId: res.headers.get("x-amzn-requestid"),
         },
@@ -422,6 +586,7 @@ async function completeBedrock(
         JSON.stringify({
           operation: name,
           provider: "bedrock",
+          model,
           status,
           message: redact(error instanceof Error ? error.message : String(error)),
         }),
@@ -486,6 +651,9 @@ export async function structured<T extends z.ZodType>(
       output,
     });
   let lastError: unknown;
+  // Bedrock: the second attempt is a repair turn that shows the model its invalid answer
+  // and the validation error; the gateway path keeps the plain retry (strict mode).
+  let attemptMessages = messages;
   for (let attempt = 0; attempt < 2; attempt++) {
     stat.attempts++;
     acc.attempts++;
@@ -495,10 +663,10 @@ export async function structured<T extends z.ZodType>(
       ({ content, meta } = isBedrock(model)
         ? await completeBedrock(
             model,
-            messages,
+            attemptMessages,
             name,
             json,
-            Math.min(maxOutputTokens, 8192),
+            maxOutputTokens,
             timeoutMs,
             temperature,
           )
@@ -528,7 +696,8 @@ export async function structured<T extends z.ZodType>(
       const raw: unknown = JSON.parse(content);
       const direct = schema.safeParse(raw);
       if (direct.success) {
-        report("ok", direct.data, null);
+        if (attempt > 0) stat.retryRepaired++;
+        report(attempt > 0 ? "repaired" : "ok", direct.data, null);
         return { data: direct.data, meta: { ...meta, retries: attempt } };
       }
       if (isBedrock(model)) {
@@ -547,6 +716,12 @@ export async function structured<T extends z.ZodType>(
         JSON.stringify({ operation: name, model, message: redact(String(error)).slice(0, 300) }),
       );
       lastError = error;
+      if (isBedrock(model))
+        attemptMessages = [
+          ...messages,
+          { role: "assistant", content: content.slice(0, 12_000) },
+          { role: "user", content: repairPrompt(error) },
+        ];
     }
   }
   stat.failed++;

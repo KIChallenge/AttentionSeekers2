@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { converseBody, isBedrock, redact, repairToSchema, toolSchema } from "../src/llm.ts";
+import {
+  backoffMs,
+  bedrockProfile,
+  converseBody,
+  extractJson,
+  isBedrock,
+  readConverse,
+  redact,
+  repairPrompt,
+  repairToSchema,
+  toolSchema,
+} from "../src/llm.ts";
 
 describe("Bedrock Converse adapter", () => {
   const schema = {
@@ -94,5 +105,74 @@ describe("Bedrock Converse adapter", () => {
     expect(redact("denied for test-placeholder-key-123")).not.toContain("placeholder");
     if (prev === undefined) delete process.env.BIFROST_SEED_BEDROCK_KEY;
     else process.env.BIFROST_SEED_BEDROCK_KEY = prev;
+  });
+});
+
+describe("Bedrock model families", () => {
+  const schema = { type: "object", properties: { a: { type: "string" } }, required: ["a"] };
+
+  it("JSON mode sends no tools and puts the schema into the system prompt", () => {
+    const body = converseBody(
+      [
+        { role: "system", content: "Rolle" },
+        { role: "user", content: "Frage" },
+      ],
+      "x",
+      schema,
+      100,
+      "json",
+    );
+    expect(body).not.toHaveProperty("toolConfig");
+    const system = body.system as Array<{ text: string }>;
+    expect(system).toHaveLength(2);
+    expect(system[1]?.text).toContain('"required":["a"]');
+  });
+
+  it("takes the final answer and keeps reasoning blocks apart", () => {
+    const r = readConverse([
+      { reasoningContent: { reasoningText: { text: "erst denken" } } },
+      { text: 'Hier ist das Ergebnis:\n```json\n{"a": "ja"}\n```' },
+    ]);
+    expect(JSON.parse(r.content)).toEqual({ a: "ja" });
+    expect(r.reasoning).toBe("erst denken");
+  });
+
+  it("prefers the tool input and strips inline think sections", () => {
+    expect(
+      readConverse([{ text: "Vorrede" }, { toolUse: { name: "x", input: { a: "b" } } }]).content,
+    ).toBe('{"a":"b"}');
+    const r = readConverse([{ text: '<think>abwaegen</think>{"a": "c"}' }]);
+    expect(JSON.parse(r.content)).toEqual({ a: "c" });
+    expect(r.reasoning).toBe("abwaegen");
+  });
+
+  it("leaves text without an object unchanged so the strict parse fails loudly", () => {
+    expect(extractJson("  keine Daten ")).toBe("keine Daten");
+    expect(() => JSON.parse(extractJson("keine Daten"))).toThrow();
+  });
+
+  it("maps model ids to family profiles", () => {
+    expect(bedrockProfile("bedrock/deepseek.v3.2")).toMatchObject({
+      family: "deepseek",
+      toolChoice: "any",
+    });
+    expect(bedrockProfile("bedrock/moonshotai.kimi-k2.5").family).toBe("kimi");
+    expect(bedrockProfile("bedrock/qwen.qwen3-235b-a22b-2507-v1:0").family).toBe("qwen");
+    expect(bedrockProfile("bedrock/zai.glm-5").family).toBe("glm");
+    expect(bedrockProfile("bedrock/mistral.devstral-2-123b").family).toBe("mistral");
+    expect(bedrockProfile("bedrock/openai.gpt-oss-120b-1:0").family).toBe("gpt-oss");
+    expect(bedrockProfile("bedrock/eu.amazon.nova-pro-v1:0").structured).toBe("tool");
+  });
+
+  it("backs off exponentially and honours Retry-After", () => {
+    expect(backoffMs(0, null, 0.5)).toBe(1500);
+    expect(backoffMs(2, null, 0.5)).toBe(6000);
+    expect(backoffMs(9, null, 0.5)).toBe(20_000);
+    expect(backoffMs(0, "3")).toBe(3000);
+  });
+
+  it("repair prompt names the failing fields", () => {
+    const r = z.object({ a: z.string() }).safeParse({ a: 1 });
+    expect(repairPrompt(r.error)).toContain("a:");
   });
 });
