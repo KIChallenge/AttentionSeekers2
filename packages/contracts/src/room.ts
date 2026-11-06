@@ -15,6 +15,7 @@ export const Template = z.enum([
   "impfstrategie",
   "neue_leistungen",
   "backtest_svog_2018",
+  "backtest_gtelg_2023",
   "custom",
 ]);
 export type Template = z.infer<typeof Template>;
