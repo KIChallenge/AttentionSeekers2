@@ -1,7 +1,12 @@
 import { AGENT_CATALOG } from "@sv/contracts";
 import Link from "next/link";
 import { ArchiveNav } from "@/components/archive/archive-nav";
-import { draftLawLabel, getSource, similarPassages } from "@/components/archive/data.server";
+import {
+  draftLawLabel,
+  getSource,
+  isFixtureSource,
+  similarPassages,
+} from "@/components/archive/data.server";
 import { MaskedText } from "@/components/archive/masked-text";
 import { caseForDraftLaw } from "@/components/archive/registry.server";
 import { Backlinks } from "@/components/entity/backlinks";
@@ -103,6 +108,16 @@ export default async function SourcePage({
               <span className="text-xs text-muted-foreground">{t.archive.detail.noBulk}</span>
             </div>
           </div>
+
+          {isFixtureSource(s) ? (
+            <div
+              role="note"
+              data-fixture-source
+              className="rounded-2xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm font-medium text-warning"
+            >
+              {t.archive.detail.fixtureBanner}
+            </div>
+          ) : null}
 
           <section className="rounded-2xl border bg-card p-4 sm:p-5">
             <div className="mb-3 flex flex-wrap items-center gap-2">

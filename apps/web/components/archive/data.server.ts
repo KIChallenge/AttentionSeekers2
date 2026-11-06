@@ -6,6 +6,7 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { RedLine, Segment, Source, SourceKind, StanceProfile } from "@sv/contracts";
+import { FIXTURE_REVISION } from "@sv/engine/retrieval";
 import { replayDir } from "@/lib/runs";
 
 export const MASK_TOKEN = "[...]";
@@ -113,6 +114,22 @@ const KIND_LICENCE: Record<SourceKind, string> = {
 export function licenceOf(s: Source): string {
   if (s.licence) return s.licence;
   return KIND_LICENCE[s.kind] ?? "unknown";
+}
+
+/**
+ * The UI fixture corpus (FIXTURE_REVISION) is invented. Archive lists, facets, counts and
+ * the palette leave it out unless SV_INCLUDE_FIXTURE=1, as live engine runs do; a fixture
+ * source opened directly (the fixture run cites them) gets a banner instead.
+ */
+export function isFixtureSource(s: Source): boolean {
+  return s.corpusRevision === FIXTURE_REVISION;
+}
+
+/** SQL predicate on sources.corpus_revision (`alias` like "s."); constant strings only. */
+function live(alias = ""): string {
+  return process.env.SV_INCLUDE_FIXTURE === "1"
+    ? "true"
+    : `${alias}corpus_revision <> '${FIXTURE_REVISION}'`;
 }
 
 export function isPress(s: Source): boolean {
@@ -344,7 +361,7 @@ async function lexicalCandidates(db: Pool, q: string): Promise<Candidate[]> {
             ts_headline('german', h.text, q.tsq,
               'StartSel=' || chr(1) || ',StopSel=' || chr(2) || ',MaxWords=45,MinWords=18,MaxFragments=2,FragmentDelimiter= … ') as snippet
      from hits h join sources s on s.id = h.source_id, q
-     where s.person_filtered = true
+     where s.person_filtered = true and ${live("s.")}
      order by h.rank desc, s.date desc
      limit ${CANDIDATE_LIMIT}`,
     [q],
@@ -364,7 +381,7 @@ async function lexicalCandidates(db: Pool, q: string): Promise<Candidate[]> {
   }>(
     `select s.data, g.id as segment_id, g.text from sources s
      left join lateral (select id, text from segments where source_id = s.id order by ordinal limit 1) g on true
-     where s.person_filtered = true
+     where s.person_filtered = true and ${live("s.")}
        and (s.title ilike $1 or s.institution_code ilike $1 or s.legal_ref ilike $1
             or s.data->'institution'->>'nameDe' ilike $1)
      order by s.date desc limit 200`,
@@ -415,7 +432,7 @@ async function semanticCandidates(
          )
          select s.data, b.segment_id, b.text, 1 - b.dist as similarity
          from best b join sources s on s.id = b.source_id
-         where s.person_filtered = true and 1 - b.dist >= $4
+         where s.person_filtered = true and ${live("s.")} and 1 - b.dist >= $4
          order by b.dist
          limit ${SEMANTIC_SOURCES}`,
         [qv.literal, qv.model, cutoff, SEMANTIC_MIN_SIMILARITY],
@@ -503,7 +520,7 @@ export async function searchArchive(query: ArchiveQuery): Promise<ArchiveResult>
        left join lateral (
          select id, text from segments where source_id = s.id and length(text) > 60
          order by ordinal limit 1) g on true
-       where s.person_filtered = true
+       where s.person_filtered = true and ${live("s.")}
        order by s.date desc limit ${CANDIDATE_LIMIT}`,
     );
     return finish(
@@ -643,7 +660,7 @@ export async function similarPassages(sourceId: string, limit = 6): Promise<Simi
          )
          select s.data, b.segment_id, b.text, 1 - b.dist as similarity
          from best b join sources s on s.id = b.source_id
-         where s.person_filtered = true
+         where s.person_filtered = true and ${live("s.")}
          order by b.dist
          limit ${Math.max(1, Math.min(20, limit))}`,
         [v, store.EMBED_MODEL, sourceId],
@@ -722,7 +739,7 @@ export async function sourcesFor(filter: { code?: string; role?: string }, limit
   const db = await pool();
   if (db) {
     const { rows } = await db.query<{ data: unknown }>(
-      `select data from sources where person_filtered = true
+      `select data from sources where person_filtered = true and ${live()}
        and ($1::text is null or institution_code = $1)
        and ($2::text is null or institution_role = $2)
        order by date desc limit ${limit}`,
@@ -749,7 +766,7 @@ export async function sourcesForDraftLaw(caseId: string, limit = 120) {
   const db = await pool();
   if (db) {
     const { rows } = await db.query<{ data: unknown }>(
-      `select data from sources where person_filtered = true
+      `select data from sources where person_filtered = true and ${live()}
        and legal_ref like $1 and id like $2
        order by date asc limit ${limit}`,
       [`%SN-${num}/ME`, `${gp}/%`],
@@ -763,7 +780,9 @@ export async function archiveStats() {
   const db = await pool();
   if (db) {
     const { rows } = await db.query<{ sources: string; segments: string }>(
-      "select (select count(*) from sources where person_filtered) as sources, (select count(*) from segments) as segments",
+      `select (select count(*) from sources where person_filtered and ${live()}) as sources,
+              (select count(*) from segments g join sources s on s.id = g.source_id
+                where ${live("s.")}) as segments`,
     );
     return { sources: Number(rows[0]?.sources ?? 0), segments: Number(rows[0]?.segments ?? 0) };
   }
@@ -776,7 +795,7 @@ export async function quickSources(q: string, limit = 8): Promise<Source[]> {
   const db = await pool();
   if (db) {
     const { rows } = await db.query<{ data: unknown }>(
-      `select s.data from sources s where s.person_filtered = true and (
+      `select s.data from sources s where s.person_filtered = true and ${live("s.")} and (
          s.id ilike $1 or s.title ilike $1 or s.legal_ref ilike $1
          or s.data->'institution'->>'nameDe' ilike $1
          or exists (select 1 from segments g where g.source_id = s.id
@@ -818,7 +837,7 @@ export async function institutions(): Promise<InstitutionRow[]> {
     }>(
       `select institution_code as code, max(data->'institution'->>'nameDe') as name,
               max(data->'institution'->>'glossEn') as gloss, max(institution_role) as role, count(*) as n
-       from sources where person_filtered = true group by institution_code order by count(*) desc`,
+       from sources where person_filtered = true and ${live()} group by institution_code order by count(*) desc`,
     );
     return rows.map((r) => ({
       code: r.code,
