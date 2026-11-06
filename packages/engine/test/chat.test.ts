@@ -7,7 +7,10 @@ import {
   chatSystemPrompt,
   eventStreamFrames,
   nameStreamGuard,
+  parseChatState,
+  playedRounds,
   seatFacts,
+  snapshotAt,
 } from "../src/chat.ts";
 import type { Passage } from "../src/retrieval.ts";
 
@@ -15,7 +18,8 @@ const runFile = path.resolve(
   import.meta.dirname,
   "../../../runs/reference-wartezeiten-presse.ndjson",
 );
-const snap = foldRun(parseNdjson(readFileSync(runFile, "utf8")));
+const events = parseNdjson(readFileSync(runFile, "utf8"));
+const snap = foldRun(events);
 
 const passage: Passage = {
   handle: "E1",
@@ -135,5 +139,65 @@ describe("bedrock event stream decoder", () => {
     expect(frames).toHaveLength(1);
     expect(frames[0]?.type).toBe("contentBlockDelta");
     expect(frames[0]?.payload).toEqual({ delta: { text: "Wir " } });
+  });
+});
+
+describe("ask an institution: negotiation state", () => {
+  const promptAt = (key: string, agentId = "ak") => {
+    const state = parseChatState(key);
+    if (!state) throw new Error(`bad state ${key}`);
+    const f = seatFacts(snapshotAt(events, state), agentId, state);
+    if (!f) throw new Error("no facts");
+    return chatSystemPrompt(f, "de", []);
+  };
+  // proposals first tabled in round 4 (p-07..p-09) and their titles
+  const late = snap.proposalOrder
+    .map((id) => snap.proposals[id])
+    .filter((p) => p !== undefined && p.round >= 4);
+  const lateTitles = late.map((p) => p?.title.text ?? "").filter((t) => t.length > 12);
+
+  it("parses state keys and finds the played rounds", () => {
+    expect(parseChatState("before")).toEqual({ kind: "before" });
+    expect(parseChatState("r3")).toEqual({ kind: "round", round: 3 });
+    expect(parseChatState("r0")).toBeNull();
+    expect(playedRounds(events)).toBe(5);
+    expect(late.length).toBeGreaterThan(0);
+  });
+
+  it("never leaks a later-round proposal into an earlier state", () => {
+    for (const key of ["before", "r1", "r2", "r3"]) {
+      const prompt = promptAt(key);
+      for (const p of late) expect(prompt).not.toContain(p?.id ?? "?");
+      for (const t of lateTitles) expect(prompt).not.toContain(t);
+    }
+    const after = promptAt("after");
+    expect(late.some((p) => after.includes(p?.id ?? "?"))).toBe(true);
+  });
+
+  it("before keeps persona, red lines and the opening position only", () => {
+    const prompt = promptAt("before");
+    expect(prompt).toContain("Keine Stellenplanung außerhalb des Gesamtvertrags");
+    expect(prompt).toContain("Eröffnungsposition");
+    expect(prompt).not.toMatch(/\bu\d+-\d+\b/);
+    expect(prompt).not.toMatch(/\bp-\d\d\b/);
+    expect(prompt).not.toContain("Lehren je Runde");
+    expect(prompt).not.toContain("Ergebnis des Laufs");
+    const opening = snap.positions.ak?.["t-tele"]?.[0]?.stance ?? 0;
+    expect(prompt).toContain(
+      `Telemedizin: Eröffnungsposition ${opening > 0 ? `+${opening}` : opening}`,
+    );
+  });
+
+  it("round N keeps utterances up to round N and nothing after", () => {
+    const prompt = promptAt("r2");
+    const rounds = [...prompt.matchAll(/\bu(\d+)-\d+\b/g)].map((m) => Number(m[1]));
+    expect(rounds.length).toBeGreaterThan(0);
+    expect(Math.max(...rounds)).toBeLessThanOrEqual(2);
+    expect(prompt).toContain("Position nach Runde 2");
+    expect(prompt).not.toContain("Ergebnis des Laufs");
+    for (const id of snap.utteranceOrder) {
+      const u = snap.utterances[id];
+      if (u && u.round > 2 && u.speaker === "ak") expect(prompt).not.toContain(id);
+    }
   });
 });
