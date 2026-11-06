@@ -212,6 +212,14 @@ uv run python -I proxy.py                          # OpenAI-compatible on http:/
   the one-paragraph stop cuts to nothing. Training job `sv-ki-challenge-lora-v2-1106-013811`, 2,416 billable s,
   about 1.85 USD. Endpoint now serves v1 and v2 (`sv-ki-challenge-single-config-v1-v2`); for the demo use
   `sv-<role>` (v1 with the fix) or `sv-base`.
+- **v2.1** (branch `feat/persona-v21`): v2 data with the v1 schedule (3 epochs, lr 1e-4, r16, dropout 0.05) and
+  `--min-steps 36` (ministry_finance and nursing get 4 epochs); laender capped to a fixed random 600 rows (all press
+  rows kept) so the job ended inside the AWS session. Job `sv-ki-challenge-lora-v21-1106-030906`, 2,778 billable s,
+  about 2.13 USD; adapters in `adapters-v21/`. The proxy no longer stops at the first blank line: it skips leading
+  salutation and header lines and keeps the first real paragraph. Served with v1 (`deploy.py single --sets v1,v21`,
+  proxy ids `sv21-<role>`; v2 is no longer staged). Result (run 20261106-042021): stance sign 0.55 (base 0.57,
+  v1-fix 0.50), beats the base on stance direction for 5 of 9 institutions (hospitals, medical_chamber, nursing,
+  patients, social_insurance), in-character 0.38 (base 0.46), 0 loops.
 - **Report**: `eval_v2_report.py --run v1=<dir> --run v1-fix=<dir> --run v2=<dir> --proxy-log <log>` writes
   `out/eval_v2.md` and a `versions` block in `out/persona_fidelity.json` (top-level v1 numbers unchanged),
   shown on the Modelle tab.
