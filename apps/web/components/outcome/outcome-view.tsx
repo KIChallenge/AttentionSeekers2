@@ -4,6 +4,7 @@ import { type Forecast, type ImpactFigure, topicStatus } from "@sv/contracts";
 import Link from "next/link";
 import { useState } from "react";
 import { statusLabel } from "@/components/analysis/consensus-matrix";
+import { COMPROMISE_T, CompromiseBlock } from "@/components/outcome/compromise";
 import { type EvidenceInfo, ImpactCompare } from "@/components/outcome/impact-compare";
 import { Chip, Empty, Panel, Tile } from "@/components/run/bits";
 import { fmtNum, L } from "@/components/run/helpers";
@@ -274,6 +275,16 @@ export function OutcomeView({
       </div>
 
       <div className="space-y-6">
+        {snap.compromise ? (
+          <Panel title={COMPROMISE_T[lang].title}>
+            <CompromiseBlock
+              compromise={snap.compromise}
+              votes={snap.compromiseVotes ?? {}}
+              result={snap.compromiseResult ?? null}
+              lang={lang}
+            />
+          </Panel>
+        ) : null}
         <Panel
           title={t.outcome.effects}
           aside={<span className="text-xs text-muted-foreground">{t.outcome.effectsSub}</span>}
