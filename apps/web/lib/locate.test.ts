@@ -2,7 +2,15 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { RunEvent } from "@sv/contracts";
 import { describe, expect, it } from "vitest";
-import { buildLocateIndex, fallbackLocate, indexText, MAX_IDS, tokens, validIds } from "./locate";
+import {
+  buildLocateIndex,
+  fallbackLocate,
+  indexText,
+  MAX_IDS,
+  preferNamed,
+  tokens,
+  validIds,
+} from "./locate";
 
 const events = readFileSync(
   path.join(__dirname, "../../../runs/reference-wartezeiten-v3.ndjson"),
@@ -46,6 +54,16 @@ describe("locate index", () => {
         index,
       ),
     ).toHaveLength(MAX_IDS);
+  });
+
+  it("keeps the named institution's own utterances", () => {
+    const q = "Wann hat die Ärztekammer der 1450-Lösung zugestimmt?";
+    const own = index.utterances.filter((u) => u.speaker === "Ärztekammer").map((u) => u.id);
+    const other = index.utterances.filter((u) => u.speaker === "Bundesländer").map((u) => u.id);
+    expect(own.length).toBeGreaterThan(0);
+    expect(preferNamed([other[0] ?? "", own[0] ?? ""], index, q)).toEqual([own[0]]);
+    expect(preferNamed([other[0] ?? ""], index, q, [own[1] ?? ""])).toEqual([own[1]]);
+    expect(preferNamed([other[0] ?? ""], index, "Wo ging es um Geld?")).toEqual([other[0]]);
   });
 
   it("falls back to keyword overlap, compounds included", () => {

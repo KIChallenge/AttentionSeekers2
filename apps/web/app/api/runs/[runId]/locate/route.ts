@@ -10,6 +10,7 @@ import {
   LocateAnswer,
   type LocateResult,
   locateMessages,
+  preferNamed,
   validIds,
 } from "@/lib/locate";
 import { loadRunEvents } from "@/lib/runs";
@@ -49,7 +50,12 @@ export async function POST(req: Request, ctx: { params: Promise<{ runId: string 
       locateMessages(index, question, lang),
       { reasoningEffort: "low", maxOutputTokens: 4000, timeoutMs: 45_000 },
     );
-    const ids = validIds(data.utteranceIds, index);
+    const ids = preferNamed(
+      validIds(data.utteranceIds, index),
+      index,
+      question,
+      fallback.utteranceIds,
+    );
     // the gate keeps clean sentences only; a garbled answer falls back to the ranking text
     const gated = gateAnswer(data.answer.trim(), lang, gateContext(indexText(index), question));
     const answer = maskPersonNames(gated.text || fallback.answer);

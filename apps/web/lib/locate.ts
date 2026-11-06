@@ -161,6 +161,38 @@ export function validIds(ids: readonly string[], index: LocateIndex): string[] {
     .slice(0, MAX_IDS);
 }
 
+/** Speakers named in the question, matched on folded words of their name ("Ärztekammer"). */
+export function namedSpeakers(question: string, index: LocateIndex): Set<string> {
+  const q = new Set(tokens(question));
+  const named = new Set<string>();
+  for (const u of index.utterances) {
+    const name = tokens(u.speaker);
+    if (name.length && name.every((w) => q.has(w))) named.add(u.speaker);
+  }
+  return named;
+}
+
+/**
+ * When the question names an institution, only that institution's utterances count; the model
+ * otherwise tends to cite whoever answered it. Falls back to `others` (the keyword ranking),
+ * then to the unfiltered ids, so a named question never loses all its matches.
+ */
+export function preferNamed(
+  ids: readonly string[],
+  index: LocateIndex,
+  question: string,
+  others: readonly string[] = [],
+): string[] {
+  const named = namedSpeakers(question, index);
+  if (named.size === 0) return [...ids];
+  const by = new Map(index.utterances.map((u) => [u.id, u.speaker]));
+  const own = (list: readonly string[]) => list.filter((id) => named.has(by.get(id) ?? ""));
+  const a = own(ids);
+  if (a.length) return a;
+  const b = own(others);
+  return b.length ? b : [...ids];
+}
+
 const STOP = new Set(
   (
     "der die das den dem des ein eine einer eines einem und oder aber wann wo wie was wer hat " +
