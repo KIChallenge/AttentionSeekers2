@@ -69,7 +69,7 @@
     }
   },
   "backtest": {
-    "case": "SV-OG 2018 (ME 75/XXVI. GP)",
+    "case": "SV-OG 2018, eImpfpass 2023",
     "status": "done",
     "hypothesis": {
       "de": "Die SV-OG wurde einseitig gegen den Großteil der 75 Stellungnahmen beschlossen. Ein kompromissorientierter Simulator fällt daher erwartbar weicher aus als das Gesetz.",
@@ -80,6 +80,47 @@
       "en": "Confirmed, more strongly than expected: no package passed in either variant, although the government side could have passed it alone under the real rule. Almost every provision lands softer than the law, softer still under consensus. GPT recalls the outcome (recall probe), Qwen does not."
     },
     "runs": ["backtest-svog-2018-government", "backtest-svog-2018-consensus"],
-    "doc": "docs/backtest-svog-2018.md"
+    "doc": "docs/backtest-svog-2018.md",
+    "compare": [
+      {
+        "case": "SV-OG 2018",
+        "forecast": {
+          "de": "Beschluss 0,85; wie Entwurf 0,43, geändert 0,38",
+          "en": "Enacted 0.85; as drafted 0.43, modified 0.38"
+        },
+        "simulation": {
+          "de": "Kein Paket in beiden Varianten; fast jede Bestimmung weicher als das Gesetz",
+          "en": "No package in either variant; almost every provision softer than the law"
+        },
+        "reality": {
+          "de": "Beschlossen, im Kern wie Entwurf; VfGH hebt 2019 Teile auf",
+          "en": "Enacted, in substance as drafted; court struck parts in 2019"
+        },
+        "runs": [
+          "backtest-svog-2018-government",
+          "backtest-svog-2018-consensus"
+        ],
+        "doc": "docs/backtest-svog-2018.md"
+      },
+      {
+        "case": "eImpfpass 2023",
+        "forecast": {
+          "de": "Beschluss 0,87; geändert 0,41, wie Entwurf 0,40",
+          "en": "Enacted 0.87; modified 0.41, as drafted 0.40"
+        },
+        "simulation": {
+          "de": "Paket getragen (7 dafür, 2 bedingt); geändert, aber weicher: Nachtragung, Datennutzung und Kosten abgeschwächt; 2 von 7 Bestimmungen getroffen",
+          "en": "Package carried (7 for, 2 conditional); modified but softer: retro entry, data use and costs weakened; 2 of 7 provisions match"
+        },
+        "reality": {
+          "de": "Beschlossen 2024, geändert: Servicestelle zusammengelegt, Doppelpunkt gestrichen, 1450 ergänzt",
+          "en": "Enacted 2024, modified: service desk merged, colon form dropped, 1450 added"
+        },
+        "runs": [
+          "backtest-gtelg-2023-government"
+        ],
+        "doc": "docs/backtest-gtelg-2023.md"
+      }
+    ]
   }
 }
