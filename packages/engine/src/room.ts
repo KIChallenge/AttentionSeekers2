@@ -151,7 +151,7 @@ export async function buildMandate(
         : `Gesetzte Akteure: ${enabled.join(", ")}. Gib für genau diese include=true und begründe, warum sie am Tisch sitzen; alle anderen include=false mit kurzer Begründung.`,
       fixedTopics
         ? `Themen sind vorgegeben, gib sie unverändert zurück: ${JSON.stringify(fixedTopics.map((t) => ({ id: t.id, key: t.key, label: t.label.text, measure: t.measure.text })))}. Achsen ebenfalls vorgegeben, gib zwei beliebige Achsen zurück (werden ersetzt).`
-        : "Leite 5 bis 7 verhandelbare Themen ab (id im Format t-kurzname, key snake_case englisch, label kurz, measure = konkrete Maßnahme) und zwei Achsen für den Positionsraum mit Themengewichten.",
+        : "Leite 5 bis 7 verhandelbare Themen ab (id im Format t-kurzname, key snake_case englisch, label kurz, measure = konkrete Maßnahme) und zwei Achsen für den Positionsraum mit Themengewichten. Jede Achse bündelt Themen zu einer Grundfrage (label kurz, etwa Patientensteuerung); die Pole sind Haltungen dazu: poleLow = Ablehnung der Maßnahmen der gewichteten Themen (etwa Gegen Patientensteuerung), poleHigh = Zustimmung (etwa Für Patientensteuerung).",
       "Gib zwei bis vier Abbruchbedingungen an (Konvergenz, Rundenlimit, Blockade).",
     ].join("\n");
     try {

@@ -20,7 +20,7 @@ const de = {
       },
       {
         name: "Positionstreue",
-        how: "Abstand der simulierten Position zum gefitteten Stance-Profil je Agent",
+        how: "Abstand der simulierten Position zum Profil aus den Stellungnahmen, je Agent",
         state: "berechnet pro Agent",
         tone: "measured",
       },
@@ -239,7 +239,7 @@ const en: Dict = {
       },
       {
         name: "Position fidelity",
-        how: "Distance of the simulated position to the fitted stance profile per agent",
+        how: "Distance of the simulated position to the profile from the statements, per agent",
         state: "computed per agent",
         tone: "measured",
       },

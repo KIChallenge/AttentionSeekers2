@@ -162,7 +162,7 @@ const de = {
     inertness:
       "Wirkung nicht nachgewiesen: Die Temperament-Regler sind gesetzt, ihr Effekt auf das Verhalten ist noch nicht gemessen.",
     playedBy: "Gespielt von",
-    mode: { fitted: "gefittet aus Korpus", prompted: "nur konfiguriert" },
+    mode: { fitted: "aus Stellungnahmen abgeleitet", prompted: "nur vorgegeben" },
     changeLog: "Positionsänderungen mit Auslöser",
     changeLogSub: "Jede Bewegung trägt ihren Auslöserbeitrag",
     noChange: "Keine Positionsänderung.",
@@ -370,7 +370,7 @@ const de = {
       outcomeSub:
         "Anteil umgesetzter Fälle in der Referenzklasse vergleichbarer österreichischer Vorschläge",
       fidelity: "Positionstreue",
-      fidelitySub: "simuliert gegen gefittetes Profil, je Agent auf der Karte",
+      fidelitySub: "simuliert gegen das Profil aus den Stellungnahmen, je Agent auf der Karte",
       process: "Prozessrealismus",
       processVal: "nicht gemessen",
       processSub: "kein gelabelter Korpus realer Verhandlungsdynamik vorhanden",
@@ -648,7 +648,7 @@ const en: RunStrings = {
     inertness:
       "Effect not shown: the temperament dials are set, but their effect on behaviour has not been measured yet.",
     playedBy: "Played by",
-    mode: { fitted: "fitted from corpus", prompted: "configured only" },
+    mode: { fitted: "derived from statements", prompted: "set by hand" },
     changeLog: "Position changes with trigger",
     changeLogSub: "Every move carries its trigger utterance",
     noChange: "No position change.",
@@ -846,7 +846,7 @@ const en: RunStrings = {
       outcomeSub:
         "share of implemented cases in the reference class of comparable Austrian proposals",
       fidelity: "Position fidelity",
-      fidelitySub: "simulated against the fitted profile, per agent on its card",
+      fidelitySub: "simulated against the profile from the statements, per agent on its card",
       process: "Process realism",
       processVal: "not measured",
       processSub: "no labelled corpus of real negotiation dynamics exists",
