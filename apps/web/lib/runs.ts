@@ -5,6 +5,7 @@ import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import {
+  CompromiseConsistency,
   foldRun,
   ImpactFigure,
   parseNdjson,
@@ -67,6 +68,23 @@ export async function loadImpactSidecar(
     };
   } catch (error) {
     console.warn("impact_sidecar_invalid", runId, error instanceof Error ? error.message : error);
+    return null;
+  }
+}
+
+/** Experte consistency check of the compromise (runs/<id>.compromise.json), preferred over the tally. */
+export async function loadCompromiseSidecar(runId: string): Promise<CompromiseConsistency | null> {
+  if (!isRunId(runId)) return null;
+  const file = path.join(/*turbopackIgnore: true*/ replayDir(), `${runId}.compromise.json`);
+  if (!existsSync(file)) return null;
+  try {
+    return CompromiseConsistency.parse(JSON.parse(await readFile(file, "utf8")));
+  } catch (error) {
+    console.warn(
+      "compromise_sidecar_invalid",
+      runId,
+      error instanceof Error ? error.message : error,
+    );
     return null;
   }
 }

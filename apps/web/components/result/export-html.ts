@@ -3,6 +3,7 @@
 // the same snapshot helpers and the same strings, so the export never says anything the
 // screen does not. One file per language, inline CSS, no scripts, links absolute.
 import {
+  type CompromiseConsistency,
   type Lang,
   type OutcomeClass,
   positionAt,
@@ -14,6 +15,7 @@ import {
   nameOf as agentNameOf,
   COMPROMISE_T,
   compromiseTally,
+  consistencyLines,
   tx,
 } from "@/components/outcome/compromise-strings";
 import type { Evidence } from "@/components/run/evidence";
@@ -88,6 +90,8 @@ footer{margin-top:16px}
 `;
 
 export interface ExportOptions {
+  /** Experte consistency check of the compromise (sidecar), preferred over the tally. */
+  consistency?: CompromiseConsistency | null;
   /** Absolute origin for links back into the app, e.g. http://localhost:3000 */
   origin: string;
   exportedAt?: Date;
@@ -177,8 +181,18 @@ export function renderResultHtml(
   const kc = COMPROMISE_T[lang === "en" ? "en" : "de"];
   const kl = lang === "en" ? "en" : "de";
   const kVotes = Object.values(snap.compromiseVotes ?? {});
+  const kk = k && opts.consistency?.packageId === k.id ? opts.consistency : null;
   const s5k = k
-    ? `<h3>${esc(kc.title)}: ${esc(tx(k.title, kl))}</h3>${snap.compromiseResult ? `<p><strong>${esc(compromiseTally(snap.compromiseResult, kl))}</strong></p>` : ""}<p class="muted">${esc(tx(k.rationale, kl))}</p><ol>${k.components.map((c) => `<li>${esc(tx(c.text, kl))}</li>`).join("")}</ol>${k.conditions.length ? `<ul>${k.conditions.map((c) => `<li>${esc(kc.kind[c.kind])}: ${esc(tx(c.text, kl))}</li>`).join("")}</ul>` : ""}<ul>${kVotes.map((v) => `<li>${tileOf(v.agentId)} ${esc(agentNameOf(v.agentId, kl))}: ${esc(kc[v.stance])}${v.condition ? `, ${esc(tx(v.condition, kl))}` : ""}<span class="muted"> · ${esc(tx(v.reason, kl))}</span></li>`).join("")}</ul>`
+    ? `<h3>${esc(kc.title)}: ${esc(tx(k.title, kl))}</h3>${snap.compromiseResult ? `<p><strong>${esc(compromiseTally(snap.compromiseResult, kl, kk))}</strong></p>` : ""}${
+        kk && snap.compromiseResult?.passes && kk.conflicts.length
+          ? `<p class="muted">${esc(kc.consistency)} · ${kk.pairsChecked} ${esc(kc.pairs)}</p><ul>${consistencyLines(
+              kk,
+              kl,
+            )
+              .map((x) => `<li>${esc(x)}</li>`)
+              .join("")}</ul>`
+          : ""
+      }<p class="muted">${esc(tx(k.rationale, kl))}</p><ol>${k.components.map((c) => `<li>${esc(tx(c.text, kl))}</li>`).join("")}</ol>${k.conditions.length ? `<ul>${k.conditions.map((c) => `<li>${esc(kc.kind[c.kind])}: ${esc(tx(c.text, kl))}</li>`).join("")}</ul>` : ""}<ul>${kVotes.map((v) => `<li>${tileOf(v.agentId)} ${esc(agentNameOf(v.agentId, kl))}: ${esc(kc[v.stance])}${v.condition ? `, ${esc(tx(v.condition, kl))}` : ""}<span class="muted"> · ${esc(tx(v.reason, kl))}</span></li>`).join("")}</ul>`
     : "";
 
   const s6 =

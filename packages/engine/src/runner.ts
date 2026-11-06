@@ -41,6 +41,11 @@ import {
 import { computeCalculus, outcomeClassOf, type Vote } from "./coalition.ts";
 import { draftPackage, packageText, ratify, tallyCompromise } from "./compromise.ts";
 import {
+  checkCompromiseConsistency,
+  consistencyNote,
+  writeConsistencySidecar,
+} from "./compromise-consistency.ts";
+import {
   agentConfigOf,
   allRedLines,
   delegatesOf,
@@ -739,6 +744,24 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
       result.note.translations.en ?? result.note.text,
       intro.id,
     );
+    // Experte consistency check: pairs the stated conditions; a carried package with
+    // contradicting conditions only carries if they can be reconciled (sidecar file).
+    try {
+      const { consistency } = await tracer.run(
+        { kind: "compromise", ref: `${id}:consistency`, round, speaker: "expert" },
+        () => checkCompromiseConsistency(runId, pkg, votes, result, room.expertModel),
+      );
+      writeConsistencySidecar(opts.outDir ?? path.join(REPO_ROOT, "runs"), consistency);
+      const note = consistencyNote(consistency);
+      w.emit({
+        type: "expert.note",
+        utteranceIds: votes.flatMap((v) => (v.utteranceId ? [v.utteranceId] : [])),
+        note,
+        resolution: consistency.verdict === "carries_if_reconciled" ? "unresolved" : "resolved",
+      });
+    } catch (error) {
+      console.warn("compromise_consistency_failed", error instanceof Error ? error.message : error);
+    }
     closeExchange(
       ex,
       { de: result.note.text, en: result.note.translations.en ?? result.note.text },

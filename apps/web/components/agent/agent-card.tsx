@@ -277,6 +277,23 @@ export function AgentCard({ agentId }: { agentId: string }) {
                     : "profile (vor Dossiers)"}
                 </dd>
               </Level>
+              <Level min="engineer">
+                <dt className="text-muted-foreground">
+                  {lang === "de" ? "Belegneigung" : "Citation habit"}
+                </dt>
+                <dd
+                  className="font-mono text-xs"
+                  title={
+                    lang === "de"
+                      ? "Anteil historischer Stellungnahmen- und Pressesegmente mit Paragraphen, Zahlen oder Studien; formuliert nur den Hinweis im Prompt, keine Pflicht"
+                      : "Share of historical Stellungnahmen and press segments with legal references, figures or studies; only phrases the prompt hint, never required"
+                  }
+                >
+                  {cfg.citationStyle
+                    ? `${Math.round(cfg.citationStyle.propensity * 100)} % · ${cfg.citationStyle.tier}${cfg.citationStyle.measured ? "" : lang === "de" ? " (ohne Korpus, Median)" : " (no corpus, median)"}`
+                    : "-"}
+                </dd>
+              </Level>
             </dl>
           </Panel>
           <Panel title={t.agent.goals}>

@@ -2,6 +2,7 @@
 // ceiling, climate), compared side by side with the reference run. Pure functions over folded
 // runs; the page renders what these return.
 import type {
+  CompromiseConsistency,
   CompromisePackage,
   CompromiseResult,
   LocalizedText,
@@ -27,6 +28,8 @@ export interface VariantColumn {
   tabled: number;
   compromise: CompromisePackage | null;
   compromiseResult: CompromiseResult | null;
+  /** Experte consistency check (runs/<id>.compromise.json), null when not checked. */
+  consistency: CompromiseConsistency | null;
   /** Package impact (evidence basis) with its range; null when nothing was modelled. */
   wait: Range | null;
   cost: Range | null;
@@ -62,7 +65,10 @@ export function isVariantRun(s: RunSnapshot): boolean {
   return s.run?.variant.kind === "scenario";
 }
 
-export function variantColumn(s: RunSnapshot): VariantColumn | null {
+export function variantColumn(
+  s: RunSnapshot,
+  consistency: CompromiseConsistency | null = null,
+): VariantColumn | null {
   const run = s.run;
   if (!run) return null;
   const proposals = s.proposalOrder.flatMap((id) => (s.proposals[id] ? [s.proposals[id]] : []));
@@ -100,6 +106,8 @@ export function variantColumn(s: RunSnapshot): VariantColumn | null {
     tabled: proposals.length,
     compromise: s.compromise ?? null,
     compromiseResult: s.compromiseResult ?? null,
+    consistency:
+      consistency && s.compromise && consistency.packageId === s.compromise.id ? consistency : null,
     wait: rangeOf(s, "wait_change_pct"),
     cost: rangeOf(s, "cost_eur_pa"),
     conflicts: [...new Set(last?.openConflicts.map((c) => c.topicId) ?? [])].map(topicLabel),
@@ -114,13 +122,14 @@ export function variantColumn(s: RunSnapshot): VariantColumn | null {
 export function compareVariants(
   items: Array<{ summary: RunSummary; snap: RunSnapshot }>,
   referenceRunId: string,
+  consistencyOf: (runId: string) => CompromiseConsistency | null = () => null,
 ): VariantComparison | null {
   const done = items.filter((x) => x.summary.status === "completed");
   const variants = done.filter((x) => isVariantRun(x.snap));
   if (variants.length === 0) return null;
   const ref = done.find((x) => x.summary.id === referenceRunId && x.snap.compromise);
   const cols = [...(ref ? [ref] : []), ...variants]
-    .map((x) => variantColumn(x.snap))
+    .map((x) => variantColumn(x.snap, consistencyOf(x.summary.id)))
     .filter((c): c is VariantColumn => Boolean(c))
     .sort((a, b) => rank(a.label) - rank(b.label));
   const first = (ref ?? variants[0])?.snap.run;
@@ -146,18 +155,25 @@ export function variantHeadline(
   const failed = withK.filter((c) => !c.compromiseResult?.passes);
   const list = (cs: VariantColumn[]) => cs.map((c) => labelOf(c.label)).join(", ");
   const n = withK.length;
+  const onlyIf = carried.filter((c) => c.consistency?.verdict === "carries_if_reconciled");
+  const tail = onlyIf.length
+    ? lang === "de"
+      ? ` Der Experte findet in ${onlyIf.length === carried.length ? "allen" : `${onlyIf.length} davon`} widersprüchliche Bedingungen: er trägt dort nur, wenn die Bedingungen vereinbar sind.`
+      : ` The Experte finds conflicting conditions in ${onlyIf.length === carried.length ? "all of them" : `${onlyIf.length} of them`}: there it carries only if the conditions can be reconciled.`
+    : "";
   if (n === 0)
     return lang === "de"
       ? "Keine Einstellung hat einen Kompromissvorschlag des Moderators."
       : "No setting has a moderator compromise proposal.";
   if (lang === "de") {
     if (carried.length === n)
-      return `Der Kompromissvorschlag des Moderators trägt in allen ${n} Einstellungen.`;
+      return `Der Kompromissvorschlag des Moderators trägt in allen ${n} Einstellungen.${tail}`;
     if (carried.length === 0)
       return `Der Kompromissvorschlag des Moderators scheitert in allen ${n} Einstellungen.`;
-    return `Der Kompromissvorschlag des Moderators trägt in ${carried.length} von ${n} Einstellungen und scheitert bei ${list(failed)}.`;
+    return `Der Kompromissvorschlag des Moderators trägt in ${carried.length} von ${n} Einstellungen und scheitert bei ${list(failed)}.${tail}`;
   }
-  if (carried.length === n) return `The moderator's compromise carries in all ${n} settings.`;
+  if (carried.length === n)
+    return `The moderator's compromise carries in all ${n} settings.${tail}`;
   if (carried.length === 0) return `The moderator's compromise fails in all ${n} settings.`;
-  return `The moderator's compromise carries in ${carried.length} of ${n} settings and fails under ${list(failed)}.`;
+  return `The moderator's compromise carries in ${carried.length} of ${n} settings and fails under ${list(failed)}.${tail}`;
 }

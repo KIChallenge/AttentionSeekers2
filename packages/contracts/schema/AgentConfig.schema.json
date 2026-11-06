@@ -373,6 +373,30 @@
         "version",
         "sha256"
       ]
+    },
+    "citationStyle": {
+      "type": "object",
+      "properties": {
+        "propensity": {
+          "type": "number"
+        },
+        "tier": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "measured": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "propensity",
+        "tier",
+        "measured"
+      ]
     }
   },
   "required": [

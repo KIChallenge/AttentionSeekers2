@@ -1,6 +1,11 @@
 // Strings and pure helpers for the moderator's compromise package; server-safe (no React),
 // shared by the outcome page, the result document, its HTML export and the scenario tabs.
-import { type CompromiseResult, catalogAgent, type LocalizedText } from "@sv/contracts";
+import {
+  type CompromiseConsistency,
+  type CompromiseResult,
+  catalogAgent,
+  type LocalizedText,
+} from "@sv/contracts";
 
 type Lang = "de" | "en";
 
@@ -32,6 +37,15 @@ export const COMPROMISE_T = {
       other: "Bedingung",
     },
     none: "Kein Kompromissvorschlag in diesem Lauf.",
+    consistency: "Konsistenzprüfung des Experten",
+    verdict: {
+      carries: "trägt",
+      carries_if_reconciled: "trägt nur, wenn die Bedingungen vereinbar sind",
+      fails: "gescheitert",
+    },
+    severity: { contradiction: "Widerspruch", tension: "Spannung" },
+    pairs: "Bedingungspaare geprüft",
+    compatible: "Die genannten Bedingungen sind miteinander vereinbar.",
   },
   en: {
     title: "Moderator's compromise proposal",
@@ -52,11 +66,39 @@ export const COMPROMISE_T = {
       other: "Condition",
     },
     none: "No compromise proposal in this run.",
+    consistency: "Experte consistency check",
+    verdict: {
+      carries: "carries",
+      carries_if_reconciled: "carries only if the conditions can be reconciled",
+      fails: "failed",
+    },
+    severity: { contradiction: "Contradiction", tension: "Tension" },
+    pairs: "condition pairs checked",
+    compatible: "The stated conditions are compatible with each other.",
   },
 } as const;
 
-/** One line: "trägt unter Bedingungen · 4 dafür, 3 bedingt, 2 dagegen". */
-export function compromiseTally(r: CompromiseResult, lang: Lang): string {
+/** Conflicting condition pairs as plain lines ("Sozialversicherung / Ärztekammer: ..."). */
+export function consistencyLines(k: CompromiseConsistency, lang: Lang): string[] {
   const c = COMPROMISE_T[lang];
-  return `${r.passes ? c.passes : c.fails} · ${r.support.length} ${c.support}, ${r.conditional.length} ${c.conditional}, ${r.oppose.length} ${c.oppose}`;
+  return k.conflicts.map(
+    (x) =>
+      `${c.severity[x.severity]}: ${nameOf(x.a, lang)} / ${nameOf(x.b, lang)}: ${tx(x.note, lang)}`,
+  );
+}
+
+/** One line: "trägt unter Bedingungen · 4 dafür, 3 bedingt, 2 dagegen". */
+export function compromiseTally(
+  r: CompromiseResult,
+  lang: Lang,
+  consistency?: CompromiseConsistency | null,
+): string {
+  const c = COMPROMISE_T[lang];
+  const head =
+    consistency && consistency.packageId === r.packageId
+      ? c.verdict[consistency.verdict]
+      : r.passes
+        ? c.passes
+        : c.fails;
+  return `${head} · ${r.support.length} ${c.support}, ${r.conditional.length} ${c.conditional}, ${r.oppose.length} ${c.oppose}`;
 }

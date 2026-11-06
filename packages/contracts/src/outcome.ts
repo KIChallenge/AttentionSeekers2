@@ -151,3 +151,41 @@ export const CompromiseResult = z.object({
   note: LocalizedText,
 });
 export type CompromiseResult = z.infer<typeof CompromiseResult>;
+
+/**
+ * Added 2026-11-06 (compromise consistency): the Experte's check after the ratification
+ * round. Every pair of stated conditions (conditional support, or support with a condition)
+ * is checked for compatibility; a carried package whose conditions contradict each other
+ * only carries if those conditions can be reconciled. Stored as runs/<runId>.compromise.json
+ * (written by the engine after the ratification, or offline by compromise-cli over old runs)
+ * and preferred by the outcome page, the result document and the scenario tabs.
+ */
+export const CompromiseStatedCondition = z.object({
+  agentId: AgentId,
+  stance: z.enum(["support", "conditional", "oppose"]),
+  condition: LocalizedText,
+});
+export type CompromiseStatedCondition = z.infer<typeof CompromiseStatedCondition>;
+
+export const CompromiseConflict = z.object({
+  a: AgentId,
+  b: AgentId,
+  /** contradiction = cannot both hold; tension = both hold only with an explicit trade. */
+  severity: z.enum(["contradiction", "tension"]),
+  note: LocalizedText,
+});
+export type CompromiseConflict = z.infer<typeof CompromiseConflict>;
+
+export const CompromiseConsistency = z.object({
+  runId: z.string(),
+  packageId: z.string(),
+  /** carries = compatible conditions; carries_if_reconciled = any conflicting pair; fails = no majority. */
+  verdict: z.enum(["carries", "carries_if_reconciled", "fails"]),
+  label: LocalizedText,
+  conditions: z.array(CompromiseStatedCondition),
+  pairsChecked: z.number().int(),
+  conflicts: z.array(CompromiseConflict),
+  model: z.string(),
+  checkedAt: z.string(),
+});
+export type CompromiseConsistency = z.infer<typeof CompromiseConsistency>;

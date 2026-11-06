@@ -1,0 +1,233 @@
+{
+  "$comment": "Citation propensity per institution (prompt style only, never a gate). Method: every segment of the masked Stellungnahmen corpus (kind stellungnahme) and the press positions (kind press) in the DB with at least 8 words is checked for three reference families: legal (§ n, Art. n, Abs. n, ASVG, B-KUVG, GSBG, KAKuG, ÄrzteG, B-VG), figures (number with unit: %, Prozent, Mio, Mrd, EUR, Euro, Personen, Betten, Stellen, Tage, Wochen, Monate) and studies/reports (Studie, Bericht, Rechnungshof, laut, Statistik, Erhebung, Evaluierung, OECD, Daten, Analyse, Gutachten, Prognose). Rates are shares of segments with at least one marker; propensity = 0.75 x Stellungnahmen rate + 0.25 x press rate (press positions are journalist paraphrases, so they weigh less; either alone when only one exists). tier = tertile over the measured institutions (high, medium, low). nr and lk have no corpus texts: panel median, tier medium, measured false. Regenerate with pnpm --filter @sv/engine citation:measure.",
+  "method": {
+    "minWords": 8,
+    "stellungnahmeWeight": 0.75,
+    "codes": {
+      "gm": {
+        "sn": ["bmsgpk"],
+        "press": ["GM"]
+      },
+      "sv": {
+        "sn": ["sv_dachverband", "sv_oegk_gkk", "sv_auva", "sv_bvaeb", "sv_pva", "sv_svs"],
+        "press": ["SV"]
+      },
+      "ak": {
+        "sn": ["oeak", "aek_land"],
+        "press": ["ÄK"]
+      },
+      "va": {
+        "sn": ["contract_physicians"],
+        "press": ["VÄ", "WA"]
+      },
+      "ka": {
+        "sn": ["hospitals_land", "hospitals_other"],
+        "press": ["KA"]
+      },
+      "pf": {
+        "sn": ["nursing_oegkv", "nursing_other", "nursing_union"],
+        "press": ["PF"]
+      },
+      "bl": {
+        "sn": [
+          "laender_vst",
+          "land_bgld",
+          "land_ktn",
+          "land_noe",
+          "land_ooe",
+          "land_sbg",
+          "land_stmk",
+          "land_tirol",
+          "land_vbg",
+          "land_wien"
+        ],
+        "press": ["BL"]
+      },
+      "pv": {
+        "sn": ["patients_pa", "patients_selbsthilfe", "patients_vertretungsnetz"],
+        "press": ["PV"]
+      },
+      "fm": {
+        "sn": ["bmf"],
+        "press": ["FM"]
+      },
+      "nr": {
+        "sn": [],
+        "press": []
+      },
+      "ph": {
+        "sn": ["goeg"],
+        "press": []
+      },
+      "wk": {
+        "sn": ["wko"],
+        "press": ["WK"]
+      },
+      "abk": {
+        "sn": ["ak"],
+        "press": ["AK"]
+      },
+      "lk": {
+        "sn": [],
+        "press": []
+      },
+      "ind": {
+        "sn": ["iv", "pharma_industry"],
+        "press": ["IP"]
+      }
+    },
+    "generatedAt": "2026-11-06"
+  },
+  "institutions": {
+    "gm": {
+      "propensity": 0.273,
+      "legal": 0.208,
+      "figures": 0.023,
+      "studies": 0.088,
+      "nStellungnahme": 65,
+      "nPress": 33,
+      "measured": true,
+      "tier": "low"
+    },
+    "sv": {
+      "propensity": 0.403,
+      "legal": 0.368,
+      "figures": 0.032,
+      "studies": 0.055,
+      "nStellungnahme": 4022,
+      "nPress": 49,
+      "measured": true,
+      "tier": "high"
+    },
+    "ak": {
+      "propensity": 0.357,
+      "legal": 0.312,
+      "figures": 0.025,
+      "studies": 0.057,
+      "nStellungnahme": 1973,
+      "nPress": 89,
+      "measured": true,
+      "tier": "medium"
+    },
+    "va": {
+      "propensity": 0.277,
+      "legal": 0.213,
+      "figures": 0.02,
+      "studies": 0.051,
+      "nStellungnahme": 222,
+      "nPress": 21,
+      "measured": true,
+      "tier": "low"
+    },
+    "ka": {
+      "propensity": 0.323,
+      "legal": 0.261,
+      "figures": 0.022,
+      "studies": 0.088,
+      "nStellungnahme": 1562,
+      "nPress": 50,
+      "measured": true,
+      "tier": "medium"
+    },
+    "pf": {
+      "propensity": 0.313,
+      "legal": 0.264,
+      "figures": 0.032,
+      "studies": 0.051,
+      "nStellungnahme": 1883,
+      "nPress": 24,
+      "measured": true,
+      "tier": "medium"
+    },
+    "bl": {
+      "propensity": 0.308,
+      "legal": 0.255,
+      "figures": 0.035,
+      "studies": 0.049,
+      "nStellungnahme": 14467,
+      "nPress": 59,
+      "measured": true,
+      "tier": "low"
+    },
+    "pv": {
+      "propensity": 0.329,
+      "legal": 0.27,
+      "figures": 0.013,
+      "studies": 0.079,
+      "nStellungnahme": 911,
+      "nPress": 66,
+      "measured": true,
+      "tier": "medium"
+    },
+    "fm": {
+      "propensity": 0.269,
+      "legal": 0.226,
+      "figures": 0.023,
+      "studies": 0.048,
+      "nStellungnahme": 1082,
+      "nPress": 24,
+      "measured": true,
+      "tier": "low"
+    },
+    "nr": {
+      "propensity": 0.329,
+      "legal": 0,
+      "figures": 0,
+      "studies": 0,
+      "nStellungnahme": 0,
+      "nPress": 0,
+      "measured": false,
+      "tier": "medium"
+    },
+    "ph": {
+      "propensity": 0.522,
+      "legal": 0.447,
+      "figures": 0.013,
+      "studies": 0.141,
+      "nStellungnahme": 967,
+      "nPress": 0,
+      "measured": true,
+      "tier": "high"
+    },
+    "wk": {
+      "propensity": 0.411,
+      "legal": 0.361,
+      "figures": 0.039,
+      "studies": 0.07,
+      "nStellungnahme": 1480,
+      "nPress": 49,
+      "measured": true,
+      "tier": "high"
+    },
+    "abk": {
+      "propensity": 0.378,
+      "legal": 0.291,
+      "figures": 0.054,
+      "studies": 0.096,
+      "nStellungnahme": 2077,
+      "nPress": 75,
+      "measured": true,
+      "tier": "high"
+    },
+    "lk": {
+      "propensity": 0.329,
+      "legal": 0,
+      "figures": 0,
+      "studies": 0,
+      "nStellungnahme": 0,
+      "nPress": 0,
+      "measured": false,
+      "tier": "medium"
+    },
+    "ind": {
+      "propensity": 0.433,
+      "legal": 0.317,
+      "figures": 0.096,
+      "studies": 0.084,
+      "nStellungnahme": 423,
+      "nPress": 68,
+      "measured": true,
+      "tier": "high"
+    }
+  }
+}

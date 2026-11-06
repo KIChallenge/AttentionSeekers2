@@ -402,6 +402,8 @@ export function NegotiationView({
   // The round the reader is looking at: set by the round switch, followed while scrolling.
   // It falls back to the run's current round, so a live run still tracks its progress.
   const [viewRound, setViewRound] = useState<number | null>(null);
+  // after a round click the chosen round stays until the user scrolls by hand
+  const followPaused = useRef(false);
   const shown = viewRound ?? current;
   const phase = PHASES[(snap.currentPhase || 1) - 1];
 
@@ -480,8 +482,17 @@ export function NegotiationView({
         ref={scroller}
         aria-label={t.live.transcript}
         aria-describedby="transcript-keys"
-        onKeyDown={onTranscriptKey}
+        onKeyDown={(e) => {
+          followPaused.current = false;
+          onTranscriptKey(e);
+        }}
         className="relative overflow-y-auto"
+        onWheel={() => {
+          followPaused.current = false;
+        }}
+        onTouchMove={() => {
+          followPaused.current = false;
+        }}
         onScroll={(e) => {
           const el = e.currentTarget;
           setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 80);
@@ -492,6 +503,7 @@ export function NegotiationView({
             const node = document.getElementById(`round-${r.round}`);
             if (node && node.getBoundingClientRect().top <= mid) seenRound = r.round;
           }
+          if (followPaused.current) return;
           if (seenRound !== null && seenRound !== viewRound) setViewRound(seenRound);
         }}
       >
@@ -501,6 +513,7 @@ export function NegotiationView({
               label={t.live.round}
               value={shown}
               onChange={(r) => {
+                followPaused.current = true;
                 setViewRound(r);
                 setExpanded((e) => ({ ...e, [r]: true }));
                 document.getElementById(`round-${r}`)?.scrollIntoView({ behavior: "smooth" });
