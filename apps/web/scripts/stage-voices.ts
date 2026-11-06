@@ -76,7 +76,7 @@ interface Shared {
 const FORBIDDEN =
   /celebrit|famous|prominent|promi|impression|imitat|parod|politi|kanzler|minister|president|präsident|actor|schauspieler|sprecher von|stimme von|voice of|bekannt aus|like the|soundalike|clone of|synchronstimme/i;
 function excluded(v: Shared): boolean {
-  const title = v.name.split(/ [-–] /)[0]?.trim() ?? v.name;
+  const title = v.name.split(/ [-\u2013] /)[0]?.trim() ?? v.name;
   const fullName = /^[A-ZÄÖÜ][a-zäöüß]+\.? [A-ZÄÖÜ][a-zäöüß]+$/.test(title);
   return fullName || FORBIDDEN.test(`${v.name} ${v.description ?? ""}`);
 }
@@ -152,7 +152,7 @@ function pick(pool: Shared[]): Record<string, ElevenVoice> {
       used.add(v.voice_id);
       table[sp] = {
         id: v.voice_id,
-        name: v.name.split(/ [-–] /)[0]?.trim() ?? v.name,
+        name: v.name.split(/ [-\u2013] /)[0]?.trim() ?? v.name,
         category: v.category,
         locale: v.locale ?? "de-DE",
         speed: fallback?.speed ?? 1,

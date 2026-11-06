@@ -5,6 +5,8 @@
   python -I models/hf/publish.py --roles nursing,hospitals --hf-user Aryt3
   python -I models/hf/publish.py --version v2          # v2 set: repos ...-qwen3-8b-lora-v2, numbers from
                                                        # persona_fidelity.json "versions"/"v2" and eval_v2.md
+  python -I models/hf/publish.py --version v2.1        # v2.1 set: repos ...-qwen3-8b-lora-v21, adapters from
+                                                       # out/lora-sagemaker-v21, numbers from versions/"v2.1"
 
 Inputs: adapter folders from fetch_adapters.sh (default models/out/lora-sagemaker/<role>/, each with
 adapter_config.json + adapter_model.safetensors), the eval numbers in models/out/eval_sagemaker.md and
@@ -44,10 +46,27 @@ ADAPTER_FILES = ("adapter_config.json", "adapter_model.safetensors")
 UPLOAD_ALLOW = [*ADAPTER_FILES, "README.md", "LICENSE-NOTICE.md"]
 BASE = "Qwen/Qwen3-8B"
 TIE = 0.05
+VERSIONS = ("v1", "v2", "v2.1")
+DOSSIER = "dossier-qwen3-235b"   # versions[...] arm for the context-persona (dossier) approach on qwen3-235b
+# v2 training summary (job sv-ki-challenge-lora-v2-1106-013811, 2 epochs). eval_v2.md only keeps the latest
+# job's table (v21), so these rows are copied from its earlier version (git b20ef40, "Training v2").
+# role: (n train, epochs, steps, train loss, eval loss)
+TRAIN_V2 = {
+    "patients": (182, 2, None, 2.238, 2.11), "ministry_finance": (157, 2, None, 2.275, 2.04),
+    "chamber_commerce": (178, 2, None, 2.091, 2.00), "medical_chamber": (211, 2, None, 2.109, 2.28),
+    "hospitals": (190, 2, None, 2.219, 2.14), "nursing": (175, 2, None, 2.155, 2.10),
+    "chamber_labour": (267, 2, None, 1.954, 1.98), "social_insurance": (288, 2, None, 2.123, 1.88),
+    "laender": (1428, 2, None, 1.732, 1.79),
+}
+
+
+def suffix(version: str) -> str:
+    """Repo and folder suffix: v1 none, v2 '-v2', v2.1 '-v21'."""
+    return "" if version == "v1" else "-" + version.replace(".", "")
 
 
 def repo_name(user: str, role: str, version: str = "v1") -> str:
-    return f"{user}/sv-persona-{role}-qwen3-8b-lora" + ("" if version == "v1" else f"-{version}")
+    return f"{user}/sv-persona-{role}-qwen3-8b-lora{suffix(version)}"
 
 
 def read_env_token() -> str | None:
@@ -108,26 +127,84 @@ def load_eval() -> dict:
             "run": run.group(1) if run else "?", "fid_all": fid["all"]}
 
 
-def load_eval_v2() -> dict:
-    """Same shape as load_eval(), from the versions block written by models/aws/eval_v2_report.py."""
+def load_eval_v2(version: str = "v2") -> dict:
+    """Same shape as load_eval(), from the versions block written by models/aws/eval_v2_report.py.
+
+    Also carries the comparison arms for the card: v1 + fix, the prompted base and the dossier approach."""
     fid = json.loads((MODELS / "out" / "persona_fidelity.json").read_text())
-    v = (fid.get("versions") or {}).get("v2")
-    if not v:
-        sys.exit("persona_fidelity.json has no versions.v2 block; run models/aws/eval_v2_report.py first")
+    vers = fid.get("versions") or {}
+    for need in (version, "v1", "v1-fix", DOSSIER):
+        if need not in vers:
+            sys.exit(f"persona_fidelity.json has no versions.{need} block; run models/aws/eval_v2_report.py first")
+    v = vers[version]
     md = (MODELS / "out" / "eval_v2.md").read_text()
-    stats_p = MODELS / "data" / "v2" / "stats.json"
-    stats = json.loads(stats_p.read_text()) if stats_p.exists() else {}
 
     def row(x):
         return {"in-char adapter": x["adapter"], "in-char baseline": x["baseline"], "n": x["n"],
                 "sign adapter": x["stance_sign_adapter"], "sign baseline": x["stance_sign_baseline"],
                 "within1 adapter": x["within1_adapter"], "within1 baseline": x["within1_baseline"]}
     per = {r: row(x) for r, x in v["institutions"].items()}
-    for r in per:
-        per[r]["n train"] = stats.get(r, {}).get("n_train")
-    loops = re.search(r"`v2` \(fixed proxy\): (\d+) of (\d+) raw adapter outputs loop", md)
+    if version == "v2":
+        train = TRAIN_V2
+    else:  # "## Training v21" table in eval_v2.md
+        train = {}
+        for head, rows in md_tables(md):
+            if "steps" in head and "n train" in head:
+                for r in rows:
+                    d = dict(zip(head, r))
+                    train[d["institution"]] = tuple(num(d[k]) for k in
+                                                    ("n train", "epochs", "steps", "train loss", "eval loss"))
+    for r, x in per.items():
+        t = train.get(r, (None,) * 5)
+        x.update(dict(zip(("n train", "epochs", "steps", "train loss", "eval loss"), t)))
+    loops = re.search(rf"`{re.escape(version)}` \(fixed proxy\): (\d+) of (\d+) raw adapter outputs loop", md)
+    arms = {lab: {"per": vers[lab]["institutions"], "all": vers[lab]["all"]} for lab in ("v1", "v1-fix", DOSSIER)}
     return {"per": per, "all": row(v["all"]), "loops": loops.groups() if loops else ("?", "?"), "run": v["run"],
-            "fid_all": {"n": v["all"]["n"], "adapter": v["all"]["adapter"], "baseline": v["all"]["baseline"]}}
+            "fid_all": {"n": v["all"]["n"], "adapter": v["all"]["adapter"], "baseline": v["all"]["baseline"]},
+            "arms": arms, "version": version}
+
+
+def comparison(role: str, ev: dict) -> str:
+    """Small table: this version vs v1 + fix vs prompted base vs dossier on qwen3-235b, this role and all nine."""
+    me, al, arms = ev["per"].get(role, {}), ev["all"], ev["arms"]
+    fx, dz = arms["v1-fix"], arms[DOSSIER]
+    fxr, dzr = fx["per"].get(role, {}), dz["per"].get(role, {})
+    n = int(me["n"]) if me.get("n") else "n/a"
+    rows = [
+        (f"approach (held-out, n {n} for `{role}`, 244 for all nine)", "stance direction, this institution",
+         "in-character, this institution", "stance direction, all nine", "in-character, all nine"),
+        (f"**this adapter ({ev['version']})**", f2(me.get("sign adapter")), f2(me.get("in-char adapter")),
+         f2(al.get("sign adapter")), f2(al.get("in-char adapter"))),
+        ("v1 adapter + inference fix", f2(fxr.get("stance_sign_adapter")), f2(fxr.get("adapter")),
+         f2(fx["all"].get("stance_sign_adapter")), f2(fx["all"].get("adapter"))),
+        (f"prompted base `{BASE}` (role card, no adapter)", f2(me.get("sign baseline")),
+         f2(me.get("in-char baseline")), f2(al.get("sign baseline")), f2(al.get("in-char baseline"))),
+        ("dossier prompt on qwen3-235b (context persona, no training)", f2(dzr.get("stance_sign_adapter")),
+         f2(dzr.get("adapter")), f2(dz["all"].get("stance_sign_adapter")), f2(dz["all"].get("adapter"))),
+    ]
+    lines = ["| " + " | ".join(r) + " |" for r in rows]
+    lines.insert(1, "|---|---:|---:|---:|---:|")
+    return "\n".join(lines)
+
+
+def verdict_v2x(role: str, ev: dict, win_sg: list[str]) -> str:
+    al, arms = ev["all"], ev["arms"]
+    v1a, dza = arms["v1"]["all"], arms[DOSSIER]["all"]
+    if ev["version"] == "v2":
+        return (f"**Verdict: v2 is weaker than v1 and than the prompted base overall** (stance direction "
+                f"{f2(al['sign adapter'])} vs {f2(v1a['stance_sign_adapter'])} for v1 and "
+                f"{f2(al['sign baseline'])} for the base; in-character {f2(al['in-char adapter'])} vs "
+                f"{f2(v1a['adapter'])} and {f2(al['in-char baseline'])}). Its small-institution adapters are "
+                "underfit (about 24 optimiser steps at lr 7e-5) and often open with a letter salutation only. "
+                "**It is kept for transparency, not for use**; v2.1 (`-v21`) is the retrained successor.")
+    mine = role in win_sg
+    return (f"**Verdict: v2.1 beats the prompted base on stance direction for five institutions** "
+            f"({', '.join(win_sg)}){'; this institution is one of them' if mine else '; this institution is not one of them'}. "
+            f"Overall it is slightly behind the base (stance direction {f2(al['sign adapter'])} vs "
+            f"{f2(al['sign baseline'])}, in-character {f2(al['in-char adapter'])} vs {f2(al['in-char baseline'])}) "
+            f"and **behind the dossier approach on average** (dossier on qwen3-235b: stance direction "
+            f"{f2(dza['stance_sign_adapter'])}, in-character {f2(dza['adapter'])}). The prototype demo uses v2.1 "
+            "only for those five institutions and the prompted base elsewhere.")
 
 
 def f2(x) -> str:
@@ -136,7 +213,7 @@ def f2(x) -> str:
 
 def card(role: str, ev: dict, version: str = "v1") -> str:
     r = ev["per"].get(role, {})
-    name = f"sv-persona-{role}-qwen3-8b-lora" + ("" if version == "v1" else f"-{version}")
+    name = f"sv-persona-{role}-qwen3-8b-lora{suffix(version)}"
     win_ic = [k for k, x in sorted(ev["per"].items())
               if (x.get("in-char adapter") or 0) > (x.get("in-char baseline") or 0)]
     win_sg = [k for k, x in sorted(ev["per"].items())
@@ -164,8 +241,38 @@ def card(role: str, ev: dict, version: str = "v1") -> str:
   batch 4 x grad-acc 4, max length 2048, bf16, Qwen3 non-thinking chat template. One SageMaker job."""
         loop_note = ("loop in the raw generation even with\n  repetition_penalty 1.1, frequency_penalty 0.3 "
                      "and a stop after one paragraph; the serving proxy cuts at the first repeated sentence.")
+    if version == "v2.1":
+        recipe = """- Data: the v2 data. {nt} SFT rows (train) for this institution: the v1 Stellungnahme rows plus
+  person-free press-derived institution-voice rows (train split, before 2023-01-01), deduplicated. Across all
+  nine v2 sets: 2,706 Stellungnahme rows with a judge-labelled stance plus 370 press rows; for v2.1 laender
+  was capped to a fixed random 600 rows (all 47 press rows kept). Each target starts with a stance label from
+  an LLM judge ("Haltung: ablehnend. ..."); strip that prefix before showing the text. Loss on the assistant
+  turn only.
+- Out-of-time split: train on statements before 2023-01-01, evaluate after (same held-out rows as v1).
+- LoRA rank 16, alpha 32, dropout 0.05, all attention and MLP projections, the v1 schedule: lr 1e-4 cosine,
+  3 epochs raised so every adapter gets at least 36 optimiser steps (this one: {ep} epochs, {st} steps),
+  batch 4 x grad-acc 4, max length 2048, bf16, Qwen3 non-thinking chat template. One SageMaker job
+  (ml.g6e.xlarge) for all nine adapters."""
+    elif version == "v2":
+        recipe += """
+- Data sizes across all nine sets: 2,706 Stellungnahme rows with a judge-labelled stance plus 370 press
+  rows. 2 epochs for every adapter, so the small sets got only about 24 optimiser steps (underfit)."""
     recipe = recipe.format(nt=int(r["n train"]) if r.get("n train") else "n/a",
-                           nh=int(r["n held-out"]) if r.get("n held-out") else int(r["n"]) if r.get("n") else "n/a")
+                           nh=int(r["n held-out"]) if r.get("n held-out") else int(r["n"]) if r.get("n") else "n/a",
+                           ep=f"{r['epochs']:g}" if r.get("epochs") else "n/a",
+                           st=f"{r['steps']:g}" if r.get("steps") else "n/a")
+    if version == "v1":
+        headline, compare = "a measured experiment, weaker than the base overall", ""
+    else:
+        headline = ("weaker than v1 and the base, kept for transparency" if version == "v2"
+                    else "ahead of the base on stance for five institutions, behind the dossier approach")
+        compare = ("\n## Comparison with the other approaches\n\n" + comparison(role, ev) + "\n\n"
+                   + verdict_v2x(role, ev, win_sg) + "\n\nStance direction: share of held-out rows where the "
+                   "LLM judge gives the generated paragraph the same direction (against, neutral, for) as the "
+                   "institution's real paragraph. In-character: mean P(role given text) from a char n-gram "
+                   "classifier, chance about 0.10. v1 + fix is the v1 adapter served with repetition_penalty 1.1, "
+                   "frequency_penalty 0.3 and a one-paragraph stop. The dossier arm prompts qwen3-235b with an "
+                   "institution dossier built only from material dated before 2023-01-01; no weights are trained.\n")
     a, b = r.get("in-char adapter"), r.get("in-char baseline")
     verdict = "n/a" if a is None or b is None else ("tie" if abs(a - b) < TIE else ("better" if a > b else "worse"))
     al = ev["all"]
@@ -198,7 +305,7 @@ prototype that simulates health-policy negotiations between institutions, never 
 endorsed by the institution, and not for representing, impersonating or speaking for any real
 institution or its staff in public or in real communication.
 
-## Result first: a measured experiment, weaker than the base overall
+## Result first: {headline}
 
 On held-out statements (dated 2023-01-01 or later, run `{ev['run']}`), compared with the same base model
 prompted with the same role card (`sv-base`):
@@ -218,7 +325,7 @@ within one step {f2(al.get('within1 adapter'))} vs {f2(al.get('within1 baseline'
 in-character score for {', '.join(win_ic) or 'no institution'} and on stance direction for
 {', '.join(win_sg) or 'no institution'}. The simulator therefore uses frontier models with fitted stance
 profiles by default.
-
+{compare}
 ## Training
 
 {recipe}
@@ -283,16 +390,16 @@ licence. Copyright for the base model remains with its authors. No training data
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--version", default="v1", choices=["v1", "v2"])
-    ap.add_argument("--adapters", type=Path, help="default out/lora-sagemaker (v1) or out/lora-sagemaker-v2")
-    ap.add_argument("--staging", type=Path, help="default out/hf (v1) or out/hf-v2")
+    ap.add_argument("--version", default="v1", choices=list(VERSIONS))
+    ap.add_argument("--adapters", type=Path, help="default out/lora-sagemaker, out/lora-sagemaker-v2 or -v21")
+    ap.add_argument("--staging", type=Path, help="default out/hf, out/hf-v2 or out/hf-v21")
     ap.add_argument("--roles", default=",".join(ROLES_WITH_ADAPTER))
     ap.add_argument("--hf-user", default=os.environ.get("HF_USER", "Aryt3"))
     mode = ap.add_mutually_exclusive_group()
     mode.add_argument("--dry-run", action="store_true", default=True, help="default: write cards, upload nothing")
     mode.add_argument("--execute", action="store_true", help="create PRIVATE repos and upload")
     a = ap.parse_args()
-    sfx = "" if a.version == "v1" else f"-{a.version}"
+    sfx = suffix(a.version)
     a.adapters = a.adapters or MODELS / "out" / f"lora-sagemaker{sfx}"
     a.staging = a.staging or MODELS / "out" / f"hf{sfx}"
 
@@ -300,7 +407,7 @@ def main():
     unknown = [r for r in roles if r not in ROLES_WITH_ADAPTER]
     if unknown:
         sys.exit(f"no adapter for roles: {unknown}")
-    ev = load_eval() if a.version == "v1" else load_eval_v2()
+    ev = load_eval() if a.version == "v1" else load_eval_v2(a.version)
 
     plan, missing = [], []
     for role in roles:

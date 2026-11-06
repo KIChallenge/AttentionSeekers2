@@ -73,8 +73,8 @@ def export(passages_path: Path, rewrites_path: Path, names_path: Path, out_dir: 
         if not o.get("relevant"):
             stats["not_relevant"] += 1
             continue
-        txt = " ".join(str(o.get("stance_text_de", "")).split()).replace("\u2014", "–")
-        about = " ".join(str(o.get("about", "")).split()).replace("\u2014", "–")
+        txt = " ".join(str(o.get("stance_text_de", "")).split()).replace("\u2014", "-").replace("\u2013", "-")
+        about = " ".join(str(o.get("about", "")).split()).replace("\u2014", "-").replace("\u2013", "-")
         if len(txt) < 30:
             stats["too_short"] += 1
             continue

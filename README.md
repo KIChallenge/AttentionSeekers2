@@ -12,7 +12,7 @@ Es werden nur Institutionen abgebildet, nie reale Personen (CON-1, CON-2).
 English summary: [below](#english-summary). Methodennotiz für die Jury: [`docs/method.md`](docs/method.md),
 im Prototyp unter `/method`. Pitch und Klickpfad: [`docs/pitch.md`](docs/pitch.md).
 
-**Trainierte Persona-Modelle:** neun LoRA-Adapter auf Qwen3-8B mit Modellkarten und Messwerten auf
+**Trainierte Persona-Modelle:** neun LoRA-Adapter auf Qwen3-8B in drei Versionen (v1, v2, v2.1) mit Modellkarten und Messwerten auf
 **[huggingface.co/Aryt3](https://huggingface.co/Aryt3)**; Ergebnisse pro Institution in [Abschnitt 1.8](#18-trainierte-persona-modelle-hugging-face).
 
 ---
@@ -173,24 +173,24 @@ Die Ausgabe ist eine Vorbereitungsunterlage mit Quellen, keine Entscheidung.
 
 ### 1.8 Trainierte Persona-Modelle (Hugging Face)
 
-Neun LoRA-Adapter auf `Qwen/Qwen3-8B` (Apache-2.0), je einer pro Institution mit ausreichend Stellungnahmen, trainiert auf SageMaker (`ml.g6e.xlarge`, 52 min, 2,39 USD). Alle Modelle mit Model Card und Messwerten: **[huggingface.co/Aryt3](https://huggingface.co/Aryt3)**. Die Repositories sind derzeit privat; nur Adaptergewichte, Konfiguration und Karte sind hochgeladen, keine Trainingsdaten.
+27 LoRA-Adapter auf `Qwen/Qwen3-8B` (Apache-2.0) in drei Versionen, je einer pro Institution mit ausreichend Stellungnahmen, trainiert auf SageMaker (`ml.g6e.xlarge`): **v1** (nur Stellungnahmen, 3 Epochen), **v2** (plus Haltungs-Präfix und personenfreie Presse-Texte, 2 Epochen, unterangepasst) und **v2.1** (v2-Daten mit dem v1-Schema, mindestens 36 Schritte pro Adapter). Alle unter **[huggingface.co/Aryt3](https://huggingface.co/Aryt3)**, jeweils mit Model Card, Vergleichstabelle und Messwerten. Die Repositories sind privat; hochgeladen sind nur Adaptergewichte, Konfiguration und Karte, keine Trainingsdaten.
 
-Auswertung auf zurückgehaltenen Stellungnahmen ab 2023 (Adapter / prompt-gesteuertes Basismodell):
+Auswertung auf zurückgehaltenen Stellungnahmen ab 2023, Anteil mit derselben Haltungsrichtung wie die echte Stellungnahme (v2.1 / prompt-gesteuertes Basismodell):
 
-| Institution                                                                                  |   n | In-Character-Score (Zufall ca. 0,10) | Haltung getroffen | Adapter   |
-| -------------------------------------------------------------------------------------------- | --: | -----------------------------------: | ----------------: | --------- |
-| [Pflegevertretung](https://huggingface.co/Aryt3/sv-persona-nursing-qwen3-8b-lora)            |  30 |                          0.66 / 0.41 |       0.33 / 0.37 | besser    |
-| [Arbeiterkammer](https://huggingface.co/Aryt3/sv-persona-chamber_labour-qwen3-8b-lora)       |  30 |                          0.39 / 0.22 |       0.27 / 0.67 | besser    |
-| [Krankenanstalten](https://huggingface.co/Aryt3/sv-persona-hospitals-qwen3-8b-lora)          |  28 |                          0.18 / 0.12 |       0.46 / 0.61 | besser    |
-| [Patientenvertretung](https://huggingface.co/Aryt3/sv-persona-patients-qwen3-8b-lora)        |  12 |                          0.59 / 0.62 |       0.33 / 0.50 | gleichauf |
-| [Sozialversicherung](https://huggingface.co/Aryt3/sv-persona-social_insurance-qwen3-8b-lora) |  30 |                          0.52 / 0.61 |       0.70 / 0.63 | schwächer |
-| [Bundesländer](https://huggingface.co/Aryt3/sv-persona-laender-qwen3-8b-lora)                |  30 |                          0.57 / 0.76 |       0.50 / 0.60 | schwächer |
-| [Ärztekammer](https://huggingface.co/Aryt3/sv-persona-medical_chamber-qwen3-8b-lora)         |  30 |                          0.24 / 0.31 |       0.33 / 0.67 | schwächer |
-| [Finanzministerium](https://huggingface.co/Aryt3/sv-persona-ministry_finance-qwen3-8b-lora)  |  24 |                          0.33 / 0.71 |       0.46 / 0.42 | schwächer |
-| [Wirtschaftskammer](https://huggingface.co/Aryt3/sv-persona-chamber_commerce-qwen3-8b-lora)  |  30 |                          0.10 / 0.55 |       0.50 / 0.60 | schwächer |
-| **Gesamt**                                                                                   | 244 |                          0,39 / 0,47 |       0,44 / 0,57 | schwächer |
+| Institution         | Repositories                                                                                                                                                                                                                                        |   n | Haltung getroffen v2.1 / Basis |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --: | -----------------------------: |
+| Krankenanstalten    | [v1](https://huggingface.co/Aryt3/sv-persona-hospitals-qwen3-8b-lora) · [v2.1](https://huggingface.co/Aryt3/sv-persona-hospitals-qwen3-8b-lora-v21) · [v2](https://huggingface.co/Aryt3/sv-persona-hospitals-qwen3-8b-lora-v2)                      |  28 |    0,71 / 0,66 **v2.1 besser** |
+| Ärztekammer         | [v1](https://huggingface.co/Aryt3/sv-persona-medical_chamber-qwen3-8b-lora) · [v2.1](https://huggingface.co/Aryt3/sv-persona-medical_chamber-qwen3-8b-lora-v21) · [v2](https://huggingface.co/Aryt3/sv-persona-medical_chamber-qwen3-8b-lora-v2)    |  30 |    0,70 / 0,69 **v2.1 besser** |
+| Pflegevertretung    | [v1](https://huggingface.co/Aryt3/sv-persona-nursing-qwen3-8b-lora) · [v2.1](https://huggingface.co/Aryt3/sv-persona-nursing-qwen3-8b-lora-v21) · [v2](https://huggingface.co/Aryt3/sv-persona-nursing-qwen3-8b-lora-v2)                            |  30 |    0,70 / 0,53 **v2.1 besser** |
+| Patientenvertretung | [v1](https://huggingface.co/Aryt3/sv-persona-patients-qwen3-8b-lora) · [v2.1](https://huggingface.co/Aryt3/sv-persona-patients-qwen3-8b-lora-v21) · [v2](https://huggingface.co/Aryt3/sv-persona-patients-qwen3-8b-lora-v2)                         |  12 |    0,58 / 0,46 **v2.1 besser** |
+| Sozialversicherung  | [v1](https://huggingface.co/Aryt3/sv-persona-social_insurance-qwen3-8b-lora) · [v2.1](https://huggingface.co/Aryt3/sv-persona-social_insurance-qwen3-8b-lora-v21) · [v2](https://huggingface.co/Aryt3/sv-persona-social_insurance-qwen3-8b-lora-v2) |  30 |    0,60 / 0,55 **v2.1 besser** |
+| Arbeiterkammer      | [v1](https://huggingface.co/Aryt3/sv-persona-chamber_labour-qwen3-8b-lora) · [v2.1](https://huggingface.co/Aryt3/sv-persona-chamber_labour-qwen3-8b-lora-v21) · [v2](https://huggingface.co/Aryt3/sv-persona-chamber_labour-qwen3-8b-lora-v2)       |  30 |                    0,50 / 0,68 |
+| Bundesländer        | [v1](https://huggingface.co/Aryt3/sv-persona-laender-qwen3-8b-lora) · [v2.1](https://huggingface.co/Aryt3/sv-persona-laender-qwen3-8b-lora-v21) · [v2](https://huggingface.co/Aryt3/sv-persona-laender-qwen3-8b-lora-v2)                            |  30 |                    0,50 / 0,58 |
+| Wirtschaftskammer   | [v1](https://huggingface.co/Aryt3/sv-persona-chamber_commerce-qwen3-8b-lora) · [v2.1](https://huggingface.co/Aryt3/sv-persona-chamber_commerce-qwen3-8b-lora-v21) · [v2](https://huggingface.co/Aryt3/sv-persona-chamber_commerce-qwen3-8b-lora-v2) |  30 |                    0,37 / 0,53 |
+| Finanzministerium   | [v1](https://huggingface.co/Aryt3/sv-persona-ministry_finance-qwen3-8b-lora) · [v2.1](https://huggingface.co/Aryt3/sv-persona-ministry_finance-qwen3-8b-lora-v21) · [v2](https://huggingface.co/Aryt3/sv-persona-ministry_finance-qwen3-8b-lora-v2) |  24 |                    0,21 / 0,39 |
+| **Gesamt**          |                                                                                                                                                                                                                                                     | 244 |                    0,55 / 0,57 |
 
-Ergebnis: Die Adapter übernehmen den Schreibstil der Stellungnahmen, gewinnen aber nur bei Pflege, Arbeiterkammer und Krankenanstalten; insgesamt ist das Basismodell besser, und 27 von 244 Adapter-Antworten wiederholen Sätze. Die Agenten nutzen deshalb standardmäßig Frontier-Modelle mit datengestützten Positionsprofilen; die Adapter sind ein gemessenes Experiment, vergleichbar live im Tab **Modelle** (`/models`). Details: `models/README.md`, `models/out/eval_sagemaker.md`.
+Ergebnis: v2.1 schlägt das Basismodell bei der Haltung für fünf Institutionen (Krankenanstalten, Ärztekammer, Pflege, Patientenvertretung, Sozialversicherung), liegt insgesamt knapp dahinter (In-Character 0,38 / 0,46) und hinter dem Dossier-Ansatz auf qwen3-235b (Haltung 0,64, In-Character 0,57). v1 (Haltung 0,44, mit Inferenz-Fix 0,50) schlägt die Basis bei der Haltung nur für zwei bzw. drei Institutionen; v2 (0,30) ist schwächer als v1 und das Basismodell und bleibt nur zur Transparenz veröffentlicht. Die Agenten nutzen deshalb standardmäßig Frontier-Modelle mit datengestützten Positionsprofilen; die Adapter sind ein gemessenes Experiment, vergleichbar live im Tab **Modelle** (`/models`). Details: `models/README.md`, `models/out/eval_v2.md`, `models/out/eval_sagemaker.md`.
 
 ## 2. Anleitung zur Ausführung
 
@@ -338,7 +338,7 @@ simulating the other institutions. Needs an internal archive connector, the Dach
 Azure tenant and analyst review. Next steps: run and publish the backtests, second-source the red
 lines with expert-checked labels, pilot on a live consultation.
 
-Trained persona adapters (private, with model cards and evaluation): https://huggingface.co/Aryt3
+Trained persona adapters, versions v1, v2 and v2.1 (private, with model cards and evaluation): https://huggingface.co/Aryt3
 
 ## Repository
 

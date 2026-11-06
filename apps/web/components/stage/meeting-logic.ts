@@ -47,7 +47,7 @@ function pushSplit(out: CaptionChunk[], text: string, start: number, end: number
   }
   const mid = start + piece.length / 2;
   let best = -1;
-  for (const re of [/[,;:–]\s/g, /\s/g]) {
+  for (const re of [/[,;:\u2013]\s/g, /\s/g]) {
     re.lastIndex = 0;
     for (let m = re.exec(piece); m; m = re.exec(piece)) {
       const cut = start + m.index + m[0].length;
