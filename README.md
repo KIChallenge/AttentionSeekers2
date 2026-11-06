@@ -110,6 +110,27 @@ Datenbank (Akzeptanzkriterium 19).
 
 Ausführlich, mit Grenzen: [`docs/method.md`](docs/method.md).
 
+#### Forschungsgrundlage
+
+Die wichtigsten umgesetzten Arbeiten, jeweils mit der Funktion, die sie geprägt haben. Alle 43
+umgesetzten Paper mit Datei je Mechanismus, dazu die geprüften, aber nicht gebauten: [`docs/references.md`](docs/references.md).
+
+- Debattenrunden: Du et al. 2023, [Multiagent Debate](https://arxiv.org/abs/2305.14325)
+- Themenbindung, festgefahrene Austausche schließen: Becker et al. 2025, [Problem Drift](https://arxiv.org/abs/2502.19559)
+- Zufällige, protokollierte Sprechreihenfolge: Zhang et al. 2025, [Who Holds the Power?](https://arxiv.org/abs/2511.11040)
+- Konflikte vor Einigungen: Tessler et al. 2024, [Common ground in deliberation](https://doi.org/10.1126/science.adq2852)
+- Rote Linien, kein Konsenszwang: Sharma et al. 2023, [Sycophancy](https://arxiv.org/abs/2310.13548)
+- Koalitionskalkül: Tsebelis 2002, [Veto Players](https://doi.org/10.1515/9781400831456)
+- Stufen der roten Linien: Weible, Sabatier, McQueen 2009, [Advocacy Coalition Framework](https://doi.org/10.1111/j.1541-0072.2008.00299.x)
+- Atomare Claims: Min et al. 2023, [FActScore](https://arxiv.org/abs/2305.14251)
+- Claim gegen zitierte Passage: Gao et al. 2023, [ALCE](https://arxiv.org/abs/2305.14627)
+- Prüfung durch andere Modellfamilie: Panickssery, Bowman, Feng 2024, [Self-preference](https://arxiv.org/abs/2404.13076)
+- as-of-Retrieval: Halawi et al. 2024, [Human-Level Forecasting](https://arxiv.org/abs/2402.18563)
+- Lookahead, Recall-Probe: Sarkar, Vafa 2024, [Lookahead Bias](https://conference.nber.org/conf_papers/f205530/f205530.pdf)
+- Referenzklassen-Prognose: Kahneman, Lovallo 1993, [Timid Choices and Bold Forecasts](https://doi.org/10.1287/mnsc.39.1.17)
+- Wilson- und Jeffreys-Intervall: Brown, Cai, DasGupta 2001, [Binomial Proportion](https://doi.org/10.1214/ss/1009213286)
+- Präferenzerreichung im Backtest: Klüver 2009, [Interest Group Influence](https://doi.org/10.1177/1465116509346782)
+
 ### 1.5 Datenquellen und Lizenzen
 
 | Quelle                                                                                                      | Verwendung                                     | Lizenz                                                                                                                                                                 |

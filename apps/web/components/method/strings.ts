@@ -209,6 +209,10 @@ const de = {
       "Prozessrealismus ist nicht gemessen.",
     ],
   },
+  refs: {
+    title: "Forschungsgrundlage",
+    full: "Vollständige Liste mit Datei je Mechanismus und geprüften, nicht umgesetzten Arbeiten:",
+  },
   fileNote: "Messwerte aus",
   fileError: "Messwerte konnten nicht gelesen werden",
   updated: "aktualisiert",
@@ -417,6 +421,10 @@ const en: Dict = {
       "Masking is best effort, without a measured recall.",
       "Process realism is not measured.",
     ],
+  },
+  refs: {
+    title: "Research basis",
+    full: "Full list with the file per mechanism and the examined papers that were not built:",
   },
   fileNote: "Measured values from",
   fileError: "Measured values could not be read",
