@@ -512,7 +512,19 @@ async function completeBedrock(
     const started = performance.now();
     let status: number | undefined;
     try {
+      // A dropped connection ("fetch failed") under load is transient: it enters the same
+      // backoff loop as a 503. Timeouts are not retried here (structured() retries once).
       const send = (choice: "tool" | "any" | "json") =>
+        fetchOnce(choice).catch((error: unknown) => {
+          if (
+            error instanceof Error &&
+            error.name !== "TimeoutError" &&
+            error.name !== "AbortError"
+          )
+            return new Response(null, { status: 503 });
+          throw error;
+        });
+      const fetchOnce = (choice: "tool" | "any" | "json") =>
         fetch(
           `https://bedrock-runtime.${region}.amazonaws.com/model/${encodeURIComponent(modelId)}/converse`,
           {
