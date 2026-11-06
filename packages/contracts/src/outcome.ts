@@ -90,3 +90,64 @@ export const MethodNote = z.object({
   extractorVersion: z.string(),
 });
 export type MethodNote = z.infer<typeof MethodNote>;
+
+/**
+ * Added 2026-11-06 (compromise synthesis): the moderator's conditional compromise package,
+ * drafted after the end condition from the proposals and positions that came closest. It is
+ * a proposal, never a forced result: its real support comes from the ratification round.
+ */
+export const CompromiseCondition = z.object({
+  kind: z.enum(["financing", "evaluation", "sunset", "pilot", "governance", "other"]),
+  text: LocalizedText,
+});
+export type CompromiseCondition = z.infer<typeof CompromiseCondition>;
+
+export const CompromisePackage = z.object({
+  id: z.string(),
+  round: z.number().int(),
+  title: LocalizedText,
+  /** Why these pieces: what came closest and what was traded. */
+  rationale: LocalizedText,
+  components: z.array(z.object({ text: LocalizedText, proposalIds: z.array(z.string()) })),
+  conditions: z.array(CompromiseCondition),
+  /** Proposals the package draws on. */
+  basedOn: z.array(z.string()),
+  /** The moderator's reading of the table before the ratification round. */
+  expected: z.object({
+    support: z.array(AgentId),
+    conditional: z.array(AgentId),
+    oppose: z.array(z.object({ agentId: AgentId, reason: LocalizedText })),
+  }),
+  redLinesTouched: z.array(
+    z.object({ redLineId: z.string(), agentId: AgentId, note: LocalizedText }),
+  ),
+  utteranceId: z.string().nullable(),
+});
+export type CompromisePackage = z.infer<typeof CompromisePackage>;
+
+export const CompromiseVote = z.object({
+  packageId: z.string(),
+  agentId: AgentId,
+  stance: z.enum(["support", "conditional", "oppose"]),
+  /** For conditional support: the condition; for opposition: what would change it. */
+  condition: LocalizedText.nullable(),
+  reason: LocalizedText,
+  redLinesTouched: z.array(z.string()),
+  utteranceId: z.string().nullable(),
+  model: z.string(),
+});
+export type CompromiseVote = z.infer<typeof CompromiseVote>;
+
+export const CompromiseResult = z.object({
+  packageId: z.string(),
+  support: z.array(AgentId),
+  conditional: z.array(AgentId),
+  oppose: z.array(AgentId),
+  /** Whether support plus conditional support meets the room's decision rule. */
+  passes: z.boolean(),
+  rule: z.enum(["consensus", "qualified_majority", "veto_players"]),
+  needed: z.number().int(),
+  missingVetoPlayers: z.array(AgentId),
+  note: LocalizedText,
+});
+export type CompromiseResult = z.infer<typeof CompromiseResult>;

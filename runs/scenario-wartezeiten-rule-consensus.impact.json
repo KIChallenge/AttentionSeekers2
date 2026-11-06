@@ -1,0 +1,1267 @@
+{
+  "runId": "scenario-wartezeiten-rule-consensus",
+  "modelVersion": "impact-0.3-evidence",
+  "evidenceVersion": "evidence-2026-11-06",
+  "measures": [
+    "p-12",
+    "p-05",
+    "p-10",
+    "p-02"
+  ],
+  "figures": [
+    {
+      "measureId": "p-12",
+      "metric": "wait_change_pct",
+      "value": -3,
+      "low": -12.2,
+      "high": -0.1,
+      "unit": "%",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+            "translations": {
+              "en": "1450 appointment brokering and digital specialist triage"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminzusage (Vierwochengarantie)",
+            "translations": {
+              "en": "Appointment guarantee (four weeks)"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Wirkung im ersten Jahr",
+            "translations": {
+              "en": "Effect in year one"
+            }
+          },
+          "value": "-1.5 %",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "classes deduplicated; r_class = effect * scope * phase_in(year 5); group = r1 + 0.5*r2 + 0.25*r3; total = 1 - prod(1 - group); dWait = -total",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Bandbreite aus der Evidenztabelle (5 Quellen), Jahr 5; keine amtliche Wartezeitenreihe",
+        "translations": {
+          "en": "Range from the evidence table (5 sources), year 5; no official waiting-time series"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "triage_routing",
+        "access_guarantee"
+      ],
+      "sourceCount": 5
+    },
+    {
+      "measureId": "p-12",
+      "metric": "cost_eur_pa",
+      "value": 17.5,
+      "low": 1.5,
+      "high": 77,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+            "translations": {
+              "en": "1450 appointment brokering and digital specialist triage"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminzusage (Vierwochengarantie)",
+            "translations": {
+              "en": "Appointment guarantee (four weeks)"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "cost = sum over classes (posts * cost_per_post * fill_rate, or class cost range)",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Kostenbandbreiten je Klasse, großteils Annahmen; Wechselwirkungen nicht modelliert",
+        "translations": {
+          "en": "Cost ranges per class, mostly assumptions; interactions not modelled"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "triage_routing",
+        "access_guarantee"
+      ],
+      "sourceCount": 5
+    },
+    {
+      "measureId": "p-12",
+      "metric": "sv_spend_pp",
+      "value": 0.03,
+      "low": 0,
+      "high": 0.13,
+      "unit": "% der Gesundheitsausgaben",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Laufende Gesundheitsausgaben 2024",
+            "translations": {
+              "en": "Current health expenditure 2024"
+            }
+          },
+          "value": "57.8 Mrd. EUR",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "spend_pct = cost_mio / health_expenditure_mio * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt der Kostenbandbreite; Basis Statistik Austria",
+        "translations": {
+          "en": "Follows the cost range; baseline Statistik Austria"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "triage_routing",
+        "access_guarantee"
+      ],
+      "sourceCount": 5
+    },
+    {
+      "measureId": "p-05",
+      "metric": "wait_change_pct",
+      "value": -3,
+      "low": -10,
+      "high": 0,
+      "unit": "%",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminzusage (Vierwochengarantie)",
+            "translations": {
+              "en": "Appointment guarantee (four weeks)"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Wirkung im ersten Jahr",
+            "translations": {
+              "en": "Effect in year one"
+            }
+          },
+          "value": "-1.5 %",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "classes deduplicated; r_class = effect * scope * phase_in(year 5); group = r1 + 0.5*r2 + 0.25*r3; total = 1 - prod(1 - group); dWait = -total",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Bandbreite aus der Evidenztabelle (3 Quellen), Jahr 5; keine amtliche Wartezeitenreihe",
+        "translations": {
+          "en": "Range from the evidence table (3 sources), year 5; no official waiting-time series"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "access_guarantee"
+      ],
+      "sourceCount": 3
+    },
+    {
+      "measureId": "p-05",
+      "metric": "cost_eur_pa",
+      "value": 15,
+      "low": 0,
+      "high": 60,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminzusage (Vierwochengarantie)",
+            "translations": {
+              "en": "Appointment guarantee (four weeks)"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "cost = sum over classes (posts * cost_per_post * fill_rate, or class cost range)",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Kostenbandbreiten je Klasse, großteils Annahmen; Wechselwirkungen nicht modelliert",
+        "translations": {
+          "en": "Cost ranges per class, mostly assumptions; interactions not modelled"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "access_guarantee"
+      ],
+      "sourceCount": 3
+    },
+    {
+      "measureId": "p-05",
+      "metric": "sv_spend_pp",
+      "value": 0.03,
+      "low": 0,
+      "high": 0.1,
+      "unit": "% der Gesundheitsausgaben",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Laufende Gesundheitsausgaben 2024",
+            "translations": {
+              "en": "Current health expenditure 2024"
+            }
+          },
+          "value": "57.8 Mrd. EUR",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "spend_pct = cost_mio / health_expenditure_mio * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt der Kostenbandbreite; Basis Statistik Austria",
+        "translations": {
+          "en": "Follows the cost range; baseline Statistik Austria"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "access_guarantee"
+      ],
+      "sourceCount": 3
+    },
+    {
+      "measureId": "p-10",
+      "metric": "wait_change_pct",
+      "value": -4.5,
+      "low": -12.6,
+      "high": -0.5,
+      "unit": "%",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+            "translations": {
+              "en": "1450 appointment brokering and digital specialist triage"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Honorar- und Produktivitätsanreize",
+            "translations": {
+              "en": "Fee and productivity incentives"
+            }
+          },
+          "value": "Annahme",
+          "citation": null,
+          "assumption": true
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Wirkung im ersten Jahr",
+            "translations": {
+              "en": "Effect in year one"
+            }
+          },
+          "value": "-2.2 %",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "classes deduplicated; r_class = effect * scope * phase_in(year 5); group = r1 + 0.5*r2 + 0.25*r3; total = 1 - prod(1 - group); dWait = -total",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Bandbreite aus der Evidenztabelle (4 Quellen), Jahr 5; keine amtliche Wartezeitenreihe; enthält Annahmen ohne Evidenz",
+        "translations": {
+          "en": "Range from the evidence table (4 sources), year 5; no official waiting-time series; includes assumptions without evidence"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "triage_routing",
+        "fee_incentive"
+      ],
+      "sourceCount": 4
+    },
+    {
+      "measureId": "p-10",
+      "metric": "cost_eur_pa",
+      "value": 100,
+      "low": 25,
+      "high": 300,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+            "translations": {
+              "en": "1450 appointment brokering and digital specialist triage"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Honorar- und Produktivitätsanreize",
+            "translations": {
+              "en": "Fee and productivity incentives"
+            }
+          },
+          "value": "Annahme",
+          "citation": null,
+          "assumption": true
+        }
+      ],
+      "formula": "cost = sum over classes (posts * cost_per_post * fill_rate, or class cost range)",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Kostenbandbreiten je Klasse, großteils Annahmen; Wechselwirkungen nicht modelliert",
+        "translations": {
+          "en": "Cost ranges per class, mostly assumptions; interactions not modelled"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "triage_routing",
+        "fee_incentive"
+      ],
+      "sourceCount": 4
+    },
+    {
+      "measureId": "p-10",
+      "metric": "sv_spend_pp",
+      "value": 0.17,
+      "low": 0.04,
+      "high": 0.52,
+      "unit": "% der Gesundheitsausgaben",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Laufende Gesundheitsausgaben 2024",
+            "translations": {
+              "en": "Current health expenditure 2024"
+            }
+          },
+          "value": "57.8 Mrd. EUR",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "spend_pct = cost_mio / health_expenditure_mio * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt der Kostenbandbreite; Basis Statistik Austria",
+        "translations": {
+          "en": "Follows the cost range; baseline Statistik Austria"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "triage_routing",
+        "fee_incentive"
+      ],
+      "sourceCount": 4
+    },
+    {
+      "measureId": "p-02",
+      "metric": "wait_change_pct",
+      "value": -2.2,
+      "low": -10.3,
+      "high": 0,
+      "unit": "%",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminzusage (Vierwochengarantie)",
+            "translations": {
+              "en": "Appointment guarantee (four weeks)"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Honorar- und Produktivitätsanreize",
+            "translations": {
+              "en": "Fee and productivity incentives"
+            }
+          },
+          "value": "Annahme",
+          "citation": null,
+          "assumption": true
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Wirkung im ersten Jahr",
+            "translations": {
+              "en": "Effect in year one"
+            }
+          },
+          "value": "-1.1 %",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "classes deduplicated; r_class = effect * scope * phase_in(year 5); group = r1 + 0.5*r2 + 0.25*r3; total = 1 - prod(1 - group); dWait = -total",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Bandbreite aus der Evidenztabelle (4 Quellen), Jahr 5; keine amtliche Wartezeitenreihe; enthält Annahmen ohne Evidenz",
+        "translations": {
+          "en": "Range from the evidence table (4 sources), year 5; no official waiting-time series; includes assumptions without evidence"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "access_guarantee",
+        "fee_incentive"
+      ],
+      "sourceCount": 4
+    },
+    {
+      "measureId": "p-02",
+      "metric": "cost_eur_pa",
+      "value": 47.5,
+      "low": 6,
+      "high": 217,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminzusage (Vierwochengarantie)",
+            "translations": {
+              "en": "Appointment guarantee (four weeks)"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Honorar- und Produktivitätsanreize",
+            "translations": {
+              "en": "Fee and productivity incentives"
+            }
+          },
+          "value": "Annahme",
+          "citation": null,
+          "assumption": true
+        }
+      ],
+      "formula": "cost = sum over classes (posts * cost_per_post * fill_rate, or class cost range)",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Kostenbandbreiten je Klasse, großteils Annahmen; Wechselwirkungen nicht modelliert",
+        "translations": {
+          "en": "Cost ranges per class, mostly assumptions; interactions not modelled"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "access_guarantee",
+        "fee_incentive"
+      ],
+      "sourceCount": 4
+    },
+    {
+      "measureId": "p-02",
+      "metric": "sv_spend_pp",
+      "value": 0.08,
+      "low": 0.01,
+      "high": 0.38,
+      "unit": "% der Gesundheitsausgaben",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Laufende Gesundheitsausgaben 2024",
+            "translations": {
+              "en": "Current health expenditure 2024"
+            }
+          },
+          "value": "57.8 Mrd. EUR",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "spend_pct = cost_mio / health_expenditure_mio * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt der Kostenbandbreite; Basis Statistik Austria",
+        "translations": {
+          "en": "Follows the cost range; baseline Statistik Austria"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "access_guarantee",
+        "fee_incentive"
+      ],
+      "sourceCount": 4
+    },
+    {
+      "measureId": "package",
+      "metric": "wait_change_pct",
+      "value": -7.3,
+      "low": -21.3,
+      "high": -0.5,
+      "unit": "% (Ziel -20 %)",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+            "translations": {
+              "en": "1450 appointment brokering and digital specialist triage"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminzusage (Vierwochengarantie)",
+            "translations": {
+              "en": "Appointment guarantee (four weeks)"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Honorar- und Produktivitätsanreize",
+            "translations": {
+              "en": "Fee and productivity incentives"
+            }
+          },
+          "value": "Annahme",
+          "citation": null,
+          "assumption": true
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Wirkung im ersten Jahr",
+            "translations": {
+              "en": "Effect in year one"
+            }
+          },
+          "value": "-3.7 %",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "classes deduplicated; r_class = effect * scope * phase_in(year 5); group = r1 + 0.5*r2 + 0.25*r3; total = 1 - prod(1 - group); dWait = -total",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Bandbreite aus der Evidenztabelle (6 Quellen), Jahr 5; keine amtliche Wartezeitenreihe; enthält Annahmen ohne Evidenz",
+        "translations": {
+          "en": "Range from the evidence table (6 sources), year 5; no official waiting-time series; includes assumptions without evidence"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "triage_routing",
+        "access_guarantee",
+        "fee_incentive"
+      ],
+      "sourceCount": 6
+    },
+    {
+      "measureId": "package",
+      "metric": "cost_eur_pa",
+      "value": 115,
+      "low": 25,
+      "high": 360,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+            "translations": {
+              "en": "1450 appointment brokering and digital specialist triage"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminzusage (Vierwochengarantie)",
+            "translations": {
+              "en": "Appointment guarantee (four weeks)"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Honorar- und Produktivitätsanreize",
+            "translations": {
+              "en": "Fee and productivity incentives"
+            }
+          },
+          "value": "Annahme",
+          "citation": null,
+          "assumption": true
+        }
+      ],
+      "formula": "cost = sum over classes (posts * cost_per_post * fill_rate, or class cost range)",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Kostenbandbreiten je Klasse, großteils Annahmen; Wechselwirkungen nicht modelliert",
+        "translations": {
+          "en": "Cost ranges per class, mostly assumptions; interactions not modelled"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "triage_routing",
+        "access_guarantee",
+        "fee_incentive"
+      ],
+      "sourceCount": 6
+    },
+    {
+      "measureId": "package",
+      "metric": "sv_spend_pp",
+      "value": 0.2,
+      "low": 0.04,
+      "high": 0.62,
+      "unit": "% der Gesundheitsausgaben (Deckel 5 %)",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Laufende Gesundheitsausgaben 2024",
+            "translations": {
+              "en": "Current health expenditure 2024"
+            }
+          },
+          "value": "57.8 Mrd. EUR",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "spend_pct = cost_mio / health_expenditure_mio * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt der Kostenbandbreite; Basis Statistik Austria",
+        "translations": {
+          "en": "Follows the cost range; baseline Statistik Austria"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "triage_routing",
+        "access_guarantee",
+        "fee_incentive"
+      ],
+      "sourceCount": 6
+    },
+    {
+      "measureId": "proposer:p-12",
+      "metric": "cost_eur_pa",
+      "value": 30,
+      "low": 25,
+      "high": 40,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Kostenschätzung des einbringenden Akteurs",
+            "translations": {
+              "en": "Cost estimate by the proposing actor"
+            }
+          },
+          "value": "30 (25 bis 40) Mio. EUR p.a.",
+          "citation": null,
+          "assumption": true
+        }
+      ],
+      "formula": "cost = proposer_estimate (low..high)",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Bandbreite aus der Schätzung des einbringenden Akteurs; nicht unabhängig kalkuliert",
+        "translations": {
+          "en": "Range from the proposer's estimate; not independently costed"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:p-12",
+      "metric": "sv_spend_pp",
+      "value": 0.05,
+      "low": 0.04,
+      "high": 0.07,
+      "unit": "% der Gesundheitsausgaben",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Kostenschätzung des einbringenden Akteurs",
+            "translations": {
+              "en": "Cost estimate by the proposing actor"
+            }
+          },
+          "value": "30 (25 bis 40) Mio. EUR p.a.",
+          "citation": null,
+          "assumption": true
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Laufende Gesundheitsausgaben, Basis",
+            "translations": {
+              "en": "Current health expenditure, baseline"
+            }
+          },
+          "value": "57.8 Mrd. EUR",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "spend_pct = cost_mio / (baseline_bn * 1000) * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt der Kostenbandbreite",
+        "translations": {
+          "en": "Follows the cost range"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:p-12",
+      "metric": "wait_change_pct",
+      "value": -5.6,
+      "low": -9,
+      "high": -3,
+      "unit": "%",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Zusätzliche Terminkapazität (Schätzung des Akteurs)",
+            "translations": {
+              "en": "Extra appointment capacity (actor estimate)"
+            }
+          },
+          "value": "8 % (6 bis 10)",
+          "citation": null,
+          "assumption": true
+        }
+      ],
+      "formula": "dWait_pct = -capacity_pct * elasticity",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Schätzung der Vorschlagenden; Kapazität und Elastizität sind Annahmen",
+        "translations": {
+          "en": "Proposers' estimate; capacity and elasticity are assumptions"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:p-05",
+      "metric": "cost_eur_pa",
+      "value": 0,
+      "low": 0,
+      "high": 0,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Kostenschätzung des einbringenden Akteurs",
+            "translations": {
+              "en": "Cost estimate by the proposing actor"
+            }
+          },
+          "value": "0 (0 bis 0) Mio. EUR p.a.",
+          "citation": null,
+          "assumption": true
+        }
+      ],
+      "formula": "cost = proposer_estimate (low..high)",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Bandbreite aus der Schätzung des einbringenden Akteurs; nicht unabhängig kalkuliert",
+        "translations": {
+          "en": "Range from the proposer's estimate; not independently costed"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:p-05",
+      "metric": "sv_spend_pp",
+      "value": 0,
+      "low": 0,
+      "high": 0,
+      "unit": "% der Gesundheitsausgaben",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Kostenschätzung des einbringenden Akteurs",
+            "translations": {
+              "en": "Cost estimate by the proposing actor"
+            }
+          },
+          "value": "0 (0 bis 0) Mio. EUR p.a.",
+          "citation": null,
+          "assumption": true
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Laufende Gesundheitsausgaben, Basis",
+            "translations": {
+              "en": "Current health expenditure, baseline"
+            }
+          },
+          "value": "57.8 Mrd. EUR",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "spend_pct = cost_mio / (baseline_bn * 1000) * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt der Kostenbandbreite",
+        "translations": {
+          "en": "Follows the cost range"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:p-05",
+      "metric": "wait_change_pct",
+      "value": -7,
+      "low": -9,
+      "high": -5,
+      "unit": "%",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Zusätzliche Terminkapazität (Schätzung des Akteurs)",
+            "translations": {
+              "en": "Extra appointment capacity (actor estimate)"
+            }
+          },
+          "value": "10 % (10 bis 10)",
+          "citation": null,
+          "assumption": true
+        }
+      ],
+      "formula": "dWait_pct = -capacity_pct * elasticity",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Schätzung der Vorschlagenden; Kapazität und Elastizität sind Annahmen",
+        "translations": {
+          "en": "Proposers' estimate; capacity and elasticity are assumptions"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:p-10",
+      "metric": "cost_eur_pa",
+      "value": 10,
+      "low": 8,
+      "high": 12,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Kostenschätzung des einbringenden Akteurs",
+            "translations": {
+              "en": "Cost estimate by the proposing actor"
+            }
+          },
+          "value": "10 (8 bis 12) Mio. EUR p.a.",
+          "citation": null,
+          "assumption": true
+        }
+      ],
+      "formula": "cost = proposer_estimate (low..high)",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Bandbreite aus der Schätzung des einbringenden Akteurs; nicht unabhängig kalkuliert",
+        "translations": {
+          "en": "Range from the proposer's estimate; not independently costed"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:p-10",
+      "metric": "sv_spend_pp",
+      "value": 0.02,
+      "low": 0.01,
+      "high": 0.02,
+      "unit": "% der Gesundheitsausgaben",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Kostenschätzung des einbringenden Akteurs",
+            "translations": {
+              "en": "Cost estimate by the proposing actor"
+            }
+          },
+          "value": "10 (8 bis 12) Mio. EUR p.a.",
+          "citation": null,
+          "assumption": true
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Laufende Gesundheitsausgaben, Basis",
+            "translations": {
+              "en": "Current health expenditure, baseline"
+            }
+          },
+          "value": "57.8 Mrd. EUR",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "spend_pct = cost_mio / (baseline_bn * 1000) * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt der Kostenbandbreite",
+        "translations": {
+          "en": "Follows the cost range"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:p-10",
+      "metric": "wait_change_pct",
+      "value": -3.8,
+      "low": -4.9,
+      "high": -2.7,
+      "unit": "%",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Zusätzliche Terminkapazität (Schätzung des Akteurs)",
+            "translations": {
+              "en": "Extra appointment capacity (actor estimate)"
+            }
+          },
+          "value": "5.5 % (5.5 bis 5.5)",
+          "citation": null,
+          "assumption": true
+        }
+      ],
+      "formula": "dWait_pct = -capacity_pct * elasticity",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Schätzung der Vorschlagenden; Kapazität und Elastizität sind Annahmen",
+        "translations": {
+          "en": "Proposers' estimate; capacity and elasticity are assumptions"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:p-02",
+      "metric": "cost_eur_pa",
+      "value": 40,
+      "low": 30,
+      "high": 50,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Kostenschätzung des einbringenden Akteurs",
+            "translations": {
+              "en": "Cost estimate by the proposing actor"
+            }
+          },
+          "value": "40 (30 bis 50) Mio. EUR p.a.",
+          "citation": null,
+          "assumption": true
+        }
+      ],
+      "formula": "cost = proposer_estimate (low..high)",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Bandbreite aus der Schätzung des einbringenden Akteurs; nicht unabhängig kalkuliert",
+        "translations": {
+          "en": "Range from the proposer's estimate; not independently costed"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:p-02",
+      "metric": "sv_spend_pp",
+      "value": 0.07,
+      "low": 0.05,
+      "high": 0.09,
+      "unit": "% der Gesundheitsausgaben",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Kostenschätzung des einbringenden Akteurs",
+            "translations": {
+              "en": "Cost estimate by the proposing actor"
+            }
+          },
+          "value": "40 (30 bis 50) Mio. EUR p.a.",
+          "citation": null,
+          "assumption": true
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Laufende Gesundheitsausgaben, Basis",
+            "translations": {
+              "en": "Current health expenditure, baseline"
+            }
+          },
+          "value": "57.8 Mrd. EUR",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "spend_pct = cost_mio / (baseline_bn * 1000) * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt der Kostenbandbreite",
+        "translations": {
+          "en": "Follows the cost range"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:p-02",
+      "metric": "wait_change_pct",
+      "value": -5.6,
+      "low": -10.8,
+      "high": -2.5,
+      "unit": "%",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Zusätzliche Terminkapazität (Schätzung des Akteurs)",
+            "translations": {
+              "en": "Extra appointment capacity (actor estimate)"
+            }
+          },
+          "value": "8 % (5 bis 12)",
+          "citation": null,
+          "assumption": true
+        }
+      ],
+      "formula": "dWait_pct = -capacity_pct * elasticity",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Schätzung der Vorschlagenden; Kapazität und Elastizität sind Annahmen",
+        "translations": {
+          "en": "Proposers' estimate; capacity and elasticity are assumptions"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:package",
+      "metric": "cost_eur_pa",
+      "value": 80,
+      "low": 63,
+      "high": 102,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [],
+      "formula": "sum(cost) over proposals",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Summe der Schätzungen",
+        "translations": {
+          "en": "Sum of the estimates"
+        }
+      },
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer",
+      "notModelled": false
+    },
+    {
+      "measureId": "proposer:package",
+      "metric": "sv_spend_pp",
+      "value": 0.14,
+      "low": 0.11,
+      "high": 0.18,
+      "unit": "% der Gesundheitsausgaben (Deckel 5 %)",
+      "inputs": [],
+      "formula": "spend_pct = sum(cost_mio) / (baseline_bn * 1000) * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt den Schätzungen",
+        "translations": {
+          "en": "Follows the estimates"
+        }
+      },
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer",
+      "notModelled": false
+    },
+    {
+      "measureId": "proposer:package",
+      "metric": "wait_change_pct",
+      "value": -19.6,
+      "low": -29.4,
+      "high": -12,
+      "unit": "% (Ziel -20 %)",
+      "inputs": [],
+      "formula": "capacity = 1 - prod(1 - c_i); dWait_pct = -capacity * elasticity",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Schätzung der Vorschlagenden, nicht unabhängig geprüft",
+        "translations": {
+          "en": "Proposers' estimate, not independently checked"
+        }
+      },
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer",
+      "notModelled": false
+    }
+  ]
+}

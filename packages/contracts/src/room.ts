@@ -77,5 +77,52 @@ export const RoomConfig = z.object({
   scheduledEvents: z.array(ScheduledEvent),
   coldRatification: z.boolean(),
   seed: z.number().int(),
+  /**
+   * Added 2026-11-06: "fast" is the live-demo preset (fewer focused talks, faster seats);
+   * absent means the full setting.
+   */
+  pace: z.enum(["fast", "full"]).optional(),
 });
 export type RoomConfig = z.infer<typeof RoomConfig>;
+
+/**
+ * Live-demo preset "Schnell" (added 2026-11-06): two rounds, one short focused talk, and the
+ * fastest seats that passed the model smoke test (docs/model-smoke.md: gpt-6-sol p50 5.8 s,
+ * Devstral 2 p95 23 s, GLM 4.7 Flash p50 6.3 s), so three families stay at the table and the
+ * second verifier still comes from another family. Everything else (claims, Experte, gates,
+ * compromise round) is unchanged.
+ */
+export const FAST_PRESET = {
+  roundLimit: 2,
+  moderatorModel: "azure/gpt-6-sol",
+  expertModel: "azure/gpt-6-sol",
+  seats: {
+    gm: "azure/gpt-6-sol",
+    fm: "azure/gpt-6-sol",
+    sv: "azure/gpt-6-sol",
+    ak: "azure/gpt-6-sol",
+    pf: "azure/gpt-6-sol",
+    ka: "bedrock/mistral.devstral-2-123b",
+    pv: "bedrock/mistral.devstral-2-123b",
+    va: "bedrock/zai.glm-4.7-flash",
+    bl: "bedrock/zai.glm-4.7-flash",
+  } as Record<string, string>,
+  defaultSeat: "azure/gpt-6-sol",
+} as const;
+
+/** Applies the fast preset to a room (seat models, rounds, pace); full keeps the room. */
+export function withPace(room: RoomConfig, pace: "fast" | "full"): RoomConfig {
+  if (pace === "full") return { ...room, pace: "full" };
+  return {
+    ...room,
+    pace: "fast",
+    roundLimit: FAST_PRESET.roundLimit,
+    moderatorModel: FAST_PRESET.moderatorModel,
+    expertModel: FAST_PRESET.expertModel,
+    agents: room.agents.map((a) => ({
+      ...a,
+      model: FAST_PRESET.seats[a.agentId] ?? FAST_PRESET.defaultSeat,
+    })),
+    scheduledEvents: room.scheduledEvents.filter((e) => e.atRound <= FAST_PRESET.roundLimit),
+  };
+}

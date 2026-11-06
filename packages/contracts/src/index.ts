@@ -50,6 +50,9 @@
  * - 2026-11-06 debate quality: Utterance.gate (turn gate decision), RunEvent
  *   "moderation.gate" and RunSnapshot.moderationGates, QualityReport for the audit file
  *   runs/<runId>.quality.json.
+ * - 2026-11-06 compromise synthesis: CompromisePackage, CompromiseVote, CompromiseResult,
+ *   RunEvents "compromise.proposed", "compromise.vote", "compromise.result", the optional
+ *   RunSnapshot.compromise, .compromiseVotes, .compromiseResult; RoomConfig.pace.
  */
 export * from "./agents.ts";
 export * from "./catalog.ts";

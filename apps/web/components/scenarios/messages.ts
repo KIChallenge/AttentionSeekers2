@@ -50,6 +50,7 @@ const de = {
   tabs: {
     laeufe: "Läufe",
     ergebnis: "Ergebnis",
+    szenarien: "Szenarien",
     perspektiven: "Perspektiven",
     koalitionen: "Koalitionen",
     modelle: "Modelle",
@@ -137,6 +138,7 @@ const en: ScenarioMessages = {
   tabs: {
     laeufe: "Runs",
     ergebnis: "Result",
+    szenarien: "Scenarios",
     perspektiven: "Perspectives",
     koalitionen: "Coalitions",
     modelle: "Models",

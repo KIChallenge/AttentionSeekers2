@@ -4,6 +4,7 @@ import { positionAt, topicStatus } from "@sv/contracts";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { statusLabel } from "@/components/analysis/consensus-matrix";
+import { COMPROMISE_T, CompromiseBlock } from "@/components/outcome/compromise";
 import { Chip, Tile, UttRef } from "@/components/run/bits";
 import { agentLook, fmtStance, L } from "@/components/run/helpers";
 import { useRun } from "@/components/run/run-context";
@@ -188,6 +189,18 @@ export function ResultDocument() {
               ) : null,
             )}
           </ul>
+          {snap.compromise ? (
+            <div className="mt-5 space-y-2">
+              <h3 className="font-semibold">{COMPROMISE_T[lang].title}</h3>
+              <CompromiseBlock
+                compromise={snap.compromise}
+                votes={snap.compromiseVotes ?? {}}
+                result={snap.compromiseResult ?? null}
+                lang={lang}
+                compact
+              />
+            </div>
+          ) : null}
         </Section>
 
         <Section n={6} title={t.result.s6}>

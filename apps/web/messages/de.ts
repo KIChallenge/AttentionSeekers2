@@ -56,6 +56,7 @@ export const de = {
     fork: "Abzweigung",
     backtest: "Backtest",
     model_ensemble: "Modell-Ensemble",
+    scenario: "Szenario",
   },
   stub: {
     soon: "Gerüst. Diese Ansicht wird in den Lane-Tickets gebaut.",

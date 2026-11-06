@@ -13,6 +13,7 @@ import {
   TEMPLATES,
   type TemperamentSetting,
   type Template,
+  withPace,
 } from "@sv/contracts";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -221,7 +222,31 @@ export function SetupRoom({
   const { t: base, lang } = usePrefs();
   const t = laneT(lang);
   const router = useRouter();
-  const [cfg, setCfg] = useState<RoomConfig>(() => initialConfig(defaults, models, asOf, lang));
+  // Live demos start on the fast preset; the full setting is one click away and restores the
+  // seats, rounds and models the room had before.
+  const [pace, setPace] = useState<"fast" | "full">("fast");
+  const [full, setFull] = useState<RoomConfig>(() => initialConfig(defaults, models, asOf, lang));
+  const [cfg, setCfg] = useState<RoomConfig>(() => withPace(full, "fast"));
+  const choosePace = (p: "fast" | "full") => {
+    if (p === pace) return;
+    setPace(p);
+    if (p === "fast") {
+      setFull(cfg);
+      setCfg(withPace(cfg, "fast"));
+    } else {
+      setCfg({
+        ...cfg,
+        pace: "full",
+        roundLimit: full.roundLimit,
+        moderatorModel: full.moderatorModel,
+        expertModel: full.expertModel,
+        agents: cfg.agents.map((a) => ({
+          ...a,
+          model: full.agents.find((x) => x.agentId === a.agentId)?.model ?? a.model,
+        })),
+      });
+    }
+  };
   const [open, setOpen] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: "error" | "info"; text: string } | null>(null);
@@ -462,6 +487,18 @@ export function SetupRoom({
                 setCfg((c) => ({ ...c, question: e.target.value, template: c.template }))
               }
               rows={3}
+            />
+          </div>
+          <div className="mt-3 flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">{t.setup.pace}</span>
+            <Seg
+              label={t.setup.pace}
+              value={pace}
+              options={[
+                { value: "fast", label: t.setup.paceFast },
+                { value: "full", label: t.setup.paceFull },
+              ]}
+              onChange={choosePace}
             />
           </div>
         </Section>
@@ -762,6 +799,8 @@ export function SetupRoom({
                 ? ` ${cfg.qualifiedMajority.needed}/${cfg.qualifiedMajority.of}`
                 : ""}
             </dd>
+            <dt className="text-muted-foreground">{t.setup.pace}</dt>
+            <dd>{pace === "fast" ? t.setup.paceFast : t.setup.paceFull}</dd>
             <dt className="text-muted-foreground">{t.setup.roundLimit}</dt>
             <dd className="num">{cfg.roundLimit}</dd>
             <dt className="text-muted-foreground">{t.setup.budgetCeiling}</dt>

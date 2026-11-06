@@ -57,7 +57,7 @@ export interface RunColumn {
   id: string;
   isReference: boolean;
   variantKind: string;
-  /** model_ensemble label, else the variant kind. */
+  /** model_ensemble or scenario label, else the variant kind. */
   label: string;
   /** A family ("gpt", "deepseek", ...) or "mixed": which families sat at the institutions' seats. */
   seatFamilies: string;
@@ -175,7 +175,10 @@ export function compareRuns(
       id: summary.id,
       isReference: summary.isReference,
       variantKind: run.variant.kind,
-      label: run.variant.kind === "model_ensemble" ? run.variant.label : run.variant.kind,
+      label:
+        run.variant.kind === "model_ensemble" || run.variant.kind === "scenario"
+          ? run.variant.label
+          : run.variant.kind,
       seatFamilies: seatFamiliesOf(seatModels),
       seatModels,
       agreed: summary.agreementShare.agreed,

@@ -66,6 +66,16 @@ export const RunVariant = z.discriminatedUnion("kind", [
     label: z.string(),
     baseRunId: z.string().nullable(),
   }),
+  /**
+   * Added 2026-11-06 (scenario variants): the same question under a changed room setting
+   * (decision rule, budget ceiling, climate). `label` names the variant (for example
+   * budget_tight); the settings themselves stay in Run.room.
+   */
+  z.object({
+    kind: z.literal("scenario"),
+    label: z.string(),
+    baseRunId: z.string().nullable(),
+  }),
 ]);
 export type RunVariant = z.infer<typeof RunVariant>;
 

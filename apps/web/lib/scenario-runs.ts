@@ -11,6 +11,7 @@ import {
   perspectives,
   type ScenarioItem,
 } from "./scenario-insights";
+import { compareVariants, type VariantComparison } from "./scenario-variants";
 import { groupScenarios, type Scenario, type ScenarioKind } from "./scenarios";
 import { compareRuns, type TopicComparison } from "./topic-compare";
 import { type HistoricRates, historicRates, loadAll } from "./topic-runs";
@@ -99,6 +100,8 @@ export interface ScenarioData {
   hist: HistoricRates;
   perspectives: PerspectiveRow[];
   coalitions: CoalitionPatterns;
+  /** Room-setting variants of the question with the reference run (Szenarien tab). */
+  variants: VariantComparison | null;
   /** Reference run for the agent chat; null when its snapshot is not loadable. */
   reference: { snap: RunSnapshot; evidence: Evidence } | null;
 }
@@ -116,6 +119,7 @@ export async function loadScenario(key: string): Promise<ScenarioData | null> {
     hist: historicRates(),
     perspectives: perspectives(items),
     coalitions: coalitionPatterns(items),
+    variants: compareVariants(items, scenario.referenceRunId),
     reference: refItem?.snap.run
       ? { snap: refItem.snap, evidence: await loadEvidence(scenario.referenceRunId) }
       : null,

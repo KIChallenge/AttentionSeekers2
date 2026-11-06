@@ -3,12 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RunsTable } from "@/components/dashboard/dashboard";
 import { forkRouteAvailable } from "@/components/dashboard/fork-available.server";
+import { COMPROMISE_T, CompromiseBlock } from "@/components/outcome/compromise";
 import { RunProvider } from "@/components/run/run-context";
 import { Coalitions } from "@/components/scenarios/coalitions";
 import { runLabelOf, scenarioT, scenarioTitleOf } from "@/components/scenarios/messages";
 import { Perspectives } from "@/components/scenarios/perspectives";
 import { ImpactAcrossRuns, ModelsPlaceholder } from "@/components/scenarios/result-extras";
 import { ScenarioTabs } from "@/components/scenarios/scenario-tabs";
+import { ScenarioVariants } from "@/components/scenarios/variants";
 import { EmptyState, Meta, Page, PageHead } from "@/components/shell/page";
 import { topicT } from "@/components/topics/messages";
 import { ModelBiasView } from "@/components/topics/model-bias-view";
@@ -20,7 +22,14 @@ import { serverPrefs } from "@/lib/server-prefs";
 
 export const dynamic = "force-dynamic";
 
-const TAB_VALUES = ["laeufe", "ergebnis", "perspektiven", "koalitionen", "modelle"] as const;
+const TAB_VALUES = [
+  "laeufe",
+  "ergebnis",
+  "szenarien",
+  "perspektiven",
+  "koalitionen",
+  "modelle",
+] as const;
 
 // Scenario page: the runs of one question with their comparison, perspectives and coalitions.
 export default async function ScenarioPage({
@@ -34,7 +43,8 @@ export default async function ScenarioPage({
   if (!data) notFound();
   const { lang, t } = await serverPrefs();
   const s = scenarioT(lang);
-  const { scenario, cmp, hist, perspectives, coalitions, reference } = data;
+  const { scenario, cmp, hist, perspectives, coalitions, reference, variants } = data;
+  const refSnap = reference?.snap;
   const modelBias = scenario.kind === "main" ? await loadModelBias(scenario.baseKey) : null;
   const labels: Record<string, string> = {};
   for (const r of cmp?.runs ?? []) labels[r.id] = runLabelOf(r, lang);
@@ -96,6 +106,19 @@ export default async function ScenarioPage({
           ),
           ergebnis: cmp ? (
             <>
+              {refSnap?.compromise ? (
+                <section className="rounded-2xl border bg-card p-5 sm:p-6">
+                  <h2 className="mb-3 text-base font-semibold tracking-tight">
+                    {COMPROMISE_T[lang].title}
+                  </h2>
+                  <CompromiseBlock
+                    compromise={refSnap.compromise}
+                    votes={refSnap.compromiseVotes ?? {}}
+                    result={refSnap.compromiseResult ?? null}
+                    lang={lang}
+                  />
+                </section>
+              ) : null}
               <TopicView cmp={cmp} hist={hist} excluded={[]} />
               <ImpactAcrossRuns runs={cmp.runs} />
             </>
@@ -114,6 +137,7 @@ export default async function ScenarioPage({
             ) : (
               perspectivesPanel
             ),
+          szenarien: <ScenarioVariants cmp={variants} />,
           koalitionen: <Coalitions cp={coalitions} labels={labels} />,
           modelle: modelBias ? (
             <ModelBiasView data={modelBias} />

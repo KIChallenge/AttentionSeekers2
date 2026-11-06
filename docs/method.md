@@ -56,6 +56,13 @@ ministerium nur 4, weil es die Entwürfe selbst schreibt. Diese Agenten sind im 
 - Koalitionskalkül als reine Funktion ohne Modellaufruf: Vetospieler, minimale Gewinnkoalitionen,
   Blockierer. Daraus folgt, welcher Kompromiss auf den Tisch kommt.
 - Lessons: Jeder Agent hält nach jeder Runde fest, was er gelernt hat; die nächste Runde sieht das.
+- Kompromissvorschlag des Moderators: Nach der Endbedingung entwirft der Moderator ein bedingtes
+  Paket aus den Vorschlägen, die einer Mehrheit am nächsten kamen (Bausteine, Finanzierung,
+  Evaluierung, berührte rote Linien). Jede Institution antwortet einmal auf ihrem eigenen Modell
+  (dafür, bedingt mit Bedingung, dagegen); die Auszählung gegen die Entscheidungsregel ist
+  deterministisch. Das Paket ist nie erzwungen: scheitert es, steht das so im Ergebnis.
+- Schnell-Vorlage für Live-Demos: zwei Runden, ein kurzes Einzelgespräch, schnellste Modelle aus
+  dem Modelltest; Belegprüfung, Gates und Kompromissrunde bleiben gleich.
 
 ## 4. Zahlen und Prüfung
 

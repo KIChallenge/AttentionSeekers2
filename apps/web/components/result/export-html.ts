@@ -10,6 +10,12 @@ import {
   type RunSnapshot,
   topicStatus,
 } from "@sv/contracts";
+import {
+  nameOf as agentNameOf,
+  COMPROMISE_T,
+  compromiseTally,
+  tx,
+} from "@/components/outcome/compromise-strings";
 import type { Evidence } from "@/components/run/evidence";
 import { agentLook, fmtStance, L } from "@/components/run/helpers";
 import { runStrings } from "@/components/run/strings";
@@ -167,6 +173,13 @@ export function renderResultHtml(
         )
         .join("")}</ul>`
     : `<p class="muted">${esc(t.result.noProposals)}</p>`;
+  const k = snap.compromise;
+  const kc = COMPROMISE_T[lang === "en" ? "en" : "de"];
+  const kl = lang === "en" ? "en" : "de";
+  const kVotes = Object.values(snap.compromiseVotes ?? {});
+  const s5k = k
+    ? `<h3>${esc(kc.title)}: ${esc(tx(k.title, kl))}</h3>${snap.compromiseResult ? `<p><strong>${esc(compromiseTally(snap.compromiseResult, kl))}</strong></p>` : ""}<p class="muted">${esc(tx(k.rationale, kl))}</p><ol>${k.components.map((c) => `<li>${esc(tx(c.text, kl))}</li>`).join("")}</ol>${k.conditions.length ? `<ul>${k.conditions.map((c) => `<li>${esc(kc.kind[c.kind])}: ${esc(tx(c.text, kl))}</li>`).join("")}</ul>` : ""}<ul>${kVotes.map((v) => `<li>${tileOf(v.agentId)} ${esc(agentNameOf(v.agentId, kl))}: ${esc(kc[v.stance])}${v.condition ? `, ${esc(tx(v.condition, kl))}` : ""}<span class="muted"> · ${esc(tx(v.reason, kl))}</span></li>`).join("")}</ul>`
+    : "";
 
   const s6 =
     `<div class="grid3">${(["consensus", "majority", "minority"] as const)
@@ -266,7 +279,7 @@ ${section(1, t.result.s1, s1)}
 ${section(2, t.result.s2, s2)}
 ${section(3, t.result.s3, s3)}
 ${section(4, t.result.s4, s4)}
-${section(5, t.result.s5, s5)}
+${section(5, t.result.s5, s5 + s5k)}
 ${section(6, t.result.s6, s6)}
 ${section(7, t.result.s7, s7)}
 ${section(8, t.result.s8, s8)}

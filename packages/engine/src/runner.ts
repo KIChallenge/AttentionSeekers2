@@ -10,6 +10,7 @@ import path from "node:path";
 import {
   type CitationRef,
   type Claim,
+  type CompromiseVote,
   type Exchange,
   foldRun,
   lessonKey,
@@ -38,6 +39,7 @@ import {
   type TurnOut,
 } from "./agent.ts";
 import { computeCalculus, outcomeClassOf, type Vote } from "./coalition.ts";
+import { draftPackage, packageText, ratify, tallyCompromise } from "./compromise.ts";
 import {
   agentConfigOf,
   allRedLines,
@@ -114,6 +116,8 @@ const MAX_CAUCUSES = 2;
 const GATE_ON = () => process.env.SV_QUALITY_GATE !== "0";
 /** An exchange turn below this novelty is stale (no new content stems, quality/checks.ts). */
 const STALE_NOVELTY = 0.2;
+/** Compromise synthesis after the end condition; SV_COMPROMISE=0 switches it off. */
+const COMPROMISE_ON = () => process.env.SV_COMPROMISE !== "0";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -604,6 +608,151 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     };
   };
 
+  /** Moderator's compromise package and the ratification round after the end condition. */
+  const synthesize = async (round: number) => {
+    const phase = 5;
+    clock.gap();
+    const ex = openExchange(
+      round,
+      phase,
+      "plenary",
+      [...agentIds],
+      null,
+      { de: "Kompromissvorschlag des Moderators", en: "Moderator's compromise proposal" },
+      clock,
+    );
+    const at: At = { ex, clk: clock, addressedTo: [] };
+    const id = `k-${round}`;
+    let drafted: Awaited<ReturnType<typeof draftPackage>>;
+    try {
+      drafted = await tracer.run({ kind: "compromise", ref: id, round, speaker: "moderator" }, () =>
+        draftPackage(s, id, round, room.moderatorModel),
+      );
+    } catch (error) {
+      console.warn("compromise_failed", error instanceof Error ? error.message : error);
+      closeExchange(
+        ex,
+        {
+          de: "Kein Kompromissvorschlag: Entwurf fehlgeschlagen.",
+          en: "No compromise: draft failed.",
+        },
+        clock,
+      );
+      return null;
+    }
+    const text = packageText(drafted.pkg);
+    const intro = moderatorSays(
+      at,
+      round,
+      phase,
+      "proposal",
+      text.de,
+      text.en,
+      lastSummaryUtt()?.id ?? null,
+      "moderator",
+      room.moderatorModel,
+      drafted.meta,
+    );
+    const pkg = { ...drafted.pkg, utteranceId: intro.id };
+    w.emit({ type: "compromise.proposed", compromise: pkg });
+    // Answers are drafted in parallel and enter the record in speaking order.
+    const order = shuffle(agentIds, room.seed + 104729);
+    const answers = await Promise.all(
+      order.map((a) =>
+        withFallback(a, (m) => ratify(s, a, pkg, m).then((r) => ({ ...r, model: m })), {
+          kind: "compromise",
+          ref: `${id}:${a}`,
+          round,
+          speaker: a,
+        }),
+      ),
+    );
+    const votes: CompromiseVote[] = [];
+    for (const [i, a] of order.entries()) {
+      const r = answers[i];
+      if (!r || r instanceof Error) {
+        pushDegraded(
+          a,
+          round,
+          phase,
+          "closing",
+          intro.id,
+          `compromise vote failed: ${r instanceof Error ? r.message.slice(0, 160) : "no result"}`,
+          at,
+        );
+        continue;
+      }
+      const uttId = nextUttId(round);
+      w.emit({
+        type: "utterance.started",
+        utteranceId: uttId,
+        speaker: a,
+        round,
+        respondsTo: intro.id,
+        model: r.model,
+      });
+      const u: Utterance = {
+        id: uttId,
+        round,
+        seq: s.utterances.length + 1,
+        phase,
+        speaker: a,
+        kind: "closing",
+        respondsTo: intro.id,
+        text: L(r.out.statement, r.out.statementEn),
+        claimIds: [],
+        redLinesTouched: r.out.redLinesTouched,
+        proposalIds: pkg.basedOn,
+        model: r.model,
+        telemetry: { ...telemetry(r.meta, room.seed, 2000), fallbackFrom: r.fallbackFrom ?? null },
+        deliberationSummary: null,
+        degraded: null,
+      };
+      pushUtterance(u, [], { ...at, addressedTo: ["moderator"] });
+      const vote: CompromiseVote = {
+        packageId: id,
+        agentId: a,
+        stance: r.out.stance,
+        condition: r.out.condition ? L(r.out.condition, r.out.conditionEn ?? undefined) : null,
+        reason: L(r.out.reason, r.out.reasonEn),
+        redLinesTouched: r.out.redLinesTouched,
+        utteranceId: uttId,
+        model: r.model,
+      };
+      votes.push(vote);
+      w.emit({ type: "compromise.vote", vote });
+    }
+    const result = tallyCompromise(
+      id,
+      votes,
+      room,
+      agentIds,
+      agentIds.filter((a) => profileOf(a).vetoStatus === "formal_veto"),
+    );
+    w.emit({ type: "compromise.result", result });
+    moderatorSays(
+      at,
+      round,
+      phase,
+      "round_summary",
+      result.note.text,
+      result.note.translations.en ?? result.note.text,
+      intro.id,
+    );
+    closeExchange(
+      ex,
+      { de: result.note.text, en: result.note.translations.en ?? result.note.text },
+      clock,
+    );
+    return { pkg, result };
+  };
+
+  // Fast preset (live demo): one short focused talk per round, no caucuses; same records.
+  const fast = room.pace === "fast";
+  const maxBilaterals = fast ? 1 : MAX_BILATERALS;
+  const maxCaucuses = fast ? 0 : MAX_CAUCUSES;
+  const turnsOf = (plan: ExchangePlan) => (fast ? plan.turns.slice(0, 3) : plan.turns);
+
   let endId: "convergence" | "max_rounds" | "deadlock" | null = null;
   let finalNext = false;
   let stillRounds = 0;
@@ -749,7 +898,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
 
     // ---------- opening plenary ----------
     let bilaterals: ExchangePlan[] =
-      round > 1 && !final ? onMandate(round, selectBilaterals(planInput(), MAX_BILATERALS)) : [];
+      round > 1 && !final ? onMandate(round, selectBilaterals(planInput(), maxBilaterals)) : [];
     const opening = openExchange(
       round,
       phase,
@@ -942,7 +1091,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
       if (
         out.proposal &&
         GATE_ON() &&
-        phase >= 2 &&
+        (phase >= 2 || fast) &&
         phase <= 4 &&
         !out.proposal.topicIds.some((t) => topicIds.has(t))
       ) {
@@ -951,7 +1100,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
       }
       if (
         out.proposal &&
-        phase >= 2 &&
+        (phase >= 2 || fast) &&
         phase <= 4 &&
         newProposals < MAX_NEW_PROPOSALS_PER_ROUND &&
         openCount < MAX_OPEN_PROPOSALS
@@ -1425,7 +1574,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
           };
           const novelty: number[] = [];
           const moved: boolean[] = [];
-          for (const [k, a] of plan.turns.entries()) {
+          for (const [k, a] of turnsOf(plan).entries()) {
             // Moderation closes a bilateral that stopped producing new arguments: two stale
             // turns in a row (or one full repeat) and no stance moved in them.
             if (GATE_ON() && kind === "bilateral" && k >= 3) {
@@ -1433,7 +1582,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
               const n2 = novelty.at(-2) ?? 1;
               const still = !moved.at(-1) && !moved.at(-2);
               if (still && (n1 <= 0.05 || (n1 < STALE_NOVELTY && n2 < 0.4))) {
-                const left = plan.turns.length - k;
+                const left = turnsOf(plan).length - k;
                 lane.do(() =>
                   moderationGate({
                     round,
@@ -1516,7 +1665,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     // Phase 1: short opening statements, one per institution, in the plenary.
     if (phase === 1) await plenaryTurns("opening", atOpening);
     if (round === 1 && !final)
-      bilaterals = onMandate(round, selectBilaterals(planInput(), MAX_BILATERALS));
+      bilaterals = onMandate(round, selectBilaterals(planInput(), maxBilaterals));
     if (!final) {
       const agenda = describePlans(bilaterals);
       closeExchange(
@@ -1566,7 +1715,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     // Caucuses of coalition partners, in parallel.
     if (phase >= 2 && phase <= 4) {
       await emitAssessments();
-      await runFocused(onMandate(round, selectCaucuses(planInput(), affinity, MAX_CAUCUSES)), true);
+      await runFocused(onMandate(round, selectCaucuses(planInput(), affinity, maxCaucuses)), true);
     }
 
     // ---------- closing plenary: tabling, votes, check, summary ----------
@@ -1878,14 +2027,25 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     }
   }
 
+  // Compromise synthesis: one conditional package from what came closest, then one short
+  // ratification round. Reported with its real support; never turned into a decision.
+  const compromise = COMPROMISE_ON() ? await synthesize(lastRound) : null;
+
   // Outcome: impact figures (FR-N3, FR-U6) and forecasts (FR-J).
   const accepted = [...s.proposals.values()].filter((p) => p.status === "accepted");
+  const carried = compromise?.result.passes
+    ? compromise.pkg.basedOn
+        .map((id) => s.proposals.get(id))
+        .filter((p): p is NonNullable<typeof p> => Boolean(p))
+    : [];
   const measures = accepted.length
     ? accepted
-    : [...s.proposals.values()]
-        .filter((p) => p.status !== "withdrawn")
-        .sort((a, b) => b.acceptance - a.acceptance)
-        .slice(0, 1);
+    : carried.length
+      ? carried
+      : [...s.proposals.values()]
+          .filter((p) => p.status !== "withdrawn")
+          .sort((a, b) => b.acceptance - a.acceptance)
+          .slice(0, 1);
   // Evidence-based figures first, the proposers' own estimates as "proposer:<id>".
   const figures = runImpactFigures(measures, room.budgetCeiling.maxIncreasePct);
   w.emit({ type: "impact.computed", figures });
@@ -1914,7 +2074,17 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
         ? `Convergence after round ${lastRound}; ${accepted.length} proposals accepted, ${openConflicts} conflicts open`
         : `Deadlock: no movement and no viable proposal; ${openConflicts} conflicts open`;
   tracer.flush();
-  w.emit({ type: "run.completed", endCondition: { id, note: L(noteDe, noteEn) } });
+  const kNote = compromise ? compromise.result.note : null;
+  w.emit({
+    type: "run.completed",
+    endCondition: {
+      id,
+      note: L(
+        kNote ? `${noteDe}. ${kNote.text}` : noteDe,
+        kNote ? `${noteEn}. ${kNote.translations.en ?? kNote.text}` : noteEn,
+      ),
+    },
+  });
   const { db } = await w.close();
   const u = {
     calls: usage.calls - usage0.calls,
