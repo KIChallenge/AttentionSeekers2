@@ -250,6 +250,8 @@ export interface BedrockProfile {
   concurrency: number;
   /** Retries on throttling or a transient 5xx before the call fails. */
   throttleRetries: number;
+  /** Per-request timeout; slow reasoning families get more. */
+  timeoutMs: number;
 }
 
 const PROFILE_DEFAULT: BedrockProfile = {
@@ -259,17 +261,24 @@ const PROFILE_DEFAULT: BedrockProfile = {
   maxTokens: 8192,
   concurrency: 6,
   throttleRetries: 4,
+  timeoutMs: 120_000,
 };
 
 export const BEDROCK_PROFILES: ReadonlyArray<{ match: RegExp } & Partial<BedrockProfile>> = [
   { match: /nova/, family: "nova" },
-  { match: /deepseek/, family: "deepseek", toolChoice: "any" },
-  { match: /kimi|moonshot/, family: "kimi", toolChoice: "any" },
+  { match: /deepseek/, family: "deepseek", toolChoice: "any", timeoutMs: 180_000 },
+  { match: /kimi|moonshot/, family: "kimi", toolChoice: "any", timeoutMs: 180_000 },
   { match: /qwen/, family: "qwen" },
   { match: /glm|zai\./, family: "glm" },
   { match: /mistral|devstral|pixtral/, family: "mistral" },
-  { match: /gpt-oss/, family: "gpt-oss", maxTokens: 12_000 },
-  { match: /minimax/, family: "minimax", structured: "json", maxTokens: 12_000 },
+  { match: /gpt-oss/, family: "gpt-oss", maxTokens: 12_000, timeoutMs: 180_000 },
+  {
+    match: /minimax/,
+    family: "minimax",
+    structured: "json",
+    maxTokens: 12_000,
+    timeoutMs: 180_000,
+  },
 ];
 
 export function bedrockProfile(model: string): BedrockProfile {
@@ -632,7 +641,7 @@ export async function structured<T extends z.ZodType>(
   opts: StructuredOptions = {},
 ): Promise<{ data: z.infer<T>; meta: CallMeta }> {
   const {
-    timeoutMs = 150_000,
+    timeoutMs = isBedrock(model) ? bedrockProfile(model).timeoutMs : 90_000,
     maxOutputTokens = 16_000,
     reasoningEffort = "low",
     temperature = null,
@@ -666,6 +675,10 @@ export async function structured<T extends z.ZodType>(
   // Bedrock: the second attempt is a repair turn that shows the model its invalid answer
   // and the validation error; the gateway path keeps the plain retry (strict mode).
   let attemptMessages = messages;
+  // Lost requests (timeout, dropped connection, 5xx after backoff) get up to two extra
+  // attempts that do not use up the repair attempt: on a flaky network a hung request is
+  // far more common than a bad answer, and a failed seat call costs a whole turn.
+  let requestRetries = 0;
   for (let attempt = 0; attempt < 2; attempt++) {
     stat.attempts++;
     acc.attempts++;
@@ -697,6 +710,10 @@ export async function structured<T extends z.ZodType>(
           ));
     } catch (error) {
       lastError = error;
+      if (!(error instanceof StructuredOutputError) && requestRetries < 2) {
+        requestRetries++;
+        attempt--;
+      }
       continue;
     }
     acc.tokensIn += meta.tokensIn;
