@@ -44,6 +44,16 @@ async function readText(rel: string): Promise<string | null> {
   }
 }
 
+const VersionScores = z.object({
+  n: z.number(),
+  adapter: z.number().nullable(),
+  baseline: z.number().nullable(),
+  stance_sign_adapter: z.number(),
+  stance_sign_baseline: z.number(),
+  within1_adapter: z.number(),
+  within1_baseline: z.number(),
+});
+
 const Fidelity = z.object({
   metric: z.string(),
   split: z.string(),
@@ -58,6 +68,19 @@ const Fidelity = z.object({
     }),
   ),
   all: z.object({ n: z.number(), adapter: z.number(), baseline: z.number() }),
+  version: z.string().optional(),
+  // v1 / v1-fix / v2 side by side, written by models/aws/eval_v2_report.py
+  versions: z
+    .record(
+      z.string(),
+      z.object({
+        version: z.string(),
+        run: z.string(),
+        institutions: z.record(z.string(), VersionScores),
+        all: VersionScores,
+      }),
+    )
+    .optional(),
 });
 export type Fidelity = z.infer<typeof Fidelity>;
 

@@ -8,6 +8,7 @@ Outputs (written to S3 as soon as each piece is ready, so a crash keeps finished
   s3://<bucket>/base/Qwen3-8B/                  base weights for the endpoint (fast S3 load, no HF pull)
   s3://<bucket>/adapters/<role>/                adapter_config.json, adapter_model.safetensors, train_meta.json
   s3://<bucket>/adapters-tar/<role>.tar.gz      same adapter files at archive root (inference components)
+--out-prefix moves both adapter prefixes (v2: adapters-v2/ and adapters-v2-tar/), so v1 stays untouched.
 """
 from __future__ import annotations
 
@@ -68,7 +69,7 @@ def train_one(role, a, base_dir, s3):
     out = WORK / "lora" / role
     t0 = time.time()
     model = AutoModelForCausalLM.from_pretrained(base_dir, torch_dtype=torch.bfloat16, attn_implementation="sdpa")
-    lora = LoraConfig(r=a.rank, lora_alpha=2 * a.rank, lora_dropout=0.05, task_type="CAUSAL_LM",
+    lora = LoraConfig(r=a.rank, lora_alpha=2 * a.rank, lora_dropout=a.dropout, task_type="CAUSAL_LM",
                       target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"])
     cfg = SFTConfig(
         output_dir=str(out / "checkpoints"), num_train_epochs=a.epochs, learning_rate=a.lr,
@@ -88,17 +89,17 @@ def train_one(role, a, base_dir, s3):
     c["base_model_name_or_path"] = a.base
     cfg_p.write_text(json.dumps(c, indent=2))
     meta = {"role": role, "base": a.base, "n_train": len(tr), "n_eval": len(ev), "epochs": a.epochs, "lr": a.lr,
-            "rank": a.rank, "alpha": 2 * a.rank, "max_len": a.max_len, "train_loss": res.training_loss,
+            "rank": a.rank, "alpha": 2 * a.rank, "dropout": a.dropout, "version": a.out_prefix, "max_len": a.max_len, "train_loss": res.training_loss,
             "eval": ev_metrics, "seconds": round(time.time() - t0, 1)}
     (out / "train_meta.json").write_text(json.dumps(meta, indent=1))
     keep = ["adapter_config.json", "adapter_model.safetensors"]
     for f in keep + ["train_meta.json"]:
-        s3.upload_file(str(out / f), a.bucket, f"adapters/{role}/{f}")
+        s3.upload_file(str(out / f), a.bucket, f"{a.out_prefix}/{role}/{f}")
     tgz = WORK / f"{role}.tar.gz"
     with tarfile.open(tgz, "w:gz") as t:
         for f in keep:
             t.add(out / f, arcname=f)
-    s3.upload_file(str(tgz), a.bucket, f"adapters-tar/{role}.tar.gz")
+    s3.upload_file(str(tgz), a.bucket, f"{a.out_prefix}-tar/{role}.tar.gz")
     log(f"[{role}] done in {meta['seconds']}s, train_loss={res.training_loss:.4f}, "
         f"eval_loss={(ev_metrics or {}).get('eval_loss')}")
     del trainer, model
@@ -120,6 +121,8 @@ def main():
     ap.add_argument("--max-len", type=int, default=2048)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--upload-base", type=int, default=1)
+    ap.add_argument("--dropout", type=float, default=0.05)
+    ap.add_argument("--out-prefix", default="adapters", help="S3 prefix for this adapter set (v1: adapters)")
     a = ap.parse_args()
     import torch
     import peft
@@ -142,7 +145,7 @@ def main():
         m = train_one(role, a, base_dir, s3)
         if m:
             metas[role] = m
-            s3.put_object(Bucket=a.bucket, Key="adapters/summary.json", Body=json.dumps(metas, indent=1).encode())
+            s3.put_object(Bucket=a.bucket, Key=f"{a.out_prefix}/summary.json", Body=json.dumps(metas, indent=1).encode())
     Path("/opt/ml/model").mkdir(parents=True, exist_ok=True)
     (Path("/opt/ml/model") / "summary.json").write_text(json.dumps(metas, indent=1))
     log("all done:", list(metas))

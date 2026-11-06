@@ -90,6 +90,12 @@ export default async function ModelsPage() {
   const allA = d.fidelity?.all.adapter ?? all?.inCharAdapter ?? null;
   const allB = d.fidelity?.all.baseline ?? all?.inCharBase ?? null;
   const loops = d.eval?.loops;
+  const versions = Object.entries(d.fidelity?.versions ?? {});
+  const versionRoles = versions.length
+    ? Object.keys(versions[0][1].institutions).sort((x, y) =>
+        roleName(x).localeCompare(roleName(y)),
+      )
+    : [];
   const institutions = rows.map((r) => ({
     role: r.role,
     name: roleName(r.role),
@@ -307,6 +313,64 @@ export default async function ModelsPage() {
             {t.table.legend}. {rank >= 1 ? t.table.caveat : null}
           </p>
         </Section>
+
+        {versions.length ? (
+          <Section title={t.versions.title} sub={t.versions.sub}>
+            <div className="rounded-2xl border bg-card">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t.table.institution}</TableHead>
+                    {versions.map(([k]) => (
+                      <TableHead key={`s-${k}`} className="text-right">
+                        {t.versions.sign} {k}
+                      </TableHead>
+                    ))}
+                    <TableHead className="text-right">
+                      {t.versions.sign} {t.versions.base}
+                    </TableHead>
+                    {versions.map(([k]) => (
+                      <TableHead key={`i-${k}`} className="text-right">
+                        {t.versions.inChar} {k}
+                      </TableHead>
+                    ))}
+                    <TableHead className="text-right">
+                      {t.versions.inChar} {t.versions.base}
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[...versionRoles, "all"].map((role) => {
+                    const pick = (v: (typeof versions)[number][1]) =>
+                      role === "all" ? v.all : v.institutions[role];
+                    const base = pick(versions[0][1]);
+                    return (
+                      <TableRow
+                        key={role}
+                        className={role === "all" ? "bg-muted/40 font-medium" : undefined}
+                      >
+                        <TableCell className="whitespace-nowrap">
+                          {role === "all" ? t.table.all : roleName(role)}
+                        </TableCell>
+                        {versions.map(([k, v]) => (
+                          <Num key={`s-${k}`}>{fmt(pick(v)?.stance_sign_adapter)}</Num>
+                        ))}
+                        <Num>{fmt(base?.stance_sign_baseline)}</Num>
+                        {versions.map(([k, v]) => (
+                          <Num key={`i-${k}`}>{fmt(pick(v)?.adapter)}</Num>
+                        ))}
+                        <Num>{fmt(base?.baseline)}</Num>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t.sources} {t.versions.source}
+            </p>
+          </Section>
+        ) : null}
 
         <Section title={t.playground.title} sub={t.playground.sub}>
           <Playground lang={lang} institutions={institutions} examples={d.examples} />

@@ -14,12 +14,24 @@ Qwen3 runs in non-thinking mode, as in training: the proxy renders the Qwen3 cha
 think block itself and sends the LMI `inputs`/`parameters` schema. `stream: true` is answered as SSE
 with one content chunk (the endpoint itself is not streamed).
 Endpoints: GET /v1/models, POST /v1/chat/completions, GET /health.
+
+Adapter sets: sv-<role> = v1 adapter "<role>", sv2-<role> = v2 adapter "<role>_v2" (both staged on the same
+endpoint by deploy.py single; SV_PROXY_SETS=v1 hides the v2 ids). v2 targets start with
+"Haltung: <label>." (stance first); the proxy strips that prefix from the text and returns it as
+`x_stance`.
+
+Inference fix for adapter targets (sv-base is left as is, so the baseline stays comparable):
+repetition_penalty 1.1, frequency_penalty 0.3, stop after one paragraph ("\n\n"), max tokens capped at
+320 (the real paragraphs have a median of about 480 characters), and the text is cut at the first sentence
+that repeats an earlier one. no_repeat_ngram_size is not sent: the vLLM backend of the LMI container
+ignores it (checked with size 2, bigrams still repeat). SV_GEN_FIX=0 restores the v1 behaviour.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import re
 import sys
 import time
 import uuid
@@ -33,7 +45,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import BASE_IC, BASE_MODEL, ENDPOINT, REGION, ROLES, ic_name, session  # noqa: E402
 
 MODE = os.environ.get("SV_SM_MODE", "adapters")
-MODELS = {f"sv-{r}": r for r in ROLES} | {"sv-base": "base", BASE_MODEL: "base"}  # model id -> target
+SETS = os.environ.get("SV_PROXY_SETS", "v1,v2").split(",")
+MODELS = ({f"sv-{r}": r for r in ROLES} if "v1" in SETS else {}) \
+    | ({f"sv2-{r}": f"{r}_v2" for r in ROLES} if "v2" in SETS else {}) \
+    | {"sv-base": "base", BASE_MODEL: "base"}  # model id -> target (LMI adapter name, or base)
+GEN_FIX = os.environ.get("SV_GEN_FIX", "1") != "0"
+FIX = {"repetition_penalty": 1.1, "frequency_penalty": 0.3, "stop": ["\n\n"]}
+FIX_MAX_TOKENS = 320
+STANCE_RE = re.compile(r"^\s*Haltung:\s*(ablehnend|eher ablehnend|neutral|zustimmend mit Vorbehalten|zustimmend)\.\s*")
 _rt = None
 ENV_FILE = Path(os.environ.get("SV_ENV_FILE", Path(__file__).resolve().parents[2] / ".env"))
 
@@ -82,10 +101,33 @@ def render(messages: list[dict]) -> str:
     return "".join(out) + "<|im_start|>assistant\n<think>\n\n</think>\n\n"
 
 
+def cut_repeats(text: str) -> str:
+    """Drop everything from the first sentence (25+ chars) that already occurred: the loop failure mode."""
+    seen, out = set(), []
+    for sent in re.split(r"(?<=[.!?])\s+", text.strip()):
+        k = re.sub(r"\W+", " ", sent.lower()).strip()
+        if len(k) >= 25 and k in seen:
+            break
+        seen.add(k)
+        out.append(sent)
+    return " ".join(out).strip()
+
+
+def split_stance(text: str) -> tuple[str | None, str]:
+    m = STANCE_RE.match(text)
+    return (m.group(1), text[m.end():].strip()) if m else (None, text)
+
+
 def generate(target: str, messages: list[dict], max_tokens: int = 600, temperature: float = 0.7,
-             top_p: float = 0.9) -> str:
-    """target: 'base' or a role id."""
+             top_p: float = 0.9, with_stance: bool = False):
+    """target: 'base' or an LMI adapter name (v1 '<role>', v2 '<role>_v2'). Returns text, or
+    (text, stance label or None) with with_stance=True."""
+    fix = GEN_FIX and target != "base"
+    if fix:
+        max_tokens = min(int(max_tokens), FIX_MAX_TOKENS)
     params = {"max_new_tokens": int(max_tokens), "temperature": float(temperature), "top_p": float(top_p)}
+    if fix:
+        params |= FIX
     if params["temperature"] <= 0:
         params["temperature"] = 0.01
     body = {"inputs": render(messages), "parameters": params}
@@ -100,7 +142,14 @@ def generate(target: str, messages: list[dict], max_tokens: int = 600, temperatu
     if isinstance(body, list):
         body = body[0]
     text = body.get("generated_text", "") if isinstance(body, dict) else str(body)
-    return text.split("<|im_end|>")[0].strip()
+    text = text.split("<|im_end|>")[0].strip()
+    stance, text = split_stance(text)
+    if fix:
+        cut = cut_repeats(text)
+        if cut != text:  # counted by the eval: a loop the sampling settings alone did not prevent
+            sys.stderr.write(f"{time.strftime('%H:%M:%S')} LOOP_CUT target={target} chars {len(text)}->{len(cut)}\n")
+        text = cut
+    return (text, stance) if with_stance else text
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -138,9 +187,10 @@ class Handler(BaseHTTPRequestHandler):
                                               "type": "invalid_request_error"}})
         t0 = time.time()
         try:
-            text = generate(target, req.get("messages", []),
-                            max_tokens=req.get("max_tokens") or req.get("max_completion_tokens") or 600,
-                            temperature=req.get("temperature", 0.7), top_p=req.get("top_p", 0.9))
+            text, stance = generate(target, req.get("messages", []),
+                                    max_tokens=req.get("max_tokens") or req.get("max_completion_tokens") or 600,
+                                    temperature=req.get("temperature", 0.7), top_p=req.get("top_p", 0.9),
+                                    with_stance=True)
         except Exception as e:  # noqa: BLE001
             return self._send(502, {"error": {"message": f"{e.__class__.__name__}: {str(e)[:400]}",
                                               "type": "upstream_error"}})
@@ -158,7 +208,7 @@ class Handler(BaseHTTPRequestHandler):
         self._send(200, {"id": cid, "object": "chat.completion", "created": now, "model": model,
                          "choices": [{"index": 0, "message": {"role": "assistant", "content": text},
                                       "finish_reason": "stop"}], "usage": usage,
-                         "x_latency_s": round(time.time() - t0, 2)})
+                         "x_latency_s": round(time.time() - t0, 2), "x_stance": stance})
 
 
 def main():
@@ -168,7 +218,7 @@ def main():
     a = ap.parse_args()
     srv = ThreadingHTTPServer((a.host, a.port), Handler)
     print(f"proxy on http://{a.host}:{a.port}/v1 -> SageMaker endpoint {ENDPOINT} ({credential_source()}); "
-          f"models: {', '.join(MODELS)}", flush=True)
+          f"inference fix {'on' if GEN_FIX else 'off'}; models: {', '.join(MODELS)}", flush=True)
     srv.serve_forever()
 
 

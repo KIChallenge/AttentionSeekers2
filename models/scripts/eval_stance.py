@@ -69,6 +69,8 @@ def main():
     a = ap.parse_args()
     from openai import OpenAI
 
+    import envfile
+    envfile.load_env()  # judge endpoint from the repo .env when not exported (values never printed)
     gen = OpenAI(base_url=a.gen_base_url, api_key=os.environ.get("GEN_API_KEY", "x"))
     jb, jk = os.environ.get("OPENAI_COMPATIBLE_BASE_URL"), os.environ.get("OPENAI_COMPATIBLE_API_KEY")
     if not jb or not jk:

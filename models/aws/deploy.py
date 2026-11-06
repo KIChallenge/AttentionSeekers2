@@ -6,6 +6,13 @@ startup, and a request selects one with the body field "adapters": "<role>" (no 
 No adapter is registered at runtime, so a worker restart comes back with every adapter.
 
   uv run python -I deploy.py single        # stage adapters, model, config, (re)create endpoint, ~10 min
+  uv run python -I deploy.py single --sets v1,v2   # v1 as "<role>" plus v2 as "<role>_v2" (sv2-<role> in the proxy)
+  uv run python -I deploy.py single --sets v1      # rollback: v1 only, v2 staging removed
+
+Adapter sets live in separate S3 prefixes (v1: adapters/, v2: adapters-v2/) and are never overwritten; only
+the staged copies under base/Qwen3-8B/adapters/ change. LMI loads adapters only at startup and the quota is one
+ml.g6e.xlarge endpoint instance (no blue/green), so switching sets deletes and recreates the endpoint under
+the same name: about 10 minutes of downtime, the proxy needs no change.
 
 First attempt, kept for reference (IC mode, SV_SM_MODE=ic): SageMaker multi-adapter inference with a
 base inference component plus one adapter component per institution. It served, but under eval load the
@@ -44,7 +51,10 @@ def sm():
     return session().client("sagemaker")
 
 
-def lmi_env():
+SETS = {"v1": ("adapters", ""), "v2": ("adapters-v2", "_v2")}  # set -> (S3 prefix, LMI adapter name suffix)
+
+
+def lmi_env(n_adapters: int = 9):
     return {
         "HF_MODEL_ID": f"s3://{bucket()}/base/Qwen3-8B/",
         "OPTION_ROLLING_BATCH": "vllm",
@@ -54,8 +64,8 @@ def lmi_env():
         "OPTION_MAX_ROLLING_BATCH_SIZE": "32",
         "OPTION_GPU_MEMORY_UTILIZATION": "0.88",
         "OPTION_ENABLE_LORA": "true",
-        "OPTION_MAX_LORAS": "10",
-        "OPTION_MAX_CPU_LORAS": "16",
+        "OPTION_MAX_LORAS": str(max(10, n_adapters)),
+        "OPTION_MAX_CPU_LORAS": str(max(16, n_adapters + 2)),
         "OPTION_MAX_LORA_RANK": "16",
     }
 
@@ -113,37 +123,56 @@ def drop_ic(_a):
 def single(a):
     c, s3 = sm(), session().client("s3")
     b = bucket()
-    for r in ROLES:  # stage adapters inside the model prefix: <model_dir>/adapters/<role>/
-        for f in ("adapter_config.json", "adapter_model.safetensors"):
-            s3.copy_object(Bucket=b, Key=f"base/Qwen3-8B/adapters/{r}/{f}",
-                           CopySource={"Bucket": b, "Key": f"adapters/{r}/{f}"})
-    print("staged", len(ROLES), "adapters under base/Qwen3-8B/adapters/")
+    sets = a.sets.split(",")
+    for st, (prefix, suffix) in SETS.items():  # stage adapters inside the model prefix: <model_dir>/adapters/<name>/
+        for r in ROLES:
+            for f in ("adapter_config.json", "adapter_model.safetensors"):
+                key = f"base/Qwen3-8B/adapters/{r}{suffix}/{f}"
+                if st in sets:
+                    s3.copy_object(Bucket=b, Key=key, CopySource={"Bucket": b, "Key": f"{prefix}/{r}/{f}"})
+                else:
+                    s3.delete_object(Bucket=b, Key=key)
+    print("staged sets", sets, "under base/Qwen3-8B/adapters/;", len(ROLES) * len(sets), "adapters")
+    # v1-only keeps the original names, so a rollback lands on the exact v1 model and config
+    model = SINGLE_MODEL if sets == ["v1"] else f"{SINGLE_MODEL}-{'-'.join(sets)}"
+    config = SINGLE_CONFIG if sets == ["v1"] else f"{SINGLE_CONFIG}-{'-'.join(sets)}"
     try:
-        c.describe_model(ModelName=SINGLE_MODEL)
-        print("model exists")
+        c.describe_model(ModelName=model)
+        print("model exists", model)
     except ClientError:
-        c.create_model(ModelName=SINGLE_MODEL, ExecutionRoleArn=role_arn(), Tags=TAGS,
-                       PrimaryContainer={"Image": image("djl-inference", LMI_IMAGE_TAG), "Environment": lmi_env()})
-        print("model created")
+        c.create_model(ModelName=model, ExecutionRoleArn=role_arn(), Tags=TAGS,
+                       PrimaryContainer={"Image": image("djl-inference", LMI_IMAGE_TAG),
+                                         "Environment": lmi_env(len(ROLES) * len(sets))})
+        print("model created", model)
     try:
-        c.describe_endpoint_config(EndpointConfigName=SINGLE_CONFIG)
-        print("endpoint config exists")
+        c.describe_endpoint_config(EndpointConfigName=config)
+        print("endpoint config exists", config)
     except ClientError:
-        c.create_endpoint_config(EndpointConfigName=SINGLE_CONFIG, Tags=TAGS, ProductionVariants=[{
-            "VariantName": VARIANT, "ModelName": SINGLE_MODEL, "InstanceType": INSTANCE, "InitialInstanceCount": 1,
+        c.create_endpoint_config(EndpointConfigName=config, Tags=TAGS, ProductionVariants=[{
+            "VariantName": VARIANT, "ModelName": model, "InstanceType": INSTANCE, "InitialInstanceCount": 1,
             "ModelDataDownloadTimeoutInSeconds": 1800, "ContainerStartupHealthCheckTimeoutInSeconds": 1800}])
-        print("endpoint config created")
+        print("endpoint config created", config)
     try:
         d = c.describe_endpoint(EndpointName=ENDPOINT)
     except ClientError:
         d = None
-    if d and d["EndpointConfigName"] == SINGLE_CONFIG:
-        print("endpoint already on", SINGLE_CONFIG, d["EndpointStatus"])
+    if d and d["EndpointConfigName"] == config and not a.recreate:
+        print("endpoint already on", config, d["EndpointStatus"], "(--recreate reloads the staged adapters)")
         return
-    if d:  # IC endpoint: the quota allows one instance, so no blue/green update; delete and recreate
-        drop_ic(None)
-    c.create_endpoint(EndpointName=ENDPOINT, EndpointConfigName=SINGLE_CONFIG, Tags=TAGS)
-    print("endpoint creating on", SINGLE_CONFIG)
+    if d:  # quota is one instance, so no blue/green update; delete and recreate under the same name
+        if c.list_inference_components(EndpointNameEquals=ENDPOINT)["InferenceComponents"]:
+            drop_ic(None)
+        else:
+            c.delete_endpoint(EndpointName=ENDPOINT)
+            print("deleting endpoint", ENDPOINT)
+            while True:
+                try:
+                    c.describe_endpoint(EndpointName=ENDPOINT)
+                    time.sleep(10)
+                except ClientError:
+                    break
+    c.create_endpoint(EndpointName=ENDPOINT, EndpointConfigName=config, Tags=TAGS)
+    print("endpoint creating on", config, "(about 10 min; deploy.py status)")
 
 
 def base(_a):
@@ -228,7 +257,9 @@ def smoke(a):
 def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("single")
+    p = sub.add_parser("single")
+    p.add_argument("--sets", default="v1", help="comma list of adapter sets to load: v1, v2 or v1,v2")
+    p.add_argument("--recreate", action="store_true", help="recreate even if the endpoint is on this config")
     sub.add_parser("drop-ic")
     sub.add_parser("endpoint")
     sub.add_parser("base")

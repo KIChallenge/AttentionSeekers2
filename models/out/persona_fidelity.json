@@ -72,5 +72,200 @@
   "n": 244,
   "adapter": 0.3867,
   "baseline": 0.4669
+ },
+ "version": "v1",
+ "versions": {
+  "v1": {
+   "version": "v1",
+   "run": "v1-nofix",
+   "institutions": {
+    "chamber_commerce": {
+     "n": 30,
+     "adapter": 0.0974,
+     "baseline": 0.5386,
+     "stance_sign_adapter": 0.5,
+     "stance_sign_baseline": 0.5,
+     "within1_adapter": 0.5667,
+     "within1_baseline": 0.55
+    },
+    "chamber_labour": {
+     "n": 30,
+     "adapter": 0.3918,
+     "baseline": 0.2233,
+     "stance_sign_adapter": 0.2667,
+     "stance_sign_baseline": 0.65,
+     "within1_adapter": 0.4667,
+     "within1_baseline": 0.65
+    },
+    "hospitals": {
+     "n": 28,
+     "adapter": 0.1803,
+     "baseline": 0.1207,
+     "stance_sign_adapter": 0.4643,
+     "stance_sign_baseline": 0.625,
+     "within1_adapter": 0.7857,
+     "within1_baseline": 0.6964
+    },
+    "laender": {
+     "n": 30,
+     "adapter": 0.5723,
+     "baseline": 0.7495,
+     "stance_sign_adapter": 0.5,
+     "stance_sign_baseline": 0.55,
+     "within1_adapter": 0.6667,
+     "within1_baseline": 0.65
+    },
+    "medical_chamber": {
+     "n": 30,
+     "adapter": 0.237,
+     "baseline": 0.3092,
+     "stance_sign_adapter": 0.3333,
+     "stance_sign_baseline": 0.6667,
+     "within1_adapter": 0.7667,
+     "within1_baseline": 0.6667
+    },
+    "ministry_finance": {
+     "n": 24,
+     "adapter": 0.3251,
+     "baseline": 0.6785,
+     "stance_sign_adapter": 0.4583,
+     "stance_sign_baseline": 0.3542,
+     "within1_adapter": 0.9167,
+     "within1_baseline": 0.7292
+    },
+    "nursing": {
+     "n": 30,
+     "adapter": 0.6585,
+     "baseline": 0.3938,
+     "stance_sign_adapter": 0.3333,
+     "stance_sign_baseline": 0.5167,
+     "within1_adapter": 0.7,
+     "within1_baseline": 0.5333
+    },
+    "patients": {
+     "n": 12,
+     "adapter": 0.595,
+     "baseline": 0.6622,
+     "stance_sign_adapter": 0.3333,
+     "stance_sign_baseline": 0.4167,
+     "within1_adapter": 0.4167,
+     "within1_baseline": 0.5
+    },
+    "social_insurance": {
+     "n": 30,
+     "adapter": 0.5221,
+     "baseline": 0.5679,
+     "stance_sign_adapter": 0.7,
+     "stance_sign_baseline": 0.5833,
+     "within1_adapter": 0.8333,
+     "within1_baseline": 0.6167
+    }
+   },
+   "all": {
+    "n": 244,
+    "adapter": 0.3867,
+    "baseline": 0.4552,
+    "stance_sign_adapter": 0.4385,
+    "stance_sign_baseline": 0.5533,
+    "within1_adapter": 0.6926,
+    "within1_baseline": 0.627
+   }
+  },
+  "v1-fix": {
+   "version": "v1-fix",
+   "run": "20261106-015512",
+   "institutions": {
+    "chamber_commerce": {
+     "n": 30,
+     "adapter": 0.1546,
+     "baseline": 0.5386,
+     "stance_sign_adapter": 0.5,
+     "stance_sign_baseline": 0.5,
+     "within1_adapter": 0.6667,
+     "within1_baseline": 0.55
+    },
+    "chamber_labour": {
+     "n": 30,
+     "adapter": 0.5262,
+     "baseline": 0.2233,
+     "stance_sign_adapter": 0.3667,
+     "stance_sign_baseline": 0.65,
+     "within1_adapter": 0.4,
+     "within1_baseline": 0.65
+    },
+    "hospitals": {
+     "n": 28,
+     "adapter": 0.2438,
+     "baseline": 0.1207,
+     "stance_sign_adapter": 0.6429,
+     "stance_sign_baseline": 0.625,
+     "within1_adapter": 0.8214,
+     "within1_baseline": 0.6964
+    },
+    "laender": {
+     "n": 30,
+     "adapter": 0.6474,
+     "baseline": 0.7495,
+     "stance_sign_adapter": 0.6,
+     "stance_sign_baseline": 0.55,
+     "within1_adapter": 0.6667,
+     "within1_baseline": 0.65
+    },
+    "medical_chamber": {
+     "n": 30,
+     "adapter": 0.1189,
+     "baseline": 0.3092,
+     "stance_sign_adapter": 0.4667,
+     "stance_sign_baseline": 0.6667,
+     "within1_adapter": 0.6667,
+     "within1_baseline": 0.6667
+    },
+    "ministry_finance": {
+     "n": 24,
+     "adapter": 0.2268,
+     "baseline": 0.6785,
+     "stance_sign_adapter": 0.5,
+     "stance_sign_baseline": 0.3542,
+     "within1_adapter": 0.7917,
+     "within1_baseline": 0.7292
+    },
+    "nursing": {
+     "n": 30,
+     "adapter": 0.4272,
+     "baseline": 0.3938,
+     "stance_sign_adapter": 0.5,
+     "stance_sign_baseline": 0.5167,
+     "within1_adapter": 0.7333,
+     "within1_baseline": 0.5333
+    },
+    "patients": {
+     "n": 12,
+     "adapter": 0.4788,
+     "baseline": 0.6622,
+     "stance_sign_adapter": 0.25,
+     "stance_sign_baseline": 0.4167,
+     "within1_adapter": 0.4167,
+     "within1_baseline": 0.5
+    },
+    "social_insurance": {
+     "n": 30,
+     "adapter": 0.3848,
+     "baseline": 0.5679,
+     "stance_sign_adapter": 0.5667,
+     "stance_sign_baseline": 0.5833,
+     "within1_adapter": 0.7,
+     "within1_baseline": 0.6167
+    }
+   },
+   "all": {
+    "n": 244,
+    "adapter": 0.3516,
+    "baseline": 0.4552,
+    "stance_sign_adapter": 0.5041,
+    "stance_sign_baseline": 0.5533,
+    "within1_adapter": 0.6639,
+    "within1_baseline": 0.627
+   }
+  }
  }
 }
