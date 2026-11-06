@@ -145,7 +145,10 @@ def generate(target: str, messages: list[dict], max_tokens: int = 600, temperatu
     text = text.split("<|im_end|>")[0].strip()
     stance, text = split_stance(text)
     if fix:
-        text = cut_repeats(text)
+        cut = cut_repeats(text)
+        if cut != text:  # counted by the eval: a loop the sampling settings alone did not prevent
+            sys.stderr.write(f"{time.strftime('%H:%M:%S')} LOOP_CUT target={target} chars {len(text)}->{len(cut)}\n")
+        text = cut
     return (text, stance) if with_stance else text
 
 
