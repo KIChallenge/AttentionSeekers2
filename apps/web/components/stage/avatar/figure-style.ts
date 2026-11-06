@@ -23,7 +23,49 @@ export interface FigureStyle {
   height: number;
   width: number;
   glasses: boolean;
+  /** Realistic figures only: multiply on skin texels (white keeps the texture's own tone). */
+  skinShift: string;
 }
+
+/** Figure style of the 3D stage: the stylized base figure (default) or realistic characters. */
+export type FigureKind = "stylized" | "realistic";
+
+export const isFigureKind = (v: string | null): v is FigureKind =>
+  v === "stylized" || v === "realistic";
+
+/**
+ * Realistic characters (Microsoft Rocketbox, MIT, artist-made, see LICENSES.md), by cast
+ * gender. Several per gender so neighbouring seats differ.
+ */
+export const REALISTIC_ASSETS: Record<CastGender, string[]> = {
+  female: [
+    "/avatars/realistic/female-a.glb",
+    "/avatars/realistic/female-b.glb",
+    "/avatars/realistic/female-c.glb",
+  ],
+  male: [
+    "/avatars/realistic/male-a.glb",
+    "/avatars/realistic/male-b.glb",
+    "/avatars/realistic/male-c.glb",
+  ],
+};
+
+/** Asset per seat: seats of one gender take the characters in turn, in seat order. */
+export function realisticAssets(ids: string[]): Map<string, string> {
+  const next: Record<CastGender, number> = { female: 0, male: 0 };
+  const out = new Map<string, string>();
+  for (const id of ids) {
+    const g = castGender(id);
+    const list = REALISTIC_ASSETS[g];
+    out.set(id, list[next[g] % list.length] as string);
+    next[g] += 1;
+  }
+  return out;
+}
+
+const SKIN_SHIFT = ["#ffffff", "#f6ede4", "#ece0d2", "#ddc9b5"];
+/** Hair multiply: from the texture's own colour to darker and ashier tones. */
+const HAIR_SHIFT = ["#ffffff", "#c8b7a6", "#8a7464", "#5a4c46", "#d8d4d0"];
 
 const CLAY = ["#e0c3a8", "#c9a184", "#b48466", "#d6b59a", "#9c7258", "#e8d0bb"];
 const HAIR: (string | null)[] = [
@@ -67,7 +109,14 @@ export function figureStyle(id: string, color: string): FigureStyle {
     height: (male ? 0.99 : 0.95) + ((h >>> 11) % 6) / 100,
     width: (male ? 1.04 : 0.96) + ((h >>> 17) % 5) / 100,
     glasses: id === "expert" || (h >>> 23) % 4 === 0,
+    skinShift: pick(SKIN_SHIFT, h, 5),
   };
+}
+
+/** Per-seat style of a realistic figure: same gender and clothing colour, texture tints. */
+export function realisticStyle(id: string, color: string): FigureStyle {
+  const h = hashId(id);
+  return { ...figureStyle(id, color), hair: pick(HAIR_SHIFT, h, 13), glasses: false };
 }
 
 /** Grid columns for n seats; the same rule as the tile grid so both modes share a layout. */
