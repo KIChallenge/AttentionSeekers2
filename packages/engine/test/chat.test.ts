@@ -57,7 +57,7 @@ describe("ask an institution: prompt builder", () => {
     expect(prompt).toContain("[E1]");
     expect(prompt).toContain(f.utterances[0]?.id ?? "?");
     expect(prompt).toContain("Antworte auf Deutsch");
-    expect(prompt).not.toMatch(/—/);
+    expect(prompt).not.toMatch(/\u2014/);
   });
 
   it("switches the answer language and keeps the history short", () => {
@@ -96,7 +96,9 @@ describe("ask an institution: streaming name guard", () => {
 
   it("replaces em dashes", () => {
     const g = nameStreamGuard();
-    expect(g.push("Wir — als Kammer — sagen nein") + g.flush()).toBe("Wir, als Kammer, sagen nein");
+    expect(g.push("Wir \u2014 als Kammer \u2014 sagen nein") + g.flush()).toBe(
+      "Wir, als Kammer, sagen nein",
+    );
   });
 });
 

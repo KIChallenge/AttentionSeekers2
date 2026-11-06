@@ -411,7 +411,7 @@ export function nameStreamGuard(placeholder = "[Institution]") {
     }
     out += raw.slice(pos, to);
     cut = to;
-    return out.replace(/\s*—\s*/g, ", ");
+    return out.replace(/\s*\u2014\s*/g, ", ");
   };
   return {
     push(delta: string): string {
