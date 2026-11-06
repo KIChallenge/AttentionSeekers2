@@ -122,7 +122,7 @@ function DataCard({ data, lang }: { data: Overview; lang: Lang }) {
       action={
         <Links>
           <LinkButton href="/archive">{t.archive}</LinkButton>
-          <LinkButton href="/archive?kind=press">{t.press_browser}</LinkButton>
+          <LinkButton href="/archive/presse">{t.press_browser}</LinkButton>
         </Links>
       }
       bodyClassName="space-y-6"
