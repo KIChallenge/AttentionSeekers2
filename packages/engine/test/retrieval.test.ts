@@ -79,6 +79,20 @@ describe("hybrid retrieval fusion", () => {
     expect(hybrid[0]?.r.segment_id).toBe("lex5");
   });
 
+  it("keeps full-text hits of segments that have no embedding yet (partial coverage)", () => {
+    const unembedded = row("noVec", "2024-05-01", "Primärversorgungseinheit Ausbau");
+    const vecOnly = row(
+      "vec",
+      "2024-05-01",
+      "Gemeinsame Praxis mehrerer Gesundheitsberufe",
+      "x",
+      0.6,
+    );
+    const out = fuse({ lexical: [unembedded], vector: [vecOnly], asOf, role: "x" });
+    expect(out.map((s) => s.r.segment_id).sort()).toEqual(["noVec", "vec"]);
+    expect(out.find((s) => s.r.segment_id === "noVec")?.vectorRank).toBeNull();
+  });
+
   it("weights by recency after fusion", () => {
     const old = row("old", "2016-06-30", "a");
     const fresh = row("fresh", "2024-06-01", "a");

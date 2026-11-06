@@ -269,17 +269,17 @@ export async function embedMissingSegments(
   while (p.done + p.failed < total) {
     const want = Math.min(batch, total - p.done - p.failed);
     // One row per distinct text, in priority order so a partial run is already useful:
-    // press and the small source kinds first, then substantive (>= 50 chars, the floor search uses) Stellungnahme
-    // passages newest first, short headings and fragments last.
+    // press and the small source kinds first, then Stellungnahme passages of >= 200 chars,
+    // then >= 50 chars (the floor search uses), newest first; headings and fragments last.
     const res = await db.execute<{ id: string; text: string; hash: string }>(sql`
       select id, text, hash from (
         select distinct on (md5(g.text)) g.id, g.text, md5(g.text) as hash,
-               (s.kind = 'stellungnahme') as late_kind, (length(g.text) < 50) as short, s.date
+               (s.kind = 'stellungnahme') as late_kind, (case when length(g.text) >= 200 then 0 when length(g.text) >= 50 then 1 else 2 end) as tier, s.date
         from segments g join sources s on s.id = g.source_id
         where ${missing} and not (md5(g.text) = any(${sql.param([...failedHashes])}::text[]))
         order by md5(g.text), s.date desc
       ) t
-      order by late_kind, short, date desc, id limit ${want}`);
+      order by late_kind, tier, date desc, id limit ${want}`);
     const rows = res.rows;
     if (!rows.length) break;
     const out: Array<{ id: string; hash: string; tokens: number; vec: string }> = [];
