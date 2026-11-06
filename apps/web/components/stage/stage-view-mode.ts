@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { type FigureKind, isFigureKind } from "./avatar/figure-style";
 
 // Stage view mode: the tile grid is the default and the fallback; 3D and the meeting view are
 // opt-in. The choice is remembered per browser, and ?view=grid|3d|meeting in the URL overrides
@@ -41,4 +42,36 @@ export function useStageViewMode(): [StageViewMode, (v: StageViewMode) => void] 
     }
   }, []);
   return [mode, set];
+}
+
+// Figure style of the 3D and meeting views: stylized by default; "realistic" is opt-in,
+// remembered per browser, and ?figures=realistic|stylized overrides it for one visit.
+const FIGURES_KEY = "sv.stage.figures";
+
+export function useFigureKind(): [FigureKind, (v: FigureKind) => void] {
+  const [kind, setKind] = useState<FigureKind>("stylized");
+  useEffect(() => {
+    let v: string | null = null;
+    try {
+      v = new URLSearchParams(window.location.search).get("figures");
+      if (!isFigureKind(v)) v = window.localStorage.getItem(FIGURES_KEY);
+    } catch {
+      // storage blocked: stay stylized
+    }
+    if (isFigureKind(v)) setKind(v);
+  }, []);
+  const set = useCallback((v: FigureKind) => {
+    setKind(v);
+    try {
+      window.localStorage.setItem(FIGURES_KEY, v);
+      const url = new URL(window.location.href);
+      if (url.searchParams.has("figures")) {
+        url.searchParams.set("figures", v);
+        window.history.replaceState(window.history.state, "", url);
+      }
+    } catch {
+      // not persisted, still switched
+    }
+  }, []);
+  return [kind, set];
 }

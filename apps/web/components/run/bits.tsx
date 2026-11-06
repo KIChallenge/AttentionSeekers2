@@ -4,12 +4,13 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { EntityLink } from "@/components/entity/entity-link";
 import { scopedId } from "@/components/entity/types";
+import { Section } from "@/components/shell/page";
 import { usePrefs } from "@/components/shell/providers";
 import { cn } from "@/lib/utils";
 import { agentLook } from "./helpers";
 import { useRun } from "./run-context";
 
-/** Card frame used by every run screen (mockup: 14px radius, hairline border). */
+/** Card frame used by every run screen: the shared Section of the page shell. */
 export function Panel({
   title,
   aside,
@@ -26,18 +27,9 @@ export function Panel({
   id?: string;
 }) {
   return (
-    <section id={id} className={cn("rounded-2xl border bg-card p-4 shadow-xs", className)}>
-      {title ? (
-        <div className="mb-3 flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
-          <div className="min-w-0">
-            <h2 className="text-base font-semibold">{title}</h2>
-            {sub ? <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p> : null}
-          </div>
-          {aside ? <div className="flex flex-wrap items-center gap-2">{aside}</div> : null}
-        </div>
-      ) : null}
+    <Section id={id} title={title} description={sub} action={aside} className={className}>
       {children}
-    </section>
+    </Section>
   );
 }
 

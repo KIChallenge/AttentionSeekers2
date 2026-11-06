@@ -76,6 +76,8 @@ const Fidelity = z.object({
       z.object({
         version: z.string(),
         run: z.string(),
+        /** Display name, e.g. "Kontext-Persona (Dossier), gpt-6-sol" (models/scripts/eval_dossier.py). */
+        label: z.string().optional(),
         institutions: z.record(z.string(), VersionScores),
         all: VersionScores,
       }),

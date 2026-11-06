@@ -10,7 +10,8 @@ import { LipsyncDe } from "@met4citizen/talkinghead/modules/lipsync-de.mjs";
 import { LipsyncEn } from "@met4citizen/talkinghead/modules/lipsync-en.mjs";
 import * as THREE from "three";
 import type { StageLive } from "../use-stage-player";
-import { type FigureStyle, seatPosition } from "./figure-style";
+import { type FigureKind, type FigureStyle, seatPosition } from "./figure-style";
+import { prepareRealistic } from "./realistic";
 import {
   ampGate,
   buildTrack,
@@ -28,6 +29,8 @@ export interface SeatSpec {
   bg: string;
   /** Tile frame element: viewport source and TalkingHead's reference node for gaze. */
   el: HTMLElement;
+  /** Figure asset for this seat; SceneOptions.url when absent. */
+  url?: string;
 }
 
 export interface StageCue {
@@ -58,6 +61,8 @@ interface Seat {
 
 export interface SceneOptions {
   url: string;
+  /** Stylized base figure (toon colours, built hair, glasses) or realistic textured figures. */
+  figures?: FigureKind;
   lang: "de" | "en";
   cols: number;
   /** Take each seat's gaze frame from its on-screen rect instead of the grid (free layouts). */
@@ -361,14 +366,18 @@ export class AvatarScene {
         avatarSpeakingEyeContact: 0.55,
         avatarSpeakingHeadMove: 0.6,
       });
+      const realistic = this.opts.figures === "realistic";
       await head.showAvatar(
         {
-          url: this.opts.url,
+          url: spec.url ?? this.opts.url,
           body: spec.style.gender === "male" ? "M" : "F",
           lipsyncLang: this.opts.lang,
         },
         null,
-        (gltf: GltfLike) => restyle(gltf.scene, spec.style, this.grad),
+        (gltf: GltfLike) =>
+          realistic
+            ? prepareRealistic(gltf.scene, spec.style)
+            : restyle(gltf.scene, spec.style, this.grad),
       );
       if (this.disposed) {
         head.dispose();
@@ -378,9 +387,9 @@ export class AvatarScene {
       head.armature.scale.set(spec.style.width, spec.style.height, spec.style.width);
       head.armature.updateMatrixWorld(true);
       const frame = headFrame(head);
-      if (spec.style.hair)
+      if (!realistic && spec.style.hair)
         addHair(head, frame, spec.style.hair, this.grad, HAIR[spec.style.hairCut]);
-      if (spec.style.glasses) addGlasses(head, this.grad);
+      if (!realistic && spec.style.glasses) addGlasses(head, this.grad);
       const eyes = head.objectLeftEye
         .getWorldPosition(new THREE.Vector3())
         .add(head.objectRightEye.getWorldPosition(new THREE.Vector3()))
@@ -415,7 +424,7 @@ export class AvatarScene {
     HAIR[cut] = shells.map(shell);
     for (const seat of this.seats.values()) {
       const st = seat.spec.style;
-      if (st.hairCut !== cut) continue;
+      if (st.hairCut !== cut || this.opts.figures === "realistic") continue;
       seat.head.objectHead.getObjectByName("stage-hair")?.removeFromParent();
       if (st.hair) addHair(seat.head, seat.frame, st.hair, this.grad, HAIR[cut]);
     }
@@ -425,7 +434,8 @@ export class AvatarScene {
     const fh = frameHeight(seat.camera.aspect) * (this.opts.frameScale ?? 1);
     const dist = fh / 2 / Math.tan(THREE.MathUtils.degToRad(FOV / 2));
     const e = seat.eyes;
-    const cy = e.y - fh * 0.16;
+    // realistic figures carry taller hair: keep the eyes nearer the middle of the frame
+    const cy = e.y - fh * (this.opts.figures === "realistic" ? 0.07 : 0.16);
     seat.camera.position.set(e.x, cy + 0.03, e.z + dist * zoom);
     seat.camera.lookAt(e.x, cy, e.z);
     seat.zoom = zoom;

@@ -13,6 +13,7 @@ import { L, profileOf, redLinesOf } from "./config.ts";
 import { findPersonNames } from "./guard.ts";
 import { DEFAULT_BASELINE_EUR_BN } from "./impact.ts";
 import { type CallMeta, estimateTokens, type Message, structured } from "./llm.ts";
+import { personaBlock } from "./persona/index.ts";
 import { PHASE_NAMES } from "./phases.ts";
 import { failedGated, gateFeedback } from "./quality/checks.ts";
 import type { Passage } from "./retrieval.ts";
@@ -112,7 +113,7 @@ export const TurnOut = z.object({
 });
 export type TurnOut = z.infer<typeof TurnOut>;
 
-const StrategyOut = z.object({
+export const StrategyOut = z.object({
   leverage: z.array(z.object({ text: z.string(), evidence: z.string().nullable() })),
   vetoStatus: z.enum(["formal_veto", "co_decider", "consultative"]),
   vetoBasis: z.string(),
@@ -156,7 +157,7 @@ const StrategyOut = z.object({
   reason: z.string(),
 });
 
-const LessonOut = z.object({
+export const LessonOut = z.object({
   implicationDe: z.string(),
   implicationEn: z.string(),
   nextMoveDe: z.string(),
@@ -211,6 +212,8 @@ export function systemPrompt(s: RunState, agentId: string, delegateRole?: string
       : "",
     `Sprachregister: ${p.register}.`,
     `Verhandlungsklima: ${CLIMATE_DE[s.room.climate]}. Druck: Zeit ${s.room.pressures.time}, Budget ${s.room.pressures.budget}, Öffentlichkeit ${s.room.pressures.public}.`,
+    // SV_PERSONA_MODE=dossier: the institution's dossier (empty string in profile mode)
+    personaBlock(agentId),
     "",
     "Regeln:",
     "- Nenne niemals reale Personen (keine Namen, keine Titel mit Namen, keine Zitate von Personen). Nur Institutionen.",
@@ -732,13 +735,13 @@ export async function runExchangeTurn(
   };
 }
 
-export async function runStrategy(
+/** Prompt of the strategic assessment (shared with the model smoke test). */
+export function strategyMessages(
   s: RunState,
   agentId: string,
   round: number,
   passages: Passage[],
-  model: string,
-): Promise<{ assessment: StrategicAssessment; meta: CallMeta }> {
+): Message[] {
   const others = s.agentIds
     .filter((a) => a !== agentId)
     .map((a) => `${a}: ${nameOf(a)} (${profileOf(a).vetoStatus})`);
@@ -764,10 +767,25 @@ export async function runStrategy(
   ]
     .filter(Boolean)
     .join("\n");
-  const r = await structured(model, "strategic_assessment", StrategyOut, [
+  return [
     { role: "system", content: systemPrompt(s, agentId) },
     { role: "user", content: user },
-  ]);
+  ];
+}
+
+export async function runStrategy(
+  s: RunState,
+  agentId: string,
+  round: number,
+  passages: Passage[],
+  model: string,
+): Promise<{ assessment: StrategicAssessment; meta: CallMeta }> {
+  const r = await structured(
+    model,
+    "strategic_assessment",
+    StrategyOut,
+    strategyMessages(s, agentId, round, passages),
+  );
   const o = r.data;
   const byHandle = new Map(passages.map((p) => [p.handle, p]));
   const ref = (h: string | null) => {
@@ -821,13 +839,13 @@ export async function runStrategy(
   return { assessment, meta: r.meta };
 }
 
-export async function runLesson(
+/** Prompt of the round lesson (shared with the model smoke test). */
+export function lessonMessages(
   s: RunState,
   agentId: string,
   round: number,
   base: Pick<RoundLesson, "passed" | "failed" | "blockedBy">,
-  model: string,
-): Promise<RoundLesson> {
+): Message[] {
   const summary = s.summaries.find((x) => x.round === round);
   const red = s.agentIds
     .filter((a) => a !== agentId)
@@ -845,14 +863,24 @@ export async function runLesson(
   ]
     .filter(Boolean)
     .join("\n");
+  return [
+    { role: "system", content: systemPrompt(s, agentId) },
+    { role: "user", content: user },
+  ];
+}
+
+export async function runLesson(
+  s: RunState,
+  agentId: string,
+  round: number,
+  base: Pick<RoundLesson, "passed" | "failed" | "blockedBy">,
+  model: string,
+): Promise<RoundLesson> {
   const r = await structured(
     model,
     "round_lesson",
     LessonOut,
-    [
-      { role: "system", content: systemPrompt(s, agentId) },
-      { role: "user", content: user },
-    ],
+    lessonMessages(s, agentId, round, base),
     { reasoningEffort: "none" },
   );
   const valid = new Set(s.agentIds);

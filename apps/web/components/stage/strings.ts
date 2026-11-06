@@ -58,6 +58,13 @@ const de = {
     "Stilisierte 3D-Figuren, eine je Institution, Lippenbewegung aus den vorgerenderten Stimmen",
   view3dLoading: "3D-Figuren werden geladen",
   view3dFallback: "3D nicht verfügbar, Kachelansicht aktiv",
+  figures: "Figuren",
+  figuresStylized: "Stilisiert",
+  figuresRealistic: "Realistisch",
+  figuresRealisticHint:
+    "Realistische, frei erfundene Figuren von Künstlern (Microsoft Rocketbox), keine echten Personen",
+  disclaimerRealistic:
+    "Erfundene Figuren. Sie stehen nur für Institutionen, nicht für Personen. Das Protokoll bleibt maßgeblich.",
   viewMeeting: "Meeting",
   viewMeetingHint:
     "Als Videokonferenz: nur die Teilnehmenden, Sprecher im Fokus, Live-Untertitel (F Vollbild, Esc beendet)",
@@ -129,6 +136,13 @@ const en: StageStrings = {
   view3dHint: "Stylized 3D figures, one per institution, lip sync from the pre-rendered voices",
   view3dLoading: "Loading 3D figures",
   view3dFallback: "3D unavailable, showing tiles",
+  figures: "Figures",
+  figuresStylized: "Stylized",
+  figuresRealistic: "Realistic",
+  figuresRealisticHint:
+    "Realistic, fictional artist-made figures (Microsoft Rocketbox), not real people",
+  disclaimerRealistic:
+    "Fictional figures. They stand for institutions only, not for people. The transcript is authoritative.",
   viewMeeting: "Meeting",
   viewMeetingHint:
     "As a video call: participants only, speaker in the spotlight, live captions (F fullscreen, Esc leaves)",

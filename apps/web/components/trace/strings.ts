@@ -27,6 +27,9 @@ const de = {
     retried: (n: number) => `${n} mit Wiederholung`,
     plain: (calls: number, wall: string, cost: string, fams: number) =>
       `${calls} Modellaufrufe in ${wall}, ${fams} Modellfamilie${fams === 1 ? "" : "n"}, geschätzt ${cost}.`,
+    allGood: "Kein Aufruf ist fehlgeschlagen oder auf ein Ausweichmodell gewechselt.",
+    issues: (parts: string[]) => `${parts.join(", ")}.`,
+    repairedNote: "repariert heißt: die Ausgabe wurde nach einem Schemafehler neu erzeugt",
     timeSplit: "Wofür die Rechenzeit verwendet wurde",
   },
   filters: {
@@ -40,14 +43,15 @@ const de = {
   round: (n: number | null) => (n === null ? "Vor dem Lauf" : `Runde ${n}`),
   phase: (n: number) => `Phase ${n}`,
   work: {
-    prep: "Strategische Lagebeurteilung",
-    expert: "Experte: Prüfung und Gegenprüfung",
+    prep: "Lagebeurteilung",
+    expert: "Expertenprüfung",
     lessons: "Lektionen",
-    summary: "Moderation: Zusammenfassung",
-    mandate: "Moderation: Mandat",
+    summary: "Zusammenfassung",
+    mandate: "Mandat",
     other: "Weitere Aufrufe",
   },
   exchange: { plenary: "Plenum", bilateral: "Einzelgespräch", caucus: "Koalitionsabstimmung" },
+  roundsClosed: "Runde aufklappen, um die einzelnen Aufrufe zu sehen.",
   kind: {
     mandate: "Mandat",
     utterance: "Beitrag",
@@ -147,6 +151,9 @@ const en: TraceStrings = {
     retried: (n: number) => `${n} retried`,
     plain: (calls: number, wall: string, cost: string, fams: number) =>
       `${calls} model calls in ${wall}, ${fams} model ${fams === 1 ? "family" : "families"}, about ${cost}.`,
+    allGood: "No call failed or fell back to another model.",
+    issues: (parts: string[]) => `${parts.join(", ")}.`,
+    repairedNote: "repaired means the output was regenerated after a schema error",
     timeSplit: "Where the compute time went",
   },
   filters: {
@@ -160,14 +167,15 @@ const en: TraceStrings = {
   round: (n: number | null) => (n === null ? "Before the run" : `Round ${n}`),
   phase: (n: number) => `Phase ${n}`,
   work: {
-    prep: "Strategic assessment",
-    expert: "Expert: check and cross-check",
+    prep: "Assessment",
+    expert: "Expert check",
     lessons: "Lessons",
-    summary: "Moderation: summary",
-    mandate: "Moderation: mandate",
+    summary: "Summary",
+    mandate: "Mandate",
     other: "Other calls",
   },
   exchange: { plenary: "Plenary", bilateral: "Bilateral", caucus: "Caucus" },
+  roundsClosed: "Open a round to see its individual calls.",
   kind: {
     mandate: "Mandate",
     utterance: "Utterance",

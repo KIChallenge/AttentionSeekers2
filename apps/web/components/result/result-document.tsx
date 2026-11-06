@@ -7,12 +7,14 @@ import { statusLabel } from "@/components/analysis/consensus-matrix";
 import { Chip, Tile, UttRef } from "@/components/run/bits";
 import { agentLook, fmtStance, L } from "@/components/run/helpers";
 import { useRun } from "@/components/run/run-context";
+import { Page, PageHead } from "@/components/shell/page";
 import { Level } from "@/components/shell/providers";
+import { Button } from "@/components/ui/button";
 
 function Section({ n, title, children }: { n: number; title: string; children: ReactNode }) {
   return (
-    <section className="break-inside-avoid border-t py-5 first:border-t-0">
-      <h2 className="mb-2 text-lg font-semibold">
+    <section className="break-inside-avoid border-t py-7 first:border-t-0">
+      <h2 className="mb-3 text-lg font-semibold tracking-tight">
         <span className="num mr-2 text-muted-foreground">{n}.</span>
         {title}
       </h2>
@@ -38,54 +40,53 @@ export function ResultDocument() {
   const figs = snap.figures;
 
   return (
-    <main className="mx-auto max-w-[920px] px-4 sm:px-6 pt-6 pb-16 print:max-w-none print:pt-0">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">{t.result.title}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+    <Page className="max-w-[960px] print:max-w-none print:pt-0">
+      <PageHead
+        title={t.result.title}
+        sub={
+          <>
             {t.result.sub} <span className="font-mono">{run.id}</span> ·{" "}
             {run.createdAt.slice(0, 10)}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 print:hidden">
-          <fieldset
-            className="m-0 inline-flex items-center rounded-control border p-0.5"
-            title={t.result.exportHint}
-          >
-            <legend className="sr-only">{t.result.exportLabel}</legend>
-            <span className="px-2 text-xs text-muted-foreground" aria-hidden>
-              {t.result.exportLabel}
-            </span>
-            {(["de", "en"] as const).map((l) => (
+          </>
+        }
+        actions={
+          <div className="flex flex-wrap items-center gap-2 print:hidden">
+            <fieldset
+              className="m-0 inline-flex items-center rounded-control border p-0.5"
+              title={t.result.exportHint}
+            >
+              <legend className="sr-only">{t.result.exportLabel}</legend>
+              <span className="px-2 text-xs text-muted-foreground" aria-hidden>
+                {t.result.exportLabel}
+              </span>
+              {(["de", "en"] as const).map((l) => (
+                <a
+                  key={l}
+                  href={`/api/runs/${encodeURIComponent(runId)}/export?lang=${l}&download=1`}
+                  download={`ergebnis-${runId}-${l}.html`}
+                  aria-label={l === "de" ? t.result.exportDe : t.result.exportEn}
+                  className="rounded-[8px] px-2.5 py-1 text-sm hover:bg-gray-alpha-100"
+                >
+                  {l.toUpperCase()}
+                </a>
+              ))}
+            </fieldset>
+            <Button asChild variant="outline">
               <a
-                key={l}
-                href={`/api/runs/${encodeURIComponent(runId)}/export?lang=${l}&download=1`}
-                download={`ergebnis-${runId}-${l}.html`}
-                aria-label={l === "de" ? t.result.exportDe : t.result.exportEn}
-                className="rounded-[8px] px-2.5 py-1 text-sm hover:bg-gray-alpha-100"
+                href={`/api/runs/${encodeURIComponent(runId)}/bundle`}
+                download
+                title={t.result.bundleHint}
               >
-                {l.toUpperCase()}
+                {t.result.bundle}
               </a>
-            ))}
-          </fieldset>
-          <a
-            href={`/api/runs/${encodeURIComponent(runId)}/bundle`}
-            download
-            title={t.result.bundleHint}
-            className="rounded-control border px-3 py-1.5 text-sm hover:border-foreground/40"
-          >
-            {t.result.bundle}
-          </a>
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="rounded-control border px-3 py-1.5 text-sm hover:border-foreground/40"
-          >
-            {t.result.print}
-          </button>
-        </div>
-      </div>
-      <article className="rounded-2xl border bg-card px-4 sm:px-6 print:border-0 print:px-0">
+            </Button>
+            <Button variant="outline" onClick={() => window.print()}>
+              {t.result.print}
+            </Button>
+          </div>
+        }
+      />
+      <article className="rounded-2xl border bg-card px-6 py-2 sm:px-10 print:border-0 print:px-0">
         <Section n={1} title={t.result.s1}>
           <p className="text-base font-medium">{m.question}</p>
           <p>
@@ -321,6 +322,6 @@ export function ResultDocument() {
           ) : null}
         </Section>
       </article>
-    </main>
+    </Page>
   );
 }

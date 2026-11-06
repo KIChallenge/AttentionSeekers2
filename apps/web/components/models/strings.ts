@@ -24,6 +24,9 @@ const de = {
     adapter: "Adapter",
     base: "Basis",
     of: "von",
+    forWhom: "Für wen hat das Training geholfen?",
+    tryIt: "Ausprobieren",
+    delta: "Differenz Adapter minus Basis",
   },
   why: {
     title: "Was trainiert wurde und warum",
@@ -200,8 +203,8 @@ const de = {
     text: "Je Adapter ein privates Repository (Aryt3/sv-persona-<rolle>-qwen3-8b-lora) mit Modellkarte: diese Zahlen, die Grenzen (Schleifen, insgesamt schwächer als die Basis) und der Zweck als reine Forschungsdemo, nicht zur Vertretung echter Institutionen. Hochgeladen sind nur Adaptergewichte, Konfiguration und Karte, nie Trainingsdaten.",
   },
   versions: {
-    title: "Versionen: v1, v1 mit Inferenz-Fix, v2",
-    sub: "Gleiche Held-out-Zeilen, gleicher Richter. v1-fix: dieselben v1-Adapter mit Wiederholungsstrafe, Stopp nach einem Absatz und Schnitt bei Wiederholung. v2: Haltung zuerst im Trainingsziel, Presse-Zeilen dazu, 2 Epochen. Basis: gepoolt über alle Läufe.",
+    title: "Adapter-Versionen",
+    sub: "Gleiche Held-out-Zeilen, gleicher Richter. v1-fix: dieselben v1-Adapter mit Wiederholungsstrafe, Stopp nach einem Absatz und Schnitt bei Wiederholung. v2: Haltung zuerst im Trainingsziel, Presse-Zeilen dazu, 2 Epochen. Basis: gepoolt über alle Läufe. Bester Wert je Zeile hervorgehoben.",
     sign: "Haltungsrichtung",
     inChar: "In-Character",
     base: "Basis",
@@ -232,6 +235,9 @@ const en: Dict = {
     adapter: "Adapter",
     base: "Base",
     of: "of",
+    forWhom: "For whom did training help?",
+    tryIt: "Try it",
+    delta: "Difference adapter minus base",
   },
   why: {
     title: "What was trained and why",
@@ -407,8 +413,8 @@ const en: Dict = {
     text: "One private repository per adapter (Aryt3/sv-persona-<role>-qwen3-8b-lora) with a model card: these numbers, the limitations (loops, weaker than the base overall) and the intended use as a research demo only, not for representing real institutions. Only adapter weights, config and card are uploaded, never training data.",
   },
   versions: {
-    title: "Versions: v1, v1 with the inference fix, v2",
-    sub: "Same held-out rows, same judge. v1-fix: the same v1 adapters with a repetition penalty, a stop after one paragraph and a cut at the first repeat. v2: stance first in the training target, press rows added, 2 epochs. Base: pooled over all runs.",
+    title: "Adapter versions",
+    sub: "Same held-out rows, same judge. v1-fix: the same v1 adapters with a repetition penalty, a stop after one paragraph and a cut at the first repeat. v2: stance first in the training target, press rows added, 2 epochs. Base: pooled over all runs. Best value per row highlighted.",
     sign: "Stance direction",
     inChar: "In-character",
     base: "Base",

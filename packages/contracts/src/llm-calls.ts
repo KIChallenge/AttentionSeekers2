@@ -82,6 +82,29 @@ export const MODEL_PRICES: ReadonlyArray<{
   { match: /gpt-5/, label: "GPT-5", in: 1.25, cachedIn: 0.125, out: 10, assumed: false },
   { match: /nova-pro/, label: "Nova Pro", in: 0.8, cachedIn: 0.2, out: 3.2, assumed: false },
   { match: /nova-lite/, label: "Nova Lite", in: 0.06, cachedIn: 0.015, out: 0.24, assumed: false },
+  // Open-weight families on Bedrock (on-demand list prices, rounded; regional markup unknown).
+  {
+    match: /gpt-oss-120b/,
+    label: "gpt-oss-120b",
+    in: 0.15,
+    cachedIn: 0.15,
+    out: 0.6,
+    assumed: true,
+  },
+  { match: /deepseek/, label: "DeepSeek V3.2", in: 0.62, cachedIn: 0.62, out: 1.85, assumed: true },
+  { match: /kimi/, label: "Kimi K2.5", in: 0.6, cachedIn: 0.6, out: 3, assumed: true },
+  { match: /qwen3-235b/, label: "Qwen3 235B", in: 0.22, cachedIn: 0.22, out: 0.88, assumed: true },
+  { match: /qwen/, label: "Qwen3 32B", in: 0.15, cachedIn: 0.15, out: 0.6, assumed: true },
+  {
+    match: /glm-4\.7-flash/,
+    label: "GLM 4.7 Flash",
+    in: 0.07,
+    cachedIn: 0.07,
+    out: 0.4,
+    assumed: true,
+  },
+  { match: /glm/, label: "GLM-5", in: 1, cachedIn: 1, out: 3.2, assumed: true },
+  { match: /minimax/, label: "MiniMax M2.5", in: 0.3, cachedIn: 0.3, out: 1.2, assumed: true },
   { match: /mistral-large/, label: "Mistral Large", in: 2, cachedIn: 2, out: 6, assumed: true },
   { match: /mistral|pixtral/, label: "Mistral", in: 0.4, cachedIn: 0.4, out: 2, assumed: true },
 ];
@@ -112,6 +135,11 @@ export function modelFamily(model: string): string {
   if (/mistral|pixtral/.test(m)) return "mistral";
   if (/claude|anthropic/.test(m)) return "anthropic";
   if (/llama|meta/.test(m)) return "meta";
+  if (/deepseek/.test(m)) return "deepseek";
+  if (/qwen/.test(m)) return "qwen";
+  if (/kimi|moonshot/.test(m)) return "moonshot";
+  if (/glm|zai\./.test(m)) return "zhipu";
+  if (/minimax/.test(m)) return "minimax";
   return providerOf(model);
 }
 

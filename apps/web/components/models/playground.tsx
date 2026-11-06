@@ -2,6 +2,7 @@
 
 import type { Lang } from "@sv/contracts";
 import { useEffect, useState } from "react";
+import { Level } from "@/components/shell/providers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -117,8 +118,8 @@ export function Playground({
         <span
           className={cn(
             "inline-block size-2 rounded-full",
-            status === "online" && "bg-emerald-500",
-            status === "offline" && "bg-red-500",
+            status === "online" && "bg-success",
+            status === "offline" && "bg-destructive",
             status === "checking" && "bg-muted-foreground animate-pulse",
           )}
         />
@@ -199,14 +200,16 @@ export function Playground({
         <div className="space-y-2">
           <div className="grid gap-3 md:grid-cols-2">
             <Output
-              title={`${t.adapter} · ${result.adapter.model}`}
+              label={t.adapter}
+              model={result.adapter.model}
               gen={result.adapter}
               scorer={scorer}
               t={t}
               nf={nf}
             />
             <Output
-              title={`${t.base} · ${result.base.model}`}
+              label={t.base}
+              model={result.base.model}
               gen={result.base}
               scorer={scorer}
               t={t}
@@ -238,13 +241,14 @@ export function Playground({
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 <Output
-                  title={`${t.adapter} · sv-${e.role}`}
+                  label={t.adapter}
+                  model={`sv-${e.role}`}
                   gen={e.adapter}
                   scorer
                   t={t}
                   nf={nf}
                 />
-                <Output title={`${t.base} · sv-base`} gen={e.base} scorer t={t} nf={nf} />
+                <Output label={t.base} model="sv-base" gen={e.base} scorer t={t} nf={nf} />
               </div>
             </div>
           ))}
@@ -257,13 +261,15 @@ export function Playground({
 }
 
 function Output({
-  title,
+  label,
+  model,
   gen,
   scorer,
   t,
   nf,
 }: {
-  title: string;
+  label: string;
+  model: string;
   gen: {
     text: string;
     inCharacter: number | null;
@@ -278,7 +284,12 @@ function Output({
   return (
     <article className="flex flex-col gap-2 rounded-xl border p-3">
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="font-mono">{title}</span>
+        <span className="font-medium" title={model}>
+          {label}
+        </span>
+        <Level min="engineer">
+          <span className="font-mono text-muted-foreground">{model}</span>
+        </Level>
         <span className="flex-1" />
         {gen.loops ? <Badge variant="destructive">{t.loops}</Badge> : null}
         {gen.stance !== undefined && gen.stance !== null ? (

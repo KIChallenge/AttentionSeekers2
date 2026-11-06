@@ -95,7 +95,7 @@ export function UtteranceCard({
       }}
       data-selected={selected || undefined}
       className={cn(
-        "scroll-mt-28 rounded-2xl border bg-card p-3.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        "scroll-mt-32 rounded-2xl border bg-card p-5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         isMod && "bg-gray-alpha-50",
         selected && "border-foreground ring-1 ring-foreground",
         onSelect && "cursor-pointer hover:border-foreground/30",
@@ -157,11 +157,11 @@ export function UtteranceCard({
           </span>
         </Level>
       </header>
-      <p className="mt-2 text-sm leading-relaxed">
+      <p className="mt-3 text-sm leading-relaxed">
         <ClaimText u={u} claims={claims} />
       </p>
       {(claims.length > 0 || applied.length > 0) && (
-        <footer className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+        <footer className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
           {/* Verified and contradicted carry colour; unverified and assumption are plain. */}
           {(["verified", "contradicted"] as const).map((s) =>
             counts[s] ? <ClaimStateBadge key={s} state={s} count={counts[s]} /> : null,
@@ -229,7 +229,7 @@ export function PendingCard({
   const replyTo = respondsTo ? snap.utterances[respondsTo] : null;
   const replyName = replyTo ? agentLook(run, replyTo.speaker, lang).name : respondsTo;
   return (
-    <article className="rounded-2xl border border-foreground bg-card p-3.5">
+    <article className="rounded-2xl border border-foreground bg-card p-5">
       <header className="flex items-center gap-2">
         <Tile id={speaker} size="md" />
         <span className="font-medium">{a.name}</span>
@@ -246,7 +246,7 @@ export function PendingCard({
           {t.live.streaming}
         </Chip>
       </header>
-      <div className="mt-2 min-h-[3.25rem] text-sm leading-relaxed">
+      <div className="mt-3 min-h-[3.25rem] text-sm leading-relaxed">
         {text ? (
           <>
             {text}

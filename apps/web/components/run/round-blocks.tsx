@@ -37,7 +37,7 @@ export function RoundSummaryCard({
     { label: t.live.newOptions, n: summary.newOptions.length },
   ].filter((s) => s.n > 0);
   return (
-    <section className="rounded-2xl border bg-gray-alpha-50 p-4">
+    <section className="rounded-2xl border bg-gray-alpha-50 p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-semibold">{t.live.summaryTitle(summary.round)}</h3>
         {onToggle && collapsedCount ? (
@@ -50,8 +50,8 @@ export function RoundSummaryCard({
           </button>
         ) : null}
       </div>
-      <p className="mt-1 text-sm">{L(summary.text, lang)}</p>
-      <div className="mt-3 text-sm">
+      <p className="mt-2 text-sm leading-relaxed">{L(summary.text, lang)}</p>
+      <div className="mt-4 text-sm">
         <div className="text-xs text-muted-foreground">
           {t.live.openConflicts} ({summary.openConflicts.length})
         </div>

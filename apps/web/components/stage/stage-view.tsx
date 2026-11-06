@@ -23,7 +23,7 @@ import { stageColumns } from "./avatar/figure-style";
 import { MeetingView } from "./meeting-view";
 import { latestShift, orderedUtterances, pickSharpestExchange, stageSpeakers } from "./stage-logic";
 import { StageTile, type TileRole } from "./stage-tile";
-import { type StageViewMode, useStageViewMode } from "./stage-view-mode";
+import { type StageViewMode, useFigureKind, useStageViewMode } from "./stage-view-mode";
 import { type StageStrings, stageStrings } from "./strings";
 import { useStagePlayer } from "./use-stage-player";
 
@@ -198,6 +198,7 @@ export function StageView() {
   // View mode: tiles by default; 3D opt-in, falling back to tiles on any 3D failure.
   const [view, setView] = useStageViewMode();
   const [failed3d, setFailed3d] = useState<string | null>(null);
+  const [figures, setFigures] = useFigureKind();
   // leaving the meeting view returns to the mode it was opened from
   const lastPlain = useRef<"grid" | "3d">("grid");
   if (view !== "meeting") lastPlain.current = view;
@@ -271,6 +272,7 @@ export function StageView() {
           lang={lang}
           s={s}
           use3d={!failed3d}
+          figures={figures}
           onFail3d={setFailed3d}
           onExit={exitMeeting}
           round={u?.round ?? null}
@@ -289,12 +291,29 @@ export function StageView() {
       <div className="flex min-h-0 flex-col gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-semibold">{s.stageLabel}</h1>
-          <span className="text-xs text-muted-foreground">{s.disclaimer}</span>
+          <span className="text-xs text-muted-foreground">
+            {show3d && figures === "realistic" ? s.disclaimerRealistic : s.disclaimer}
+          </span>
           <span className="flex-1" />
           {failed3d && view === "3d" ? (
             <Chip className="border-warning/40 bg-warning/10 text-warning" title={failed3d}>
               {s.view3dFallback}
             </Chip>
+          ) : null}
+          {view === "3d" && !failed3d ? (
+            <Seg
+              label={s.figures}
+              value={figures}
+              onChange={setFigures}
+              options={[
+                { value: "stylized" as const, label: s.figuresStylized, title: s.view3dHint },
+                {
+                  value: "realistic" as const,
+                  label: s.figuresRealistic,
+                  title: s.figuresRealisticHint,
+                },
+              ]}
+            />
           ) : null}
           <Seg
             label={s.view}
@@ -362,6 +381,7 @@ export function StageView() {
             lang={lang}
             s={s}
             onFail={setFailed3d}
+            figures={figures}
           />
         ) : (
           <section

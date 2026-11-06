@@ -251,18 +251,20 @@ drizzle-orm, turbo, Biome, vitest; Python: requests, pypdf, spaCy, SetFit, PEFT/
 
 `.env` im Repo-Wurzelverzeichnis (Vorlage `.env.example`, wird nie committet):
 
-| Variable                                                | Zweck                                                                   |
-| ------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `OPENAI_COMPATIBLE_BASE_URL`                            | Basis-URL des Gateways für alle Modellaufrufe                           |
-| `OPENAI_COMPATIBLE_API_KEY`                             | Gateway-Schlüssel (nie committen, nie ausgeben)                         |
-| `SV_DEFAULT_MODEL`                                      | Modell der Agenten und des Moderators (Standard `azure/gpt-6-sol`)      |
-| `SV_EXPERT_MODEL`                                       | Modell des Experte-Agenten (Standard: wie oben)                         |
-| `SV_VERIFIER_MODEL`                                     | Zweiter Verifier, idealerweise andere Modellfamilie                     |
-| `SV_LLM_CONCURRENCY`                                    | Parallele Modellaufrufe (Standard 24)                                   |
-| `DATABASE_URL`                                          | Postgres-Verbindung; nicht erreichbar heißt Fallback auf `runs/`        |
-| `SV_REPLAY_DIR`                                         | Verzeichnis der gespeicherten Läufe (Standard `runs`)                   |
-| `SV_FORECAST_CMD`                                       | Optional: Prognose-CLI, wird am Ende eines Live-Laufs einmal aufgerufen |
-| `BIFROST_SEED_AZURE_ENDPOINT`, `BIFROST_SEED_AZURE_KEY` | Azure-Foundry-Zugang für das Gateway und das Fine-Tuning-Skript         |
+| Variable                                                | Zweck                                                                                                     |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `OPENAI_COMPATIBLE_BASE_URL`                            | Basis-URL des Gateways für alle Modellaufrufe                                                             |
+| `OPENAI_COMPATIBLE_API_KEY`                             | Gateway-Schlüssel (nie committen, nie ausgeben)                                                           |
+| `SV_DEFAULT_MODEL`                                      | Modell der Agenten und des Moderators (Standard `azure/gpt-6-sol`)                                        |
+| `SV_EXPERT_MODEL`                                       | Modell des Experte-Agenten (Standard: wie oben)                                                           |
+| `SV_VERIFIER_MODEL`                                     | Zweiter Verifier fest vorgeben (sonst je Aussage aus `SV_VERIFIER_MODELS`, nie die Familie des Sprechers) |
+| `SV_SEAT_MODELS`                                        | Sitzplan überschreiben, z. B. `gm=gpt,sv=deepseek` (Kürzel oder volle IDs)                                |
+| `SV_BEDROCK_STRUCTURED`                                 | `tool` oder `json`: strukturierte Ausgabe auf Bedrock erzwingen (Standard je Modell)                      |
+| `SV_LLM_CONCURRENCY`                                    | Parallele Modellaufrufe (Standard 24)                                                                     |
+| `DATABASE_URL`                                          | Postgres-Verbindung; nicht erreichbar heißt Fallback auf `runs/`                                          |
+| `SV_REPLAY_DIR`                                         | Verzeichnis der gespeicherten Läufe (Standard `runs`)                                                     |
+| `SV_FORECAST_CMD`                                       | Optional: Prognose-CLI, wird am Ende eines Live-Laufs einmal aufgerufen                                   |
+| `BIFROST_SEED_AZURE_ENDPOINT`, `BIFROST_SEED_AZURE_KEY` | Azure-Foundry-Zugang für das Gateway und das Fine-Tuning-Skript                                           |
 
 Agentenprofile (Ziele, Interessen, Restriktionen, Budget, Prioritäten, Temperament, Vetostatus)
 liegen als Daten in `packages/engine/config/agents.json`, Szenario-Vorlagen in

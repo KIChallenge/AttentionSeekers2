@@ -2,8 +2,10 @@
 //   run      --question "..." [--template wartezeiten] [--rounds 5] [--id X] [--reference]
 //            [--as-of YYYY-MM-DD] [--seed N] [--climate neutral] [--agents gm,sv,...]
 //            [--room-file room.json] [--mandate-file mandate.json] [--stdout] [--no-db]
-//            [--out-dir runs] [--variant all_gpt|all_nova|mixed|swapped] [--models gm=nova,sv=gpt]
-//            [--base <runId>]   (with --variant or --models: Run.variant = model_ensemble)
+//            [--out-dir runs] [--variant mixed|swapped|all_<family>] [--models gm=qwen,sv=gpt]
+//            (families: gpt, deepseek, qwen, kimi, glm, mistral, gpt-oss, nova, ...)
+//            [--base <runId>] [--label X]  (with --variant or --models: Run.variant =
+//            model_ensemble, labelled X or the variant name)
 //   room     --question "..." [--template ...] [--select]   prints { room, mandate } JSON
 //   fork     --base <runId> --from-round N [--id X] [--edit-agent a --remove s1,s2 --add s3]
 //   validate <file.ndjson>                                   foldRun check + summary
@@ -20,7 +22,7 @@ import {
   TEMPLATES,
   Template,
 } from "@sv/contracts";
-import { DEFAULT_MODEL, REPO_ROOT, SECOND_MODEL } from "./config.ts";
+import { REPO_ROOT, resolveModelAlias } from "./config.ts";
 import { structuredStats, throttled } from "./llm.ts";
 import { buildMandate, defaultRoom } from "./room.ts";
 import { newRunId, runNegotiation } from "./runner.ts";
@@ -44,6 +46,7 @@ const { positionals, values } = parseArgs({
     "no-db": { type: "boolean" },
     "out-dir": { type: "string" },
     variant: { type: "string" },
+    label: { type: "string" },
     models: { type: "string" },
     select: { type: "boolean" },
     base: { type: "string" },
@@ -76,33 +79,24 @@ function roomFromArgs() {
   });
 }
 
-/** Family aliases for --models, so a seat list stays short on the command line. */
-function resolveModel(m: string): string {
-  if (m === "gpt" || m === "primary") return DEFAULT_MODEL();
-  if (m === "nova" || m === "second") {
-    const second = SECOND_MODEL();
-    if (!second) throw new Error("second model family is not configured");
-    return second;
-  }
-  return m;
-}
-
 /**
  * Model-ensemble assignment (FR-X2, FR-X3): rewrites the seat models of a room without touching
- * the moderator, the Experte or the verifier, so only the institutions' models vary across runs.
- * Presets: all_gpt, all_nova, mixed (the default two-family floor), swapped (mixed with the
- * families exchanged between seats). --models seat=model pairs apply on top.
+ * the moderator or the Experte, so only the institutions' models vary across runs (the second
+ * verifier follows the speaker's family, see verifierFor).
+ * Presets: mixed (the default multi-family seat plan), all_<family> (every seat on one family:
+ * all_gpt, all_deepseek, all_qwen, all_kimi, all_glm, all_mistral, all_nova, ...), swapped
+ * (each seat moves to the next family of the plan). --models seat=model pairs apply on top;
+ * models are aliases from MODEL_ALIASES or full ids.
  */
 function applyModelVariant(room: RoomConfig): RoomConfig {
   const preset = values.variant;
   if (!preset && !values.models) return room;
-  const primary = DEFAULT_MODEL();
-  const second = SECOND_MODEL();
+  const families = [...new Set(room.agents.map((a) => a.model))];
   const agents = room.agents.map((a) => {
     let model = a.model;
-    if (preset === "all_gpt") model = primary;
-    else if (preset === "all_nova") model = resolveModel("nova");
-    else if (preset === "swapped") model = a.model === second ? primary : resolveModel("nova");
+    if (preset?.startsWith("all_")) model = resolveModelAlias(preset.slice(4));
+    else if (preset === "swapped")
+      model = families[(families.indexOf(a.model) + 1) % families.length] ?? a.model;
     else if (preset && preset !== "mixed") throw new Error(`unknown --variant ${preset}`);
     return { ...a, model };
   });
@@ -110,7 +104,7 @@ function applyModelVariant(room: RoomConfig): RoomConfig {
     const [seat, m] = pair.split("=").map((x) => x.trim());
     const agent = agents.find((a) => a.agentId === seat);
     if (!agent || !m) throw new Error(`--models: bad pair ${pair}`);
-    agent.model = resolveModel(m);
+    agent.model = resolveModelAlias(m);
   }
   return { ...room, agents };
 }
@@ -223,7 +217,7 @@ async function main() {
     variant: ensemble
       ? {
           kind: "model_ensemble",
-          label: values.variant ?? "custom",
+          label: values.label ?? values.variant ?? "custom",
           baseRunId: values.base ?? null,
         }
       : undefined,

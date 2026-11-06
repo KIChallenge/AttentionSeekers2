@@ -46,7 +46,7 @@ import {
   profileOf,
   REPO_ROOT,
   redLinesOf,
-  VERIFIER_MODEL,
+  verifierFor,
 } from "./config.ts";
 import {
   type Conflict,
@@ -144,7 +144,7 @@ function telemetry(
 }
 
 /** Rebuilds the mutable run state from a folded snapshot (fork from round N). */
-function stateFromSnapshot(s: RunState, snap: RunSnapshot) {
+export function stateFromSnapshot(s: RunState, snap: RunSnapshot) {
   for (const id of snap.utteranceOrder) {
     const u = snap.utterances[id];
     if (u) s.utterances.push(u);
@@ -213,7 +213,12 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
   const seated = room.agents.filter((a) => a.enabled);
   const agentIds = seated.map((a) => a.agentId);
   const modelOf = (a: string) => seated.find((x) => x.agentId === a)?.model ?? room.moderatorModel;
-  const verifierModel = VERIFIER_MODEL();
+  // Second verifier per claim (FR-N7): from a family other than the model that spoke it.
+  const verifierModel = (c: Claim) => {
+    const u = s.utterances.find((x) => x.id === c.utteranceId);
+    const spoke = u?.telemetry?.model ?? (u ? modelOf(u.speaker) : room.moderatorModel);
+    return verifierFor(spoke, room.expertModel);
+  };
   const run: Run = {
     id: runId,
     createdAt: new Date().toISOString(),

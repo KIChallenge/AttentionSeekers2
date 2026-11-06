@@ -3,6 +3,8 @@
 import { type Claim, PHASES, topicStatus, type Utterance } from "@sv/contracts";
 import Link from "next/link";
 import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
+import { AskButton } from "@/components/agent/ask-sheet";
+import { Eyebrow } from "@/components/shell/page";
 import { Level, usePrefs } from "@/components/shell/providers";
 import { ExchangeGroup } from "@/components/timeline/exchange-group";
 import {
@@ -72,16 +74,23 @@ function Roster({ round, focus }: { round: number; focus: SpeakerFocus | null })
       </>
     );
     const cls = cn(
-      "relative flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-gray-alpha-100 max-desk:justify-center max-desk:px-0",
+      "relative flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-gray-alpha-100 max-desk:justify-center max-desk:px-0",
       (active || speaking) &&
         "bg-gray-alpha-100 before:absolute before:inset-y-1 before:-left-2 before:w-[3px] before:rounded before:bg-foreground",
       addressed && "ring-1 ring-foreground/25 ring-inset",
     );
     const title = sub ? `${a.name} · ${sub}` : a.name;
     return href ? (
-      <Link key={id} href={href} className={cls} title={title}>
-        {inner}
-      </Link>
+      <div key={id} className="group flex items-center gap-1">
+        <Link href={href} className={cn(cls, "min-w-0 flex-1")} title={title}>
+          {inner}
+        </Link>
+        <AskButton
+          agentId={id}
+          iconOnly
+          className="shrink-0 text-muted-foreground opacity-60 group-hover:opacity-100 focus-visible:opacity-100 max-desk:hidden"
+        />
+      </div>
     ) : (
       <div key={id} className={cls} title={title}>
         {inner}
@@ -89,18 +98,14 @@ function Roster({ round, focus }: { round: number; focus: SpeakerFocus | null })
     );
   };
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-1 px-2 text-xs text-muted-foreground max-desk:sr-only">
-          {t.live.moderation}
-        </div>
+    <div className="space-y-6">
+      <div className="space-y-1">
+        <Eyebrow className="mb-2 px-2 max-desk:sr-only">{t.live.moderation}</Eyebrow>
         {row("moderator", t.live.moderatorRole)}
         {row("expert", t.live.expertRole)}
       </div>
-      <div>
-        <div className="mb-1 px-2 text-xs text-muted-foreground max-desk:sr-only">
-          {t.live.agentsOrder(round)}
-        </div>
+      <div className="space-y-1">
+        <Eyebrow className="mb-2 px-2 max-desk:sr-only">{t.live.agentsOrder(round)}</Eyebrow>
         {order.map((id) => row(id, agentLook(run, id, lang).unit, `/runs/${runId}/agents/${id}`))}
       </div>
       <Level min="analyst">
@@ -190,13 +195,13 @@ function StandPanel() {
     ? [...last.openConflicts].sort((a, b) => b.boundBy.length - a.boundBy.length)[0]
     : null;
   return (
-    <div className="space-y-5">
-      <div>
-        <div className="text-base font-semibold">{t.live.executiveTitle}</div>
-        <p className="mt-0.5 text-xs text-muted-foreground">{t.live.selectHint}</p>
+    <div className="space-y-6">
+      <div className="space-y-1">
+        <h2 className="text-base font-semibold tracking-tight">{t.live.executiveTitle}</h2>
+        <p className="text-sm text-muted-foreground">{t.live.selectHint}</p>
       </div>
       {snap.status === "completed" ? (
-        <section className="rounded-xl border border-success/30 bg-success/5 p-3 text-sm">
+        <section className="rounded-xl border border-success/30 bg-success/5 p-3.5 text-sm">
           <div className="font-medium">{t.live.resultReady}</div>
           <div className="mt-1.5 flex gap-3">
             <EntityRef href={`/runs/${runId}/outcome`}>{t.nav.outcome}</EntityRef>
@@ -205,8 +210,8 @@ function StandPanel() {
         </section>
       ) : null}
       <section>
-        <div className="mb-2 text-xs text-muted-foreground">{t.live.agreement}</div>
-        <ul className="space-y-2.5">
+        <Eyebrow className="mb-3">{t.live.agreement}</Eyebrow>
+        <ul className="space-y-3">
           {run.mandate.topics.map((tp) => {
             const st = topicStatus(snap, tp.id);
             return (
@@ -225,10 +230,10 @@ function StandPanel() {
       </section>
       {binding ? (
         <section>
-          <div className="mb-1 text-xs text-muted-foreground">{t.live.mostBinding}</div>
-          <div className="text-sm">{L(binding.note, lang)}</div>
+          <Eyebrow className="mb-2">{t.live.mostBinding}</Eyebrow>
+          <div className="text-sm leading-relaxed">{L(binding.note, lang)}</div>
           {binding.boundBy.length ? (
-            <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
+            <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
               {binding.boundBy.map((b) => (
                 <li key={b} className="border-l-2 border-warning pl-2" title={b}>
                   {L(evidence.redLines[b]?.text, lang) || b}
@@ -251,7 +256,7 @@ function SidePanel({ id, onBack }: { id: string | null; onBack?: () => void }) {
   const uniq = [...new Map(cites.map((c) => [c.segmentId, c])).values()];
   const speaker = agentLook(run, u.speaker, lang);
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {onBack ? (
         <button
           type="button"
@@ -283,7 +288,7 @@ function SidePanel({ id, onBack }: { id: string | null; onBack?: () => void }) {
         </Link>
       </div>
       <div>
-        <div className="mb-1.5 text-xs text-muted-foreground">{t.live.claims}</div>
+        <Eyebrow className="mb-2">{t.live.claims}</Eyebrow>
         <div className="space-y-2">
           {claims.map((c) => (
             <ClaimRow key={c.id} claim={c} />
@@ -295,9 +300,9 @@ function SidePanel({ id, onBack }: { id: string | null; onBack?: () => void }) {
       </div>
       {uniq.length ? (
         <div>
-          <div className="mb-1.5 flex justify-between text-xs text-muted-foreground">
-            <span>{t.live.sources}</span>
-            <span>{t.live.sourcesNote}</span>
+          <div className="mb-2 flex justify-between gap-2">
+            <Eyebrow>{t.live.sources}</Eyebrow>
+            <span className="text-xs text-muted-foreground">{t.live.sourcesNote}</span>
           </div>
           <div className="space-y-2">
             {uniq.map((c) => (
@@ -308,8 +313,8 @@ function SidePanel({ id, onBack }: { id: string | null; onBack?: () => void }) {
       ) : null}
       {u.deliberationSummary ? (
         <div>
-          <div className="mb-1.5 text-xs text-muted-foreground">{t.live.deliberation}</div>
-          <dl className="space-y-1.5 text-sm">
+          <Eyebrow className="mb-2">{t.live.deliberation}</Eyebrow>
+          <dl className="space-y-2 text-sm">
             <div>
               <dt className="text-xs text-muted-foreground">{t.live.read}</dt>
               <dd>{u.deliberationSummary.read}</dd>
@@ -455,12 +460,12 @@ export function NegotiationView({
         "grid h-[calc(100dvh-50px-2.75rem)] grid-cols-1 md:grid-cols-[56px_minmax(0,1fr)]",
         projector
           ? "desk:grid-cols-[16rem_minmax(0,1fr)]"
-          : "desk:grid-cols-[232px_minmax(0,1fr)_340px]",
+          : "desk:grid-cols-[248px_minmax(0,1fr)_360px]",
       )}
     >
       <aside
         aria-label={view === "full" ? t.live.outline : t.live.roster}
-        className="hidden overflow-y-auto border-r px-1.5 py-4 md:block desk:px-3"
+        className="hidden overflow-y-auto border-r bg-sidebar px-1.5 py-5 md:block desk:px-3"
       >
         {view === "full" ? <Outline onJump={jump} /> : <Roster round={current} focus={focus} />}
       </aside>
@@ -475,52 +480,59 @@ export function NegotiationView({
           setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 80);
         }}
       >
-        <div className="sticky top-0 z-[5] flex flex-wrap items-center gap-x-3 gap-y-2 border-b bg-background/95 px-5 py-2 backdrop-blur">
-          <Seg
-            label={t.live.round}
-            value={current}
-            onChange={(r) => {
-              setExpanded((e) => ({ ...e, [r]: true }));
-              document.getElementById(`round-${r}`)?.scrollIntoView({ behavior: "smooth" });
-            }}
-            options={Array.from({ length: run.room.roundLimit }, (_, i) => ({
-              value: i + 1,
-              label: String(i + 1),
-            }))}
-          />
-          <span className="text-xs text-muted-foreground" title={t.live.utterancesInRound(inRound)}>
-            {t.live.roundOf(current, run.room.roundLimit)}
-            {phase ? ` · ${lang === "de" ? phase.de : phase.en}` : ""}
-          </span>
-          <span className="flex-1" />
-          <Level min="analyst">
+        <div className="sticky top-0 z-[5] border-b bg-background/95 backdrop-blur">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-6 py-2.5">
             <Seg
-              label={`${t.live.condensed} / ${t.live.full}`}
-              value={view}
-              onChange={setView}
-              options={[
-                { value: "condensed", label: t.live.condensed },
-                { value: "full", label: t.live.full },
-              ]}
+              label={t.live.round}
+              value={current}
+              onChange={(r) => {
+                setExpanded((e) => ({ ...e, [r]: true }));
+                document.getElementById(`round-${r}`)?.scrollIntoView({ behavior: "smooth" });
+              }}
+              options={Array.from({ length: run.room.roundLimit }, (_, i) => ({
+                value: i + 1,
+                label: String(i + 1),
+              }))}
             />
-          </Level>
-          <SpeakerTimeline
-            snap={snap}
-            run={run}
-            lang={lang}
-            activeId={activeId}
-            selectedId={selected}
-            progress={pendingId ? 0.5 : 1}
-            onSelect={(id) => {
-              jump(id);
-              select(id);
-            }}
-            collapsible
-            defaultOpen={false}
-            className="basis-full shadow-none"
-          />
+            <span
+              className="text-xs text-muted-foreground"
+              title={t.live.utterancesInRound(inRound)}
+            >
+              {t.live.roundOf(current, run.room.roundLimit)}
+              {phase ? ` · ${lang === "de" ? phase.de : phase.en}` : ""}
+            </span>
+            <span className="flex-1" />
+            <Level min="analyst">
+              <Seg
+                label={`${t.live.condensed} / ${t.live.full}`}
+                value={view}
+                onChange={setView}
+                options={[
+                  { value: "condensed", label: t.live.condensed },
+                  { value: "full", label: t.live.full },
+                ]}
+              />
+            </Level>
+          </div>
+          <div className="border-t bg-sidebar/70 px-6 py-3">
+            <SpeakerTimeline
+              snap={snap}
+              run={run}
+              lang={lang}
+              activeId={activeId}
+              selectedId={selected}
+              progress={pendingId ? 0.5 : 1}
+              onSelect={(id) => {
+                jump(id);
+                select(id);
+              }}
+              collapsible
+              defaultOpen={false}
+              className="shadow-none"
+            />
+          </div>
         </div>
-        <div className="mx-auto max-w-[880px] space-y-3 px-5 py-4">
+        <div className="mx-auto max-w-[880px] space-y-10 px-6 py-8">
           <p id="transcript-keys" className="sr-only">
             {t.live.transcriptKeys}
           </p>
@@ -538,12 +550,14 @@ export function NegotiationView({
                 view === "condensed" && !!summary && r.round !== current && !expanded[r.round];
               const ph = PHASES[r.phase - 1];
               return (
-                <div key={r.round} id={`round-${r.round}`} className="scroll-mt-16 space-y-3">
-                  <div className="flex items-center gap-3 py-1 text-xs text-muted-foreground">
+                <div key={r.round} id={`round-${r.round}`} className="scroll-mt-20 space-y-5">
+                  <div className="flex items-center gap-4">
                     <span className="h-px flex-1 bg-border" />
-                    {collapsed
-                      ? t.live.roundCollapsed(r.round, r.utteranceIds.length)
-                      : `${t.live.round} ${r.round} · ${ph ? (lang === "de" ? ph.de : ph.en) : ""}`}
+                    <Eyebrow>
+                      {collapsed
+                        ? t.live.roundCollapsed(r.round, r.utteranceIds.length)
+                        : `${t.live.round} ${r.round} · ${ph ? (lang === "de" ? ph.de : ph.en) : ""}`}
+                    </Eyebrow>
                     <span className="h-px flex-1 bg-border" />
                   </div>
                   {r.injectedEvents.map((ev) => (
@@ -570,7 +584,7 @@ export function NegotiationView({
                             const u = snap.utterances[id];
                             if (!u) return null;
                             return (
-                              <div key={id} className="space-y-2">
+                              <div key={id} className="space-y-3">
                                 <UtteranceCard u={u} selected={selected === id} onSelect={select} />
                                 {(notesAfter[id] ?? []).map((n) => (
                                   <ExpertNote key={n.seq} note={n} />
@@ -610,7 +624,7 @@ export function NegotiationView({
               );
             })}
             {snap.endCondition ? (
-              <div className="rounded-2xl border border-success/30 bg-success/5 p-4 text-sm">
+              <div className="rounded-2xl border border-success/30 bg-success/5 p-5 text-sm">
                 <span className="font-semibold">{t.live.resultReady}.</span>{" "}
                 {L(snap.endCondition.note, lang)}
               </div>
@@ -633,7 +647,7 @@ export function NegotiationView({
       {projector ? null : (
         <aside
           aria-label={t.nav.inspector}
-          className="hidden min-w-0 overflow-x-hidden overflow-y-auto border-l p-4 desk:block"
+          className="hidden min-w-0 overflow-x-hidden overflow-y-auto border-l bg-sidebar/50 p-5 desk:block"
         >
           <SidePanel id={selected} onBack={() => setSelected(null)} />
         </aside>
@@ -641,7 +655,7 @@ export function NegotiationView({
       <Sheet open={overlay && sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent
           side="right"
-          className="w-[min(92vw,30rem)] overflow-y-auto p-4 pt-12 data-[side=right]:sm:max-w-[30rem]"
+          className="w-[min(92vw,30rem)] overflow-y-auto p-5 pt-12 data-[side=right]:sm:max-w-[30rem]"
         >
           <SheetTitle className="sr-only">{t.nav.inspector}</SheetTitle>
           <SheetDescription className="sr-only">{t.live.selectHint}</SheetDescription>
