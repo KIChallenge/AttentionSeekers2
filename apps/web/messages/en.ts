@@ -56,6 +56,7 @@ export const en = {
     fork: "Fork",
     backtest: "Backtest",
     model_ensemble: "Model ensemble",
+    scenario: "Scenario",
   },
   stub: {
     soon: "Scaffold. This view is built in the lane tickets.",
