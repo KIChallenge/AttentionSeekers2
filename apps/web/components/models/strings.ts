@@ -187,10 +187,10 @@ const de = {
     licence: "Lizenz und Umgang",
   },
   hf: {
-    title: "Hugging Face: neun Adapter, privat",
+    title: "Hugging Face: v1, v2 und v2.1, privat",
     link: "https://huggingface.co/Aryt3",
     linkLabel: "huggingface.co/Aryt3",
-    text: "Je Adapter ein privates Repository (Aryt3/sv-persona-<rolle>-qwen3-8b-lora) mit Modellkarte: diese Zahlen, die Grenzen (Schleifen, insgesamt schwächer als die Basis) und der Zweck als reine Forschungsdemo, nicht zur Vertretung echter Institutionen. Hochgeladen sind nur Adaptergewichte, Konfiguration und Karte, nie Trainingsdaten.",
+    text: "v1, v2 und v2.1 sind privat hochgeladen, je Institution und Version ein Repository (Aryt3/sv-persona-<rolle>-qwen3-8b-lora, Endung -v2 bzw. -v21) mit Modellkarte: diese Zahlen, der Vergleich mit v1 + Fix, Basis und Dossier-Ansatz, die Grenzen (v2 schwächer als v1 und die Basis, nur zur Transparenz; v2.1 bei der Haltung für fünf Institutionen vor der Basis, im Schnitt hinter dem Dossier) und der Zweck als reine Forschungsdemo, nicht zur Vertretung echter Institutionen. Hochgeladen sind nur Adaptergewichte, Konfiguration und Karte, nie Trainingsdaten.",
   },
   sources: "Zahlen aus",
 };
@@ -368,10 +368,10 @@ const en: Dict = {
     licence: "Licence and handling",
   },
   hf: {
-    title: "Hugging Face: nine adapters, private",
+    title: "Hugging Face: v1, v2 and v2.1, private",
     link: "https://huggingface.co/Aryt3",
     linkLabel: "huggingface.co/Aryt3",
-    text: "One private repository per adapter (Aryt3/sv-persona-<role>-qwen3-8b-lora) with a model card: these numbers, the limitations (loops, weaker than the base overall) and the intended use as a research demo only, not for representing real institutions. Only adapter weights, config and card are uploaded, never training data.",
+    text: "v1, v2 and v2.1 are uploaded privately, one repository per institution and version (Aryt3/sv-persona-<role>-qwen3-8b-lora, suffix -v2 or -v21) with a model card: these numbers, the comparison with v1 + fix, the base and the dossier approach, the limitations (v2 weaker than v1 and the base, kept for transparency; v2.1 ahead of the base on stance for five institutions, behind the dossier on average) and the intended use as a research demo only, not for representing real institutions. Only adapter weights, config and card are uploaded, never training data.",
   },
   sources: "Numbers from",
 };
