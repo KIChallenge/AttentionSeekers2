@@ -44,6 +44,8 @@ const KIND_STYLE: Record<string, { band: string; label: string }> = {
 };
 
 export interface SpeakerTimelineProps {
+  /** Round chosen outside (the run's round switch): the domain narrows to that round. */
+  focusRound?: number | null;
   /** Snapshot whose utterances and exchanges are drawn (the full record for replay and stage). */
   snap: Pick<RunSnapshot, "utteranceOrder" | "utterances" | "exchanges" | "pending">;
   run: Run | null;
@@ -77,6 +79,7 @@ export function SpeakerTimeline({
   collapsible = false,
   defaultOpen = true,
   defaultZoom = "all",
+  focusRound = null,
   className,
 }: SpeakerTimelineProps) {
   const t = timelineStrings[lang];
@@ -119,6 +122,16 @@ export function SpeakerTimeline({
 
   // visible domain in minutes
   const [d0, d1] = useMemo((): [number, number] => {
+    // a round picked in the round switch wins over the exchange zoom: show that round only
+    if (focusRound !== null && zoom === "all") {
+      const i = model.rounds.findIndex((r) => r.round === focusRound);
+      if (i >= 0) {
+        const start = model.rounds[i]?.start ?? 0;
+        const end = model.rounds[i + 1]?.start ?? model.end;
+        const pad = Math.max(0.5, (end - start) * 0.03);
+        return [Math.max(0, start - pad), Math.max(start + 4, end + pad)];
+      }
+    }
     let band: TimelineBand | null = null;
     if (zoom === "follow") band = activeBand;
     else if (zoom !== "all")
@@ -142,7 +155,7 @@ export function SpeakerTimeline({
     const pad = Math.max(0.5, (b - a) * 0.04);
     a = Math.max(0, a - pad);
     return [a, Math.max(a + minSpan, b + pad)];
-  }, [zoom, activeBand, model]);
+  }, [zoom, activeBand, model, focusRound]);
   const span = Math.max(0.001, d1 - d0);
   const x = (min: number) => ((min - d0) / span) * 100;
   const visible = (a: number, b: number) => b >= d0 && a <= d1;
