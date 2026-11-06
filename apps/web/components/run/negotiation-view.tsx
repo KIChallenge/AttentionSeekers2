@@ -3,6 +3,7 @@
 import { type Claim, PHASES, topicStatus, type Utterance } from "@sv/contracts";
 import Link from "next/link";
 import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
+import { AskButton } from "@/components/agent/ask-sheet";
 import { Eyebrow } from "@/components/shell/page";
 import { Level, usePrefs } from "@/components/shell/providers";
 import { ExchangeGroup } from "@/components/timeline/exchange-group";
@@ -80,9 +81,16 @@ function Roster({ round, focus }: { round: number; focus: SpeakerFocus | null })
     );
     const title = sub ? `${a.name} · ${sub}` : a.name;
     return href ? (
-      <Link key={id} href={href} className={cls} title={title}>
-        {inner}
-      </Link>
+      <div key={id} className="group flex items-center gap-1">
+        <Link href={href} className={cn(cls, "min-w-0 flex-1")} title={title}>
+          {inner}
+        </Link>
+        <AskButton
+          agentId={id}
+          iconOnly
+          className="shrink-0 text-muted-foreground opacity-60 group-hover:opacity-100 focus-visible:opacity-100 max-desk:hidden"
+        />
+      </div>
     ) : (
       <div key={id} className={cls} title={title}>
         {inner}

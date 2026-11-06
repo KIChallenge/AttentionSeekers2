@@ -10,6 +10,7 @@ import { Page, PageHead } from "@/components/shell/page";
 import { Level } from "@/components/shell/providers";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
+import { AskButton } from "./ask-sheet";
 import { StrategicPanel } from "./strategic-panel";
 
 const pct = (v: number) => ((v + 2) / 4) * 100;
@@ -88,24 +89,27 @@ export function AgentCard({ agentId }: { agentId: string }) {
           </>
         }
         actions={
-          <nav aria-label={t.agent.switcher} className="flex flex-wrap items-center gap-1">
-            <span className="mr-1 text-xs text-muted-foreground">{t.agent.switcher}</span>
-            {run.agents.map((a) => (
-              <Link
-                key={a.id}
-                href={`/runs/${runId}/agents/${a.id}`}
-                aria-current={a.id === agentId ? "page" : undefined}
-                className={cn(
-                  "inline-flex h-7 items-center rounded-control border px-2 text-xs",
-                  a.id === agentId
-                    ? "border-foreground bg-gray-alpha-100"
-                    : "text-muted-foreground hover:border-foreground/40 hover:text-foreground",
-                )}
-              >
-                {a.code}
-              </Link>
-            ))}
-          </nav>
+          <div className="flex flex-wrap items-center gap-3">
+            <AskButton agentId={agentId} />
+            <nav aria-label={t.agent.switcher} className="flex flex-wrap items-center gap-1">
+              <span className="mr-1 text-xs text-muted-foreground">{t.agent.switcher}</span>
+              {run.agents.map((a) => (
+                <Link
+                  key={a.id}
+                  href={`/runs/${runId}/agents/${a.id}`}
+                  aria-current={a.id === agentId ? "page" : undefined}
+                  className={cn(
+                    "inline-flex h-7 items-center rounded-control border px-2 text-xs",
+                    a.id === agentId
+                      ? "border-foreground bg-gray-alpha-100"
+                      : "text-muted-foreground hover:border-foreground/40 hover:text-foreground",
+                  )}
+                >
+                  {a.code}
+                </Link>
+              ))}
+            </nav>
+          </div>
         }
       />
 
