@@ -168,3 +168,83 @@ paused between lines; the Meeting view went from 33 to 36 over 65 s at 1.5x, als
 The whole-run default scope and the audio stall watchdog from `main` hold, nothing to fix there.
 Measured hit targets after the change: 36 px (prev, next, restart, every speed and scope option),
 44 px play/pause; Meeting 44 px and 56 px play/pause; projector 45 px and 55 px.
+
+## Newer screens (branch `feat/ui-pass-newer-views`)
+
+Status: 2026-11-06, 03:30. Screenshots before and after live in the scratchpad
+(`pw/newer/before`, `pw/newer/after`), 1440x900 and 1920x1080, light, dark, DE, EN, projector
+and all three levels; trace on `demo-agent-trace` (recorded) and `reference-wartezeiten-presse`
+(derived). Same rules as above: one question per screen above the fold, ids and model ids at
+Engineer, no truncated fragments, one accent per meaning.
+
+### 8. Agent trace `/runs/[runId]/trace`
+
+Primary question: "Where did the time, tokens and money go, and did anything fail or fall back?"
+
+Noise before: a two-line subtitle repeats the summary sentence; six stat tiles where two sub
+lines are cut ("Listenpreise je Modell, keine Abrec...", "0 Ausweichmodell · 11 repariert · 0
+..."), so the reliability answer is the one line that is truncated; the reliability tile shows
+"11" in the same weight as every other number, so repairs, fallbacks and failures are not
+distinguishable without reading the cut line; a legend line about dashed bars and diamonds sits
+on recorded runs where nothing is dashed; a derived run says "abgeleitet" four times (title chip,
+summary chip, banner, detail chip); every utterance row carries its id (`u1-02`) and every
+expert sub-call a truncated schema name ("expert_che..."); group titles carry the exchange id
+(`X1-01 · PLENUM`) and the prep title is cut at projector width ("STRATEGISCHE LAGEBEURTEIL...");
+the detail panel opens with the model id, call id and request id as chips and a telemetry
+list of twelve rows; Executive sees exactly what Analyst sees.
+
+Changes: the subtitle goes, the summary sentence carries the run and a second sentence states
+reliability in words with one accent (destructive for failures, warning for fallbacks, quiet for
+repairs, success when nothing went wrong); four tiles (run time, tokens in, tokens out, cost)
+with sub lines that wrap instead of truncating; the legend only appears on derived runs; the
+derived chip appears once in the title and once as the banner. Rows: utterance ids, schema
+names, call id, request id, provider and output schema move to Engineer; exchange groups read
+"Plenum", "Einzelgespräch: Ärztekammer, Pflegevertretung" with the id at Engineer; work-group
+titles are shorter and never truncate. Executive: no filter row, rounds closed by default, so
+the screen is the summary plus one line per round.
+
+### 9. Topic comparison `/topics/wartezeiten`
+
+Primary question: "Which results hold across models, which depend on the model, and what does
+history say?"
+
+Noise before: the runs table (six rows with nine seat chips each and three warning lines)
+sits between the summary and the topics table, so the answer to the primary question starts
+at 1900 px; every topic row repeats "Endhaltung je Institution und Lauf · Vorschläge je Lauf"
+as its details summary; the history cell prints the measure class in mono on every row
+(`workforce (nächste Klasse zu capacity_expansion)`) and the same 33 of 40 seven times; the
+caveat paragraph appears twice; missing figures show a lone dash; the seats table shows the
+family counts only at Engineer but the numbers without a scale hint at Analyst.
+
+Changes (presentation only, data loading and comparison logic untouched so the family branch
+merges cleanly): the topics table moves directly under the summary, the runs table below it;
+the details summary becomes "Haltung und Vorschläge je Lauf"; the history cell shows the rate
+and the interval at Analyst and the class mapping at Engineer; missing figures say "ohne
+Schätzung"; the caveat stays in the summary card only; Executive hides the runs table and the
+seats table and keeps summary, topics and history.
+
+### 10. Models `/models`
+
+Primary question: "Did training help, for whom, and can I try it?"
+
+Noise before: the verdict card answers "did it help" above the fold, but "for whom" is a table
+at 2000 px below two explanatory card rows (why, pipeline), and "can I try it" is the playground
+at 2600 px; the verdict badges use `secondary` (grey) for better and `destructive` for worse,
+so the one positive result is the least visible; the KPI pairs are mono at 20 px with "Adapter"
+and "Basis" labels in mono too; the per-institution table at Analyst has eleven columns
+including training sizes and losses; the versions block hard-codes "v1, v1 mit Inferenz-Fix,
+v2" in its title while the data has two versions, and lays out 2 x (versions + 1) flat columns;
+the playground status dot uses raw Tailwind colours (`emerald-500`, `red-500`) and prints
+model ids in every output title; the infrastructure block prints job, endpoint, instance and
+region ids at Analyst; the sources line in mono sits at every level.
+
+Changes: order becomes verdict (with a "for whom" strip of nine institutions coloured by
+verdict and a link to the playground and to Hugging Face), per-institution table, playground,
+versions, then why, pipeline, classifier, cost, licences; verdict tone is success for better,
+destructive for worse, quiet for tie, on the badges, the strip and a signed delta next to the
+in-character pair; training sizes, losses and seconds move to Engineer; the versions block
+takes 1 to 3 versions, groups the columns under "Haltungsrichtung" and "In-Character" headers,
+lists the versions it actually found and bolds the best value per row; playground status uses
+the success and destructive tokens and shows model ids at Engineer; the infra ids and the
+sources line move to Engineer; Executive sees verdict, table (reduced), playground and the
+licence and Hugging Face block.
