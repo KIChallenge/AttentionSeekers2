@@ -376,7 +376,7 @@ function markdown(rows: Row[], startedAt: string): string {
   lines.push("", "## Sample utterance (German text, first 240 characters) and errors", "");
   for (const r of rows) {
     lines.push(`- **${r.alias}**: ${r.sample || "(no valid utterance)"}`);
-    for (const e of r.errors) lines.push(`  - error: ${e.replace(/\|/g, "/")}`);
+    for (const e of r.errors) lines.push(`  - error: ${e.replace(/\s+/g, " ").replace(/\|/g, "/")}`);
   }
   const throttles = Object.entries(throttled);
   if (throttles.length)
