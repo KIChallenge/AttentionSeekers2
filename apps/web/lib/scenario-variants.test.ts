@@ -38,21 +38,21 @@ const col = (label: string, passes: boolean | null): VariantColumn => ({
 
 describe("variantHeadline", () => {
   const labelOf = (l: string) => l.toUpperCase();
-  it("names the variants where the compromise fails", () => {
+  it("names the settings where the compromise fails", () => {
     const cmp: VariantComparison = {
       topics: [],
       columns: [col("reference", true), col("budget_tight", false), col("rule_consensus", false)],
     };
     expect(variantHeadline(cmp, labelOf, "de")).toBe(
-      "Der Kompromissvorschlag des Moderators trägt in 1 von 3 Varianten und scheitert bei BUDGET_TIGHT, RULE_CONSENSUS.",
+      "Der Kompromissvorschlag des Moderators trägt in 1 von 3 Einstellungen und scheitert bei BUDGET_TIGHT, RULE_CONSENSUS.",
     );
   });
   it("covers all-or-nothing and no compromise at all", () => {
     expect(
       variantHeadline({ topics: [], columns: [col("a", true), col("b", true)] }, labelOf, "en"),
-    ).toBe("The moderator's compromise carries in all 2 variants.");
+    ).toBe("The moderator's compromise carries in all 2 settings.");
     expect(variantHeadline({ topics: [], columns: [col("a", null)] }, labelOf, "de")).toMatch(
-      /^Keine Variante/,
+      /^Keine Einstellung/,
     );
   });
 });

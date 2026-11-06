@@ -31,6 +31,7 @@ export const VARIANT_T = {
     climate: { cooperative: "kooperativ", neutral: "neutral", confrontational: "konfrontativ" },
     accepted: "Angenommene Maßnahmen",
     none: "keine",
+    tabled: "verhandelt",
     compromise: "Kompromissvorschlag",
     wait: "Wartezeit (Paket)",
     cost: "Kosten pro Jahr",
@@ -60,6 +61,7 @@ export const VARIANT_T = {
     climate: { cooperative: "cooperative", neutral: "neutral", confrontational: "confrontational" },
     accepted: "Accepted measures",
     none: "none",
+    tabled: "tabled",
     compromise: "Compromise proposal",
     wait: "Waiting time (package)",
     cost: "Cost per year",
@@ -102,7 +104,7 @@ export function ScenarioVariants({ cmp }: { cmp: VariantComparison | null }) {
   const labelOf = (l: string) => t.labels[l] ?? l;
   const cols = cmp.columns;
   const row = "border-t align-top";
-  const head = "py-2.5 pr-3 text-xs font-medium text-muted-foreground";
+  const head = "py-2.5 pr-3 text-left text-xs font-medium text-muted-foreground";
   return (
     <div className="flex flex-col gap-6">
       <p className="max-w-4xl text-base leading-relaxed">{variantHeadline(cmp, labelOf, lang)}</p>
@@ -168,7 +170,7 @@ export function ScenarioVariants({ cmp }: { cmp: VariantComparison | null }) {
                       </ul>
                     ) : (
                       <span className="text-xs text-muted-foreground">
-                        {t.none} ({c.tabled})
+                        {t.none} ({c.tabled} {t.tabled})
                       </span>
                     )}
                   </td>

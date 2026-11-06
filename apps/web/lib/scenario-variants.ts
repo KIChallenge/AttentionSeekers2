@@ -148,16 +148,16 @@ export function variantHeadline(
   const n = withK.length;
   if (n === 0)
     return lang === "de"
-      ? "Keine Variante hat einen Kompromissvorschlag des Moderators."
-      : "No variant has a moderator compromise proposal.";
+      ? "Keine Einstellung hat einen Kompromissvorschlag des Moderators."
+      : "No setting has a moderator compromise proposal.";
   if (lang === "de") {
     if (carried.length === n)
-      return `Der Kompromissvorschlag des Moderators trägt in allen ${n} Varianten.`;
+      return `Der Kompromissvorschlag des Moderators trägt in allen ${n} Einstellungen.`;
     if (carried.length === 0)
-      return `Der Kompromissvorschlag des Moderators scheitert in allen ${n} Varianten.`;
-    return `Der Kompromissvorschlag des Moderators trägt in ${carried.length} von ${n} Varianten und scheitert bei ${list(failed)}.`;
+      return `Der Kompromissvorschlag des Moderators scheitert in allen ${n} Einstellungen.`;
+    return `Der Kompromissvorschlag des Moderators trägt in ${carried.length} von ${n} Einstellungen und scheitert bei ${list(failed)}.`;
   }
-  if (carried.length === n) return `The moderator's compromise carries in all ${n} variants.`;
-  if (carried.length === 0) return `The moderator's compromise fails in all ${n} variants.`;
-  return `The moderator's compromise carries in ${carried.length} of ${n} variants and fails under ${list(failed)}.`;
+  if (carried.length === n) return `The moderator's compromise carries in all ${n} settings.`;
+  if (carried.length === 0) return `The moderator's compromise fails in all ${n} settings.`;
+  return `The moderator's compromise carries in ${carried.length} of ${n} settings and fails under ${list(failed)}.`;
 }
