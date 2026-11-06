@@ -9,15 +9,17 @@ export function ArchiveNav({
   active,
 }: {
   lang: Lang;
-  active: "search" | "law" | "episodes" | "stats" | null;
+  active: "search" | "law" | "episodes" | "stats" | "press" | null;
 }) {
   const t = laneT(lang);
+  const de = lang === "de";
   const tabs = [
     { key: "search", href: "/archive", label: t.archive.tabs.search },
     // Legal basis (FR-P6): the archive filtered to kind "law", one source per provision.
     { key: "law", href: "/archive?kind=law", label: t.archive.kinds.law },
     { key: "episodes", href: "/archive/episodes", label: t.archive.tabs.episodes },
     { key: "stats", href: "/archive/stats", label: t.archive.tabs.stats },
+    { key: "press", href: "/archive/presse", label: de ? "Pressespiegel" : "Press review" },
   ] as const;
   return (
     <div className="mb-5 flex flex-wrap items-center gap-2">
