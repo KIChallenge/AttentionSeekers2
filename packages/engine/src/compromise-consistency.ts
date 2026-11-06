@@ -182,9 +182,12 @@ export function consistencyNote(c: CompromiseConsistency): LocalizedText {
 }
 
 /** Text guard shared with the run files: no dash glyphs in model text. */
+const DASHES = String.fromCharCode(0x2013, 0x2014);
+const SPACED_DASH = new RegExp(`\\s[${DASHES}]\\s`, "g");
+const ANY_DASH = new RegExp(`[${DASHES}]`, "g");
 const undash = (v: unknown): unknown =>
   typeof v === "string"
-    ? v.replace(/\s[–—]\s/g, ", ").replace(/[–—]/g, "-")
+    ? v.replace(SPACED_DASH, ", ").replace(ANY_DASH, "-")
     : Array.isArray(v)
       ? v.map(undash)
       : v && typeof v === "object"
