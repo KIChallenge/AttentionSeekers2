@@ -147,7 +147,7 @@ export function DataTableFacetedFilter<TData, TValue>({
           ) : null}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-56 p-0" align="start">
+      <PopoverContent className="w-64 p-0" align="start">
         <Command>
           {options.length > 6 ? <CommandInput placeholder={searchPlaceholder ?? title} /> : null}
           <CommandList>
@@ -176,7 +176,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                       <HugeiconsIcon icon={Tick02Icon} className="size-3" strokeWidth={3} />
                     </span>
                     {o.icon}
-                    <span className="min-w-0 flex-1 truncate">{o.label}</span>
+                    <span className="min-w-0 flex-1 break-words">{o.label}</span>
                     {facets.get(o.value) ? (
                       <span className="num ml-auto text-xs text-muted-foreground">
                         {facets.get(o.value)}
