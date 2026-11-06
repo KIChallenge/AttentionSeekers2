@@ -12,6 +12,7 @@ const de = {
     inspector: "Inspektor",
     agents: "Agentenkarte",
     stage: "Bühne",
+    scenario: "Szenario",
   },
   live: {
     question: "Frage",
@@ -490,6 +491,7 @@ const en: RunStrings = {
     inspector: "Inspector",
     agents: "Agent card",
     stage: "Stage",
+    scenario: "Scenario",
   },
   live: {
     question: "Question",
