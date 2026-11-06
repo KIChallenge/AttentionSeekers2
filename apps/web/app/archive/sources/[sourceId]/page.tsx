@@ -13,6 +13,7 @@ import { AgentTile } from "@/components/run/agent-tile";
 import { Page, StubNote } from "@/components/shell/page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { pressPageFor } from "@/lib/press-originals";
 import { serverPrefs } from "@/lib/server-prefs";
 
 export const dynamic = "force-dynamic";
@@ -100,6 +101,13 @@ export default async function SourcePage({
               ) : (
                 <span className="text-xs text-muted-foreground">{t.archive.detail.noOriginal}</span>
               )}
+              {pressPageFor(s.id) ? (
+                <Button asChild size="sm" variant="outline">
+                  <Link href={`/archive/original/${encodeURIComponent(s.id)}`}>
+                    {lang === "de" ? "Original prüfen" : "Check the original"}
+                  </Link>
+                </Button>
+              ) : null}
               <span className="text-xs text-muted-foreground">{t.archive.detail.noBulk}</span>
             </div>
           </div>
