@@ -179,7 +179,7 @@ export type CompromiseConflict = z.infer<typeof CompromiseConflict>;
 export const CompromiseConsistency = z.object({
   runId: z.string(),
   packageId: z.string(),
-  /** carries = compatible conditions; carries_if_reconciled = conflicting pairs; fails = no majority. */
+  /** carries = compatible conditions; carries_if_reconciled = any conflicting pair; fails = no majority. */
   verdict: z.enum(["carries", "carries_if_reconciled", "fails"]),
   label: LocalizedText,
   conditions: z.array(CompromiseStatedCondition),

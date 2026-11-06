@@ -2,8 +2,11 @@
 // through conditional support whose conditions contradict each other (the payers demand
 // reallocation, the medical chamber rejects fee cuts). The Experte pairs every stated
 // condition and flags incompatible pairs; a carried package with contradictions then only
-// carries if those conditions can be reconciled. Runs inline after the ratification and
-// offline over recorded runs (compromise-cli.ts); the result is runs/<runId>.compromise.json.
+// carries if those conditions can be reconciled. Both severities count: a contradiction cannot
+// hold together as stated, a tension holds only with an explicit trade or extra money; either
+// way the package needs that reconciliation before it carries. Runs inline after the
+// ratification and offline over recorded runs (compromise-cli.ts); the result is
+// runs/<runId>.compromise.json.
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import type {
@@ -79,7 +82,8 @@ export function consistencyMessages(
     "",
     `Prüfe jedes Paar: ${pairs.join(", ")}.`,
     "verdict: compatible = beide Bedingungen können im selben Paket gleichzeitig erfüllt werden; tension = beide sind nur mit einem ausdrücklichen Tausch oder einer zusätzlichen Finanzierung gleichzeitig erfüllbar; contradiction = die Erfüllung der einen schließt die andere aus (z. B. Umschichtung zulasten eines Budgets, das die andere Seite unangetastet lassen will; Honorarkürzung gegen Ausschluss jeder Honorarkürzung).",
-    "Sei nüchtern: unterschiedliche Schwerpunkte sind compatible. Nur echte Unvereinbarkeit ist contradiction.",
+    "Prüfe besonders Geld und Zuständigkeit: verlangt eine Seite Finanzierung aus einem bestehenden Budget oder ohne Mehrbelastung, während die andere volle Kostendeckung, zusätzliche Mittel oder den Schutz genau dieses Budgets verlangt, ist das mindestens tension; schließt die eine Bedingung aus, was die andere verlangt, ist es contradiction. Gleiches gilt für Zuständigkeiten und Leistungsumfang (eine Seite will eine Aufgabe ausweiten, die andere sie begrenzen).",
+    "Sei nüchtern: unterschiedliche Schwerpunkte ohne gemeinsamen Gegenstand sind compatible.",
     "noteDe/noteEn: ein kurzer Satz, worin der Konflikt besteht (bei compatible leer). Nur Institutionen, keine Personen. Kein Gedankenstrich-Zeichen.",
   ]
     .filter((x) => x !== "")
@@ -126,11 +130,7 @@ export function toConsistency(
     x.severity === y.severity ? 0 : x.severity === "contradiction" ? -1 : 1,
   );
   const passes = result?.passes ?? false;
-  const verdict = !passes
-    ? "fails"
-    : conflicts.some((c) => c.severity === "contradiction")
-      ? "carries_if_reconciled"
-      : "carries";
+  const verdict = !passes ? "fails" : conflicts.length ? "carries_if_reconciled" : "carries";
   return {
     runId,
     packageId: pkg.id,
@@ -165,7 +165,7 @@ export async function checkCompromiseConsistency(
 }
 
 export function consistencyNote(c: CompromiseConsistency): LocalizedText {
-  const contra = c.conflicts.filter((x) => x.severity === "contradiction");
+  const contra = c.conflicts;
   if (c.verdict !== "carries_if_reconciled")
     return L(
       `Konsistenzprüfung: ${c.pairsChecked} Bedingungspaare geprüft, ${tx(c.label, "de")}.`,
@@ -176,7 +176,7 @@ export function consistencyNote(c: CompromiseConsistency): LocalizedText {
       .map((x) => `${lang === "de" ? nameDe(x.a) : x.a} / ${lang === "de" ? nameDe(x.b) : x.b}`)
       .join("; ");
   return L(
-    `Konsistenzprüfung: Kompromiss ${tx(c.label, "de")}. Widersprüchliche Bedingungen: ${list("de")}.`,
+    `Konsistenzprüfung: Kompromiss ${tx(c.label, "de")}. Bedingungen im Konflikt: ${list("de")}.`,
     `Consistency check: compromise ${tx(c.label, "en")}. Conflicting conditions: ${list("en")}.`,
   );
 }

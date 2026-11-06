@@ -88,7 +88,7 @@ describe("compromise consistency", () => {
     expect(consistencyNote(out).text).toContain("Sozialversicherung / Ärztekammer");
   });
 
-  it("keeps carries when pairs are compatible or only in tension", () => {
+  it("needs reconciliation for a tension too, carries when compatible", () => {
     const c = statedConditions(votes);
     const ok = toConsistency(
       "r",
@@ -100,8 +100,17 @@ describe("compromise consistency", () => {
       },
       "m",
     );
-    expect(ok.verdict).toBe("carries");
+    expect(ok.verdict).toBe("carries_if_reconciled");
     expect(ok.conflicts).toHaveLength(1);
+    const fine = toConsistency(
+      "r",
+      pkg,
+      passes,
+      c,
+      { pairs: [{ pair: "B1-B2", verdict: "compatible", noteDe: "", noteEn: "" }] },
+      "m",
+    );
+    expect(fine.verdict).toBe("carries");
     const failed = toConsistency("r", pkg, { ...passes, passes: false }, c, null, "m");
     expect(failed.verdict).toBe("fails");
   });
