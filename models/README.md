@@ -191,6 +191,25 @@ uv run python -I proxy.py                          # OpenAI-compatible on http:/
   chamber_labour and hospitals only, and 27 of 244 adapter outputs loop on a sentence. Details and caveats
   in `out/eval_sagemaker.md` (committed with `persona_fidelity.json` although `out/` is ignored: metrics only).
 
+### Persona v2 (branch `feat/persona-v2`)
+
+- **Inference fix** (`proxy.py`, adapter ids only, base untouched): repetition_penalty 1.1, frequency_penalty 0.3,
+  stop after one paragraph, max 320 tokens, cut at the first repeated sentence (`SV_GEN_FIX=0` turns it off).
+  On v1 (run 20261106-015512): stance sign 0.44 to 0.50 (base 0.55), in-character 0.39 to 0.35 (base 0.46),
+  raw loops 13 of 244 (v1 without fix: 82 of 244 by the same strict count), 0 after the cut.
+- **Data** (`scripts/build_v2_data.py`): targets start with a judge-labelled stance (`Haltung: ablehnend. ...`;
+  2,706 train rows labelled in batches of 8 by gpt-6-sol), plus 370 person-free press rows (train split, before
+  2023-01-01), deduped, pii_guard fail closed. Held-out split unchanged.
+- **Training**: `SV_SFT_DIR=../data/v2/sft uv run python -I train_job.py launch --version v2 --epochs 2 --lr 7e-5
+  --no-upload-base` writes `adapters-v2/` (v1 in `adapters/` is never touched). DPO skipped: the DPO chosen
+  texts carry no stance prefix and the deadline did not allow relabelling them.
+- **Serving**: `deploy.py single --sets v1,v2` stages v2 as `<role>_v2` next to v1 and recreates the endpoint
+  (one-instance quota, about 10 min downtime); proxy ids `sv2-<role>`, the stance prefix comes back as
+  `x_stance`. Rollback: `deploy.py single --sets v1`.
+- **Report**: `eval_v2_report.py --run v1=<dir> --run v1-fix=<dir> --run v2=<dir> --proxy-log <log>` writes
+  `out/eval_v2.md` and a `versions` block in `out/persona_fidelity.json` (top-level v1 numbers unchanged),
+  shown on the Modelle tab.
+
 **Costs actually incurred** (on-demand, ml.g6e.xlarge eu-north-1 = 2.7636 USD/h for training; the Pricing
 API has no separate hosting row for this type, the same rate is assumed):
 
