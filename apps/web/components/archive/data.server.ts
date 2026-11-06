@@ -790,6 +790,94 @@ export async function archiveStats() {
   return { sources: fs.sources.length, segments: fs.segments.length };
 }
 
+export interface ArchiveOverview {
+  /** Sources per kind (person-filtered, live corpus). */
+  kinds: Record<string, number>;
+  /** Passages in the live corpus, and how many of them carry a semantic embedding. */
+  segments: number;
+  embedded: number;
+  years: { min: number; max: number } | null;
+  /** Sources per year and kind, years ascending. */
+  perYear: Array<{ year: number; kinds: Record<string, number> }>;
+  backend: ArchiveResult["backend"];
+}
+
+const OVERVIEW_TTL_MS = 5 * 60_000;
+let overviewCache: { at: number; value: ArchiveOverview } | null = null;
+
+/**
+ * Counts for the home page's data tiles. Three aggregate queries over sources and segments,
+ * cached per process for five minutes (the corpus changes by import, not by request).
+ */
+export async function archiveOverview(): Promise<ArchiveOverview> {
+  if (overviewCache && Date.now() - overviewCache.at < OVERVIEW_TTL_MS) return overviewCache.value;
+  const value = await computeOverview();
+  overviewCache = { at: Date.now(), value };
+  return value;
+}
+
+function foldOverview(
+  rows: Array<{ year: number; kind: string; n: number }>,
+  segments: number,
+  embedded: number,
+  backend: ArchiveResult["backend"],
+): ArchiveOverview {
+  const kinds: Record<string, number> = {};
+  const byYear = new Map<number, Record<string, number>>();
+  for (const r of rows) {
+    kinds[r.kind] = (kinds[r.kind] ?? 0) + r.n;
+    const y = byYear.get(r.year) ?? {};
+    y[r.kind] = (y[r.kind] ?? 0) + r.n;
+    byYear.set(r.year, y);
+  }
+  const years = [...byYear.keys()].sort((a, b) => a - b);
+  return {
+    kinds,
+    segments,
+    embedded,
+    years: years.length ? { min: years[0] ?? 0, max: years.at(-1) ?? 0 } : null,
+    perYear: years.map((year) => ({ year, kinds: byYear.get(year) ?? {} })),
+    backend,
+  };
+}
+
+async function computeOverview(): Promise<ArchiveOverview> {
+  const db = await pool();
+  if (db) {
+    const [perYear, seg] = await Promise.all([
+      db.query<{ year: number; kind: string; n: number }>(
+        `select extract(year from date)::int as year, kind, count(*)::int as n
+           from sources where person_filtered and ${live()}
+           group by 1, 2 order by 1, 2`,
+      ),
+      db.query<{ segments: number; embedded: number }>(
+        `select (select count(*) from segments g join sources s on s.id = g.source_id
+                  where s.person_filtered and ${live("s.")})::int as segments,
+                (select count(*) from segment_embeddings e
+                  join segments g on g.id = e.segment_id
+                  join sources s on s.id = g.source_id
+                  where s.person_filtered and ${live("s.")})::int as embedded`,
+      ),
+    ]);
+    return foldOverview(
+      perYear.rows,
+      seg.rows[0]?.segments ?? 0,
+      seg.rows[0]?.embedded ?? 0,
+      "postgres",
+    );
+  }
+  const fs = await fileStore();
+  const rows = new Map<string, { year: number; kind: string; n: number }>();
+  for (const s of fs.sources) {
+    const year = Number(s.date.slice(0, 4));
+    const key = `${year}:${s.kind}`;
+    const r = rows.get(key) ?? { year, kind: s.kind, n: 0 };
+    r.n++;
+    rows.set(key, r);
+  }
+  return foldOverview([...rows.values()], fs.segments.length, 0, "file");
+}
+
 /** Quick source lookup for the command palette: title/institution match plus FTS. */
 export async function quickSources(q: string, limit = 8): Promise<Source[]> {
   const db = await pool();
