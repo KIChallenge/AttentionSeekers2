@@ -18,6 +18,7 @@
     "eval:retrieval": "node --env-file-if-exists=../../.env --no-warnings src/retrieval-eval.ts",
     "impact": "node --no-warnings src/impact-cli.ts",
     "citation:measure": "node --env-file-if-exists=../../.env --no-warnings src/citation-propensity-cli.ts",
+    "compromise": "node --env-file-if-exists=../../.env --no-warnings src/compromise-cli.ts",
     "recall": "node --env-file-if-exists=../../.env --no-warnings src/recall-probe.ts"
   },
   "dependencies": {

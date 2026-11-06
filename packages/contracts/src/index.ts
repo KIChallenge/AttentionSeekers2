@@ -54,6 +54,7 @@
  *   RunEvents "compromise.proposed", "compromise.vote", "compromise.result", the optional
  *   RunSnapshot.compromise, .compromiseVotes, .compromiseResult; RoomConfig.pace.
  * - 2026-11-06 citation style: AgentConfig.citationStyle (optional).
+ * - 2026-11-06 compromise consistency: CompromiseConsistency (sidecar runs/<id>.compromise.json).
  */
 export * from "./agents.ts";
 export * from "./catalog.ts";
