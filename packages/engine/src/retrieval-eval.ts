@@ -3,6 +3,7 @@
 // default azure/gpt-6-sol; the embeddings are Amazon Titan). Writes docs/retrieval-eval.md.
 //   pnpm --filter @sv/engine eval:retrieval
 // Only segment ids and grades go into the report, never passage text.
+import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { type Passage, retrieve } from "./retrieval.ts";
@@ -233,6 +234,12 @@ ${rows
 `;
 const out = path.resolve(import.meta.dirname, "../../../docs/retrieval-eval.md");
 writeFileSync(out, md);
+// Keep the report in the repo formatter's table layout so `pnpm lint` stays green.
+try {
+  execFileSync("pnpm", ["exec", "biome", "format", "--write", out], { stdio: "ignore" });
+} catch {
+  console.warn("biome format failed; run pnpm format");
+}
 console.log(`wrote ${out}`);
 console.log(JSON.stringify(S));
 await store.closeDb();
