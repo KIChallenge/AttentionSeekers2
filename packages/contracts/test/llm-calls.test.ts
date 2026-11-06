@@ -68,6 +68,15 @@ describe("llm.call", () => {
     expect(modelFamily("bedrock/eu.amazon.nova-pro-v1:0")).toBe("amazon");
     expect(modelFamily("azure/gpt-6-sol")).toBe("openai");
     expect(modelFamily("mistral/mistral-medium-3")).toBe("mistral");
+    expect(modelFamily("bedrock/mistral.devstral-2-123b")).toBe("mistral");
+    expect(modelFamily("bedrock/deepseek.v3.2")).toBe("deepseek");
+    expect(modelFamily("bedrock/qwen.qwen3-235b-a22b-2507-v1:0")).toBe("qwen");
+    expect(modelFamily("bedrock/moonshotai.kimi-k2.5")).toBe("moonshot");
+    expect(modelFamily("bedrock/zai.glm-5")).toBe("zhipu");
+    expect(modelFamily("bedrock/openai.gpt-oss-120b-1:0")).toBe("openai");
+    expect(
+      estimateCostUsd("bedrock/zai.glm-5", { tokensIn: 1e6, tokensCached: 0, tokensOut: 0 }),
+    ).toBe(1);
   });
 
   it("derives a labelled trace from utterance telemetry for older runs", () => {
