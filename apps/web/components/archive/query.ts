@@ -18,8 +18,10 @@ function one(p: Params, key: string): string | null {
 /** Parses archive search params (page URL or API) into an ArchiveQuery. */
 export function parseArchiveQuery(p: Params): ArchiveQuery {
   const asOf = one(p, "asOf");
+  const mode = one(p, "mode");
   return {
     q: (one(p, "q") ?? "").slice(0, 200),
+    mode: mode === "fulltext" || mode === "semantic" ? mode : "hybrid",
     kinds: all(p, "kind"),
     institutions: all(p, "institution"),
     years: all(p, "year"),

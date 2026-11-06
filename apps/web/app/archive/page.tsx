@@ -157,6 +157,7 @@ export default async function ArchivePage({ searchParams }: { searchParams: Prom
                 {t.archive.page} {res.page})
               </span>
             ) : null}
+            {query.q && res.semanticUnavailable ? <span>· {t.archive.semanticOff}</span> : null}
           </div>
           {res.hits.length === 0 ? (
             <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
@@ -226,6 +227,15 @@ export default async function ArchivePage({ searchParams }: { searchParams: Prom
                       <span>{s.id}</span>
                       <span>{pick(t.archive.licences, h.licenceLabel)}</span>
                       {agent ? <span>→ {catalogAgent(agent.id)?.code}</span> : null}
+                      {query.q && h.match.keyword ? (
+                        <span data-match="keyword">{t.archive.keywordMatch}</span>
+                      ) : null}
+                      {h.match.similarity !== null ? (
+                        <span data-match="semantic" className="text-foreground/70">
+                          {t.archive.semanticMatch}{" "}
+                          <span className="num">{h.match.similarity.toFixed(2)}</span>
+                        </span>
+                      ) : null}
                     </div>
                   </li>
                 );

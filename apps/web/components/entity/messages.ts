@@ -201,10 +201,23 @@ const de = {
     expertSeat: "Zahlenprüfung",
   },
   archive: {
-    searchPlaceholder: "Volltext durchsuchen (deutsche Stammformen, z. B. Kassenstellen Wartezeit)",
+    searchPlaceholder:
+      "Archiv durchsuchen (Stichworte oder ganze Sätze, z. B. Kassenstellen Wartezeit)",
     search: "Suchen",
     results: "Treffer",
     noResults: "Keine Dokumente für diese Suche.",
+    mode: "Suchmodus",
+    modes: { fulltext: "Volltext", semantic: "Semantisch", hybrid: "Kombiniert" },
+    modeHint: {
+      fulltext: "Deutsche Stammformen, exakte Begriffe",
+      semantic: "Bedeutung statt Wortlaut (Titan v2 Embeddings)",
+      hybrid: "Volltext und Semantik per Reciprocal Rank Fusion",
+    },
+    keywordMatch: "Stichwort",
+    semanticMatch: "semantisch ähnlich",
+    semanticOff: "Semantische Suche gerade nicht verfügbar; Ergebnisse aus dem Volltext.",
+    similar: "Ähnliche Passagen",
+    similarNote: "Nächste Nachbarn im Embedding-Raum (Kosinus), aus anderen Quellen.",
     facets: {
       kind: "Quellentyp",
       institution: "Institution",
@@ -534,10 +547,23 @@ const en: LaneMessages = {
     expertSeat: "Number check",
   },
   archive: {
-    searchPlaceholder: "Full-text search (German stemming, e.g. Kassenstellen Wartezeit)",
+    searchPlaceholder:
+      "Search the archive (keywords or whole sentences, e.g. Kassenstellen Wartezeit)",
     search: "Search",
     results: "results",
     noResults: "No documents for this search.",
+    mode: "Search mode",
+    modes: { fulltext: "Full text", semantic: "Semantic", hybrid: "Combined" },
+    modeHint: {
+      fulltext: "German stemming, exact terms",
+      semantic: "Meaning over wording (Titan v2 embeddings)",
+      hybrid: "Full text and semantic via reciprocal rank fusion",
+    },
+    keywordMatch: "keyword",
+    semanticMatch: "semantically similar",
+    semanticOff: "Semantic search is unavailable right now; showing full-text results.",
+    similar: "Similar passages",
+    similarNote: "Nearest neighbours in embedding space (cosine), from other sources.",
     facets: {
       kind: "Source type",
       institution: "Institution",
