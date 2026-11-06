@@ -27,6 +27,10 @@ interface Ctx {
   selected: string | null;
   onSelect: (c: LlmCall) => void;
   running: Map<string, { tokens: number; costUsd: number }>;
+  /** Engineer level: utterance ids, exchange ids and schema names in the rows. */
+  engineer: boolean;
+  /** Executive level: rounds start closed, one line per round. */
+  roundsClosed: boolean;
 }
 
 const pct = (v: number, lo: number, hi: number) =>
@@ -189,10 +193,10 @@ function turnLabel(turn: TraceTurn, ctx: Ctx) {
   return (
     <span className="flex min-w-0 items-center gap-1.5">
       <Tile id={who} />
-      <span className="truncate text-xs" title={name}>
+      <span className="truncate text-xs" title={ref ? `${name} · ${ref}` : name}>
         {ctx.t.kind[turn.kind]}
       </span>
-      {ref ? (
+      {ref && ctx.engineer ? (
         <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{ref}</span>
       ) : null}
     </span>
@@ -251,8 +255,11 @@ function Turn({ turn, lo, hi, ctx }: { turn: TraceTurn; lo: number; hi: number; 
                 className="size-2 shrink-0 rounded-[2px]"
                 style={{ background: familyColor(modelFamily(c.model)) }}
               />
-              <span className="truncate font-mono text-[11px] text-muted-foreground">
-                {ctx.t.kind[c.parent.kind]} · {c.schemaName}
+              <span className="truncate text-xs text-muted-foreground" title={c.schemaName}>
+                {ctx.t.kind[c.parent.kind]}
+                {ctx.engineer ? (
+                  <span className="font-mono text-[11px]"> · {c.schemaName}</span>
+                ) : null}
               </span>
               {total > 0 && hasTiming(c) ? (
                 <span className="shrink-0 text-[10px] text-muted-foreground tabular-nums">
@@ -267,18 +274,33 @@ function Turn({ turn, lo, hi, ctx }: { turn: TraceTurn; lo: number; hi: number; 
   );
 }
 
-function groupTitle(g: TraceGroup, t: TraceStrings) {
-  if (g.exchangeId) return `${g.exchangeId} · ${g.exchangeKind ? t.exchange[g.exchangeKind] : ""}`;
-  return t.work[g.work ?? "other"];
+/** "Plenum", "Einzelgespräch: Ärztekammer, Pflegevertretung"; the exchange id at Engineer. */
+function groupTitle(g: TraceGroup, ctx: Ctx) {
+  if (!g.exchangeId) return { text: ctx.t.work[g.work ?? "other"], id: null };
+  const kind = g.exchangeKind ? ctx.t.exchange[g.exchangeKind] : "";
+  const names =
+    g.exchangeKind === "plenary"
+      ? ""
+      : g.participants.map((p) => agentLook(ctx.run, p, ctx.lang).name).join(", ");
+  return { text: names ? `${kind}: ${names}` : kind, id: g.exchangeId };
 }
 
 function Group({ g, lo, hi, ctx }: { g: TraceGroup; lo: number; hi: number; ctx: Ctx }) {
   const calls = g.turns.flatMap((x) => x.calls);
+  const title = groupTitle(g, ctx);
   return (
     <div className="border-t border-dashed first:border-t-0">
       <div className={cn(ROW, "items-center pt-1.5 pb-0.5 pr-1")}>
-        <span className="truncate text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-          {groupTitle(g, ctx.t)}
+        <span
+          className="min-w-0 text-[11px] leading-tight font-medium tracking-wide text-muted-foreground uppercase"
+          title={title.id ? `${title.text} · ${title.id}` : undefined}
+        >
+          {title.text}
+          {title.id && ctx.engineer ? (
+            <span className="ml-1.5 font-mono font-normal tracking-normal normal-case">
+              {title.id}
+            </span>
+          ) : null}
         </span>
         <span className="relative h-3">
           <span
@@ -321,7 +343,7 @@ export function Waterfall({ rounds, ...ctx }: Ctx & { rounds: TraceRound[] }) {
       </div>
       {rounds.map((r) => {
         const key = String(r.round);
-        const open = !closed[key];
+        const open = key in closed ? !closed[key] : !ctx.roundsClosed;
         const lo = r.start;
         const hi = Math.max(r.end, r.start + 1);
         const tokens = r.calls.reduce((a, c) => a + c.tokensIn + c.tokensOut, 0);
@@ -363,6 +385,9 @@ export function Waterfall({ rounds, ...ctx }: Ctx & { rounds: TraceRound[] }) {
           </section>
         );
       })}
+      {ctx.roundsClosed && rounds.every((r) => !(String(r.round) in closed)) ? (
+        <p className="px-3 py-2 text-xs text-muted-foreground">{t.roundsClosed}</p>
+      ) : null}
     </div>
   );
 }

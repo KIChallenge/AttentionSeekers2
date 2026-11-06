@@ -18,6 +18,8 @@ export interface TraceGroup {
   /** Exchange id for exchanges; null for round-level work. */
   exchangeId: string | null;
   exchangeKind: "plenary" | "bilateral" | "caucus" | null;
+  /** Speakers of the exchange, so the title can name them instead of the id. */
+  participants: string[];
   /** Round-level work kind when exchangeId is null. */
   work: "prep" | "expert" | "lessons" | "summary" | "mandate" | "other" | null;
   turns: TraceTurn[];
@@ -106,6 +108,7 @@ export function buildTrace(calls: LlmCall[], snap: RunSnapshot): TraceRound[] {
           key: gk,
           exchangeId: ex,
           exchangeKind: x?.kind ?? null,
+          participants: x?.participants ?? [],
           work: ex ? null : workOf(c.parent.kind),
           turns: [],
           start: 0,
