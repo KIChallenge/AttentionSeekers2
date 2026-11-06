@@ -183,7 +183,7 @@ const de = {
       {
         what: "Adapter-Gewichte",
         licence:
-          "Nicht veröffentlicht. Hugging-Face-Karten sind vorbereitet (models/hf/), Upload nur nach Prüfung",
+          "Apache-2.0 (Basis Qwen3-8B); privat auf Hugging Face unter Aryt3, mit Modellkarte, ohne Trainingsdaten",
       },
       {
         what: "Klassifikator-Basis (für den SetFit-Vergleich)",
@@ -194,8 +194,10 @@ const de = {
     licence: "Lizenz und Umgang",
   },
   hf: {
-    title: "Hugging Face: vorbereitet, nicht veröffentlicht",
-    text: "models/hf/publish.py schreibt je Adapter eine Modellkarte mit diesen Zahlen, den Grenzen (Schleifen, schlechter als die Basis insgesamt) und dem Zweck: nur Forschungsdemo, nicht zur Vertretung echter Institutionen. Standard ist ein Trockenlauf; hochgeladen wird nur mit --execute. Trainingsdaten werden nie hochgeladen.",
+    title: "Hugging Face: neun Adapter, privat",
+    link: "https://huggingface.co/Aryt3",
+    linkLabel: "huggingface.co/Aryt3",
+    text: "Je Adapter ein privates Repository (Aryt3/sv-persona-<rolle>-qwen3-8b-lora) mit Modellkarte: diese Zahlen, die Grenzen (Schleifen, insgesamt schwächer als die Basis) und der Zweck als reine Forschungsdemo, nicht zur Vertretung echter Institutionen. Hochgeladen sind nur Adaptergewichte, Konfiguration und Karte, nie Trainingsdaten.",
   },
   sources: "Zahlen aus",
 };
@@ -380,7 +382,7 @@ const en: Dict = {
       {
         what: "Adapter weights",
         licence:
-          "Not published. Hugging Face cards are prepared (models/hf/), upload only after review",
+          "Apache-2.0 (base Qwen3-8B); private on Hugging Face under Aryt3, with model card, no training data",
       },
       {
         what: "Classifier base (for the SetFit comparison)",
@@ -391,8 +393,10 @@ const en: Dict = {
     licence: "Licence and handling",
   },
   hf: {
-    title: "Hugging Face: prepared, not published",
-    text: "models/hf/publish.py writes a model card per adapter with these numbers, the limitations (loops, worse than the base overall) and the intended use: research demo only, not for representing real institutions. The default is a dry run; it uploads only with --execute. Training data is never uploaded.",
+    title: "Hugging Face: nine adapters, private",
+    link: "https://huggingface.co/Aryt3",
+    linkLabel: "huggingface.co/Aryt3",
+    text: "One private repository per adapter (Aryt3/sv-persona-<role>-qwen3-8b-lora) with a model card: these numbers, the limitations (loops, weaker than the base overall) and the intended use as a research demo only, not for representing real institutions. Only adapter weights, config and card are uploaded, never training data.",
   },
   sources: "Numbers from",
 };
