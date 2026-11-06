@@ -1,6 +1,7 @@
 "use client";
 
 import { pathLength, positionAt } from "@sv/contracts";
+import { LegalBadge } from "@/components/legal/legal-badge";
 import { Chip, Tile, UttRef } from "@/components/run/bits";
 import { L } from "@/components/run/helpers";
 import { useRun } from "@/components/run/run-context";
@@ -180,6 +181,9 @@ export function ProposalList() {
                         {p.id} · R{p.round}
                       </span>{" "}
                       {L(p.title, lang)}
+                      <div>
+                        <LegalBadge proposal={p} lang={lang} />
+                      </div>
                       {p.rejectionReason ? (
                         <div className="mt-0.5 text-xs text-muted-foreground">
                           {L(p.rejectionReason, lang)}
