@@ -22,6 +22,12 @@ describe("topic comparison", () => {
     expect(familyOf("azure/gpt-6-sol")).toBe("gpt");
     expect(familyOf("bedrock/eu.amazon.nova-pro-v1:0")).toBe("nova");
     expect(familyOf(undefined)).toBe("unknown");
+    expect(familyOf("bedrock/deepseek.v3.2")).toBe("deepseek");
+    expect(familyOf("bedrock/qwen.qwen3-235b-a22b-2507-v1:0")).toBe("qwen");
+    expect(familyOf("bedrock/moonshotai.kimi-k2.5")).toBe("kimi");
+    expect(familyOf("bedrock/zai.glm-5")).toBe("glm");
+    expect(familyOf("bedrock/mistral.devstral-2-123b")).toBe("mistral");
+    expect(familyOf("bedrock/openai.gpt-oss-120b-1:0")).toBe("gpt-oss");
   });
 
   it("compares the two reference runs topic by topic", () => {

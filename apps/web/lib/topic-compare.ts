@@ -23,12 +23,29 @@ export function topicKeyOf(r: Pick<RunSummary, "template" | "question">): string
   return `q-${h.toString(16).padStart(8, "0")}`;
 }
 
-/** Model family from a gateway id: "azure/gpt-6-sol" -> "gpt", "bedrock/eu.amazon.nova-pro" -> "nova". */
+/**
+ * Model family from a gateway id: "azure/gpt-6-sol" -> "gpt", "bedrock/eu.amazon.nova-pro" ->
+ * "nova", "bedrock/moonshotai.kimi-k2.5" -> "kimi". The open-weight gpt-oss is its own family
+ * here, since it is a different model line from the gateway GPT.
+ */
+const FAMILY_PATTERNS: Array<[RegExp, string]> = [
+  [/gpt-oss/, "gpt-oss"],
+  [/gpt/, "gpt"],
+  [/nova/, "nova"],
+  [/deepseek/, "deepseek"],
+  [/qwen/, "qwen"],
+  [/kimi|moonshot/, "kimi"],
+  [/glm|zai\./, "glm"],
+  [/mistral|devstral|pixtral/, "mistral"],
+  [/minimax/, "minimax"],
+  [/claude/, "claude"],
+  [/llama/, "llama"],
+  [/gemini/, "gemini"],
+];
 export function familyOf(model: string | undefined): string {
   if (!model) return "unknown";
   const m = model.toLowerCase();
-  for (const f of ["gpt", "nova", "mistral", "pixtral", "claude", "llama", "gemini"])
-    if (m.includes(f)) return f === "pixtral" ? "mistral" : f;
+  for (const [re, f] of FAMILY_PATTERNS) if (re.test(m)) return f;
   return m.split("/").at(-1)?.split(/[-.:]/)[0] ?? m;
 }
 
@@ -42,7 +59,7 @@ export interface RunColumn {
   variantKind: string;
   /** model_ensemble label, else the variant kind. */
   label: string;
-  /** "gpt", "nova" or "mixed": which families sat at the institutions' seats. */
+  /** A family ("gpt", "deepseek", ...) or "mixed": which families sat at the institutions' seats. */
   seatFamilies: string;
   seatModels: Record<string, string>;
   agreed: number;
