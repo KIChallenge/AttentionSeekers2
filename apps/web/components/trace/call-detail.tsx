@@ -123,7 +123,7 @@ export function CallDetail({
       : null;
 
   return (
-    <div className="space-y-3 rounded-2xl border bg-card p-4 shadow-xs">
+    <div className="space-y-4 rounded-2xl border bg-card p-5 shadow-none">
       <div className="flex items-start gap-2">
         <Tile id={who} size="md" />
         <div className="min-w-0 flex-1">

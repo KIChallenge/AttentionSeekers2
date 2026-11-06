@@ -4,7 +4,7 @@ import { loadModelsData } from "@/components/models/data.server";
 import { type Verdict, verdict } from "@/components/models/parse";
 import { Playground } from "@/components/models/playground";
 import { modelsT } from "@/components/models/strings";
-import { Page, PageHead } from "@/components/shell/page";
+import { Page, PageHead, SectionHead } from "@/components/shell/page";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,11 +34,8 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-20 space-y-3">
-      <div>
-        <h2 className="text-base font-medium">{title}</h2>
-        {sub ? <p className="mt-0.5 max-w-3xl text-sm text-muted-foreground">{sub}</p> : null}
-      </div>
+    <section id={id} className="scroll-mt-20 space-y-4">
+      <SectionHead title={title} description={sub} />
       {children}
     </section>
   );
@@ -152,7 +149,7 @@ export default async function ModelsPage() {
           </>
         }
       />
-      <div className="space-y-10">
+      <div className="space-y-12">
         {d.missing.length ? (
           <Alert variant="destructive">
             <AlertTitle>{t.missing}</AlertTitle>

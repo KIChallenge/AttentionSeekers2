@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { loadMethodNote } from "@/components/method/note.server";
 import { methodT } from "@/components/method/strings";
-import { Page, PageHead } from "@/components/shell/page";
+import { Page, PageHead, SectionHead } from "@/components/shell/page";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -22,11 +22,8 @@ type T = ReturnType<typeof methodT>;
 
 function Section({ title, sub, children }: { title: string; sub?: string; children: ReactNode }) {
   return (
-    <section className="space-y-3">
-      <div>
-        <h2 className="text-base font-medium">{title}</h2>
-        {sub ? <p className="mt-0.5 max-w-3xl text-sm text-muted-foreground">{sub}</p> : null}
-      </div>
+    <section className="space-y-4">
+      <SectionHead title={title} description={sub} />
       {children}
     </section>
   );
@@ -65,7 +62,7 @@ export default async function MethodPage() {
   return (
     <Page>
       <PageHead title={t.title} sub={t.sub} />
-      <div className="space-y-10">
+      <div className="space-y-12">
         <Section title={t.claims.title}>
           <div className="grid gap-3 md:grid-cols-3">
             {t.claims.items.map((c) => (
