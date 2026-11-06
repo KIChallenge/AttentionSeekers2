@@ -1,0 +1,606 @@
+{
+ "fixture": "gtelg-2023",
+ "note": "Backtest fixture. Forecast computed with the forecasting CLI as of the first-draft date (forecast --measure-class digitalisation --proposer health_ministry --date 2023-04-05 --k 5, binary and --target three): pool = episodes whose label was knowable (first draft + 730 days) before that date. Labels from the legislative record only.",
+ "registry_record": {
+  "case_id": "XXVII-ME-260",
+  "me_citation": "260/ME XXVII. GP",
+  "gp": "XXVII",
+  "me_inr": 260,
+  "title": "Gesundheitstelematikgesetz, Epidemiegesetz u.a., Änderung",
+  "first_draft_date": "2023-04-05",
+  "begutachtung_end": "2023-05-09",
+  "ressort": "BMSGPK",
+  "ressort_name": "Bundesministerium für Soziales, Gesundheit, Pflege und Konsumentenschutz",
+  "proposer_group": "health_ministry",
+  "government_id": "gov_2021-12-06",
+  "coalition": "oevp_gruene",
+  "coalition_parties": [
+   "ÖVP",
+   "Grüne"
+  ],
+  "legislative_period": "XXVII",
+  "n_stellungnahmen": 34,
+  "themen": [
+   "Gesundheit und Ernährung",
+   "Soziales"
+  ],
+  "schlagworte": [
+   "Gesundheit",
+   "Sozialversicherung I. Allgemeine Sozialversicherung"
+  ],
+  "scope_reasons": [
+   "health_term"
+  ],
+  "measure_class": "digitalisation",
+  "measure_class_method": "keyword_rule_v1",
+  "me_url": "https://www.parlament.gv.at/gegenstand/XXVII/ME/260",
+  "links": [
+   {
+    "bill": "XXVII I 2530",
+    "doktyp": "RV",
+    "method": "me_stage_link",
+    "jaccard": null,
+    "title": "Gesundheitstelematikgesetz, Allgemeine Sozialversicherungsgesetz u.a., Änderung",
+    "status": 5,
+    "einlangen": "2024-04-17",
+    "third_reading": "2024-07-04",
+    "br_date": "2024-07-11",
+    "bgbl": [
+     "BGBl. I Nr. 105/2024"
+    ],
+    "vote_text": "Dafür: V, S, G, N. Dagegen: F",
+    "via_report": null,
+    "changed_in_committee": false,
+    "changed_in_plenum": true,
+    "url": "https://www.parlament.gv.at/gegenstand/XXVII/I/2530"
+   }
+  ],
+  "needs_human": [],
+  "text_similarity": 0.3588,
+  "text_final_doc": "Geändert im Plenum",
+  "vfgh_repeals": [],
+  "decision_date": "2024-07-04",
+  "outcome_record": {
+   "source": "parlament_gesetzgebungsverfahren",
+   "identifier": "GP XXVII RV 2530; BGBl. I Nr. 105/2024",
+   "url": "https://www.parlament.gv.at/gegenstand/XXVII/I/2530"
+  },
+  "outcome": "partially_implemented",
+  "label_basis": "text_similarity_below_0.75",
+  "censored": false,
+  "knowable_date": "2025-04-04",
+  "fr_j1a_label": "implemented_modified",
+  "episode_id": "EP-XXVII-ME-260"
+ },
+ "episode": {
+  "episode_id": "EP-XXVII-ME-260",
+  "members": [
+   "XXVII-ME-260"
+  ],
+  "lead_case": "XXVII-ME-260",
+  "title": "Gesundheitstelematikgesetz, Epidemiegesetz u.a., Änderung",
+  "first_draft_date": "2023-04-05",
+  "gp": "XXVII",
+  "proposer_group": "health_ministry",
+  "ressort": "BMSGPK",
+  "coalition": "oevp_gruene",
+  "government_id": "gov_2021-12-06",
+  "n_stellungnahmen": 34,
+  "measure_class": "digitalisation",
+  "outcome": "partially_implemented",
+  "fr_j1a_label": "implemented_modified",
+  "censored": false,
+  "knowable_date": "2025-04-04",
+  "needs_human": [],
+  "title_link_only": false,
+  "three_class_ok": true,
+  "vote_text": "Dafür: V, S, G, N. Dagegen: F",
+  "text_similarity": 0.3588
+ },
+ "forecast_binary": {
+  "descriptor": {
+   "first_draft_date": "2023-04-05",
+   "proposer_group": "health_ministry",
+   "coalition": "oevp_gruene",
+   "measure_class": "digitalisation"
+  },
+  "pool_size": 113,
+  "forecast_A": {
+   "method": "A",
+   "level": "proposer+coalition",
+   "n": 8.0,
+   "probs": {
+    "enacted": 0.9444444444444444,
+    "not_enacted": 0.05555555555555555
+   },
+   "rates": [
+    {
+     "category": "enacted",
+     "k": 8.0,
+     "n": 8.0,
+     "p": 0.9444444444444444,
+     "jeffreys90": [
+      0.7924919583192673,
+      1.0
+     ],
+     "wilson90": [
+      0.7472764025762368,
+      1.0
+     ]
+    },
+    {
+     "category": "not_enacted",
+     "k": 0.0,
+     "n": 8.0,
+     "p": 0.05555555555555555,
+     "jeffreys90": [
+      0.0,
+      0.2075080416807325
+     ],
+     "wilson90": [
+      0.0,
+      0.25272359742376327
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "forecast_B": {
+   "method": "B",
+   "level": "weighted_analogs",
+   "n": 113,
+   "probs": {
+    "enacted": 0.8705782906067459,
+    "not_enacted": 0.12942170939325423
+   },
+   "rates": [
+    {
+     "category": "enacted",
+     "k": 70.04558922580331,
+     "n": 80.03302136863172,
+     "p": 0.8705782906067459,
+     "jeffreys90": [
+      0.8047860963043578,
+      0.9259388343033745
+     ],
+     "wilson90": [
+      0.8019313681669616,
+      0.9239472739348621
+     ]
+    },
+    {
+     "category": "not_enacted",
+     "k": 9.987432142828416,
+     "n": 80.03302136863172,
+     "p": 0.12942170939325423,
+     "jeffreys90": [
+      0.0740611656966258,
+      0.19521390369564168
+     ],
+     "wilson90": [
+      0.07605272606513791,
+      0.19806863183303836
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "status_quo": {
+   "method": "status_quo",
+   "level": "all",
+   "n": 113.0,
+   "probs": {
+    "enacted": 0.8464912280701754,
+    "not_enacted": 0.15350877192982457
+   },
+   "rates": [
+    {
+     "category": "enacted",
+     "k": 96.0,
+     "n": 113.0,
+     "p": 0.8464912280701754,
+     "jeffreys90": [
+      0.7879133976213781,
+      0.8981375505626497
+     ],
+     "wilson90": [
+      0.7861083180248476,
+      0.8966593147233808
+     ]
+    },
+    {
+     "category": "not_enacted",
+     "k": 17.0,
+     "n": 113.0,
+     "p": 0.15350877192982457,
+     "jeffreys90": [
+      0.10186244943735012,
+      0.21208660237862204
+     ],
+     "wilson90": [
+      0.10334068527661919,
+      0.21389168197515243
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "analogs": [
+   {
+    "episode_id": "EP-XXVII-ME-101",
+    "title": "IVF-Fonds-Gesetz, Änderung",
+    "first_draft_date": "2021-03-19",
+    "proposer_group": "health_ministry",
+    "coalition": "oevp_gruene",
+    "outcome": "implemented",
+    "weight": 2.369
+   },
+   {
+    "episode_id": "EP-XXVII-ME-98",
+    "title": "Epidemiegesetz, COVID-19-Maßnahmengesetz, Änderung",
+    "first_draft_date": "2021-03-03",
+    "proposer_group": "health_ministry",
+    "coalition": "oevp_gruene",
+    "outcome": "partially_implemented",
+    "weight": 2.357
+   },
+   {
+    "episode_id": "EP-XXVII-ME-88",
+    "title": "Epidemiegesetz, COVID-19-Maßnahmengesetz, Änderung",
+    "first_draft_date": "2020-12-31",
+    "proposer_group": "health_ministry",
+    "coalition": "oevp_gruene",
+    "outcome": "implemented",
+    "weight": 2.311
+   },
+   {
+    "episode_id": "EP-XXVII-ME-75",
+    "title": "Suchtmittelgesetz, Änderung",
+    "first_draft_date": "2020-11-09",
+    "proposer_group": "health_ministry",
+    "coalition": "oevp_gruene",
+    "outcome": "implemented",
+    "weight": 2.273
+   },
+   {
+    "episode_id": "EP-XXVII-ME-46",
+    "title": "Gesundheitsberuferegister-Gesetz, Gesundheits- und Krankenpflegegesetz u.a., Änderung (GBRG-Novelle 2020)",
+    "first_draft_date": "2020-09-01",
+    "proposer_group": "health_ministry",
+    "coalition": "oevp_gruene",
+    "outcome": "implemented",
+    "weight": 2.224
+   }
+  ],
+  "note": "Historical base rate over comparable first drafts, not a verdict. Reference-class counts only, no trained model.",
+  "measure_class_rate": {
+   "method": "measure_class_descriptive",
+   "level": "measure_class",
+   "n": 1.0,
+   "probs": {
+    "enacted": 0.75,
+    "not_enacted": 0.25
+   },
+   "rates": [
+    {
+     "category": "enacted",
+     "k": 1.0,
+     "n": 1.0,
+     "p": 0.75,
+     "jeffreys90": [
+      0.22851981380632863,
+      1.0
+     ],
+     "wilson90": [
+      0.2698659487840541,
+      0.9999999999999999
+     ]
+    },
+    {
+     "category": "not_enacted",
+     "k": 0.0,
+     "n": 1.0,
+     "p": 0.25,
+     "jeffreys90": [
+      0.0,
+      0.7714801861936709
+     ],
+     "wilson90": [
+      0.0,
+      0.7301340512159458
+     ]
+    }
+   ],
+   "small_n_warning": true,
+   "wide_interval_warning": true,
+   "note": "Descriptive only: measure_class is a keyword rule (v1) and is not part of the preregistered baseline; this rate was never scored."
+  },
+  "sentence": "Drafts in this reference class (proposer+coalition) were enacted within 24 months in 8 of 8 comparable cases (90% Jeffreys interval 79 to 100%)."
+ },
+ "forecast_three_class": {
+  "descriptor": {
+   "first_draft_date": "2023-04-05",
+   "proposer_group": "health_ministry",
+   "coalition": "oevp_gruene",
+   "measure_class": "digitalisation"
+  },
+  "pool_size": 113,
+  "forecast_A": {
+   "method": "A",
+   "level": "proposer",
+   "n": 65.0,
+   "probs": {
+    "implemented": 0.41353383458646614,
+    "partially_implemented": 0.3684210526315789,
+    "not_implemented": 0.21804511278195488
+   },
+   "rates": [
+    {
+     "category": "implemented",
+     "k": 27.0,
+     "n": 65.0,
+     "p": 0.41353383458646614,
+     "jeffreys90": [
+      0.31896459032464786,
+      0.5172629258437667
+     ],
+     "wilson90": [
+      0.3201989712181831,
+      0.5173327959190522
+     ]
+    },
+    {
+     "category": "partially_implemented",
+     "k": 24.0,
+     "n": 65.0,
+     "p": 0.3684210526315789,
+     "jeffreys90": [
+      0.27631520837476287,
+      0.4705812005347537
+     ],
+     "wilson90": [
+      0.27784337366749123,
+      0.47106935736278166
+     ]
+    },
+    {
+     "category": "not_implemented",
+     "k": 14.0,
+     "n": 65.0,
+     "p": 0.21804511278195488,
+     "jeffreys90": [
+      0.14154549887941337,
+      0.30756871575050393
+     ],
+     "wilson90": [
+      0.14379755062102406,
+      0.30971839338604046
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "forecast_B": {
+   "method": "B",
+   "level": "weighted_analogs",
+   "n": 113,
+   "probs": {
+    "implemented": 0.3984319175574622,
+    "partially_implemented": 0.40572203516044,
+    "not_implemented": 0.19584604728209765
+   },
+   "rates": [
+    {
+     "category": "implemented",
+     "k": 20.835777550323076,
+     "n": 52.049368436945095,
+     "p": 0.3984319175574622,
+     "jeffreys90": [
+      0.2945044651662956,
+      0.5141041192011631
+     ],
+     "wilson90": [
+      0.29621029901620066,
+      0.514257602805096
+     ]
+    },
+    {
+     "category": "partially_implemented",
+     "k": 21.226158743793594,
+     "n": 52.049368436945095,
+     "p": 0.40572203516044,
+     "jeffreys90": [
+      0.3013823194201981,
+      0.5216254718669271
+     ],
+     "wilson90": [
+      0.3030303324641468,
+      0.5216967903105999
+     ]
+    },
+    {
+     "category": "not_implemented",
+     "k": 9.987432142828416,
+     "n": 52.049368436945095,
+     "p": 0.19584604728209765,
+     "jeffreys90": [
+      0.11546473403636587,
+      0.29297422413899954
+     ],
+     "wilson90": [
+      0.11826129129458374,
+      0.2959555699230017
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "status_quo": {
+   "method": "status_quo",
+   "level": "all",
+   "n": 84.0,
+   "probs": {
+    "implemented": 0.391812865497076,
+    "partially_implemented": 0.40350877192982454,
+    "not_implemented": 0.2046783625730994
+   },
+   "rates": [
+    {
+     "category": "implemented",
+     "k": 33.0,
+     "n": 84.0,
+     "p": 0.391812865497076,
+     "jeffreys90": [
+      0.3088230324779553,
+      0.4822624573710438
+     ],
+     "wilson90": [
+      0.3098643016128377,
+      0.48253651518695834
+     ]
+    },
+    {
+     "category": "partially_implemented",
+     "k": 34.0,
+     "n": 84.0,
+     "p": 0.40350877192982454,
+     "jeffreys90": [
+      0.3199982465719915,
+      0.49430003562605684
+     ],
+     "wilson90": [
+      0.3209768135878385,
+      0.4944905791230913
+     ]
+    },
+    {
+     "category": "not_implemented",
+     "k": 17.0,
+     "n": 84.0,
+     "p": 0.2046783625730994,
+     "jeffreys90": [
+      0.138272135452854,
+      0.281399507033239
+     ],
+     "wilson90": [
+      0.14009088152036722,
+      0.2832447207012885
+     ]
+    }
+   ],
+   "small_n_warning": false,
+   "wide_interval_warning": false
+  },
+  "analogs": [
+   {
+    "episode_id": "EP-XXVII-ME-101",
+    "title": "IVF-Fonds-Gesetz, Änderung",
+    "first_draft_date": "2021-03-19",
+    "proposer_group": "health_ministry",
+    "coalition": "oevp_gruene",
+    "outcome": "implemented",
+    "weight": 2.369
+   },
+   {
+    "episode_id": "EP-XXVII-ME-98",
+    "title": "Epidemiegesetz, COVID-19-Maßnahmengesetz, Änderung",
+    "first_draft_date": "2021-03-03",
+    "proposer_group": "health_ministry",
+    "coalition": "oevp_gruene",
+    "outcome": "partially_implemented",
+    "weight": 2.357
+   },
+   {
+    "episode_id": "EP-XXVII-ME-88",
+    "title": "Epidemiegesetz, COVID-19-Maßnahmengesetz, Änderung",
+    "first_draft_date": "2020-12-31",
+    "proposer_group": "health_ministry",
+    "coalition": "oevp_gruene",
+    "outcome": "implemented",
+    "weight": 2.311
+   },
+   {
+    "episode_id": "EP-XXVII-ME-75",
+    "title": "Suchtmittelgesetz, Änderung",
+    "first_draft_date": "2020-11-09",
+    "proposer_group": "health_ministry",
+    "coalition": "oevp_gruene",
+    "outcome": "implemented",
+    "weight": 2.273
+   },
+   {
+    "episode_id": "EP-XXVII-ME-46",
+    "title": "Gesundheitsberuferegister-Gesetz, Gesundheits- und Krankenpflegegesetz u.a., Änderung (GBRG-Novelle 2020)",
+    "first_draft_date": "2020-09-01",
+    "proposer_group": "health_ministry",
+    "coalition": "oevp_gruene",
+    "outcome": "implemented",
+    "weight": 2.224
+   }
+  ],
+  "note": "Historical base rate over comparable first drafts, not a verdict. Reference-class counts only, no trained model.",
+  "measure_class_rate": {
+   "method": "measure_class_descriptive",
+   "level": "measure_class",
+   "n": 0.0,
+   "probs": {
+    "implemented": 0.3333333333333333,
+    "partially_implemented": 0.3333333333333333,
+    "not_implemented": 0.3333333333333333
+   },
+   "rates": [
+    {
+     "category": "implemented",
+     "k": 0.0,
+     "n": 0.0,
+     "p": 0.3333333333333333,
+     "jeffreys90": [
+      0,
+      1
+     ],
+     "wilson90": [
+      0.0,
+      1.0
+     ]
+    },
+    {
+     "category": "partially_implemented",
+     "k": 0.0,
+     "n": 0.0,
+     "p": 0.3333333333333333,
+     "jeffreys90": [
+      0,
+      1
+     ],
+     "wilson90": [
+      0.0,
+      1.0
+     ]
+    },
+    {
+     "category": "not_implemented",
+     "k": 0.0,
+     "n": 0.0,
+     "p": 0.3333333333333333,
+     "jeffreys90": [
+      0,
+      1
+     ],
+     "wilson90": [
+      0.0,
+      1.0
+     ]
+    }
+   ],
+   "small_n_warning": true,
+   "wide_interval_warning": true,
+   "note": "Descriptive only: measure_class is a keyword rule (v1) and is not part of the preregistered baseline; this rate was never scored."
+  },
+  "sentence": "Implemented as drafted in 27 of 65 comparable cases (proposer)."
+ }
+}
