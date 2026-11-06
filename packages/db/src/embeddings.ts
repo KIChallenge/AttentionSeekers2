@@ -151,7 +151,10 @@ export async function embedText(
 const queryCache = new Map<string, Promise<number[] | null>>();
 
 /** Embedding for a search query, or null when not configured or the call fails. */
-export function embedQuery(text: string): Promise<number[] | null> {
+export function embedQuery(
+  text: string,
+  opts: { retries?: number; timeoutMs?: number } = {},
+): Promise<number[] | null> {
   const q = text.trim().slice(0, 2000);
   if (!q || !embeddingConfigured()) return Promise.resolve(null);
   const hit = queryCache.get(q);
@@ -160,7 +163,11 @@ export function embedQuery(text: string): Promise<number[] | null> {
     queryCache.set(q, hit);
     return hit;
   }
-  const p = embedText(q, { retries: Math.max(2, embedRegions().length), timeoutMs: 8_000 })
+  // Interactive callers wait at most a few seconds before falling back to full text.
+  const p = embedText(q, {
+    retries: opts.retries ?? Math.max(2, embedRegions().length),
+    timeoutMs: opts.timeoutMs ?? 5_000,
+  })
     .then((e) => e.vector)
     .catch((error) => {
       console.warn(
