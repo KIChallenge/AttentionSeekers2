@@ -1,6 +1,6 @@
 import { renderResultHtml } from "@/components/result/export-html";
 import { loadEvidence } from "@/components/run/evidence-server";
-import { loadRunSnapshot } from "@/lib/runs";
+import { loadCompromiseSidecar, loadRunSnapshot } from "@/lib/runs";
 
 // Result document export (W-38, FR-O4, FR-L6): one self-contained HTML file per language,
 // rendered from the same folded snapshot as /runs/[runId]/result.
@@ -25,7 +25,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ runI
   if (!snap?.run) return Response.json({ error: "Run not found." }, { status: 404 });
 
   const evidence = await loadEvidence(runId);
-  const html = renderResultHtml(snap, snap.run, evidence, lang, { origin: url.origin });
+  const html = renderResultHtml(snap, snap.run, evidence, lang, {
+    origin: url.origin,
+    consistency: await loadCompromiseSidecar(runId),
+  });
   const file = `ergebnis-${runId}-${lang}.html`.replace(/[^a-zA-Z0-9_.-]/g, "_");
   const disposition = url.searchParams.get("download") === "1" ? "attachment" : "inline";
   return new Response(html, {

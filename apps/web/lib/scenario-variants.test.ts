@@ -30,6 +30,7 @@ const col = (label: string, passes: boolean | null): VariantColumn => ({
   tabled: 0,
   compromise: null,
   compromiseResult: passes === null ? null : result(passes),
+  consistency: null,
   wait: null,
   cost: null,
   conflicts: [],
@@ -56,6 +57,30 @@ describe("variantHeadline", () => {
     );
   });
 });
+
+describe("variantHeadline with the consistency check", () => {
+  it("says where the compromise carries only if the conditions can be reconciled", () => {
+    const k = (verdict: "carries" | "carries_if_reconciled") => ({
+      runId: "x",
+      packageId: "k-5",
+      verdict,
+      label: { lang: "de" as const, text: "", translations: {} },
+      conditions: [],
+      pairsChecked: 1,
+      conflicts: [],
+      model: "m",
+      checkedAt: "",
+    });
+    const cols = [
+      { ...col("a", true), consistency: k("carries_if_reconciled") },
+      { ...col("b", true), consistency: k("carries") },
+    ];
+    expect(variantHeadline({ topics: [], columns: cols }, labelOf2, "de")).toBe(
+      "Der Kompromissvorschlag des Moderators trägt in allen 2 Einstellungen. Der Experte findet in 1 davon widersprüchliche Bedingungen: er trägt dort nur, wenn die Bedingungen vereinbar sind.",
+    );
+  });
+});
+const labelOf2 = (l: string) => l;
 
 describe("compareVariants", () => {
   it("returns null when the scenario has no variant runs", () => {

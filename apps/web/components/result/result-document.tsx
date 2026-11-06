@@ -26,7 +26,7 @@ function Section({ n, title, children }: { n: number; title: string; children: R
 
 /** Eight-part result document (FR-O1..O3), derived from the snapshot, never generated. */
 export function ResultDocument() {
-  const { snap, run, t, lang, runId, evidence } = useRun();
+  const { snap, run, t, lang, runId, evidence, consistency } = useRun();
   const m = run.mandate;
   const topics = m.topics;
   const status = topics.map((tp) => ({ tp, st: topicStatus(snap, tp.id) }));
@@ -198,6 +198,7 @@ export function ResultDocument() {
                 result={snap.compromiseResult ?? null}
                 lang={lang}
                 compact
+                consistency={consistency}
               />
             </div>
           ) : null}
