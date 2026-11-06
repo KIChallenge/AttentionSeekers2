@@ -51,6 +51,16 @@ export interface Excluded {
 export async function loadTopicComparison(
   key: string,
 ): Promise<{ cmp: TopicComparison; excluded: Excluded[] } | null> {
+  const sel = await selectTopicRuns(key);
+  return sel ? { cmp: compareRuns(key, sel.items), excluded: sel.excluded } : null;
+}
+
+type Loaded = { summary: RunSummary; snap: RunSnapshot };
+
+/** The comparable runs of one question in display order, shared by the topic views. */
+export async function selectTopicRuns(
+  key: string,
+): Promise<{ items: Loaded[]; excluded: Excluded[] } | null> {
   const loaded = await loadAll();
   const all = [...loaded.values()]
     .map((x) => x.summary)
@@ -77,7 +87,7 @@ export async function loadTopicComparison(
       Number(b.summary.isReference) - Number(a.summary.isReference) ||
       a.summary.id.localeCompare(b.summary.id),
   );
-  return { cmp: compareRuns(key, items), excluded };
+  return { items, excluded };
 }
 
 /**
