@@ -321,17 +321,17 @@ export default async function ModelsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t.table.institution}</TableHead>
-                    {versions.map(([k]) => (
+                    {versions.map(([k, v]) => (
                       <TableHead key={`s-${k}`} className="text-right">
-                        {t.versions.sign} {k}
+                        {t.versions.sign} {v.label ?? k}
                       </TableHead>
                     ))}
                     <TableHead className="text-right">
                       {t.versions.sign} {t.versions.base}
                     </TableHead>
-                    {versions.map(([k]) => (
+                    {versions.map(([k, v]) => (
                       <TableHead key={`i-${k}`} className="text-right">
-                        {t.versions.inChar} {k}
+                        {t.versions.inChar} {v.label ?? k}
                       </TableHead>
                     ))}
                     <TableHead className="text-right">
