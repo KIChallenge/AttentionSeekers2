@@ -1,7 +1,10 @@
-// Evidence retrieval (FR-P1..P5, FR-H2, FR-T6): German full-text search over segments,
-// eligibility date <= asOf, recency weight per citation. Vector branch is not wired
-// yet (no embeddings imported), so vectorRank stays null in the trace.
+// Evidence retrieval (FR-P1..P5, FR-H2, FR-T6). Hybrid: German full-text search and a
+// Titan v2 vector top-k (segment_embeddings, HNSW cosine) are fused by reciprocal rank
+// together with the agent's own-institution list, then weighted by recency. The as-of
+// eligibility predicate (date <= asOf) sits inside every SQL branch, before ranking, and
+// is checked again in fuse(). SV_RETRIEVAL=fulltext switches the vector branch off.
 import type { CitationRef, RetrievalTrace } from "@sv/contracts";
+import { type SQL, sql } from "drizzle-orm";
 
 export interface Passage {
   /** Short handle shown to the model, e.g. "E3". */
@@ -17,6 +20,10 @@ export interface Passage {
   outlet: string | null;
   recencyWeight: number;
   bm25Rank: number | null;
+  /** Rank in the vector branch (1 = nearest), null when not retrieved semantically. */
+  vectorRank?: number | null;
+  /** Cosine similarity to the query embedding, when the vector branch returned it. */
+  similarity?: number | null;
   fused: number;
   ownInstitution: boolean;
 }
@@ -27,6 +34,19 @@ export interface EvidenceSet {
 }
 
 export const HALF_LIFE_YEARS = 2;
+/** Reciprocal rank fusion constant (Cormack et al.). */
+export const RRF_K = 60;
+
+/** Headings and fragments ("Datum", "Zu § 3") sit close to every query vector; skip them. */
+export const VECTOR_MIN_CHARS = 50;
+
+export type RetrievalMode = "fulltext" | "hybrid";
+
+/** Hybrid unless SV_RETRIEVAL=fulltext (fallback flag) or no embedding key is configured. */
+export function retrievalMode(): RetrievalMode {
+  if (process.env.SV_RETRIEVAL === "fulltext") return "fulltext";
+  return process.env.BIFROST_SEED_BEDROCK_KEY ? "hybrid" : "fulltext";
+}
 
 /** The UI fixture corpus is invented; live runs skip it unless SV_INCLUDE_FIXTURE=1. */
 export const FIXTURE_REVISION = "corpus-2026-10-31";
@@ -74,7 +94,7 @@ async function db() {
   }
 }
 
-type Row = {
+export type Row = {
   segment_id: string;
   source_id: string;
   text: string;
@@ -86,6 +106,8 @@ type Row = {
   outlet: string | null;
   corpus_revision: string;
   rank: number;
+  /** Vector branch only: cosine similarity. */
+  similarity?: number | null;
 };
 
 function isoDay(d: string | Date): string {
@@ -110,10 +132,91 @@ export function queryTerms(text: string): string[] {
   ].slice(0, 24);
 }
 
+export interface Scored {
+  r: Row;
+  date: string;
+  w: number;
+  own: boolean;
+  bm25Rank: number | null;
+  vectorRank: number | null;
+  similarity: number | null;
+  fused: number;
+}
+
 /**
- * Retrieves passages for one agent. Own-institution passages are boosted (x1.5) and
- * every score is multiplied by the recency weight. Returns used passages (top `use`)
- * and the full candidate trace, including discarded ones with a reason.
+ * Reciprocal rank fusion of the ranked lists (lexical, vector, own institution; k = 60),
+ * times the recency weight (FR-P4). Rows dated after asOf are dropped here as a second
+ * line of defence behind the SQL predicate; a row present in no list (an injected
+ * segment) gets a floor score of 1/(k+30).
+ */
+export function fuse(input: {
+  lexical: Row[];
+  vector?: Row[];
+  own?: Row[];
+  extra?: Row[];
+  asOf: string;
+  role: string;
+}): Scored[] {
+  const rank = (rows: Row[] = []) => {
+    const m = new Map<string, number>();
+    for (const [i, r] of rows.entries()) if (!m.has(r.segment_id)) m.set(r.segment_id, i + 1);
+    return m;
+  };
+  const lex = rank(input.lexical);
+  const vec = rank(input.vector);
+  const ownR = rank(input.own);
+  const sim = new Map((input.vector ?? []).map((r) => [r.segment_id, r.similarity ?? null]));
+  const all = [
+    ...(input.extra ?? []),
+    ...input.lexical,
+    ...(input.vector ?? []),
+    ...(input.own ?? []),
+  ];
+  const seen = new Set<string>();
+  return all
+    .filter((r) => isEligible(isoDay(r.date), input.asOf))
+    .filter((r) => !seen.has(r.segment_id) && Boolean(seen.add(r.segment_id)))
+    .map((r) => {
+      const date = isoDay(r.date);
+      const w = recencyWeight(date, input.asOf);
+      const lr = lex.get(r.segment_id);
+      const vr = vec.get(r.segment_id);
+      const or = ownR.get(r.segment_id);
+      const rrf =
+        (lr ? 1 / (RRF_K + lr) : 0) + (vr ? 1 / (RRF_K + vr) : 0) + (or ? 1 / (RRF_K + or) : 0) ||
+        1 / (RRF_K + 30);
+      return {
+        r,
+        date,
+        w,
+        own: r.institution_role === input.role,
+        bm25Rank: lr ?? null,
+        vectorRank: vr ?? null,
+        similarity: vr ? Number(sim.get(r.segment_id) ?? 0) : null,
+        fused: rrf * w,
+      };
+    })
+    .sort((a, b) => b.fused - a.fused);
+}
+
+/**
+ * Segments injected by a fork edit (includeSegmentIds), still behind the as-of predicate.
+ * The id list is bound as ONE text[] parameter: interpolating a JS array directly makes
+ * drizzle expand it into a row literal, which Postgres rejects inside any().
+ */
+export function includeSegmentsQuery(ids: string[], asOf: string): SQL {
+  return sql`
+    select s.id as segment_id, s.source_id, s.text, src.date::text as date, src.institution_code,
+           src.institution_role, src.kind, src.title, src.outlet, src.corpus_revision, 0.5 as rank
+    from segments s join sources src on src.id = s.source_id
+    where s.id = any(${sql.param(ids)}::text[]) and src.date <= ${asOf}::date
+      and src.person_filtered = true`;
+}
+
+/**
+ * Retrieves passages for one agent. Own-institution passages enter as their own ranked
+ * list, every score is multiplied by the recency weight. Returns used passages (top
+ * `use`) and the full candidate trace, including discarded ones with a reason.
  */
 export async function retrieve(opts: {
   query: string;
@@ -123,21 +226,25 @@ export async function retrieve(opts: {
   use?: number;
   excludeSegmentIds?: string[];
   includeSegmentIds?: string[];
+  mode?: RetrievalMode;
 }): Promise<EvidenceSet> {
   const { query, role, asOf, limit = 10, use = 6 } = opts;
+  const mode = opts.mode ?? retrievalMode();
   const terms = queryTerms(query);
   const trace: RetrievalTrace = { query: terms.join(" "), asOf, corpusRevision, candidates: [] };
   const d = await db();
   if (!d) return { passages: [], trace };
-  let rows: Row[] = [];
-  const lexRank = new Map<string, number>();
-  const ownRank = new Map<string, number>();
+  let lexRows: Row[] = [];
+  let ownRows: Row[] = [];
+  let vecRows: Row[] = [];
+  let extraRows: Row[] = [];
   try {
-    const { sql } = await import("drizzle-orm");
+    const store = await import("@sv/db");
     const tsq = terms.join(" OR ");
-    // Two bounded queries so the plan stays cheap on a large corpus: lexical top hits
-    // via the GIN index, plus the most recent passages of the agent's own institution.
-    const lexical = await d.execute(sql`
+    // Bounded queries so the plan stays cheap on a large corpus: lexical top hits via the
+    // GIN index, the most recent passages of the agent's own institution, and (hybrid)
+    // the nearest neighbours via HNSW. Every branch filters date <= asOf in SQL.
+    const lexical = d.execute(sql`
       with q as (select websearch_to_tsquery('german', ${tsq}) as q)
       select s.id as segment_id, s.source_id, s.text, src.date::text as date, src.institution_code,
              src.institution_role, src.kind, src.title, src.outlet, src.corpus_revision,
@@ -146,7 +253,7 @@ export async function retrieve(opts: {
       where s.tsv @@ q.q and src.date <= ${asOf}::date and src.person_filtered = true and src.corpus_revision <> ${excludedRevision()}
       order by ts_rank_cd(s.tsv, q.q) desc, src.date desc
       limit 40`);
-    const own = await d.execute(sql`
+    const own = d.execute(sql`
       with q as (select websearch_to_tsquery('german', ${tsq}) as q)
       select s.id as segment_id, s.source_id, s.text, src.date::text as date, src.institution_code,
              src.institution_role, src.kind, src.title, src.outlet, src.corpus_revision,
@@ -156,44 +263,77 @@ export async function retrieve(opts: {
         and src.person_filtered = true and src.corpus_revision <> ${excludedRevision()}
       order by (s.tsv @@ q.q) desc, src.date desc
       limit 12`);
-    const lexRows = (lexical as unknown as { rows: Row[] }).rows;
-    const ownRows = (own as unknown as { rows: Row[] }).rows;
-    for (const [i, r] of lexRows.entries()) lexRank.set(r.segment_id, i + 1);
-    for (const [i, r] of ownRows.entries()) ownRank.set(r.segment_id, i + 1);
-    rows = [...lexRows, ...ownRows];
+    const vector =
+      mode === "hybrid"
+        ? store.embedQuery(query).then(async (qv) => {
+            if (!qv) return [] as Row[];
+            const lit = store.toVectorLiteral(qv);
+            // Iterative HNSW scan keeps the k nearest that pass the as-of filter instead of
+            // filtering a fixed candidate set afterwards (pgvector >= 0.8).
+            return d.transaction(async (tx) => {
+              await tx.execute(sql`set local hnsw.ef_search = 100`);
+              await tx.execute(sql`set local hnsw.iterative_scan = relaxed_order`);
+              const res = await tx.execute(sql`
+                select s.id as segment_id, s.source_id, s.text, src.date::text as date,
+                       src.institution_code, src.institution_role, src.kind, src.title, src.outlet,
+                       src.corpus_revision, 0 as rank,
+                       1 - (e.embedding <=> ${lit}::vector) as similarity
+                from segment_embeddings e
+                join segments s on s.id = e.segment_id
+                join sources src on src.id = s.source_id
+                where e.model = ${store.EMBED_MODEL} and src.date <= ${asOf}::date
+                  and length(s.text) >= ${VECTOR_MIN_CHARS}
+                  and src.person_filtered = true and src.corpus_revision <> ${excludedRevision()}
+                order by e.embedding <=> ${lit}::vector
+                limit 40`);
+              return (res as unknown as { rows: Row[] }).rows;
+            });
+          })
+        : Promise.resolve([] as Row[]);
+    const [l, o, v] = await Promise.all([
+      lexical,
+      own,
+      vector.catch((error) => {
+        // The vector branch is optional: full-text results still stand.
+        console.warn(
+          "vector_retrieval_failed",
+          error instanceof Error ? error.message.slice(0, 200) : error,
+        );
+        return [] as Row[];
+      }),
+    ]);
+    lexRows = (l as unknown as { rows: Row[] }).rows;
+    ownRows = (o as unknown as { rows: Row[] }).rows;
+    vecRows = v.map((r) => ({ ...r, similarity: Number(r.similarity) }));
     if (opts.includeSegmentIds?.length) {
-      const extra = await d.execute(sql`
-        select s.id as segment_id, s.source_id, s.text, src.date::text as date, src.institution_code,
-               src.institution_role, src.kind, src.title, src.outlet, src.corpus_revision, 0.5 as rank
-        from segments s join sources src on src.id = s.source_id
-        where s.id = any(${opts.includeSegmentIds}) and src.date <= ${asOf}::date`);
-      rows = [...(extra as unknown as { rows: Row[] }).rows, ...rows];
+      // A failed lookup of injected segments must not switch retrieval off for the process.
+      try {
+        const extra = await d.execute(includeSegmentsQuery(opts.includeSegmentIds, asOf));
+        extraRows = (extra as unknown as { rows: Row[] }).rows;
+      } catch (error) {
+        console.warn(
+          "include_segments_failed",
+          error instanceof Error ? error.message.slice(0, 200) : error,
+        );
+      }
     }
   } catch (error) {
     console.warn("retrieval_failed", error instanceof Error ? error.message.slice(0, 200) : error);
     dbBroken = true;
     return { passages: [], trace };
   }
-  if (rows[0]) corpusRevision = rows[0].corpus_revision;
+  const first = extraRows[0] ?? lexRows[0] ?? vecRows[0] ?? ownRows[0];
+  if (first) corpusRevision = first.corpus_revision;
   trace.corpusRevision = corpusRevision;
   const excluded = new Set(opts.excludeSegmentIds ?? []);
-  // Reciprocal rank fusion of the lexical list and the own-institution list (k = 60),
-  // times the recency weight (FR-P4).
-  const K = 60;
-  const scored = rows
-    .filter((r) => isEligible(isoDay(r.date), asOf))
-    .filter((r, i, all) => all.findIndex((x) => x.segment_id === r.segment_id) === i)
-    .map((r) => {
-      const date = isoDay(r.date);
-      const w = recencyWeight(date, asOf);
-      const own = r.institution_role === role;
-      const lr = lexRank.get(r.segment_id);
-      const or = ownRank.get(r.segment_id);
-      const rrf = (lr ? 1 / (K + lr) : 0) + (or ? 1 / (K + or) : 0) || 1 / (K + 30);
-      return { r, date, w, own, bm25Rank: lr ?? null, fused: rrf * w };
-    })
-    .sort((a, b) => b.fused - a.fused)
-    .slice(0, limit * 2);
+  const scored = fuse({
+    lexical: lexRows,
+    vector: vecRows,
+    own: ownRows,
+    extra: extraRows,
+    asOf,
+    role,
+  }).slice(0, limit * 2);
   const passages: Passage[] = [];
   for (const s of scored) {
     let discardReason: string | null = null;
@@ -206,7 +346,7 @@ export async function retrieve(opts: {
     trace.candidates.push({
       segmentId: s.r.segment_id,
       bm25Rank: s.bm25Rank,
-      vectorRank: null,
+      vectorRank: s.vectorRank,
       fused: Math.round(s.fused * 10000) / 10000,
       recencyWeight: s.w,
       used,
@@ -226,6 +366,8 @@ export async function retrieve(opts: {
         outlet: s.r.outlet,
         recencyWeight: s.w,
         bm25Rank: s.bm25Rank,
+        vectorRank: s.vectorRank,
+        similarity: s.similarity,
         fused: s.fused,
         ownInstitution: s.own,
       });

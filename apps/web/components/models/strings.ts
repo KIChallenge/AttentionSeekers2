@@ -81,7 +81,7 @@ const de = {
     arms: { adapter: "Adapter", base: "Basis", context: "Dossier" },
     earlier: "Frühere Versionen",
     metrics:
-      "Stance-Richtung: Anteil der Held-out-Zeilen, bei denen ein LLM-Judge dieselbe Richtung wie im echten Absatz sieht. In-Character: mittlere Wahrscheinlichkeit des Klassifikators, dass der Text von dieser Institution stammt (Zufall etwa 0,10). Bester Wert je Zeile hervorgehoben",
+      "Stance-Richtung: Anteil der Held-out-Zeilen, bei denen ein LLM-Judge dieselbe Richtung wie im echten Absatz sieht.\nIn-Character: mittlere Wahrscheinlichkeit des Klassifikators, dass der Text von dieser Institution stammt (Zufall etwa 0,10).\nBester Wert je Zeile hervorgehoben",
     institution: "Institution",
     heldout: "Held-out",
     inChar: "In-Character",
@@ -263,7 +263,7 @@ const en: Dict = {
     arms: { adapter: "Adapter", base: "Base", context: "Dossier" },
     earlier: "Earlier versions",
     metrics:
-      "Stance direction: share of held-out rows where an LLM judge sees the same direction as in the real paragraph. In-character: the classifier's mean probability that the text comes from this institution (chance about 0.10). Best value per row highlighted",
+      "Stance direction: share of held-out rows where an LLM judge sees the same direction as in the real paragraph.\nIn-character: the classifier's mean probability that the text comes from this institution (chance about 0.10).\nBest value per row highlighted",
     institution: "Institution",
     heldout: "Held-out",
     inChar: "In-character",

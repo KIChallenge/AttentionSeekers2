@@ -1,4 +1,5 @@
 import { AGENT_CATALOG } from "@sv/contracts";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { armModel, micro, pickArms, winners } from "@/components/models/arms";
 import { loadModelsData } from "@/components/models/data.server";
@@ -6,6 +7,7 @@ import { type Verdict, verdict } from "@/components/models/parse";
 import { Playground } from "@/components/models/playground";
 import { modelsT } from "@/components/models/strings";
 import { Page, PageHead, SectionHead } from "@/components/shell/page";
+import { modelBiasT } from "@/components/topics/model-bias-messages";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -155,6 +157,9 @@ export default async function ModelsPage() {
           <>
             <Button asChild variant="outline">
               <a href="#playground">{t.verdict.tryIt}</a>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/topics/wartezeiten/models">{modelBiasT(lang).link}</Link>
             </Button>
             <Button asChild variant="outline">
               <a href={t.hf.link} target="_blank" rel="noreferrer">
@@ -310,8 +315,8 @@ export default async function ModelsPage() {
               </TableBody>
             </Table>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {t.table.metrics}. {rank >= 1 ? t.table.caveat : null}
+          <p className="text-xs leading-relaxed whitespace-pre-line text-muted-foreground">
+            {t.table.metrics}.{rank >= 1 ? `\n${t.table.caveat}` : null}
           </p>
           {earlier.length ? (
             <details className="group rounded-2xl border bg-card">

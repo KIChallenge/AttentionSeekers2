@@ -2,11 +2,13 @@
 // pnpm db:import --assume-masked   also imports data/derived/stellungnahmen*.jsonl
 //                                  (only after checking data/derived/masking_summary.json)
 // pnpm db:import --no-press        skips press/derived/press_*.jsonl (loaded by default when present)
+// pnpm db:import --no-embed        skips embedding new segments (done by default when the Bedrock key is set)
 import "./env.ts";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { OutcomeDescriptor, RedLine, Segment, Source, StanceProfile } from "@sv/contracts";
 import { closeDb, getDb } from "../src/client.ts";
+import { embeddingConfigured, embedMissingSegments } from "../src/embeddings.ts";
 import {
   adaptStellungnahme,
   adaptStellungnahmeSegment,
@@ -112,5 +114,14 @@ if (!noPress && existsSync(p("press/derived/press_sources.jsonl"))) {
   console.log(`press_sources: ${await importSources(db, sources)} sources`);
   const segs = validateRows(p("press/derived/press_segments.jsonl"), Segment);
   console.log(`press_segments: ${await importSegments(db, segs)} segments`);
+}
+
+// 5. semantic vectors for new or changed segments (skipped without the Bedrock key or
+// with --no-embed; `pnpm db:embed` does the same job standalone and resumes).
+if (!process.argv.includes("--no-embed") && embeddingConfigured()) {
+  const e = await embedMissingSegments(db, {
+    log: (x) => console.log(`embeddings: ${x.done} done, ${x.pending} pending`),
+  });
+  console.log(`embeddings: ${e.done} new, ${e.failed} failed, ${e.tokens} tokens`);
 }
 await closeDb();

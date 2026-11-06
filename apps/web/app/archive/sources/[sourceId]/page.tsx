@@ -1,7 +1,12 @@
 import { AGENT_CATALOG } from "@sv/contracts";
 import Link from "next/link";
 import { ArchiveNav } from "@/components/archive/archive-nav";
-import { draftLawLabel, getSource } from "@/components/archive/data.server";
+import {
+  draftLawLabel,
+  getSource,
+  isFixtureSource,
+  similarPassages,
+} from "@/components/archive/data.server";
 import { MaskedText } from "@/components/archive/masked-text";
 import { caseForDraftLaw } from "@/components/archive/registry.server";
 import { Backlinks } from "@/components/entity/backlinks";
@@ -54,7 +59,7 @@ export default async function SourcePage({
     );
   const s = d.source;
   const agent = AGENT_CATALOG.find((a) => a.role === s.institution.role);
-  const uses = await usesOfSource(s.id);
+  const [uses, similar] = await Promise.all([usesOfSource(s.id), similarPassages(s.id)]);
   const reg = d.draftLaw ? await caseForDraftLaw(d.draftLaw) : null;
   const licenceKey = d.licenceLabel in t.archive.licenceLine ? d.licenceLabel : "unknown";
   return (
@@ -111,6 +116,16 @@ export default async function SourcePage({
               <span className="text-xs text-muted-foreground">{t.archive.detail.noBulk}</span>
             </div>
           </div>
+
+          {isFixtureSource(s) ? (
+            <div
+              role="note"
+              data-fixture-source
+              className="rounded-2xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm font-medium text-warning"
+            >
+              {t.archive.detail.fixtureBanner}
+            </div>
+          ) : null}
 
           <section className="rounded-2xl border bg-card p-4 sm:p-5">
             <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -214,6 +229,33 @@ export default async function SourcePage({
               </ol>
             )}
           </section>
+
+          {similar.length ? (
+            <section className="rounded-2xl border bg-card p-4 sm:p-5" data-similar-passages>
+              <h2 className="text-base">{t.archive.similar}</h2>
+              <p className="mb-3 text-xs text-muted-foreground">{t.archive.similarNote}</p>
+              <ol className="space-y-3">
+                {similar.map((p) => (
+                  <li key={p.segmentId} className="border-t pt-3 first:border-t-0 first:pt-0">
+                    <div className="mb-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-xs">
+                      <EntityLink type="source" id={p.source.id} className="font-medium">
+                        {p.source.title ?? p.source.id}
+                      </EntityLink>
+                      <span className="text-muted-foreground">
+                        {p.source.institution.nameDe} · {p.source.date}
+                      </span>
+                      <span className="num ml-auto font-mono text-[11px] text-muted-foreground">
+                        {t.archive.semanticMatch} {p.similarity.toFixed(2)}
+                      </span>
+                    </div>
+                    <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                      <MaskedText text={p.text} maskedLabel={t.archive.detail.masked} />
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ) : null}
         </article>
 
         <aside className="space-y-4 lg:sticky lg:top-[66px] lg:self-start">
