@@ -43,7 +43,6 @@ export default async function AgentShelfPage({ params }: { params: Promise<{ age
         <div className="min-w-0 flex-1">
           <div className="text-xs text-muted-foreground">{t.archive.agent.title}</div>
           <h1 className="text-2xl">{lang === "de" ? a.nameDe : a.glossEn}</h1>
-          <p className="text-sm text-muted-foreground">{t.archive.agent.sub}</p>
         </div>
         <Badge
           variant="outline"

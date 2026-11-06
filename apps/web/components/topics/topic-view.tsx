@@ -460,7 +460,6 @@ export function TopicView({
       <section className="rounded-2xl border bg-card shadow-none" aria-label={t.topicsTitle}>
         <div className="p-5 pb-3 sm:px-6">
           <h2 className="text-base font-semibold tracking-tight">{t.topicsTitle}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{t.topicsSub}</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-sm">
@@ -552,7 +551,6 @@ export function TopicView({
         <section className="rounded-2xl border bg-card shadow-none" aria-label={t.runsTitle}>
           <div className="p-5 pb-3 sm:px-6">
             <h2 className="text-base font-semibold tracking-tight">{t.runsTitle}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{t.runsSub}</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
@@ -678,7 +676,6 @@ export function TopicView({
           <section className="rounded-2xl border bg-card shadow-none" aria-label={t.seatsTitle}>
             <div className="p-5 pb-3 sm:px-6">
               <h2 className="text-base font-semibold tracking-tight">{t.seatsTitle}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">{t.seatsSub}</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[520px] text-sm">

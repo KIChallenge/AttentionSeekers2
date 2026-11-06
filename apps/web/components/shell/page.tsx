@@ -33,7 +33,10 @@ export function Page({
   );
 }
 
-/** Title, one-line description, primary action on the right. */
+/**
+ * Title and primary action. Titles must speak for themselves: the page subtitle (`sub`) is
+ * accepted for compatibility but no longer rendered.
+ */
 export function PageHead({
   title,
   sub,
@@ -50,7 +53,6 @@ export function PageHead({
       <div className="min-w-0 space-y-1.5">
         {eyebrow ? <Meta>{eyebrow}</Meta> : null}
         <h1 className="text-2xl font-semibold tracking-tight break-words">{title}</h1>
-        {sub ? <p className="max-w-2xl text-sm text-muted-foreground">{sub}</p> : null}
       </div>
       {actions ? (
         <div className="flex flex-wrap items-center gap-2 sm:shrink-0">{actions}</div>
@@ -73,10 +75,13 @@ export function Section({
   className,
   bodyClassName,
   id,
+  prose = false,
   ...rest
 }: {
   title?: ReactNode;
+  /** Only rendered with `prose` (pages whose descriptions are content, like the method note). */
   description?: ReactNode;
+  prose?: boolean;
   action?: ReactNode;
   children: ReactNode;
   variant?: "card" | "plain";
@@ -85,7 +90,7 @@ export function Section({
   id?: string;
 } & Omit<ComponentProps<"section">, "title" | "ref">) {
   const head = title ? (
-    <SectionHead title={title} description={description} action={action} />
+    <SectionHead title={title} description={prose ? description : undefined} action={action} />
   ) : null;
   if (variant === "plain") {
     return (
