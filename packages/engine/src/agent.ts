@@ -279,9 +279,12 @@ function proposalsBlock(s: RunState, agentId: string): string {
     .join("\n");
 }
 
-function phaseInstruction(phase: number, round: number, roundLimit: number): string {
+function phaseInstruction(phase: number, round: number, roundLimit: number, fast = false): string {
   switch (phase) {
     case 1:
+      // Fast preset: two rounds only, so motions are tabled with the opening statement.
+      if (fast)
+        return "Phase Positionsbildung (Kurzverhandlung mit zwei Runden): Lege deine Ausgangsposition zu allen Themen fest, gestützt auf Belege, und bring, wenn du eine konkrete Maßnahme vertrittst, gleich einen Vorschlag ein (sonst proposal = null). In der zweiten Runde wird abgestimmt.";
       return "Phase Positionsbildung: Lege deine Ausgangsposition zu allen Themen fest, gestützt auf Belege. Noch keine Vorschläge (proposal = null). Wenn bereits andere gesprochen haben, darfst du auf sie reagieren.";
     case 2:
       return "Phase Diskussion: Reagiere auf ein konkretes Gegenargument einer Vorrednerin, eines Vorredners. Du darfst einen konkreten Vorschlag einbringen, wenn er eine neue Option ist (sonst proposal = null). Stimme über offene Vorschläge ab.";
@@ -427,7 +430,7 @@ export function turnMessages(
     `Entscheidungsregel: ${s.room.decisionRule}; Budgetdeckel +${s.room.budgetCeiling.maxIncreasePct} % für das Gesamtpaket.`,
     budgetLine(s),
     `Runde ${c.round} von ${s.room.roundLimit}, ${PHASE_NAMES[c.phase - 1]?.de ?? ""}.`,
-    phaseInstruction(c.phase, c.round, s.room.roundLimit),
+    phaseInstruction(c.phase, c.round, s.room.roundLimit, s.room.pace === "fast"),
     c.round > 1
       ? "Bewerte jede Haltung neu (Viertelschritte, z. B. 0.75 oder -1.25). Wenn Argumente, Belege, Ereignisse oder Zugeständnisse anderer dich überzeugen, oder wenn du einem Vorschlag zu einem Thema zustimmst oder bedingt zustimmst, dem du bisher skeptisch gegenüberstandest, muss sich die stance dieses Themas entsprechend bewegen (mit changedBecauseOf). Umgekehrt verhärtet ein gescheitertes Entgegenkommen die Haltung. Unveränderte Zahlen über alle Runden sind unglaubwürdig, außer bei roten Linien."
       : "",

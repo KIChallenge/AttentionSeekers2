@@ -5,6 +5,7 @@
 //            [--out-dir runs] [--variant mixed|swapped|all_<family>] [--models gm=qwen,sv=gpt]
 //            (families: gpt, deepseek, qwen, kimi, glm, mistral, gpt-oss, nova, ...)
 //            [--rule consensus|qualified_majority|veto_players]  (overrides the template rule)
+//            [--scenario LABEL] (Run.variant = scenario) [--budget PCT] (budget ceiling, max increase in percent) [--pace fast|full]
 //            [--base <runId>] [--label X]  (with --variant or --models: Run.variant =
 //            model_ensemble, labelled X or the variant name)
 //   room     --question "..." [--template ...] [--select]   prints { room, mandate } JSON
@@ -23,6 +24,7 @@ import {
   summarizeRun,
   TEMPLATES,
   Template,
+  withPace,
 } from "@sv/contracts";
 import { REPO_ROOT, resolveModelAlias } from "./config.ts";
 import { structuredStats, throttled } from "./llm.ts";
@@ -41,6 +43,8 @@ const { positionals, values } = parseArgs({
     seed: { type: "string" },
     climate: { type: "string" },
     rule: { type: "string" },
+    budget: { type: "string" },
+    pace: { type: "string" },
     agents: { type: "string" },
     model: { type: "string" },
     "room-file": { type: "string" },
@@ -50,6 +54,7 @@ const { positionals, values } = parseArgs({
     "out-dir": { type: "string" },
     variant: { type: "string" },
     label: { type: "string" },
+    scenario: { type: "string" },
     models: { type: "string" },
     select: { type: "boolean" },
     base: { type: "string" },
@@ -64,7 +69,20 @@ const cmd = positionals[0] ?? "run";
 const out = values.stdout ? process.stderr : process.stdout;
 const log = (...a: unknown[]) => out.write(`${a.map(String).join(" ")}\n`);
 
-function roomFromArgs() {
+function roomFromArgs(): RoomConfig {
+  const room = baseRoomFromArgs();
+  const budget = values.budget === undefined ? null : Number(values.budget);
+  if (budget !== null && !Number.isFinite(budget)) throw new Error("--budget needs a number");
+  const withBudget =
+    budget === null
+      ? room
+      : { ...room, budgetCeiling: { ...room.budgetCeiling, maxIncreasePct: budget } };
+  if (!values.pace) return withBudget;
+  if (values.pace !== "fast" && values.pace !== "full") throw new Error("--pace fast|full");
+  return withPace(withBudget, values.pace);
+}
+
+function baseRoomFromArgs(): RoomConfig {
   if (values["room-file"])
     return RoomConfig.parse(JSON.parse(readFileSync(values["room-file"], "utf8")));
   const template = Template.parse(values.template ?? "custom");
@@ -220,13 +238,15 @@ async function main() {
     mandate,
     runId: values.id,
     isReference: values.reference ?? false,
-    variant: ensemble
-      ? {
-          kind: "model_ensemble",
-          label: values.label ?? values.variant ?? "custom",
-          baseRunId: values.base ?? null,
-        }
-      : undefined,
+    variant: values.scenario
+      ? { kind: "scenario", label: values.scenario, baseRunId: values.base ?? null }
+      : ensemble
+        ? {
+            kind: "model_ensemble",
+            label: values.label ?? values.variant ?? "custom",
+            baseRunId: values.base ?? null,
+          }
+        : undefined,
     outDir: values["out-dir"],
     db: !values["no-db"],
     selectActors: !values["room-file"] && !values.agents && room.template === "custom",
