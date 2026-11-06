@@ -108,10 +108,13 @@ const KIND_LICENCE: Record<SourceKind, string> = {
   parliament: "parliament",
   statistic: "open_data",
   audit: "public_report",
+  law: "statute",
 };
 
 /** Licence bucket for facets: the explicit licence if present, else derived from the kind. */
 export function licenceOf(s: Source): string {
+  // Law sources carry the full RIS attribution as licence text; the bucket is "statute".
+  if (s.kind === "law") return "statute";
   if (s.licence) return s.licence;
   return KIND_LICENCE[s.kind] ?? "unknown";
 }

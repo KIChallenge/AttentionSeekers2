@@ -9,11 +9,13 @@ export function ArchiveNav({
   active,
 }: {
   lang: Lang;
-  active: "search" | "episodes" | "stats" | null;
+  active: "search" | "law" | "episodes" | "stats" | null;
 }) {
   const t = laneT(lang);
   const tabs = [
     { key: "search", href: "/archive", label: t.archive.tabs.search },
+    // Legal basis (FR-P6): the archive filtered to kind "law", one source per provision.
+    { key: "law", href: "/archive?kind=law", label: t.archive.kinds.law },
     { key: "episodes", href: "/archive/episodes", label: t.archive.tabs.episodes },
     { key: "stats", href: "/archive/stats", label: t.archive.tabs.stats },
   ] as const;
