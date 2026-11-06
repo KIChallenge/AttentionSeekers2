@@ -1,7 +1,15 @@
 "use client";
 
 import type { Lang, Run, RunSnapshot } from "@sv/contracts";
-import { type KeyboardEvent, useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  type KeyboardEvent,
+  type ReactNode,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { agentLook, L, speakerLine } from "@/components/run/helpers";
 import { runStrings } from "@/components/run/strings";
 import { cn } from "@/lib/utils";
@@ -63,6 +71,10 @@ export interface SpeakerTimelineProps {
   collapsible?: boolean;
   defaultOpen?: boolean;
   defaultZoom?: "all" | "follow";
+  /** Utterances found by "ask the debate": the domain narrows to them and they stand out. */
+  highlightIds?: readonly string[] | null;
+  /** Extra header controls (the ask field); a full-width child wraps onto its own line. */
+  headerExtra?: ReactNode;
   className?: string;
 }
 
@@ -80,6 +92,8 @@ export function SpeakerTimeline({
   defaultOpen = true,
   defaultZoom = "all",
   focusRound = null,
+  highlightIds = null,
+  headerExtra = null,
   className,
 }: SpeakerTimelineProps) {
   const t = timelineStrings[lang];
@@ -120,8 +134,26 @@ export function SpeakerTimeline({
   const focus = focusOf(snap, activeId);
   const activeBand = bandFor(model, activeId);
 
+  const hits = useMemo(
+    () => (highlightIds?.length ? new Set(highlightIds.filter((id) => model.byId.has(id))) : null),
+    [highlightIds, model],
+  );
+
   // visible domain in minutes
   const [d0, d1] = useMemo((): [number, number] => {
+    // an answer from "ask the debate" wins over everything: show the span of its matches
+    if (hits?.size) {
+      const items = [...hits].flatMap((id) => model.byId.get(id) ?? []);
+      let a = Math.min(...items.map((i) => i.start));
+      let b = Math.max(...items.map((i) => i.start + i.dur));
+      if (b - a < 6) {
+        const mid = (a + b) / 2;
+        a = mid - 3;
+        b = mid + 3;
+      }
+      const pad = Math.max(0.5, (b - a) * 0.06);
+      return [Math.max(0, a - pad), b + pad];
+    }
     // a round picked in the round switch wins over the exchange zoom: show that round only
     if (focusRound !== null && zoom === "all") {
       const i = model.rounds.findIndex((r) => r.round === focusRound);
@@ -155,7 +187,7 @@ export function SpeakerTimeline({
     const pad = Math.max(0.5, (b - a) * 0.04);
     a = Math.max(0, a - pad);
     return [a, Math.max(a + minSpan, b + pad)];
-  }, [zoom, activeBand, model, focusRound]);
+  }, [zoom, activeBand, model, focusRound, hits]);
   const span = Math.max(0.001, d1 - d0);
   const x = (min: number) => ((min - d0) / span) * 100;
   const visible = (a: number, b: number) => b >= d0 && a <= d1;
@@ -260,6 +292,7 @@ export function SpeakerTimeline({
         )}
       </div>
       <span className="flex-1" />
+      {headerExtra}
       {open ? (
         <>
           {zoomedBand ? (
@@ -599,13 +632,18 @@ export function SpeakerTimeline({
                       const isSel = it.id === selectedId;
                       const future = isFuture(it);
                       const inActiveRow = focus?.speaker === it.speaker;
+                      const isHit = hits?.has(it.id) ?? false;
                       const opacity = future
                         ? 0.18
-                        : !focus || isActive
-                          ? 1
-                          : inActiveRow
-                            ? 0.75
-                            : 0.38;
+                        : hits
+                          ? isHit
+                            ? 1
+                            : 0.25
+                          : !focus || isActive
+                            ? 1
+                            : inActiveRow
+                              ? 0.75
+                              : 0.38;
                       const u = snap.utterances[it.id];
                       const line = speakerLine(run, it.speaker, u?.delegateId, lang);
                       return (
@@ -631,6 +669,9 @@ export function SpeakerTimeline({
                             isActive &&
                               "z-10 shadow-[0_0_0_2px_var(--background),0_0_0_3.5px_var(--foreground)]",
                             isSel && !isActive && "z-10 shadow-[0_0_0_1.5px_var(--foreground)]",
+                            isHit &&
+                              !isActive &&
+                              "z-10 shadow-[0_0_0_2px_var(--background),0_0_0_3px_var(--foreground)]",
                           )}
                           style={{
                             left: `${x(it.start)}%`,

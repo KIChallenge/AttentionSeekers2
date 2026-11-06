@@ -6,6 +6,7 @@ import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
 import { AskButton } from "@/components/agent/ask-sheet";
 import { Eyebrow } from "@/components/shell/page";
 import { Level, usePrefs } from "@/components/shell/providers";
+import { AskDebate } from "@/components/timeline/ask-debate";
 import { ExchangeGroup } from "@/components/timeline/exchange-group";
 import {
   focusOf,
@@ -378,8 +379,10 @@ export function NegotiationView({
   initialView?: View;
   initialSelected?: string | null;
 }) {
-  const { snap, run, t, lang, streaming } = useRun();
+  const { snap, run, t, lang, streaming, runId } = useRun();
   const { level, projector } = usePrefs();
+  // utterances matched by "ask the debate", highlighted on the timeline until reset
+  const [hits, setHits] = useState<string[] | null>(null);
   // ui-plan 7.1: three columns from 1200px; below that, and in projector mode at any
   // width, the inspector is a right sheet opened by selecting an utterance.
   const wide = useMediaQuery("(min-width: 1200px)");
@@ -424,6 +427,14 @@ export function NegotiationView({
     requestAnimationFrame(() =>
       document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" }),
     );
+  };
+
+  // a moment from "ask the debate": its round stays shown while the transcript scrolls there
+  const jumpToHit = (id: string) => {
+    followPaused.current = true;
+    const u = snap.utterances[id];
+    if (u) setViewRound(u.round);
+    jump(id);
   };
 
   const select = (id: string) => {
@@ -553,8 +564,18 @@ export function NegotiationView({
                 select(id);
               }}
               collapsible
-              defaultOpen={false}
               focusRound={viewRound}
+              highlightIds={hits}
+              headerExtra={
+                <AskDebate
+                  runId={runId}
+                  lang={lang}
+                  run={run}
+                  snap={snap}
+                  onHits={setHits}
+                  onJump={jumpToHit}
+                />
+              }
               className="shadow-none"
             />
           </div>
