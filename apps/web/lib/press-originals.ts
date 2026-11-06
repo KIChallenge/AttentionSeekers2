@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { closeSync, existsSync, openSync, readSync } from "node:fs";
 import path from "node:path";
 import pages from "./press-pages.json";
 
@@ -34,4 +34,52 @@ export function originalImagePath(pageId: number): string | null {
   if (!Number.isInteger(pageId) || pageId < 0) return null;
   const file = path.join(/*turbopackIgnore: true*/ originalsDir(), `${pageId}.jpg`);
   return existsSync(file) ? file : null;
+}
+
+const sizeCache = new Map<number, { width: number; height: number } | null>();
+
+/**
+ * Pixel size of a rendered page from its JPEG header (SOF marker), so the press browser can
+ * reserve the exact height of every page before its image loads. Cached per process.
+ */
+export function originalImageSize(pageId: number): { width: number; height: number } | null {
+  if (sizeCache.has(pageId)) return sizeCache.get(pageId) ?? null;
+  const file = originalImagePath(pageId);
+  let out: { width: number; height: number } | null = null;
+  if (file) {
+    const fd = openSync(file, "r");
+    try {
+      const buf = Buffer.alloc(65536);
+      const n = readSync(fd, buf, 0, buf.length, 0);
+      let i = 2;
+      while (i + 9 < n) {
+        if (buf[i] !== 0xff) {
+          i++;
+          continue;
+        }
+        const marker = buf[i + 1] ?? 0;
+        const sof = marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker);
+        if (sof) {
+          out = { height: buf.readUInt16BE(i + 5), width: buf.readUInt16BE(i + 7) };
+          break;
+        }
+        i += 2 + buf.readUInt16BE(i + 2);
+      }
+    } finally {
+      closeSync(fd);
+    }
+  }
+  sizeCache.set(pageId, out);
+  return out;
+}
+
+/** Every distinct page the press positions point at, with the source ids found on it. */
+export function allPressPages(): { page: PressPage; sourceIds: string[] }[] {
+  const byPage = new Map<number, { page: PressPage; sourceIds: string[] }>();
+  for (const [id, page] of Object.entries(index)) {
+    const cur = byPage.get(page.pageId);
+    if (cur) cur.sourceIds.push(id);
+    else byPage.set(page.pageId, { page, sourceIds: [id] });
+  }
+  return [...byPage.values()];
 }
