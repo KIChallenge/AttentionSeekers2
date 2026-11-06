@@ -27,6 +27,10 @@ export interface Scenario {
 const DEMO_PREFIX = "fixture-";
 const SUFFIX: Record<Exclude<ScenarioKind, "main">, string> = { checks: ".checks", demo: ".demo" };
 
+/** Historical replays (template `backtest_*`) get their own card group. */
+export const isBacktest = (s: Pick<Scenario, "template">): boolean =>
+  s.template.startsWith("backtest_");
+
 /** The only id-based rule: the committed fixture has no metadata that says it is hand-written. */
 export const isDemoRun = (r: Pick<RunSummary, "id">): boolean => r.id.startsWith(DEMO_PREFIX);
 

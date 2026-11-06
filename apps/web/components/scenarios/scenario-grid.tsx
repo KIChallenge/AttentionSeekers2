@@ -8,6 +8,7 @@ import { topicT } from "@/components/topics/messages";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ScenarioCard } from "@/lib/scenario-runs";
+import { isBacktest } from "@/lib/scenarios";
 import { cn } from "@/lib/utils";
 import { type ScenarioMessages, scenarioT, scenarioTitleOf } from "./messages";
 
@@ -76,11 +77,12 @@ function Card({ c, compact = false }: { c: ScenarioCard; compact?: boolean }) {
   );
 }
 
-/** Home grid: the main scenarios as cards, check runs and demos folded below. */
+/** Home grid: the main scenarios as cards, then the backtests, check runs and demos folded below. */
 export function ScenarioGrid({ cards }: { cards: ScenarioCard[] }) {
   const { lang } = usePrefs();
   const s = scenarioT(lang);
-  const main = cards.filter((c) => c.kind === "main");
+  const main = cards.filter((c) => c.kind === "main" && !isBacktest(c));
+  const backtests = cards.filter((c) => c.kind === "main" && isBacktest(c));
   const side = cards.filter((c) => c.kind !== "main");
   if (cards.length === 0) return <EmptyState title={s.noRuns} />;
   return (
@@ -90,6 +92,16 @@ export function ScenarioGrid({ cards }: { cards: ScenarioCard[] }) {
           <Card key={c.key} c={c} />
         ))}
       </div>
+      {backtests.length ? (
+        <section className="space-y-4">
+          <h2 className="text-base font-semibold tracking-tight">{s.backtests}</h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {backtests.map((c) => (
+              <Card key={c.key} c={c} />
+            ))}
+          </div>
+        </section>
+      ) : null}
       {side.length ? (
         <details className="group space-y-4">
           <summary className="flex cursor-pointer list-none items-baseline gap-3 rounded-md text-base font-semibold tracking-tight focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none">
