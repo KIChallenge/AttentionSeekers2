@@ -85,6 +85,15 @@ import type { RunState } from "./state.ts";
 import { type CallParent, CallTracer, type Slot } from "./trace.ts";
 import { RunWriter } from "./writer.ts";
 
+/** Spoken name of the decision rule in the moderator's opening (never the config id). */
+const RULE_LABEL: Record<
+  "consensus" | "qualified_majority" | "veto_players",
+  { de: string; en: string }
+> = {
+  consensus: { de: "Konsens", en: "consensus" },
+  qualified_majority: { de: "qualifizierte Mehrheit", en: "qualified majority" },
+  veto_players: { de: "Mehrheit mit Vetospielern", en: "majority with veto players" },
+};
 export interface RunOptions {
   room: RoomConfig;
   mandate?: Mandate;
@@ -955,6 +964,8 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
 
     // Opening line (templated, so the moderator holds no position, FR-M9).
     const names = order.map(nameOf).join(", ");
+    const ruleDe = RULE_LABEL[room.decisionRule].de;
+    const ruleEn = RULE_LABEL[room.decisionRule].en;
     const lastSummary = s.summaries.at(-1);
     const tabled = s.calculus?.nextTabled
       ? s.proposals.get(s.calculus.nextTabled.proposalId)
@@ -963,8 +974,8 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
     let openDe: string;
     let openEn: string;
     if (round === 1) {
-      openDe = `Runde 1, ${phaseName?.de}. Mandat: ${mandate.objective.text.replace(/\.$/, "")}. Regel: ${room.decisionRule}, höchstens ${room.roundLimit} Runden, Budgetdeckel +${room.budgetCeiling.maxIncreasePct} %. Bitte zuerst kurze Eröffnungsstatements in ausgeloster Reihenfolge (${names}); danach lade ich die Institutionen mit den schärfsten Gegensätzen zu Einzelgesprächen.`;
-      openEn = `Round 1, ${phaseName?.en}. Mandate: ${(mandate.objective.translations.en ?? mandate.objective.text).replace(/\.$/, "")}. Rule: ${room.decisionRule}, at most ${room.roundLimit} rounds, budget ceiling +${room.budgetCeiling.maxIncreasePct} %. Short opening statements first in drawn order (${order.join(", ")}); then I invite the institutions furthest apart to focused talks.`;
+      openDe = `Runde 1, ${phaseName?.de}. Mandat: ${mandate.objective.text.replace(/\.$/, "")}. Regel: ${ruleDe}, höchstens ${room.roundLimit} Runden, Budgetdeckel +${room.budgetCeiling.maxIncreasePct} %. Bitte zuerst kurze Eröffnungsstatements in ausgeloster Reihenfolge (${names}); danach lade ich die Institutionen mit den schärfsten Gegensätzen zu Einzelgesprächen.`;
+      openEn = `Round 1, ${phaseName?.en}. Mandate: ${(mandate.objective.translations.en ?? mandate.objective.text).replace(/\.$/, "")}. Rule: ${ruleEn}, at most ${room.roundLimit} rounds, budget ceiling +${room.budgetCeiling.maxIncreasePct} %. Short opening statements first in drawn order (${order.join(", ")}); then I invite the institutions furthest apart to focused talks.`;
     } else if (final) {
       openDe = `Letzte Runde, ${phaseName?.de}. Offene Vorschläge: ${openIds.join(", ") || "keine"}. Bitte geben Sie im Plenum Ihre endgültige Stimme mit Begründung ab und benennen Sie, was offen bleibt. Reihenfolge: ${names}.`;
       openEn = `Final round, ${phaseName?.en}. Open proposals: ${openIds.join(", ") || "none"}. Please give your final vote in plenary with reasons and name what remains open. Order: ${order.join(", ")}.`;
