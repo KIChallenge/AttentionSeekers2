@@ -3,36 +3,23 @@
   "modelVersion": "impact-0.3-evidence",
   "evidenceVersion": "evidence-2026-11-06",
   "measures": [
-    "p-11",
-    "p-01"
+    "p-07"
   ],
   "figures": [
     {
-      "measureId": "p-11",
+      "measureId": "p-07",
       "metric": "wait_change_pct",
-      "value": -3.6,
-      "low": -15.9,
-      "high": 0.4,
+      "value": -1.9,
+      "low": -10.4,
+      "high": -0.1,
       "unit": "%",
       "inputs": [
         {
           "name": {
             "lang": "de",
-            "text": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+            "text": "Zusätzliche Kassenstellen und Termine",
             "translations": {
-              "en": "1450 appointment brokering and digital specialist triage"
-            }
-          },
-          "value": "3 Quellen",
-          "citation": null,
-          "assumption": false
-        },
-        {
-          "name": {
-            "lang": "de",
-            "text": "Terminzusage (Vierwochengarantie)",
-            "translations": {
-              "en": "Appointment guarantee (four weeks)"
+              "en": "Extra contract posts and appointments"
             }
           },
           "value": "3 Quellen",
@@ -50,18 +37,6 @@
           "value": "2 Quellen",
           "citation": null,
           "assumption": false
-        },
-        {
-          "name": {
-            "lang": "de",
-            "text": "Strukturreform (PVE, Versorgungspfade, Ambulanzverlagerung)",
-            "translations": {
-              "en": "Structural reform (primary care units, pathways, outpatient shift)"
-            }
-          },
-          "value": "Annahme",
-          "citation": null,
-          "assumption": true
         },
         {
           "name": {
@@ -71,7 +46,7 @@
               "en": "Effect in year one"
             }
           },
-          "value": "-1.7 %",
+          "value": "-0.8 %",
           "citation": null,
           "assumption": false
         }
@@ -79,48 +54,34 @@
       "formula": "classes deduplicated; r_class = effect * scope * phase_in(year 5); group = r1 + 0.5*r2 + 0.25*r3; total = 1 - prod(1 - group); dWait = -total",
       "uncertainty": {
         "lang": "de",
-        "text": "Bandbreite aus der Evidenztabelle (6 Quellen), Jahr 5; keine amtliche Wartezeitenreihe; enthält Annahmen ohne Evidenz",
+        "text": "Bandbreite aus der Evidenztabelle (5 Quellen), Jahr 5; keine amtliche Wartezeitenreihe",
         "translations": {
-          "en": "Range from the evidence table (6 sources), year 5; no official waiting-time series; includes assumptions without evidence"
+          "en": "Range from the evidence table (5 sources), year 5; no official waiting-time series"
         }
       },
       "modelVersion": "impact-0.3-evidence",
       "notModelled": false,
       "basis": "evidence",
       "evidenceClasses": [
-        "triage_routing",
-        "access_guarantee",
-        "monitoring_transparency",
-        "structural_reform"
+        "capacity_expansion",
+        "monitoring_transparency"
       ],
-      "sourceCount": 6
+      "sourceCount": 5
     },
     {
-      "measureId": "p-11",
+      "measureId": "p-07",
       "metric": "cost_eur_pa",
-      "value": 44,
-      "low": 1.8,
-      "high": 224,
+      "value": 57.8,
+      "low": 4.8,
+      "high": 372.4,
       "unit": "Mio. EUR p.a.",
       "inputs": [
         {
           "name": {
             "lang": "de",
-            "text": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+            "text": "Zusätzliche Kassenstellen und Termine",
             "translations": {
-              "en": "1450 appointment brokering and digital specialist triage"
-            }
-          },
-          "value": "3 Quellen",
-          "citation": null,
-          "assumption": false
-        },
-        {
-          "name": {
-            "lang": "de",
-            "text": "Terminzusage (Vierwochengarantie)",
-            "translations": {
-              "en": "Appointment guarantee (four weeks)"
+              "en": "Extra contract posts and appointments"
             }
           },
           "value": "3 Quellen",
@@ -138,18 +99,6 @@
           "value": "2 Quellen",
           "citation": null,
           "assumption": false
-        },
-        {
-          "name": {
-            "lang": "de",
-            "text": "Strukturreform (PVE, Versorgungspfade, Ambulanzverlagerung)",
-            "translations": {
-              "en": "Structural reform (primary care units, pathways, outpatient shift)"
-            }
-          },
-          "value": "Annahme",
-          "citation": null,
-          "assumption": true
         }
       ],
       "formula": "cost = sum over classes (posts * cost_per_post * fill_rate, or class cost range)",
@@ -164,19 +113,17 @@
       "notModelled": false,
       "basis": "evidence",
       "evidenceClasses": [
-        "triage_routing",
-        "access_guarantee",
-        "monitoring_transparency",
-        "structural_reform"
+        "capacity_expansion",
+        "monitoring_transparency"
       ],
-      "sourceCount": 6
+      "sourceCount": 5
     },
     {
-      "measureId": "p-11",
+      "measureId": "p-07",
       "metric": "sv_spend_pp",
-      "value": 0.08,
-      "low": 0,
-      "high": 0.39,
+      "value": 0.1,
+      "low": 0.01,
+      "high": 0.64,
       "unit": "% der Gesundheitsausgaben",
       "inputs": [
         {
@@ -204,162 +151,25 @@
       "notModelled": false,
       "basis": "evidence",
       "evidenceClasses": [
-        "triage_routing",
-        "access_guarantee",
-        "monitoring_transparency",
-        "structural_reform"
+        "capacity_expansion",
+        "monitoring_transparency"
       ],
-      "sourceCount": 6
-    },
-    {
-      "measureId": "p-01",
-      "metric": "wait_change_pct",
-      "value": -3.3,
-      "low": -6.5,
-      "high": -1.1,
-      "unit": "%",
-      "inputs": [
-        {
-          "name": {
-            "lang": "de",
-            "text": "Zusätzliche Kassenstellen und Termine",
-            "translations": {
-              "en": "Extra contract posts and appointments"
-            }
-          },
-          "value": "3 Quellen",
-          "citation": null,
-          "assumption": false
-        },
-        {
-          "name": {
-            "lang": "de",
-            "text": "Wirkung im ersten Jahr",
-            "translations": {
-              "en": "Effect in year one"
-            }
-          },
-          "value": "-1.1 %",
-          "citation": null,
-          "assumption": false
-        }
-      ],
-      "formula": "classes deduplicated; r_class = effect * scope * phase_in(year 5); group = r1 + 0.5*r2 + 0.25*r3; total = 1 - prod(1 - group); dWait = -total",
-      "uncertainty": {
-        "lang": "de",
-        "text": "Bandbreite aus der Evidenztabelle (3 Quellen), Jahr 5; keine amtliche Wartezeitenreihe",
-        "translations": {
-          "en": "Range from the evidence table (3 sources), year 5; no official waiting-time series"
-        }
-      },
-      "modelVersion": "impact-0.3-evidence",
-      "notModelled": false,
-      "basis": "evidence",
-      "evidenceClasses": [
-        "capacity_expansion"
-      ],
-      "sourceCount": 3
-    },
-    {
-      "measureId": "p-01",
-      "metric": "cost_eur_pa",
-      "value": 112.5,
-      "low": 45,
-      "high": 261,
-      "unit": "Mio. EUR p.a.",
-      "inputs": [
-        {
-          "name": {
-            "lang": "de",
-            "text": "Zusätzliche Kassenstellen und Termine",
-            "translations": {
-              "en": "Extra contract posts and appointments"
-            }
-          },
-          "value": "3 Quellen",
-          "citation": null,
-          "assumption": false
-        }
-      ],
-      "formula": "cost = sum over classes (posts * cost_per_post * fill_rate, or class cost range)",
-      "uncertainty": {
-        "lang": "de",
-        "text": "Kostenbandbreiten je Klasse, großteils Annahmen; Wechselwirkungen nicht modelliert",
-        "translations": {
-          "en": "Cost ranges per class, mostly assumptions; interactions not modelled"
-        }
-      },
-      "modelVersion": "impact-0.3-evidence",
-      "notModelled": false,
-      "basis": "evidence",
-      "evidenceClasses": [
-        "capacity_expansion"
-      ],
-      "sourceCount": 3
-    },
-    {
-      "measureId": "p-01",
-      "metric": "sv_spend_pp",
-      "value": 0.19,
-      "low": 0.08,
-      "high": 0.45,
-      "unit": "% der Gesundheitsausgaben",
-      "inputs": [
-        {
-          "name": {
-            "lang": "de",
-            "text": "Laufende Gesundheitsausgaben 2024",
-            "translations": {
-              "en": "Current health expenditure 2024"
-            }
-          },
-          "value": "57.8 Mrd. EUR",
-          "citation": null,
-          "assumption": false
-        }
-      ],
-      "formula": "spend_pct = cost_mio / health_expenditure_mio * 100",
-      "uncertainty": {
-        "lang": "de",
-        "text": "Folgt der Kostenbandbreite; Basis Statistik Austria",
-        "translations": {
-          "en": "Follows the cost range; baseline Statistik Austria"
-        }
-      },
-      "modelVersion": "impact-0.3-evidence",
-      "notModelled": false,
-      "basis": "evidence",
-      "evidenceClasses": [
-        "capacity_expansion"
-      ],
-      "sourceCount": 3
+      "sourceCount": 5
     },
     {
       "measureId": "package",
       "metric": "wait_change_pct",
-      "value": -6.7,
-      "low": -21.4,
-      "high": -0.6,
+      "value": -1.9,
+      "low": -10.4,
+      "high": -0.1,
       "unit": "% (Ziel -20 %)",
       "inputs": [
         {
           "name": {
             "lang": "de",
-            "text": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+            "text": "Zusätzliche Kassenstellen und Termine",
             "translations": {
-              "en": "1450 appointment brokering and digital specialist triage"
-            }
-          },
-          "value": "3 Quellen",
-          "citation": null,
-          "assumption": false
-        },
-        {
-          "name": {
-            "lang": "de",
-            "text": "Terminzusage (Vierwochengarantie)",
-            "translations": {
-              "en": "Appointment guarantee (four weeks)"
+              "en": "Extra contract posts and appointments"
             }
           },
           "value": "3 Quellen",
@@ -375,30 +185,6 @@
             }
           },
           "value": "2 Quellen",
-          "citation": null,
-          "assumption": false
-        },
-        {
-          "name": {
-            "lang": "de",
-            "text": "Strukturreform (PVE, Versorgungspfade, Ambulanzverlagerung)",
-            "translations": {
-              "en": "Structural reform (primary care units, pathways, outpatient shift)"
-            }
-          },
-          "value": "Annahme",
-          "citation": null,
-          "assumption": true
-        },
-        {
-          "name": {
-            "lang": "de",
-            "text": "Zusätzliche Kassenstellen und Termine",
-            "translations": {
-              "en": "Extra contract posts and appointments"
-            }
-          },
-          "value": "3 Quellen",
           "citation": null,
           "assumption": false
         },
@@ -410,7 +196,7 @@
               "en": "Effect in year one"
             }
           },
-          "value": "-2.8 %",
+          "value": "-0.8 %",
           "citation": null,
           "assumption": false
         }
@@ -418,49 +204,34 @@
       "formula": "classes deduplicated; r_class = effect * scope * phase_in(year 5); group = r1 + 0.5*r2 + 0.25*r3; total = 1 - prod(1 - group); dWait = -total",
       "uncertainty": {
         "lang": "de",
-        "text": "Bandbreite aus der Evidenztabelle (8 Quellen), Jahr 5; keine amtliche Wartezeitenreihe; enthält Annahmen ohne Evidenz",
+        "text": "Bandbreite aus der Evidenztabelle (5 Quellen), Jahr 5; keine amtliche Wartezeitenreihe",
         "translations": {
-          "en": "Range from the evidence table (8 sources), year 5; no official waiting-time series; includes assumptions without evidence"
+          "en": "Range from the evidence table (5 sources), year 5; no official waiting-time series"
         }
       },
       "modelVersion": "impact-0.3-evidence",
       "notModelled": false,
       "basis": "evidence",
       "evidenceClasses": [
-        "triage_routing",
-        "access_guarantee",
-        "monitoring_transparency",
-        "structural_reform",
-        "capacity_expansion"
+        "capacity_expansion",
+        "monitoring_transparency"
       ],
-      "sourceCount": 8
+      "sourceCount": 5
     },
     {
       "measureId": "package",
       "metric": "cost_eur_pa",
-      "value": 156.5,
-      "low": 46.8,
-      "high": 485,
+      "value": 57.8,
+      "low": 4.8,
+      "high": 372.4,
       "unit": "Mio. EUR p.a.",
       "inputs": [
         {
           "name": {
             "lang": "de",
-            "text": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+            "text": "Zusätzliche Kassenstellen und Termine",
             "translations": {
-              "en": "1450 appointment brokering and digital specialist triage"
-            }
-          },
-          "value": "3 Quellen",
-          "citation": null,
-          "assumption": false
-        },
-        {
-          "name": {
-            "lang": "de",
-            "text": "Terminzusage (Vierwochengarantie)",
-            "translations": {
-              "en": "Appointment guarantee (four weeks)"
+              "en": "Extra contract posts and appointments"
             }
           },
           "value": "3 Quellen",
@@ -476,30 +247,6 @@
             }
           },
           "value": "2 Quellen",
-          "citation": null,
-          "assumption": false
-        },
-        {
-          "name": {
-            "lang": "de",
-            "text": "Strukturreform (PVE, Versorgungspfade, Ambulanzverlagerung)",
-            "translations": {
-              "en": "Structural reform (primary care units, pathways, outpatient shift)"
-            }
-          },
-          "value": "Annahme",
-          "citation": null,
-          "assumption": true
-        },
-        {
-          "name": {
-            "lang": "de",
-            "text": "Zusätzliche Kassenstellen und Termine",
-            "translations": {
-              "en": "Extra contract posts and appointments"
-            }
-          },
-          "value": "3 Quellen",
           "citation": null,
           "assumption": false
         }
@@ -516,20 +263,17 @@
       "notModelled": false,
       "basis": "evidence",
       "evidenceClasses": [
-        "triage_routing",
-        "access_guarantee",
-        "monitoring_transparency",
-        "structural_reform",
-        "capacity_expansion"
+        "capacity_expansion",
+        "monitoring_transparency"
       ],
-      "sourceCount": 8
+      "sourceCount": 5
     },
     {
       "measureId": "package",
       "metric": "sv_spend_pp",
-      "value": 0.27,
-      "low": 0.08,
-      "high": 0.84,
+      "value": 0.1,
+      "low": 0.01,
+      "high": 0.64,
       "unit": "% der Gesundheitsausgaben (Deckel 5 %)",
       "inputs": [
         {
@@ -557,20 +301,17 @@
       "notModelled": false,
       "basis": "evidence",
       "evidenceClasses": [
-        "triage_routing",
-        "access_guarantee",
-        "monitoring_transparency",
-        "structural_reform",
-        "capacity_expansion"
+        "capacity_expansion",
+        "monitoring_transparency"
       ],
-      "sourceCount": 8
+      "sourceCount": 5
     },
     {
-      "measureId": "proposer:p-11",
+      "measureId": "proposer:p-07",
       "metric": "cost_eur_pa",
-      "value": 120,
-      "low": 80,
-      "high": 120,
+      "value": 100,
+      "low": 75,
+      "high": 100,
       "unit": "Mio. EUR p.a.",
       "inputs": [
         {
@@ -581,7 +322,7 @@
               "en": "Cost estimate by the proposing actor"
             }
           },
-          "value": "120 (80 bis 120) Mio. EUR p.a.",
+          "value": "100 (75 bis 100) Mio. EUR p.a.",
           "citation": null,
           "assumption": true
         }
@@ -599,11 +340,11 @@
       "basis": "proposer"
     },
     {
-      "measureId": "proposer:p-11",
+      "measureId": "proposer:p-07",
       "metric": "sv_spend_pp",
-      "value": 0.21,
-      "low": 0.14,
-      "high": 0.21,
+      "value": 0.17,
+      "low": 0.13,
+      "high": 0.17,
       "unit": "% der Gesundheitsausgaben",
       "inputs": [
         {
@@ -614,7 +355,7 @@
               "en": "Cost estimate by the proposing actor"
             }
           },
-          "value": "120 (80 bis 120) Mio. EUR p.a.",
+          "value": "100 (75 bis 100) Mio. EUR p.a.",
           "citation": null,
           "assumption": true
         },
@@ -644,10 +385,10 @@
       "basis": "proposer"
     },
     {
-      "measureId": "proposer:p-11",
+      "measureId": "proposer:p-07",
       "metric": "wait_change_pct",
       "value": -1.4,
-      "low": -2.7,
+      "low": -1.8,
       "high": -0.5,
       "unit": "%",
       "inputs": [
@@ -659,118 +400,7 @@
               "en": "Extra appointment capacity (actor estimate)"
             }
           },
-          "value": "2 % (1 bis 3)",
-          "citation": null,
-          "assumption": true
-        }
-      ],
-      "formula": "dWait_pct = -capacity_pct * elasticity",
-      "uncertainty": {
-        "lang": "de",
-        "text": "Schätzung der Vorschlagenden; Kapazität und Elastizität sind Annahmen",
-        "translations": {
-          "en": "Proposers' estimate; capacity and elasticity are assumptions"
-        }
-      },
-      "notModelled": false,
-      "modelVersion": "impact-0.2-proposer",
-      "basis": "proposer"
-    },
-    {
-      "measureId": "proposer:p-01",
-      "metric": "cost_eur_pa",
-      "value": 120,
-      "low": 100,
-      "high": 150,
-      "unit": "Mio. EUR p.a.",
-      "inputs": [
-        {
-          "name": {
-            "lang": "de",
-            "text": "Kostenschätzung des einbringenden Akteurs",
-            "translations": {
-              "en": "Cost estimate by the proposing actor"
-            }
-          },
-          "value": "120 (100 bis 150) Mio. EUR p.a.",
-          "citation": null,
-          "assumption": true
-        }
-      ],
-      "formula": "cost = proposer_estimate (low..high)",
-      "uncertainty": {
-        "lang": "de",
-        "text": "Bandbreite aus der Schätzung des einbringenden Akteurs; nicht unabhängig kalkuliert",
-        "translations": {
-          "en": "Range from the proposer's estimate; not independently costed"
-        }
-      },
-      "notModelled": false,
-      "modelVersion": "impact-0.2-proposer",
-      "basis": "proposer"
-    },
-    {
-      "measureId": "proposer:p-01",
-      "metric": "sv_spend_pp",
-      "value": 0.21,
-      "low": 0.17,
-      "high": 0.26,
-      "unit": "% der Gesundheitsausgaben",
-      "inputs": [
-        {
-          "name": {
-            "lang": "de",
-            "text": "Kostenschätzung des einbringenden Akteurs",
-            "translations": {
-              "en": "Cost estimate by the proposing actor"
-            }
-          },
-          "value": "120 (100 bis 150) Mio. EUR p.a.",
-          "citation": null,
-          "assumption": true
-        },
-        {
-          "name": {
-            "lang": "de",
-            "text": "Laufende Gesundheitsausgaben, Basis",
-            "translations": {
-              "en": "Current health expenditure, baseline"
-            }
-          },
-          "value": "57.8 Mrd. EUR",
-          "citation": null,
-          "assumption": false
-        }
-      ],
-      "formula": "spend_pct = cost_mio / (baseline_bn * 1000) * 100",
-      "uncertainty": {
-        "lang": "de",
-        "text": "Folgt der Kostenbandbreite",
-        "translations": {
-          "en": "Follows the cost range"
-        }
-      },
-      "notModelled": false,
-      "modelVersion": "impact-0.2-proposer",
-      "basis": "proposer"
-    },
-    {
-      "measureId": "proposer:p-01",
-      "metric": "wait_change_pct",
-      "value": -5.6,
-      "low": -54,
-      "high": -4,
-      "unit": "%",
-      "inputs": [
-        {
-          "name": {
-            "lang": "de",
-            "text": "Zusätzliche Terminkapazität (Schätzung des Akteurs)",
-            "translations": {
-              "en": "Extra appointment capacity (actor estimate)"
-            }
-          },
-          "value": "8 % (8 bis 60)",
+          "value": "2 % (1 bis 2)",
           "citation": null,
           "assumption": true
         }
@@ -790,9 +420,9 @@
     {
       "measureId": "proposer:package",
       "metric": "cost_eur_pa",
-      "value": 240,
-      "low": 180,
-      "high": 270,
+      "value": 100,
+      "low": 75,
+      "high": 100,
       "unit": "Mio. EUR p.a.",
       "inputs": [],
       "formula": "sum(cost) over proposals",
@@ -810,9 +440,9 @@
     {
       "measureId": "proposer:package",
       "metric": "sv_spend_pp",
-      "value": 0.42,
-      "low": 0.31,
-      "high": 0.47,
+      "value": 0.17,
+      "low": 0.13,
+      "high": 0.17,
       "unit": "% der Gesundheitsausgaben (Deckel 5 %)",
       "inputs": [],
       "formula": "spend_pct = sum(cost_mio) / (baseline_bn * 1000) * 100",
@@ -830,9 +460,9 @@
     {
       "measureId": "proposer:package",
       "metric": "wait_change_pct",
-      "value": -6.9,
-      "low": -55.1,
-      "high": -4.5,
+      "value": -1.4,
+      "low": -1.8,
+      "high": -0.5,
       "unit": "% (Ziel -20 %)",
       "inputs": [],
       "formula": "capacity = 1 - prod(1 - c_i); dWait_pct = -capacity * elasticity",
