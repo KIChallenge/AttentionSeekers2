@@ -6,6 +6,13 @@ import { L } from "@/components/run/helpers";
 import { useRun } from "@/components/run/run-context";
 import { Page, PageHead } from "@/components/shell/page";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { CoalitionGraph, IncentiveMatrix } from "./coalitions";
 import { ConsensusMatrix } from "./consensus-matrix";
 import { OpenConflicts, ProposalList, WhoMoved } from "./movement";
@@ -26,9 +33,25 @@ export function AnalysisView() {
             : t.analysis.sub
         }
         actions={
-          <Button asChild variant="outline">
-            <Link href={`/runs/${runId}/outcome`}>{t.nav.outcome}</Link>
-          </Button>
+          <>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" disabled={openCount === 0}>
+                  {t.analysis.conflicts}
+                  <Chip className="border-warning/40 text-warning">{openCount}</Chip>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+                <DialogHeader>
+                  <DialogTitle>{t.analysis.conflicts}</DialogTitle>
+                </DialogHeader>
+                <OpenConflicts />
+              </DialogContent>
+            </Dialog>
+            <Button asChild variant="outline">
+              <Link href={`/runs/${runId}/outcome`}>{t.nav.outcome}</Link>
+            </Button>
+          </>
         }
       />
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
@@ -58,12 +81,6 @@ export function AnalysisView() {
         <div className="min-w-0 space-y-6">
           <Panel title={t.analysis.whoMoved} sub={t.analysis.whoMovedSub(last)}>
             <WhoMoved />
-          </Panel>
-          <Panel
-            title={t.analysis.conflicts}
-            aside={<Chip className="border-warning/40 text-warning">{openCount}</Chip>}
-          >
-            <OpenConflicts />
           </Panel>
           <Panel
             title={t.analysis.coalitionGraph}
