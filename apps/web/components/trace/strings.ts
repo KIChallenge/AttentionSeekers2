@@ -62,6 +62,7 @@ const de = {
     exchange_outcome: "Gesprächsergebnis",
     summary: "Zusammenfassung",
     impact: "Wirkung",
+    compromise: "Kompromiss",
   } satisfies Record<LlmCallParentKind, string>,
   status: {
     ok: "ok",
@@ -186,6 +187,7 @@ const en: TraceStrings = {
     exchange_outcome: "Exchange outcome",
     summary: "Summary",
     impact: "Impact",
+    compromise: "Compromise",
   },
   status: { ok: "ok", repaired: "repaired", fallback: "fallback", failed: "failed" },
   cols: { call: "Call", timeline: "Timeline", tokens: "Tokens", cost: "Cost", running: "Total" },

@@ -1306,6 +1306,29 @@
                     "label",
                     "baseRunId"
                   ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "scenario"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "baseRunId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "label",
+                    "baseRunId"
+                  ]
                 }
               ]
             },
@@ -7872,7 +7895,8 @@
                     "verification",
                     "exchange_outcome",
                     "summary",
-                    "impact"
+                    "impact",
+                    "compromise"
                   ]
                 },
                 "ref": {

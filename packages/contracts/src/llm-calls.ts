@@ -19,6 +19,8 @@ export const LlmCallParentKind = z.enum([
   "exchange_outcome",
   "summary",
   "impact",
+  /** Added 2026-11-06: compromise package draft and ratification answers. */
+  "compromise",
 ]);
 export type LlmCallParentKind = z.infer<typeof LlmCallParentKind>;
 
