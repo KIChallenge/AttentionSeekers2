@@ -585,10 +585,6 @@ export function AskSheet({
                 );
               return (
                 <div key={turn.id} className="flex flex-col gap-2">
-                  <ChangeLine
-                    a={stancesOf(turn.state ?? "before")}
-                    b={stancesOf(mate.state ?? "after")}
-                  />
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <Bubble
                       turn={turn}
