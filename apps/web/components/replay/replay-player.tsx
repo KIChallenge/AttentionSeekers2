@@ -1,5 +1,6 @@
 "use client";
 
+import { NextIcon, PreviousIcon, RotateLeft01Icon } from "@hugeicons/core-free-icons";
 import {
   catalogAgent,
   emptySnapshot,
@@ -11,6 +12,13 @@ import {
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { laneT } from "@/components/entity/messages";
+import {
+  PlaybackButton,
+  PlaybackGroup,
+  PlayPauseButton,
+  Segmented,
+} from "@/components/playback/controls";
+import { playbackKeys } from "@/components/playback/strings";
 import { AgentTile } from "@/components/run/agent-tile";
 import { usePrefs } from "@/components/shell/providers";
 import { SpeakerTimeline } from "@/components/timeline/speaker-timeline";
@@ -37,6 +45,7 @@ const MAX_GAP_MS = 1500;
 export function ReplayPlayer({ runId, events }: { runId: string; events: RunEvent[] }) {
   const { t: base, lang } = usePrefs();
   const t = laneT(lang);
+  const k = playbackKeys[lang];
   // snaps[i] = state after the first i events (structural sharing keeps this cheap)
   const snaps = useMemo(() => {
     const out: RunSnapshot[] = [emptySnapshot()];
@@ -154,70 +163,66 @@ export function ReplayPlayer({ runId, events }: { runId: string; events: RunEven
     <div className="space-y-4">
       {/* sticky transport */}
       <div className="sticky top-[50px] z-10 -mx-4 border-b bg-background/95 px-4 pt-3 pb-1 backdrop-blur sm:-mx-8 sm:px-8">
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            size="sm"
-            onClick={() => {
+        <PlaybackGroup
+          label={base.replay.title}
+          className="flex-wrap gap-2"
+          data-replay-transport=""
+        >
+          <PlaybackButton
+            icon={PreviousIcon}
+            label={t.replay.prevEvent}
+            shortcut={k.left}
+            keys="ArrowLeft"
+            onClick={() => seek(pos - 1)}
+            disabled={pos <= 1}
+          />
+          <PlayPauseButton
+            playing={playing}
+            onToggle={() => {
               if (!playing && pos >= end) setPos(1);
               setPlaying((p) => !p);
               setFollow(true);
             }}
-            className="w-24"
-            aria-label={playing ? base.replay.pause : base.replay.play}
-          >
-            {playing ? `❚❚ ${base.replay.pause}` : `▶ ${base.replay.play}`}
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
+            labels={{ play: base.replay.play, pause: base.replay.pause }}
+            shortcut={k.space}
+          />
+          <PlaybackButton
+            icon={NextIcon}
+            label={t.replay.nextEvent}
+            shortcut={k.right}
+            keys="ArrowRight"
+            onClick={() => seek(pos + 1)}
+            disabled={pos >= end}
+          />
+          <PlaybackButton
+            icon={RotateLeft01Icon}
+            label={base.replay.restart}
             onClick={() => {
               setPos(1);
               setPlaying(true);
               setFollow(true);
             }}
-          >
-            ↺ {base.replay.restart}
-          </Button>
-          <fieldset
-            className="m-0 flex items-center gap-1 border-0 p-0"
-            aria-label={base.replay.speed}
-          >
-            <span className="mr-1 text-xs text-muted-foreground">{base.replay.speed}</span>
-            {SPEEDS.map((x) => (
-              <Button
-                key={x}
-                size="xs"
-                variant={x === speed ? "default" : "outline"}
-                onClick={() => setSpeed(x)}
-                className="num w-9"
-                aria-pressed={x === speed}
-              >
-                {x}x
-              </Button>
-            ))}
-          </fieldset>
+          />
+          <Segmented
+            label={base.replay.speed}
+            value={speed}
+            onChange={setSpeed}
+            options={SPEEDS.map((x) => ({ value: x, label: `${x}x` }))}
+            className="ml-1"
+          />
           <span className="flex-1" />
-          <fieldset
-            className="m-0 flex items-center gap-1 border-0 p-0"
-            aria-label={t.replay.jumpRound}
-          >
-            <span className="mr-1 hidden text-xs text-muted-foreground sm:inline">
-              {t.replay.jumpRound}
-            </span>
-            {marks.rounds.map((r) => (
-              <Button
-                key={r.round}
-                size="xs"
-                variant={r.round === s.currentRound ? "secondary" : "ghost"}
-                className="num w-7"
-                onClick={() => seekRound(r.round)}
-              >
-                {r.round}
-              </Button>
-            ))}
-          </fieldset>
+          <span className="hidden text-xs text-muted-foreground sm:inline">
+            {t.replay.jumpRound}
+          </span>
+          <Segmented
+            label={t.replay.jumpRound}
+            shortcut={`${k.shift} + ${k.left} ${k.right}`}
+            value={s.currentRound || 0}
+            onChange={seekRound}
+            options={marks.rounds.map((r) => ({ value: r.round, label: String(r.round) }))}
+          />
           <Select value={lastUtt ?? undefined} onValueChange={seekUtterance}>
-            <SelectTrigger size="sm" className="w-40" aria-label={t.replay.jumpUtterance}>
+            <SelectTrigger className="h-9 w-40 rounded-full" aria-label={t.replay.jumpUtterance}>
               <SelectValue placeholder={t.replay.jumpUtterance} />
             </SelectTrigger>
             <SelectContent className="max-h-80">
@@ -235,7 +240,7 @@ export function ReplayPlayer({ runId, events }: { runId: string; events: RunEven
               })}
             </SelectContent>
           </Select>
-        </div>
+        </PlaybackGroup>
         <Scrubber
           events={events}
           marks={marks}

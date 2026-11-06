@@ -111,3 +111,60 @@ party and the "angepasst" chip stay, the model id moves behind the chip at Analy
 - No new strings; the few labels the new folds need reuse existing DE and EN entries.
 - Executive level is unchanged except where a shared component got quieter; the stand panel
   (agreement per topic, binding conflict) now lives in the right rail at every level.
+
+## Playback controls (branch `feat/stage-controls`)
+
+Status: 2026-11-06, 02:00. Screenshots before and after live in the scratchpad
+(`pw/controls/before`, `pw/controls/after`), 1440x900 and 1920x1080, light, dark and
+projector, Meeting view at 1920x1080, run `reference-wartezeiten-presse`.
+
+Critique of the four surfaces as they were:
+
+- Stage transport (tiles and 3D): the play button is a 128 px wide text button whose "icon" is
+  a text character (`▶`, `❚❚`) drawn at font size, so it changes with the font and sits off the
+  baseline; previous and next are the emoji code points `⏮` `⏭`, which fall back to an 11 px
+  glyph; the sharpest rebuttal uses the `⚡` emoji. Three button shapes sit in one row (bordered
+  square, filled text button, info outline), the speed and scope segments are 28 px, the only
+  focus state is the browser outline, and nothing shows a pressed state. The playhead is a 2 px
+  bar at the centre of the active segment among 132 coloured segments, so it reads as data, not
+  as a handle, and the round labels `R1..R5` touch the strip.
+- Meeting pill: right idea (floating, fades when idle, play in the middle) but the same text
+  glyphs: previous and next render at about 11 px inside 44 px buttons, play is a text triangle
+  centred by the font, fullscreen uses `⛶` and `⤡`, which are missing in most fonts. Speed is a
+  mono text button that cycles with no sign that other values exist.
+- Replay player: `❚❚ Pause` as a 96 px text button at 32 px, `↺ Neu starten` as a ghost text
+  button, speed as four separate 24 px pills where the selected one is solid black (it looks
+  like a primary action), round jumps as 28 px ghost buttons. The scrubber playhead is fine but
+  the knob is 10 px and there is no progress fill behind the current event.
+- Run header: `▶ Live abspielen` is a 28 px pill next to a 28 px speed segment; both sit in a
+  44 px bar, so the hit target is smaller than the bar. The speed segment disappears below
+  `lg`.
+- Across all four: four different play glyphs, four button heights (28, 32, 36, 44 px), four
+  radii, tooltips only through `title` (no shortcut hint, nothing on touch), and the replay
+  player has no tooltips at all.
+
+One control system, `components/playback`:
+
+- `PlaybackButton`: round icon button with Hugeicons (Play, Pause, Previous, Next, Flash,
+  RotateLeft, Stop, FullScreen, Minimize, Cancel). Sizes `md` 36 px, `lg` 44 px, play/pause one
+  step larger (44 px, 56 px in Meeting) so it is the obvious control; projector mode scales
+  every size by 1.25 through the root font size. Variants: `primary` (filled, play/pause),
+  `ghost` (bordered on the light surfaces, translucent on the dark call surface), `accent`
+  (sharpest rebuttal), `danger` (leave meeting). Pressed state via `aria-pressed` with an inset
+  fill, focus with a 2 px ring and offset, active scale, 40 percent opacity when disabled.
+  Buttons do not keep pointer focus, so Space stays play/pause and never re-clicks a button.
+- `PlaybackTooltip`: label plus `Kbd` shortcut (DE "Leertaste", EN "Space"), also written to
+  `aria-label` and `aria-keyshortcuts`.
+- `SpeedControl`: compact segmented control, full-height options (36 px, 44 px on the call
+  surface), selected option as an inset pill, `aria-pressed` on every option.
+- Scrubbers keep their shape (utterance segments on the stage, recorded time in the replay) and
+  share one playhead: a 2 px line with a 14 px knob ringed in the surface colour; the stage
+  playhead moves within the current segment as the line is spoken.
+- Keyboard shortcuts unchanged: Space, arrows, S, F, R, Esc.
+
+Auto-continue check (headless Chrome, `pw/controls/autoplay.mjs`, one sample every 5 s): the
+tile stage played from utterance 33 to 35 of 132 over 80 s with ElevenLabs audio and was never
+paused between lines; the Meeting view went from 33 to 36 over 65 s at 1.5x, also without a stop.
+The whole-run default scope and the audio stall watchdog from `main` hold, nothing to fix there.
+Measured hit targets after the change: 36 px (prev, next, restart, every speed and scope option),
+44 px play/pause; Meeting 44 px and 56 px play/pause; projector 45 px and 55 px.

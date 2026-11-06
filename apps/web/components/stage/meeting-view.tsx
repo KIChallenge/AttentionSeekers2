@@ -1,8 +1,14 @@
 "use client";
 
 import {
+  Cancel01Icon,
+  FullScreenIcon,
+  MinimizeScreenIcon,
+  NextIcon,
+  PreviousIcon,
+} from "@hugeicons/core-free-icons";
+import {
   type CSSProperties,
-  type MouseEvent,
   type RefObject,
   useCallback,
   useEffect,
@@ -10,6 +16,14 @@ import {
   useRef,
   useState,
 } from "react";
+import {
+  PlaybackButton,
+  PlaybackDivider,
+  PlaybackGroup,
+  PlayPauseButton,
+  Segmented,
+} from "@/components/playback/controls";
+import { playbackKeys } from "@/components/playback/strings";
 import { cn } from "@/lib/utils";
 import type { StageCue } from "./avatar/avatar-scene";
 import {
@@ -261,11 +275,11 @@ export function MeetingView({
 
         <Controls
           s={s}
+          lang={lang}
           player={player}
           visible={showControls}
           full={full}
           onFull={toggleFull}
-          onSpeed={cycleSpeed}
           onExit={exit}
         />
       </div>
@@ -395,101 +409,93 @@ function Captions({
 
 function Controls({
   s,
+  lang,
   player,
   visible,
   full,
   onFull,
-  onSpeed,
   onExit,
 }: {
   s: StageStrings;
+  lang: "de" | "en";
   player: MeetingPlayer;
   visible: boolean;
   full: boolean;
   onFull: () => void;
-  onSpeed: () => void;
   onExit: () => void;
 }) {
-  const btn =
-    "grid h-11 min-w-11 place-items-center rounded-full px-3 text-[15px] text-white/90 hover:bg-white/12 focus-visible:outline-2 focus-visible:outline-white/70 disabled:opacity-35";
-  // buttons never keep focus, so Space stays play/pause and never re-clicks a button
-  const noFocus = (e: MouseEvent) => e.preventDefault();
+  const k = playbackKeys[lang];
   return (
-    <div
+    <PlaybackGroup
+      label={s.timeline}
       className={cn(
-        "absolute bottom-3 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/10 bg-[#0b0d12]/85 px-2 py-1.5 shadow-2xl backdrop-blur-md transition-opacity duration-500",
+        "absolute bottom-3 left-1/2 z-40 -translate-x-1/2 gap-1.5 rounded-full border border-white/10 bg-[#0b0d12]/85 px-2.5 py-2 shadow-2xl backdrop-blur-md transition-opacity duration-500",
         visible ? "opacity-100" : "pointer-events-none opacity-0",
       )}
       data-meeting-controls={visible ? "shown" : "hidden"}
     >
-      <button
-        type="button"
-        className={btn}
-        onMouseDown={noFocus}
+      <PlaybackButton
+        tone="call"
+        size="lg"
+        icon={PreviousIcon}
+        label={s.prev}
+        shortcut={k.left}
+        keys="ArrowLeft"
         onClick={() => player.setIdx(player.idx - 1)}
         disabled={player.idx <= 0}
-        aria-label={s.prev}
-        title={`${s.prev} (←)`}
-      >
-        ⏮
-      </button>
-      <button
-        type="button"
-        className={cn(btn, "min-w-14 bg-white text-[#0b0d12] hover:bg-white/90")}
-        onMouseDown={noFocus}
-        onClick={player.toggle}
-        aria-label={player.playing ? s.pause : s.play}
-        title={`${player.playing ? s.pause : s.play} (Space)`}
-      >
-        {player.playing ? "❚❚" : "▶"}
-      </button>
-      <button
-        type="button"
-        className={btn}
-        onMouseDown={noFocus}
+      />
+      <PlayPauseButton
+        tone="call"
+        size="xl"
+        playing={player.playing}
+        onToggle={player.toggle}
+        labels={{ play: s.play, pause: s.pause }}
+        shortcut={k.space}
+      />
+      <PlaybackButton
+        tone="call"
+        size="lg"
+        icon={NextIcon}
+        label={s.next}
+        shortcut={k.right}
+        keys="ArrowRight"
         onClick={() => player.setIdx(player.idx + 1)}
         disabled={player.idx >= player.total - 1}
-        aria-label={s.next}
-        title={`${s.next} (→)`}
-      >
-        ⏭
-      </button>
-      <span className="mx-1 h-6 w-px bg-white/15" aria-hidden="true" />
-      <button
-        type="button"
-        className={cn(btn, "font-mono text-sm tabular-nums")}
-        onMouseDown={noFocus}
-        onClick={onSpeed}
-        aria-label={`${s.speed} ${player.speed}x`}
-        title={`${s.speed} (S)`}
-      >
-        {player.speed}x
-      </button>
+      />
+      <PlaybackDivider tone="call" />
+      <Segmented
+        tone="call"
+        size="lg"
+        label={s.speed}
+        shortcut="S"
+        value={player.speed}
+        onChange={player.setSpeed}
+        options={SPEEDS.map((v) => ({ value: v, label: `${v}x` }))}
+      />
       <span className="px-2 font-mono text-xs text-white/55 tabular-nums">
         {player.idx + 1}/{player.total}
       </span>
-      <span className="mx-1 h-6 w-px bg-white/15" aria-hidden="true" />
-      <button
-        type="button"
-        className={btn}
-        onMouseDown={noFocus}
+      <PlaybackDivider tone="call" />
+      <PlaybackButton
+        tone="call"
+        size="lg"
+        icon={full ? MinimizeScreenIcon : FullScreenIcon}
+        label={full ? s.meetingFullscreenExit : s.meetingFullscreen}
+        shortcut="F"
+        keys="F"
+        pressed={full}
         onClick={onFull}
-        aria-label={full ? s.meetingFullscreenExit : s.meetingFullscreen}
-        aria-pressed={full}
-        title={`${full ? s.meetingFullscreenExit : s.meetingFullscreen} (F)`}
-      >
-        {full ? "⤡" : "⛶"}
-      </button>
-      <button
-        type="button"
-        className={cn(btn, "bg-red-600/90 text-white hover:bg-red-600")}
-        onMouseDown={noFocus}
+      />
+      <PlaybackButton
+        tone="call"
+        size="lg"
+        variant="danger"
+        icon={Cancel01Icon}
+        label={s.meetingExit}
+        shortcut={k.esc}
+        keys="Escape"
         onClick={onExit}
-        aria-label={s.meetingExit}
-        title={`${s.meetingExit} (Esc)`}
-      >
-        ✕
-      </button>
-    </div>
+      />
+    </PlaybackGroup>
   );
 }

@@ -1,9 +1,11 @@
 "use client";
 
+import { PlayIcon, StopIcon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { PlaybackButton, PlaybackGroup, Segmented } from "@/components/playback/controls";
 import { cn } from "@/lib/utils";
-import { Chip, Seg } from "./bits";
+import { Chip } from "./bits";
 import { useRun } from "./run-context";
 
 /** Second bar on every run screen: question, screen links, status, live replay control. */
@@ -71,30 +73,33 @@ export function RunSubBar() {
         ))}
       </nav>
       <span className="hidden h-5 w-px bg-border lg:block" />
-      <Seg
-        label={t.live.speed}
-        className="hidden lg:inline-flex"
-        value={speed}
-        onChange={setSpeed}
-        options={[1, 4, 16].map((s) => ({ value: s, label: `${s}x` }))}
-      />
-      {streaming && streamState === "streaming" ? (
-        <button
-          type="button"
-          onClick={stop}
-          className="h-7 shrink-0 rounded-control border px-2.5 text-xs hover:border-foreground/40"
-        >
-          {t.live.stop}
-        </button>
-      ) : (
-        <button
-          type="button"
-          onClick={playLive}
-          className="h-7 shrink-0 rounded-control bg-foreground px-2.5 text-xs text-background"
-        >
-          ▶ {t.live.playLive}
-        </button>
-      )}
+      <PlaybackGroup label={t.live.replay} className="shrink-0 gap-2">
+        <Segmented
+          label={t.live.speed}
+          className="hidden lg:inline-flex"
+          value={speed}
+          onChange={setSpeed}
+          options={[1, 4, 16].map((s) => ({ value: s, label: `${s}x` }))}
+        />
+        {streaming && streamState === "streaming" ? (
+          <PlaybackButton
+            icon={StopIcon}
+            filled
+            label={t.live.stopHint}
+            text={t.live.stop}
+            onClick={stop}
+          />
+        ) : (
+          <PlaybackButton
+            icon={PlayIcon}
+            filled
+            variant="primary"
+            label={t.live.playLiveHint}
+            text={t.live.playLive}
+            onClick={playLive}
+          />
+        )}
+      </PlaybackGroup>
     </div>
   );
 }

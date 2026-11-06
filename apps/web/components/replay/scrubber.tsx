@@ -2,6 +2,7 @@
 
 import type { RunEvent } from "@sv/contracts";
 import { useMemo, useRef } from "react";
+import { Playhead } from "@/components/playback/controls";
 import { cn } from "@/lib/utils";
 
 export interface ScrubMarks {
@@ -78,8 +79,9 @@ export function Scrubber({
         aria-valuemin={0}
         aria-valuemax={events.length}
         aria-valuenow={pos}
+        aria-valuetext={`${pos} / ${events.length}`}
         aria-label={labels.timeline ?? "Timeline"}
-        className="relative h-16 cursor-pointer touch-none outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+        className="relative h-16 cursor-pointer touch-none rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
         onPointerDown={(e) => {
           (e.target as Element).setPointerCapture?.(e.pointerId);
           seekAt(e.clientX);
@@ -142,12 +144,7 @@ export function Scrubber({
           </span>
         ))}
         {/* playhead */}
-        <span
-          className="pointer-events-none absolute top-2 h-10 w-0.5 -translate-x-1/2 rounded-full bg-foreground"
-          style={{ left: pct(curT) }}
-        >
-          <span className="absolute -top-1 left-1/2 size-2.5 -translate-x-1/2 rounded-full bg-foreground" />
-        </span>
+        <Playhead left={pct(curT)} className="top-2 bottom-4" />
       </div>
     </div>
   );
