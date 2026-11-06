@@ -284,11 +284,8 @@ export function SpeakerTimeline({
         <h2 id={`${uid}-title`} className={cn("font-semibold", strip ? "text-xs" : "text-sm")}>
           {t.title}
         </h2>
-        {strip ? null : (
-          <p className="text-[11px] text-muted-foreground">
-            {t.sub}
-            {derived ? ` · ${t.derived}` : ""}
-          </p>
+        {strip || !derived ? null : (
+          <p className="text-[11px] text-muted-foreground">{t.derived}</p>
         )}
       </div>
       <span className="flex-1" />

@@ -3,7 +3,6 @@ import type { Lang } from "@sv/contracts";
 const de = {
   title: "Redezeit",
   label: "Zeitleiste der Wortmeldungen",
-  sub: "Wer spricht mit wem und wie lange, in simulierten Minuten",
   derived: "Zeit aus Reihenfolge und Wortzahl geschätzt",
   show: "Zeitleiste einblenden",
   hide: "Zeitleiste ausblenden",
@@ -34,7 +33,6 @@ export type TimelineStrings = typeof de;
 const en: TimelineStrings = {
   title: "Speaking time",
   label: "Timeline of utterances",
-  sub: "Who talks to whom and for how long, in simulated minutes",
   derived: "Time estimated from order and word count",
   show: "Show timeline",
   hide: "Hide timeline",
