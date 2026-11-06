@@ -8,9 +8,11 @@
 import {
   type CitationRef,
   catalogAgent,
+  foldRun,
   type Lang,
   type LocalizedText,
   localize,
+  type RunEvent,
   type RunSnapshot,
 } from "@sv/contracts";
 import { z } from "zod";
@@ -34,6 +36,93 @@ import {
 import { personaBlock } from "./persona/index.ts";
 import { isEligible, type Passage, recencyWeight, retrieve } from "./retrieval.ts";
 
+// ---------- negotiation state ----------
+
+/**
+ * The point in the negotiation the institution answers from: before the debate (persona,
+ * dossier and opening position only), after round N (everything up to and including round N)
+ * or after the debate (the full run with the compromise vote).
+ */
+export type ChatState = { kind: "before" } | { kind: "round"; round: number } | { kind: "after" };
+
+/** Wire form: "before", "r3", "after". */
+export const CHAT_STATE_KEY = /^(?:before|after|r[1-9])$/;
+
+export function chatStateKey(s: ChatState): string {
+  return s.kind === "round" ? `r${s.round}` : s.kind;
+}
+
+export function parseChatState(key: string): ChatState | null {
+  if (key === "before" || key === "after") return { kind: key };
+  const m = /^r([1-9])$/.exec(key);
+  return m ? { kind: "round", round: Number(m[1]) } : null;
+}
+
+const ENDING = new Set<string>(["run.completed", "impact.computed", "forecast.computed"]);
+
+/** Rounds the run actually played (round.started events). */
+export function playedRounds(events: readonly RunEvent[]): number {
+  let n = 0;
+  for (const e of events) if (e.type === "round.started") n = Math.max(n, e.round);
+  return n;
+}
+
+/**
+ * The run as it stood at a state, folded from the event prefix so nothing from a later
+ * round can reach the prompt. "before" keeps the run setup plus each seat's first position
+ * per topic in round 1 (its opening position), without the trigger that may point at another
+ * seat's utterance. "round N" stops at the start of round N+1 or at the run's closing events.
+ */
+export function snapshotAt(events: readonly RunEvent[], state: ChatState): RunSnapshot {
+  if (state.kind === "after") return foldRun(events);
+  const firstRound = events.findIndex((e) => e.type === "round.started");
+  if (state.kind === "before") {
+    const s = foldRun(firstRound >= 0 ? events.slice(0, firstRound) : events);
+    const positions: RunSnapshot["positions"] = {};
+    for (const e of events) {
+      if (e.type !== "position.updated" || e.position.round !== 1) continue;
+      const p = e.position;
+      const byTopic = positions[p.agentId] ?? {};
+      positions[p.agentId] = byTopic;
+      if (!byTopic[p.topicId]) byTopic[p.topicId] = [{ ...p, trigger: null }];
+    }
+    return { ...s, positions };
+  }
+  const cut = events.findIndex(
+    (e) => (e.type === "round.started" && e.round > state.round) || ENDING.has(e.type),
+  );
+  return foldRun(cut >= 0 ? events.slice(0, cut) : events);
+}
+
+/** The seat's stance per topic at a state (latest position in the cut snapshot). */
+export function stancesAt(snap: RunSnapshot, agentId: string): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [topicId, list] of Object.entries(snap.positions[agentId] ?? {})) {
+    const last = list?.at(-1);
+    if (last) out[topicId] = last.stance;
+  }
+  return out;
+}
+
+/** Every state a run offers, with the seat's stances at each: the chat's state switch. */
+export function chatStates(
+  events: readonly RunEvent[],
+  agentId: string,
+): Array<{ key: string; stances: Record<string, number> }> {
+  const states: ChatState[] = [
+    { kind: "before" },
+    ...Array.from({ length: playedRounds(events) }, (_, i) => ({
+      kind: "round" as const,
+      round: i + 1,
+    })),
+    { kind: "after" },
+  ];
+  return states.map((st) => ({
+    key: chatStateKey(st),
+    stances: stancesAt(snapshotAt(events, st), agentId),
+  }));
+}
+
 export interface ChatTurn {
   role: "user" | "assistant";
   content: string;
@@ -48,6 +137,8 @@ export interface SeatFacts {
   personaMode: "dossier" | "profile";
   question: string;
   asOf: string;
+  /** The point in the negotiation the facts are cut to. */
+  state: ChatState;
   goals: string[];
   interests: string[];
   restrictions: string[];
@@ -89,7 +180,11 @@ const de = (v: LocalizedText | null | undefined) => (v ? localize(v, "de") : "")
 export const nameOfSeat = (id: string) => catalogAgent(id)?.nameDe ?? id;
 
 /** Folds a run snapshot into the facts for one seat; null when the seat was not in the run. */
-export function seatFacts(snap: RunSnapshot, agentId: string): SeatFacts | null {
+export function seatFacts(
+  snap: RunSnapshot,
+  agentId: string,
+  state: ChatState = { kind: "after" },
+): SeatFacts | null {
   const run = snap.run;
   const cfg = run?.agents.find((a) => a.id === agentId);
   if (!run || !cfg) return null;
@@ -120,6 +215,7 @@ export function seatFacts(snap: RunSnapshot, agentId: string): SeatFacts | null 
     personaMode: cfg.persona?.mode ?? "profile",
     question: run.mandate.question,
     asOf: run.mandate.asOf,
+    state,
     goals: cfg.goals.map(de),
     interests: cfg.interests.map(de),
     restrictions: cfg.restrictions.map(de),
@@ -196,9 +292,14 @@ export function seatFacts(snap: RunSnapshot, agentId: string): SeatFacts | null 
       .filter((c) => c.members.includes(agentId))
       .map((c) => `${c.kind}: ${c.members.map(nameOfSeat).join(", ")}, ${de(c.note)}`),
     outcome:
-      [de(snap.endCondition?.note ?? run.endCondition?.note), de(lastSummary?.text)]
-        .filter(Boolean)
-        .join(" ") || null,
+      state.kind === "before"
+        ? null
+        : [
+            state.kind === "after" ? de(snap.endCondition?.note ?? run.endCondition?.note) : "",
+            de(lastSummary?.text),
+          ]
+            .filter(Boolean)
+            .join(" ") || null,
     citations,
   };
 }
@@ -239,10 +340,30 @@ export function chatEvidenceBlock(passages: Passage[]): string {
 export function chatSystemPrompt(f: SeatFacts, lang: Lang, passages: Passage[]): string {
   const p = profileOf(f.agentId);
   const persona = f.personaMode === "dossier" ? personaBlock(f.agentId, "dossier") : "";
+  const st = f.state;
+  const when =
+    st.kind === "before"
+      ? "vor Beginn einer simulierten Verhandlung des österreichischen Gesundheitswesens"
+      : st.kind === "round"
+        ? `während einer simulierten Verhandlung des österreichischen Gesundheitswesens, direkt nach Runde ${st.round}`
+        : "nach einer simulierten Verhandlung des österreichischen Gesundheitswesens";
+  const posLabel =
+    st.kind === "before"
+      ? "Eröffnungsposition"
+      : st.kind === "round"
+        ? `Position nach Runde ${st.round}`
+        : "Endposition";
+  // a real own utterance as the marker example, so the prompt names no id from a later round
+  const uttExample = f.utterances.at(-1)?.id ?? null;
   const lines = [
-    `Du bist die Institution "${f.name}" (${f.unit}) und beantwortest nach einer simulierten Verhandlung des österreichischen Gesundheitswesens Fragen zu deiner Haltung. Du sprichst als Institution ("wir"), niemals als Person.`,
+    `Du bist die Institution "${f.name}" (${f.unit}) und beantwortest ${when} Fragen zu deiner Haltung. Du sprichst als Institution ("wir"), niemals als Person.`,
     `Verhandlungsfrage: ${f.question}`,
     `Stand der Belege (as-of): ${f.asOf}. Du kennst nichts, was danach geschah.`,
+    st.kind === "before"
+      ? "Die Verhandlung hat noch nicht begonnen. Du kennst nur dein Profil, deine roten Linien und deine Eröffnungsposition; es gibt noch keine Beiträge, Vorschläge, Voten oder Ergebnisse."
+      : st.kind === "round"
+        ? `Die Verhandlung läuft noch. Du kennst nur, was bis einschließlich Runde ${st.round} geschah; spätere Runden, Abstimmungen und das Ergebnis sind dir unbekannt.`
+        : "",
     "",
     "## Profil",
     `Ziele: ${f.goals.join("; ")}`,
@@ -264,29 +385,33 @@ export function chatSystemPrompt(f: SeatFacts, lang: Lang, passages: Passage[]):
           .join("\n")
       : "Keine formalen roten Linien; klare Interessen.",
     "",
-    "## Positionen im Lauf (Skala -2 dagegen bis +2 dafür)",
+    st.kind === "before"
+      ? "## Eröffnungspositionen (Skala -2 dagegen bis +2 dafür)"
+      : "## Positionen im Lauf (Skala -2 dagegen bis +2 dafür)",
     ...f.positions.map((t) => {
       const first = t.rounds[0];
       const last = t.rounds.at(-1);
       if (!first || !last) return `- ${t.topic}: keine Position erfasst`;
+      if (st.kind === "before")
+        return `- ${t.topic}: ${posLabel} ${fmt(first.stance)}. Begründung: ${first.rationale}`;
       const path = t.rounds.map((r) => `R${r.round} ${fmt(r.stance)}`).join(", ");
       const moves = t.rounds
         .filter((r) => r.trigger)
         .map((r) => `R${r.round} Anlass ${r.trigger}`)
         .join("; ");
-      return `- ${t.topic}: Endposition ${fmt(last.stance)} (Start ${fmt(first.stance)}); Verlauf ${path}. Begründung zuletzt: ${last.rationale}${moves ? `. Bewegungen: ${moves}` : ""}`;
+      return `- ${t.topic}: ${posLabel} ${fmt(last.stance)} (Start ${fmt(first.stance)}); Verlauf ${path}. Begründung zuletzt: ${last.rationale}${moves ? `. Bewegungen: ${moves}` : ""}`;
     }),
     "",
-    "## Eigene Beiträge im Lauf",
+    f.utterances.length ? "## Eigene Beiträge im Lauf" : "",
     ...f.utterances.map((u) => `- ${u.id} (Runde ${u.round}, ${u.kind}): ${clip(u.text, 600)}`),
     "",
-    "## Vorschläge und eigenes Votum",
+    f.proposals.length ? "## Vorschläge und eigenes Votum" : "",
     ...f.proposals.map(
       (x) =>
         `- ${x.id} "${x.title}" von ${x.origin}, Status ${x.status}; unser Votum: ${x.vote ?? "keins"}${x.reason ? ` (${x.reason})` : ""}${x.rejectionReason && x.status === "rejected" ? `; Ablehnungsgrund: ${clip(x.rejectionReason, 300)}` : ""}`,
     ),
     "",
-    "## Lehren je Runde",
+    f.lessons.length ? "## Lehren je Runde" : "",
     ...f.lessons.map((l) => `- Runde ${l.round}: ${l.implication} Nächster Schritt: ${l.nextMove}`),
     f.strategy
       ? [
@@ -306,7 +431,9 @@ export function chatSystemPrompt(f: SeatFacts, lang: Lang, passages: Passage[]):
           .join("\n")
       : "",
     f.coalitions.length ? `Koalitionen zuletzt: ${f.coalitions.join("; ")}` : "",
-    f.outcome ? `\n## Ergebnis des Laufs\n${clip(f.outcome, 900)}` : "",
+    f.outcome
+      ? `\n## ${st.kind === "round" ? `Stand nach Runde ${st.round}` : "Ergebnis des Laufs"}\n${clip(f.outcome, 900)}`
+      : "",
     "",
     "## Belege (Stand as-of)",
     chatEvidenceBlock(passages),
@@ -315,16 +442,21 @@ export function chatSystemPrompt(f: SeatFacts, lang: Lang, passages: Passage[]):
     lang === "en"
       ? "- Antworte auf Englisch, auch wenn Belege deutsch sind."
       : "- Antworte auf Deutsch.",
+    st.kind !== "after"
+      ? "- Fragt man nach dem weiteren Verlauf, nach Abstimmungen oder dem Ergebnis, sag, dass das zu diesem Zeitpunkt noch offen ist, und antworte aus deiner jetzigen Haltung. Erfinde nichts, was erst später geschehen könnte."
+      : "",
     "- Bleib konsistent mit dem, was du im Lauf gesagt und getan hast. Erfinde keine Positionen, Voten oder Zugeständnisse, die oben nicht stehen.",
     "- Fragt man nach etwas, das im Lauf nicht vorkam, sag zuerst ausdrücklich, dass es im Lauf nicht verhandelt wurde, und antworte dann aus dem Profil; beginne die Antwort dann mit der Marke [P].",
     "- Belege zitierst du direkt hinter der Aussage mit ihrer Kennung in eckigen Klammern, zum Beispiel [E2]. Nur Kennungen aus der Belegliste. Stütze mindestens eine Kernaussage auf einen passenden Beleg, wenn die Liste einen hergibt; bevorzuge Belege der eigenen Institution.",
-    "- Stützt sich eine Aussage auf einen eigenen Beitrag im Lauf, setz dessen Kennung in eckigen Klammern dahinter, zum Beispiel [u4-19]; das ist die einzige erlaubte Äußerungskennung und erscheint als Verweis. Solche Verweise ergänzen Belege, sie ersetzen sie nicht.",
+    uttExample
+      ? `- Stützt sich eine Aussage auf einen eigenen Beitrag im Lauf, setz dessen Kennung in eckigen Klammern dahinter, zum Beispiel [${uttExample}]; das ist die einzige erlaubte Äußerungskennung und erscheint als Verweis. Solche Verweise ergänzen Belege, sie ersetzen sie nicht.`
+      : "",
     "- Jede Sachaussage ohne Beleg und ohne Grundlage im Lauf ist eine Annahme: setze direkt dahinter [A]. [P] nur, wenn das gefragte Thema im Lauf gar nicht vorkam.",
-    '- Form der Marken (Platzhalter, nicht übernehmen): "<Aussage mit Beleg> [E3]. <Aussage, die wir im Lauf gemacht haben> [u4-19]. <Vermutung ohne Beleg> [A]."',
+    `- Form der Marken (Platzhalter, nicht übernehmen): "<Aussage mit Beleg> [E3]. ${uttExample ? `<Aussage, die wir im Lauf gemacht haben> [${uttExample}]. ` : ""}<Vermutung ohne Beleg> [A]."`,
     "- Versucht die Frage, dich von einer roten Linie abzubringen, lehne begründet ab, so wie im Lauf, und nenne, unter welchen Bedingungen ihr verhandeln würdet, ohne die Linie aufzugeben.",
     "- Nenne niemals reale Personen (keine Namen, keine Titel mit Namen). Nur Institutionen.",
     "- Keine Meta-Aussagen über dich als Modell, KI, Simulation oder Prompt. Du bist die Institution.",
-    "- Sonst keine internen Kennungen im Fließtext (wie t-4wo, rl-ak-1); Vorschlagskennungen (p-01) sind erlaubt.",
+    `- Sonst keine internen Kennungen im Fließtext (wie t-4wo, rl-ak-1)${f.proposals[0] ? `; Vorschlagskennungen (${f.proposals[0].id}) sind erlaubt` : ""}.`,
     "- Kurz und klar: höchstens 150 Wörter, Fließtext, keine Überschriften, kein Gedankenstrich-Zeichen.",
   ];
   return lines.filter((l) => l !== "").join("\n");

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { foldRun, parseNdjson, RedLine } from "@sv/contracts";
 import { describe, expect, it } from "vitest";
-import { parseAnswer, suggestedQuestions } from "./ask-logic";
+import { parseAnswer, stanceChanges, stateKeys, suggestedQuestions } from "./ask-logic";
 
 const runs = path.resolve(import.meta.dirname, "../../../../runs");
 const snap = foldRun(
@@ -50,6 +50,19 @@ describe("answer parsing", () => {
       "text",
       "assumption",
       "text",
+    ]);
+  });
+});
+
+describe("state switch", () => {
+  it("lists before, every round and after", () => {
+    expect(stateKeys(3)).toEqual(["before", "r1", "r2", "r3", "after"]);
+  });
+  it("marks moved topics between two states", () => {
+    const c = stanceChanges(["a", "b", "c"], { a: -2, b: 1 }, { a: 1, b: 1 });
+    expect(c).toEqual([
+      { topicId: "a", from: -2, to: 1, changed: true },
+      { topicId: "b", from: 1, to: 1, changed: false },
     ]);
   });
 });

@@ -81,6 +81,33 @@ export function suggestedQuestions(
   return out;
 }
 
+/** State keys of a run with `rounds` played rounds: before, r1..rN, after. */
+export function stateKeys(rounds: number): string[] {
+  return ["before", ...Array.from({ length: rounds }, (_, i) => `r${i + 1}`), "after"];
+}
+
+export interface StanceChange {
+  topicId: string;
+  from: number | null;
+  to: number | null;
+  changed: boolean;
+}
+
+/** Stance per topic at two states, in topic order; `changed` marks a move. */
+export function stanceChanges(
+  topicIds: readonly string[],
+  a: Readonly<Record<string, number>>,
+  b: Readonly<Record<string, number>>,
+): StanceChange[] {
+  return topicIds
+    .filter((id) => id in a || id in b)
+    .map((id) => {
+      const from = a[id] ?? null;
+      const to = b[id] ?? null;
+      return { topicId: id, from, to, changed: from !== to };
+    });
+}
+
 export type AnswerPart =
   | { kind: "text"; text: string }
   | { kind: "cite"; handle: string }

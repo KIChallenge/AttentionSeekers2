@@ -2,14 +2,22 @@
 
 import { BubbleChatQuestionIcon, RefreshIcon, SentIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { localize } from "@sv/contracts";
 import Link from "next/link";
 import { type FormEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Chip, Tile } from "@/components/run/bits";
-import { agentLook, claimStateClass } from "@/components/run/helpers";
+import { agentLook, claimStateClass, fmtStance } from "@/components/run/helpers";
 import { useRun } from "@/components/run/run-context";
 import { Level } from "@/components/shell/providers";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -20,7 +28,13 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { type AnswerPart, parseAnswer, suggestedQuestions } from "./ask-logic";
+import {
+  type AnswerPart,
+  parseAnswer,
+  stanceChanges,
+  stateKeys,
+  suggestedQuestions,
+} from "./ask-logic";
 
 interface AskSource {
   handle: string;
@@ -32,7 +46,14 @@ interface AskSource {
   recencyWeight: number;
 }
 interface Turn {
+  id: string;
   role: "user" | "assistant";
+  /** Answer: the negotiation state it was asked in ("before", "r3", "after"). */
+  state?: string;
+  /** Question: the states it was asked in (two for a comparison). */
+  states?: string[];
+  /** Answers of one comparison share a pair id and render side by side. */
+  pair?: string;
   content: string;
   sources?: AskSource[];
   /** The model that wrote this answer; the seat's run model is `seatModel`. */
@@ -44,15 +65,32 @@ interface Turn {
   failed?: boolean;
 }
 
-const storeKey = (runId: string, agentId: string) => `sv-ask:${runId}:${agentId}`;
+const storeKey = (runId: string, agentId: string) => `sv-ask:${runId}:${agentId}:v2`;
+let seq = 0;
+const newId = () => `t${Date.now().toString(36)}${(seq++).toString(36)}`;
 
 function readHistory(key: string): Turn[] {
   try {
     const raw = sessionStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as Turn[]).filter((t) => !t.pending) : [];
+    return raw ? (JSON.parse(raw) as Turn[]).filter((t) => !t.pending && t.id) : [];
   } catch {
     return [];
   }
+}
+
+/** The short history the server gets for one state: only turns asked in that state. */
+function historyFor(turns: Turn[], key: string) {
+  return turns
+    .filter((x) =>
+      x.role === "user" ? (x.states ?? ["after"]).includes(key) : (x.state ?? "after") === key,
+    )
+    .filter((x) => !x.failed && x.content)
+    .map(({ role, content }) => ({ role, content }));
+}
+
+interface StateInfo {
+  key: string;
+  stances: Record<string, number>;
 }
 function writeHistory(key: string, turns: Turn[]) {
   try {
@@ -150,6 +188,99 @@ function Answer({ turn }: { turn: Turn }) {
   );
 }
 
+function Bubble({ turn, color, label }: { turn: Turn; color: string; label: string }) {
+  return (
+    <div className="min-w-0 border-l-[3px] pl-3" style={{ borderColor: color }}>
+      <div className="mb-1 text-[11px] font-medium text-muted-foreground">{label}</div>
+      <Answer turn={turn} />
+    </div>
+  );
+}
+
+/** Topic stances at a state, one compact line. */
+function StanceLine({ stances }: { stances: Record<string, number> | undefined }) {
+  const { run, lang } = useRun();
+  const text = run.mandate.topics
+    .filter((tp) => stances && tp.id in stances)
+    .map((tp) => `${localize(tp.label, lang)} ${fmtStance(stances?.[tp.id] ?? 0)}`)
+    .join(" · ");
+  return (
+    <div className="truncate text-[11px] text-muted-foreground" title={text}>
+      {text || "\u00a0"}
+    </div>
+  );
+}
+
+/** Stance change between two states per topic; moved topics stand out. */
+function ChangeLine({
+  a,
+  b,
+}: {
+  a: Record<string, number> | undefined;
+  b: Record<string, number> | undefined;
+}) {
+  const { run, lang, t } = useRun();
+  if (!a || !b) return null;
+  const label = new Map(run.mandate.topics.map((tp) => [tp.id, localize(tp.label, lang)]));
+  const moved = stanceChanges(
+    run.mandate.topics.map((tp) => tp.id),
+    a,
+    b,
+  ).filter((c) => c.changed);
+  if (moved.length === 0)
+    return <div className="text-[11px] text-muted-foreground">{t.ask.noMove}</div>;
+  return (
+    <div className="flex flex-wrap gap-1">
+      {moved.map((c) => (
+        <Chip key={c.topicId} className="border-foreground/30 font-medium text-foreground">
+          {label.get(c.topicId)} {c.from === null ? "?" : fmtStance(c.from)} →{" "}
+          {c.to === null ? "?" : fmtStance(c.to)}
+        </Chip>
+      ))}
+    </div>
+  );
+}
+
+function useStateLabel() {
+  const { t } = useRun();
+  return (key: string) =>
+    key === "before"
+      ? t.ask.stateBefore
+      : key === "after"
+        ? t.ask.stateAfter
+        : t.ask.round(Number(key.slice(1)));
+}
+
+function StateSelect({
+  value,
+  onChange,
+  keys,
+  label,
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  keys: string[];
+  label: string;
+  disabled?: boolean;
+}) {
+  const stateLabel = useStateLabel();
+  return (
+    <Select value={value} onValueChange={onChange} disabled={disabled}>
+      <SelectTrigger size="sm" className="min-w-0" aria-label={label}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {keys.map((k) => (
+          <SelectItem key={k} value={k}>
+            {stateLabel(k)}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 /** Chat with one seat of the run about its stance (persona, red lines, positions, evidence). */
 export function AskSheet({
   agentId,
@@ -164,6 +295,17 @@ export function AskSheet({
   const look = agentLook(run, agentId, lang);
   const key = storeKey(runId, agentId);
   const [turns, setTurns] = useState<Turn[]>([]);
+  const turnsRef = useRef<Turn[]>([]);
+  const commit = (next: Turn[]) => {
+    turnsRef.current = next;
+    setTurns(next);
+  };
+  const [state, setState] = useState("after");
+  const [compare, setCompare] = useState<[string, string] | null>(null);
+  const [states, setStates] = useState<StateInfo[] | null>(null);
+  const stateLabel = useStateLabel();
+  const keys = states?.map((s) => s.key) ?? stateKeys(snap.currentRound);
+  const stancesOf = (k: string) => states?.find((s) => s.key === k)?.stances;
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const abort = useRef<AbortController | null>(null);
@@ -174,40 +316,45 @@ export function AskSheet({
   );
 
   useEffect(() => {
-    if (open) setTurns(readHistory(key));
-    else abort.current?.abort();
+    if (open) {
+      const saved = readHistory(key);
+      turnsRef.current = saved;
+      setTurns(saved);
+    } else abort.current?.abort();
   }, [open, key]);
+
+  useEffect(() => {
+    if (!open) return;
+    const ctrl = new AbortController();
+    fetch(`/api/runs/${runId}/agents/${agentId}/chat`, { signal: ctrl.signal })
+      .then((r) => (r.ok ? (r.json() as Promise<{ states: StateInfo[] }>) : null))
+      .then((j) => {
+        if (j?.states?.length) setStates(j.states);
+      })
+      .catch(() => {});
+    return () => ctrl.abort();
+  }, [open, runId, agentId]);
 
   useEffect(() => {
     end.current?.scrollIntoView({ block: "end" });
   });
 
-  async function ask(question: string) {
-    const q = question.trim();
-    if (!q || busy) return;
-    const history = turns.map(({ role, content }) => ({ role, content }));
-    let current: Turn[] = [
-      ...turns,
-      { role: "user", content: q },
-      { role: "assistant", content: "", pending: true },
-    ];
-    const update = (patch: Partial<Turn>) => {
-      const last = current.at(-1);
-      if (!last) return;
-      current = [...current.slice(0, -1), { ...last, ...patch }];
-      setTurns(current);
-    };
-    setTurns(current);
-    setDraft("");
-    setBusy(true);
-    const ctrl = new AbortController();
-    abort.current = ctrl;
+  const patch = (id: string, p: Partial<Turn>) =>
+    commit(turnsRef.current.map((x) => (x.id === id ? { ...x, ...p } : x)));
+
+  async function stream(
+    q: string,
+    stateKey: string,
+    history: Array<{ role: Turn["role"]; content: string }>,
+    id: string,
+    signal: AbortSignal,
+  ) {
     try {
       const res = await fetch(`/api/runs/${runId}/agents/${agentId}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q, lang, history }),
-        signal: ctrl.signal,
+        body: JSON.stringify({ question: q, lang, history, state: stateKey }),
+        signal,
       });
       if (!res.ok || !res.body) throw new Error(String(res.status));
       const reader = res.body.getReader();
@@ -234,12 +381,12 @@ export function AskSheet({
             flagged?: string[];
           };
           if (ev.type === "meta")
-            update({ model: ev.model, seatModel: ev.seatModel, sources: ev.sources });
+            patch(id, { model: ev.model, seatModel: ev.seatModel, sources: ev.sources });
           else if (ev.type === "reset") {
             text = "";
-            update({ content: "" });
+            patch(id, { content: "" });
           } else if (ev.type === "gate")
-            update({
+            patch(id, {
               model: ev.answeredBy,
               gate: {
                 cut: Boolean(ev.cut),
@@ -249,20 +396,46 @@ export function AskSheet({
             });
           else if (ev.type === "delta") {
             text += ev.text ?? "";
-            update({ content: text });
-          } else if (ev.type === "error") update({ failed: true });
+            patch(id, { content: text });
+          } else if (ev.type === "error") patch(id, { failed: true });
         }
       }
-      update({ pending: false });
+      patch(id, { pending: false });
     } catch {
-      if (!ctrl.signal.aborted) update({ pending: false, failed: true });
-    } finally {
-      setBusy(false);
-      writeHistory(
-        key,
-        current.filter((x) => !x.failed || x.content),
-      );
+      if (!signal.aborted) patch(id, { pending: false, failed: true });
     }
+  }
+
+  /** Asks in the selected state, or in both states of the comparison side by side. */
+  async function ask(question: string, pairOverride?: [string, string]) {
+    const q = question.trim();
+    if (!q || busy) return;
+    const asked = pairOverride ?? compare ?? [state];
+    const pair = asked.length > 1 ? newId() : undefined;
+    const before = turnsRef.current;
+    const answers: Turn[] = asked.map((k) => ({
+      id: newId(),
+      role: "assistant",
+      content: "",
+      pending: true,
+      state: k,
+      pair,
+    }));
+    commit([...before, { id: newId(), role: "user", content: q, states: asked }, ...answers]);
+    setDraft("");
+    setBusy(true);
+    const ctrl = new AbortController();
+    abort.current = ctrl;
+    await Promise.all(
+      answers.map((a) =>
+        stream(q, a.state ?? "after", historyFor(before, a.state ?? "after"), a.id, ctrl.signal),
+      ),
+    );
+    setBusy(false);
+    writeHistory(
+      key,
+      turnsRef.current.filter((x) => !x.failed || x.content),
+    );
   }
 
   const submit = (e: FormEvent) => {
@@ -280,7 +453,12 @@ export function AskSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="gap-0 p-0 data-[side=right]:sm:max-w-lg">
+      <SheetContent
+        className={cn(
+          "gap-0 p-0 data-[side=right]:sm:max-w-lg",
+          (compare || turns.some((x) => x.pair)) && "data-[side=right]:sm:max-w-3xl",
+        )}
+      >
         <SheetHeader className="flex-row items-center gap-3 border-b px-5 py-4 pr-14">
           <Tile id={agentId} size="lg" />
           <div className="min-w-0 flex-1">
@@ -301,7 +479,7 @@ export function AskSheet({
               aria-label={t.ask.reset}
               disabled={busy}
               onClick={() => {
-                setTurns([]);
+                commit([]);
                 writeHistory(key, []);
               }}
             >
@@ -309,6 +487,53 @@ export function AskSheet({
             </Button>
           ) : null}
         </SheetHeader>
+
+        <div className="flex flex-col gap-1.5 border-b px-5 py-2.5">
+          <div className="flex items-center gap-2">
+            {compare ? (
+              <>
+                <StateSelect
+                  value={compare[0]}
+                  onChange={(v) => setCompare([v, compare[1]])}
+                  keys={keys}
+                  label={t.ask.compareFrom}
+                  disabled={busy}
+                />
+                <span className="text-muted-foreground">↔</span>
+                <StateSelect
+                  value={compare[1]}
+                  onChange={(v) => setCompare([compare[0], v])}
+                  keys={keys}
+                  label={t.ask.compareTo}
+                  disabled={busy}
+                />
+              </>
+            ) : (
+              <StateSelect
+                value={state}
+                onChange={setState}
+                keys={keys}
+                label={t.ask.state}
+                disabled={busy}
+              />
+            )}
+            <Button
+              variant={compare ? "secondary" : "ghost"}
+              size="sm"
+              className="ml-auto"
+              aria-pressed={Boolean(compare)}
+              disabled={busy}
+              onClick={() => setCompare(compare ? null : ["before", "after"])}
+            >
+              {t.ask.compare}
+            </Button>
+          </div>
+          {compare ? (
+            <ChangeLine a={stancesOf(compare[0])} b={stancesOf(compare[1])} />
+          ) : (
+            <StanceLine stances={stancesOf(state)} />
+          )}
+        </div>
 
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4" aria-live="polite">
           {turns.length === 0 ? (
@@ -323,28 +548,62 @@ export function AskSheet({
                   {s}
                 </Button>
               ))}
+              <Button
+                variant="outline"
+                className="h-auto justify-start py-2 text-left whitespace-normal"
+                onClick={() => {
+                  const pair = compare ?? (["before", "after"] as [string, string]);
+                  setCompare(pair);
+                  void ask(t.ask.compareQuestion, pair);
+                }}
+              >
+                {t.ask.compareQuestion}
+              </Button>
             </div>
           ) : (
-            turns.map((turn, i) =>
-              turn.role === "user" ? (
-                <div
-                  // biome-ignore lint/suspicious/noArrayIndexKey: turns are append-only
-                  key={i}
-                  className="ml-auto w-fit max-w-[85%] rounded-2xl bg-gray-alpha-100 px-3 py-2 text-sm"
-                >
-                  {turn.content}
+            turns.map((turn, i) => {
+              if (turn.role === "user")
+                return (
+                  <div
+                    key={turn.id}
+                    className="ml-auto w-fit max-w-[85%] rounded-2xl bg-gray-alpha-100 px-3 py-2 text-sm"
+                  >
+                    {turn.content}
+                  </div>
+                );
+              if (turn.pair && turns[i - 1]?.pair === turn.pair) return null;
+              const next = turns[i + 1];
+              const mate = turn.pair && next?.pair === turn.pair ? next : null;
+              if (!mate)
+                return (
+                  <Bubble
+                    key={turn.id}
+                    turn={turn}
+                    color={look.color}
+                    label={stateLabel(turn.state ?? "after")}
+                  />
+                );
+              return (
+                <div key={turn.id} className="flex flex-col gap-2">
+                  <ChangeLine
+                    a={stancesOf(turn.state ?? "before")}
+                    b={stancesOf(mate.state ?? "after")}
+                  />
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Bubble
+                      turn={turn}
+                      color={look.color}
+                      label={stateLabel(turn.state ?? "before")}
+                    />
+                    <Bubble
+                      turn={mate}
+                      color={look.color}
+                      label={stateLabel(mate.state ?? "after")}
+                    />
+                  </div>
                 </div>
-              ) : (
-                <div
-                  // biome-ignore lint/suspicious/noArrayIndexKey: turns are append-only
-                  key={i}
-                  className="border-l-[3px] pl-3"
-                  style={{ borderColor: look.color }}
-                >
-                  <Answer turn={turn} />
-                </div>
-              ),
-            )
+              );
+            })
           )}
           <div ref={end} />
         </div>
