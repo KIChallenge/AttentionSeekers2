@@ -6,6 +6,7 @@ import { Chip, Empty, Meter, Panel, Tile, UttRef } from "@/components/run/bits";
 import { agentLook, fmtStance, L } from "@/components/run/helpers";
 import { SourceChip } from "@/components/run/provenance";
 import { useRun } from "@/components/run/run-context";
+import { Page, PageHead } from "@/components/shell/page";
 import { Level } from "@/components/shell/providers";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
@@ -70,42 +71,46 @@ export function AgentCard({ agentId }: { agentId: string }) {
   const opening = myUtts[0];
 
   return (
-    <main className="mx-auto max-w-[1800px] px-4 pt-5 pb-12 sm:px-6">
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 items-start gap-3">
-          <Tile id={agentId} size="lg" />
-          <div className="min-w-0">
-            <h1 className="text-2xl font-semibold break-words">{look.name}</h1>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {cfg.institution.unit}
-              <span className="text-text-tertiary">
-                {lang === "de" ? ` · ${cfg.institution.glossEn}` : ` · ${cfg.institution.nameDe}`}
-              </span>
-            </p>
-          </div>
-        </div>
-        <nav aria-label={t.agent.switcher} className="flex flex-wrap items-center gap-1">
-          <span className="mr-1 text-xs text-muted-foreground">{t.agent.switcher}</span>
-          {run.agents.map((a) => (
-            <Link
-              key={a.id}
-              href={`/runs/${runId}/agents/${a.id}`}
-              aria-current={a.id === agentId ? "page" : undefined}
-              className={cn(
-                "rounded-control border px-2 py-1 text-xs",
-                a.id === agentId
-                  ? "border-foreground bg-gray-alpha-100"
-                  : "hover:border-foreground/40",
-              )}
-            >
-              {a.code}
-            </Link>
-          ))}
-        </nav>
-      </div>
+    <Page width="full">
+      <PageHead
+        title={
+          <span className="flex items-center gap-3">
+            <Tile id={agentId} size="lg" />
+            <span>{look.name}</span>
+          </span>
+        }
+        sub={
+          <>
+            {cfg.institution.unit}
+            <span className="text-text-tertiary">
+              {lang === "de" ? ` · ${cfg.institution.glossEn}` : ` · ${cfg.institution.nameDe}`}
+            </span>
+          </>
+        }
+        actions={
+          <nav aria-label={t.agent.switcher} className="flex flex-wrap items-center gap-1">
+            <span className="mr-1 text-xs text-muted-foreground">{t.agent.switcher}</span>
+            {run.agents.map((a) => (
+              <Link
+                key={a.id}
+                href={`/runs/${runId}/agents/${a.id}`}
+                aria-current={a.id === agentId ? "page" : undefined}
+                className={cn(
+                  "inline-flex h-7 items-center rounded-control border px-2 text-xs",
+                  a.id === agentId
+                    ? "border-foreground bg-gray-alpha-100"
+                    : "text-muted-foreground hover:border-foreground/40 hover:text-foreground",
+                )}
+              >
+                {a.code}
+              </Link>
+            ))}
+          </nav>
+        }
+      />
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="min-w-0 space-y-4">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="min-w-0 space-y-6">
           <Panel
             title={t.agent.stanceTitle}
             sub={t.agent.stanceSub}
@@ -330,6 +335,6 @@ export function AgentCard({ agentId }: { agentId: string }) {
       <p className="mt-6 border-t pt-3 text-xs text-muted-foreground">
         {t.agent.sub.split(". ").at(-1)} · {t.source.personFiltered} · w = {t.source.weight}
       </p>
-    </main>
+    </Page>
   );
 }

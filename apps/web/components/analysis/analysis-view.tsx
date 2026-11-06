@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Chip, Panel } from "@/components/run/bits";
 import { L } from "@/components/run/helpers";
 import { useRun } from "@/components/run/run-context";
+import { Page, PageHead } from "@/components/shell/page";
+import { Button } from "@/components/ui/button";
 import { CoalitionGraph, IncentiveMatrix } from "./coalitions";
 import { ConsensusMatrix } from "./consensus-matrix";
 import { OpenConflicts, ProposalList, WhoMoved } from "./movement";
@@ -14,35 +16,30 @@ export function AnalysisView() {
   const last = Math.max(1, snap.summaries.length);
   const openCount = snap.summaries.at(-1)?.openConflicts.length ?? 0;
   return (
-    <main className="mx-auto max-w-[1800px] px-4 sm:px-6 pt-5 pb-12">
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">{t.analysis.title}</h1>
-          {/* The end condition is the one sentence that frames every chart below. */}
-          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-            {snap.endCondition
-              ? `${t.analysis.endCondition}: ${L(snap.endCondition.note, lang)}`
-              : t.analysis.sub}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href={`/runs/${runId}/outcome`}
-            className="rounded-control border px-3 py-1.5 text-sm hover:border-foreground/40"
-          >
-            {t.nav.outcome}
-          </Link>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_400px]">
-        <div className="min-w-0 space-y-4">
+    <Page width="full">
+      {/* The end condition is the one sentence that frames every chart below. */}
+      <PageHead
+        title={t.analysis.title}
+        sub={
+          snap.endCondition
+            ? `${t.analysis.endCondition}: ${L(snap.endCondition.note, lang)}`
+            : t.analysis.sub
+        }
+        actions={
+          <Button asChild variant="outline">
+            <Link href={`/runs/${runId}/outcome`}>{t.nav.outcome}</Link>
+          </Button>
+        }
+      />
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="min-w-0 space-y-6">
           <Panel title={t.analysis.trajectory}>
             <TrajectoryChart />
           </Panel>
           <Panel title={t.analysis.matrix}>
             <ConsensusMatrix />
           </Panel>
-          <details className="group rounded-2xl border bg-card p-4 shadow-xs">
+          <details className="group rounded-2xl border bg-card p-5 shadow-none sm:p-6">
             <summary className="cursor-pointer marker:content-none">
               <span className="mr-1.5 inline-block text-xs text-muted-foreground transition-transform group-open:rotate-90">
                 ▸
@@ -50,7 +47,7 @@ export function AnalysisView() {
               <span className="text-base font-semibold">{t.analysis.incentiveMatrix}</span>
               <span className="ml-2 text-xs text-muted-foreground">{t.analysis.incentiveSub}</span>
             </summary>
-            <div className="mt-3">
+            <div className="mt-5">
               <IncentiveMatrix />
             </div>
           </details>
@@ -58,7 +55,7 @@ export function AnalysisView() {
             <ProposalList />
           </Panel>
         </div>
-        <div className="min-w-0 space-y-4">
+        <div className="min-w-0 space-y-6">
           <Panel title={t.analysis.whoMoved} sub={t.analysis.whoMovedSub(last)}>
             <WhoMoved />
           </Panel>
@@ -76,6 +73,6 @@ export function AnalysisView() {
           </Panel>
         </div>
       </div>
-    </main>
+    </Page>
   );
 }
