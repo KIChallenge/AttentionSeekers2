@@ -62,8 +62,11 @@ function comparable(s: Scenario, loaded: Map<string, ScenarioItem>): ScenarioIte
 const byReference = (a: RunSummary, b: RunSummary) =>
   Number(b.isReference) - Number(a.isReference) || b.createdAt.localeCompare(a.createdAt);
 
-export async function loadScenarioCards(): Promise<ScenarioCard[]> {
-  const loaded = await loadAll();
+/** Scenario cards; the caller may pass the loaded runs to share one read with the overview. */
+export async function loadScenarioCards(
+  loaded?: Awaited<ReturnType<typeof loadAll>>,
+): Promise<ScenarioCard[]> {
+  loaded ??= await loadAll();
   const summaries = [...loaded.values()].map((x) => x.summary).sort(byReference);
   const hist = historicRates();
   return groupScenarios(summaries).map((s) => {
