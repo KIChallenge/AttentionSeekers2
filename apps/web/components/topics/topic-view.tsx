@@ -16,6 +16,7 @@ import type {
 import { familyOf } from "@/lib/topic-compare";
 import type { ClassRate, Excluded, HistoricRates } from "@/lib/topic-runs";
 import { cn } from "@/lib/utils";
+import { FamilyDot, familyColor, runLabel } from "./family";
 import { type TopicMessages, topicT } from "./messages";
 
 type Lang = "de" | "en";
@@ -25,36 +26,6 @@ const signed = (x: number, lang: Lang, digits = 1) =>
   `${x > 0 ? "+" : ""}${x.toLocaleString(lang === "de" ? "de-AT" : "en-GB", {
     maximumFractionDigits: digits,
   })}`.replace("-", "−");
-
-const FAMILY_DOT: Record<string, string> = {
-  gpt: "bg-foreground",
-  nova: "bg-warning",
-  deepseek: "bg-chart-1",
-  qwen: "bg-chart-2",
-  kimi: "bg-chart-3",
-  glm: "bg-chart-4",
-  mistral: "bg-chart-5",
-  mixed: "bg-gray-alpha-500",
-};
-
-function FamilyDot({ family, className }: { family: string; className?: string }) {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "inline-block size-2 shrink-0 rounded-full",
-        FAMILY_DOT[family] ?? "bg-info",
-        className,
-      )}
-    />
-  );
-}
-
-function runLabel(r: RunColumn, t: TopicMessages): string {
-  if (r.isReference) return `${t.reference}${r.id.endsWith("presse") ? " + Presse" : ""}`;
-  const all = r.label.match(/^all_(.+)$/)?.[1];
-  return t.label[r.label] ?? (all ? t.allSeats(t.fam[all] ?? all) : r.label);
-}
 
 function agentName(id: string, lang: Lang) {
   const a = catalogAgent(id);
@@ -247,11 +218,8 @@ function StanceStrip({
                     // biome-ignore lint/suspicious/noArrayIndexKey: one dot per run column
                     key={i}
                     title={`${runLabel(r, t)}: ${signed(v, lang)} (${t.fam[fam] ?? fam})`}
-                    className={cn(
-                      "absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-card",
-                      FAMILY_DOT[fam] ?? "bg-info",
-                    )}
-                    style={{ left: x(v) }}
+                    className="absolute top-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-card"
+                    style={{ left: x(v), background: familyColor(fam) }}
                   />
                 );
               })}
