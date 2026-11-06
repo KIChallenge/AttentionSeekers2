@@ -111,5 +111,17 @@ export const AgentConfig = z.object({
     .array(z.object({ id: z.string(), role: LocalizedText }))
     .max(3)
     .optional(),
+  /**
+   * Added 2026-11-06 (in-context persona): which persona material the system prompt used.
+   * dossier = profile plus packages/engine/config/dossiers/<role>.md (version + content hash);
+   * profile = agents.json profile only. Absent in runs recorded before this field existed.
+   */
+  persona: z
+    .object({
+      mode: z.enum(["dossier", "profile"]),
+      version: z.string().nullable(),
+      sha256: z.string().nullable(),
+    })
+    .optional(),
 });
 export type AgentConfig = z.infer<typeof AgentConfig>;
