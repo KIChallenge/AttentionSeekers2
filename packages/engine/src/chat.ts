@@ -94,6 +94,35 @@ export function snapshotAt(events: readonly RunEvent[], state: ChatState): RunSn
   return foldRun(cut >= 0 ? events.slice(0, cut) : events);
 }
 
+/** The seat's stance per topic at a state (latest position in the cut snapshot). */
+export function stancesAt(snap: RunSnapshot, agentId: string): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [topicId, list] of Object.entries(snap.positions[agentId] ?? {})) {
+    const last = list?.at(-1);
+    if (last) out[topicId] = last.stance;
+  }
+  return out;
+}
+
+/** Every state a run offers, with the seat's stances at each: the chat's state switch. */
+export function chatStates(
+  events: readonly RunEvent[],
+  agentId: string,
+): Array<{ key: string; stances: Record<string, number> }> {
+  const states: ChatState[] = [
+    { kind: "before" },
+    ...Array.from({ length: playedRounds(events) }, (_, i) => ({
+      kind: "round" as const,
+      round: i + 1,
+    })),
+    { kind: "after" },
+  ];
+  return states.map((st) => ({
+    key: chatStateKey(st),
+    stances: stancesAt(snapshotAt(events, st), agentId),
+  }));
+}
+
 export interface ChatTurn {
   role: "user" | "assistant";
   content: string;

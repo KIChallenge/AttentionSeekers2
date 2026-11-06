@@ -4,6 +4,7 @@ import { foldRun, parseNdjson } from "@sv/contracts";
 import { describe, expect, it } from "vitest";
 import {
   chatMessages,
+  chatStates,
   chatSystemPrompt,
   eventStreamFrames,
   nameStreamGuard,
@@ -155,6 +156,14 @@ describe("ask an institution: negotiation state", () => {
     .map((id) => snap.proposals[id])
     .filter((p) => p !== undefined && p.round >= 4);
   const lateTitles = late.map((p) => p?.title.text ?? "").filter((t) => t.length > 12);
+
+  it("lists every state with the opening stance first and the final stance last", () => {
+    const states = chatStates(events, "ak");
+    expect(states.map((s) => s.key)).toEqual(["before", "r1", "r2", "r3", "r4", "r5", "after"]);
+    const tele = snap.positions.ak?.["t-tele"] ?? [];
+    expect(states[0]?.stances["t-tele"]).toBe(tele[0]?.stance);
+    expect(states.at(-1)?.stances["t-tele"]).toBe(tele.at(-1)?.stance);
+  });
 
   it("parses state keys and finds the played rounds", () => {
     expect(parseChatState("before")).toEqual({ kind: "before" });
