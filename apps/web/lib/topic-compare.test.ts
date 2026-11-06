@@ -47,4 +47,20 @@ describe("topic comparison", () => {
     for (const s of cmp.seats) expect(s.verdict).toBe("insufficient");
     expect(cmp.families).toEqual(["gpt", "nova"]);
   });
+
+  it("labels each one-family ensemble run by its family", () => {
+    const fams = ["gpt", "qwen", "glm", "mistral", "deepseek"];
+    const cmp = compareRuns("wartezeiten", [
+      ...fams.map((f) => load(`ensemble-wartezeiten-${f}`)),
+      load("ensemble-wartezeiten-mixed-families"),
+    ]);
+    expect(cmp.runs.map((r) => r.seatFamilies)).toEqual([...fams, "mixed"]);
+    expect(cmp.runs.map((r) => r.label)).toEqual([
+      ...fams.map((f) => `all_${f}`),
+      "mixed_families",
+    ]);
+    expect(cmp.families).toEqual(["deepseek", "glm", "gpt", "mistral", "qwen"]);
+    // Every seat was played by several families, so the permutation effect is measurable.
+    for (const s of cmp.seats) expect(s.verdict).not.toBe("insufficient");
+  });
 });
