@@ -396,6 +396,10 @@ export function NegotiationView({
   const [seen, setSeen] = useState(snap.utteranceOrder.length);
   const [atBottom, setAtBottom] = useState(true);
   const current = snap.currentRound || 1;
+  // The round the reader is looking at: set by the round switch, followed while scrolling.
+  // It falls back to the run's current round, so a live run still tracks its progress.
+  const [viewRound, setViewRound] = useState<number | null>(null);
+  const shown = viewRound ?? current;
   const phase = PHASES[(snap.currentPhase || 1) - 1];
 
   useEffect(() => {
@@ -452,7 +456,7 @@ export function NegotiationView({
   const focus = focusOf(snap, activeId);
   const parallel = parallelExchanges(snap.exchanges);
   const exchangeById = new Map(snap.exchanges.map((x) => [x.id, x]));
-  const inRound = snap.rounds.find((r) => r.round === current)?.utteranceIds.length ?? 0;
+  const inRound = snap.rounds.find((r) => r.round === shown)?.utteranceIds.length ?? 0;
 
   return (
     <div
@@ -478,14 +482,23 @@ export function NegotiationView({
         onScroll={(e) => {
           const el = e.currentTarget;
           setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 80);
+          // follow the round whose block starts closest above the middle of the transcript
+          const mid = el.getBoundingClientRect().top + el.clientHeight * 0.35;
+          let seenRound: number | null = null;
+          for (const r of snap.rounds) {
+            const node = document.getElementById(`round-${r.round}`);
+            if (node && node.getBoundingClientRect().top <= mid) seenRound = r.round;
+          }
+          if (seenRound !== null && seenRound !== viewRound) setViewRound(seenRound);
         }}
       >
         <div className="sticky top-0 z-[5] border-b bg-background/95 backdrop-blur">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-6 py-2.5">
             <Seg
               label={t.live.round}
-              value={current}
+              value={shown}
               onChange={(r) => {
+                setViewRound(r);
                 setExpanded((e) => ({ ...e, [r]: true }));
                 document.getElementById(`round-${r}`)?.scrollIntoView({ behavior: "smooth" });
               }}
@@ -498,7 +511,7 @@ export function NegotiationView({
               className="text-xs text-muted-foreground"
               title={t.live.utterancesInRound(inRound)}
             >
-              {t.live.roundOf(current, run.room.roundLimit)}
+              {t.live.roundOf(shown, run.room.roundLimit)}
               {phase ? ` · ${lang === "de" ? phase.de : phase.en}` : ""}
             </span>
             <span className="flex-1" />
