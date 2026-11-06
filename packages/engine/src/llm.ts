@@ -407,7 +407,10 @@ type JsonSchema = {
  * Schema-guided repair for tool-use output: models behind Converse often omit fields they
  * were told to leave empty. Fills a missing string with "", a missing nullable with null,
  * a missing array with [], a missing boolean with false, and turns numeric strings into
- * numbers. Never invents numbers or enum values, so those still fail validation.
+ * numbers. Enum values are matched ignoring case and separators ("Political credit" ->
+ * "political_credit"). Never invents numbers or enum values: an array item whose enum
+ * field still has no match is dropped (one list entry lost instead of the whole call),
+ * a top-level field with no match still fails validation.
  */
 export function repairToSchema(data: unknown, schema: JsonSchema): unknown {
   // Nullable comes as anyOf [..., {type: "null"}] or as type: ["string", "null"].
@@ -444,7 +447,13 @@ export function repairToSchema(data: unknown, schema: JsonSchema): unknown {
       }
     }
     if (!Array.isArray(arr)) return [];
-    return inner.items ? arr.map((x) => repairToSchema(x, inner.items as JsonSchema)) : arr;
+    if (!inner.items) return arr;
+    const items = inner.items;
+    return arr.map((x) => repairToSchema(x, items)).filter((x) => !badEnum(x, items));
+  }
+  if (inner.enum && typeof data === "string" && !inner.enum.includes(data)) {
+    const key = enumKey(data);
+    return inner.enum.find((e) => typeof e === "string" && enumKey(e) === key) ?? data;
   }
   if (inner.type === "string" && !inner.enum && typeof data !== "string") {
     if (typeof data === "number" || typeof data === "boolean") return String(data);
@@ -456,6 +465,21 @@ export function repairToSchema(data: unknown, schema: JsonSchema): unknown {
     return Number.isFinite(n) ? n : data;
   }
   return data;
+}
+
+const enumKey = (v: string) =>
+  v
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+
+/** True when an object item has a field whose enum value is still not allowed. */
+function badEnum(item: unknown, schema: JsonSchema): boolean {
+  if (schema.type !== "object" || !item || typeof item !== "object") return false;
+  return Object.entries(schema.properties ?? {}).some(([k, s]) => {
+    const v = (item as Record<string, unknown>)[k];
+    return Boolean(s.enum) && typeof v === "string" && !s.enum?.includes(v);
+  });
 }
 
 /** Models that refuse a named toolChoice fall back to "any" (one tool, same effect). */

@@ -171,6 +171,27 @@ describe("Bedrock model families", () => {
     expect(backoffMs(0, "3")).toBe(3000);
   });
 
+  it("normalises enum spelling and drops list items with an unknown enum value", () => {
+    const S = z.object({
+      lean: z.enum(["cooperate", "block"]),
+      incentives: z.array(
+        z.object({ dimension: z.enum(["cost", "political_credit"]), note: z.string() }),
+      ),
+    });
+    const json = z.toJSONSchema(S, { target: "draft-7" }) as Parameters<typeof repairToSchema>[1];
+    const raw = {
+      lean: "Cooperate",
+      incentives: [
+        { dimension: "Political credit", note: "a" },
+        { dimension: "quality", note: "b" },
+      ],
+    };
+    const fixed = S.parse(repairToSchema(raw, json));
+    expect(fixed.lean).toBe("cooperate");
+    expect(fixed.incentives).toEqual([{ dimension: "political_credit", note: "a" }]);
+    expect(S.safeParse(repairToSchema({ ...raw, lean: "maybe" }, json)).success).toBe(false);
+  });
+
   it("repair prompt names the failing fields", () => {
     const r = z.object({ a: z.string() }).safeParse({ a: 1 });
     expect(repairPrompt(r.error)).toContain("a:");
