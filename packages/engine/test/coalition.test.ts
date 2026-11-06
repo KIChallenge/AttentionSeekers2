@@ -20,6 +20,12 @@ describe("quorumFor", () => {
     expect(quorumFor("qualified_majority", 9, { needed: 3, of: 4 })).toBe(7);
     expect(quorumFor("veto_players", 0, null)).toBe(0);
   });
+
+  it("takes an explicit quorum under veto_players (government-majority backtest)", () => {
+    expect(quorumFor("veto_players", 9, { needed: 1, of: 3 })).toBe(3);
+    expect(isWinning(["gm", "fm", "nr"], "veto_players", 9, 3, ["gm", "fm", "nr"])).toBe(true);
+    expect(isWinning(["gm", "fm", "sv"], "veto_players", 9, 3, ["gm", "fm", "nr"])).toBe(false);
+  });
 });
 
 describe("isWinning", () => {

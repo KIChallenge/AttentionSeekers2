@@ -22,6 +22,7 @@ import {
   seedAxes,
   seedEvents,
   seedTopics,
+  setActiveTemplate,
   templateSeed,
 } from "./config.ts";
 import { type CallMeta, hasGateway, structured } from "./llm.ts";
@@ -61,6 +62,7 @@ export interface RoomInput {
 /** Default RoomConfig for a question and template; agent selection may be refined by the moderator. */
 export function defaultRoom(input: RoomInput): RoomConfig {
   const template = input.template ?? "custom";
+  setActiveTemplate(template);
   const seed = templateSeed(template);
   const model = input.model ?? DEFAULT_MODEL();
   // Multi-family seats (FR-X1): unless one model is forced, the seat plan spreads the
@@ -86,7 +88,7 @@ export function defaultRoom(input: RoomInput): RoomConfig {
     moderatorModel: model,
     expertModel: EXPERT_MODEL(),
     decisionRule: seed?.decisionRule ?? "veto_players",
-    qualifiedMajority: null,
+    qualifiedMajority: seed?.qualifiedMajority ?? null,
     roundLimit: input.roundLimit ?? seed?.roundLimit ?? 5,
     budgetCeiling: {
       maxIncreasePct: seed?.budgetCeilingPct ?? 5,
