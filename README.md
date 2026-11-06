@@ -12,6 +12,9 @@ Es werden nur Institutionen abgebildet, nie reale Personen (CON-1, CON-2).
 English summary: [below](#english-summary). Methodennotiz für die Jury: [`docs/method.md`](docs/method.md),
 im Prototyp unter `/method`. Pitch und Klickpfad: [`docs/pitch.md`](docs/pitch.md).
 
+**Trainierte Persona-Modelle:** neun LoRA-Adapter auf Qwen3-8B mit Modellkarten und Messwerten auf
+**[huggingface.co/Aryt3](https://huggingface.co/Aryt3)**; Ergebnisse pro Institution in [Abschnitt 1.8](#18-trainierte-persona-modelle-hugging-face).
+
 ---
 
 ## 1. Beschreibung der Lösung und des Ansatzes
