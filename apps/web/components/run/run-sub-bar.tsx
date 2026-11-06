@@ -4,6 +4,7 @@ import { PlayIcon, StopIcon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PlaybackButton, PlaybackGroup, Segmented } from "@/components/playback/controls";
+import { topicKeyOf } from "@/lib/topic-compare";
 import { cn } from "@/lib/utils";
 import { Chip } from "./bits";
 import { useRun } from "./run-context";
@@ -13,6 +14,7 @@ export function RunSubBar() {
   const { run, snap, runId, t, streaming, streamState, playLive, stop, speed, setSpeed } = useRun();
   const path = usePathname();
   const base = `/runs/${runId}`;
+  const scenarioKey = topicKeyOf({ template: run.room.template, question: run.mandate.question });
   const links = [
     { href: base, label: t.nav.negotiation, active: path === base },
     {
@@ -40,13 +42,20 @@ export function RunSubBar() {
           : { cls: "text-muted-foreground", label: t.live.waiting };
   return (
     <div className="sticky top-[50px] z-10 flex h-11 items-center gap-2 border-b bg-surface/95 px-3 backdrop-blur sm:gap-3 sm:px-6 print:hidden">
-      <Chip className="hidden shrink-0 bg-gray-alpha-100 xl:inline-flex">{t.live.question}</Chip>
-      <span
-        className="hidden min-w-0 flex-1 truncate text-sm md:block"
-        title={run.mandate.question}
+      <Link
+        href={`/scenarios/${encodeURIComponent(scenarioKey)}`}
+        className="hidden shrink-0 xl:inline-flex"
+        title={t.nav.scenario}
+      >
+        <Chip className="bg-gray-alpha-100 hover:bg-gray-alpha-150">{t.nav.scenario}</Chip>
+      </Link>
+      <Link
+        href={`/scenarios/${encodeURIComponent(scenarioKey)}`}
+        className="hidden min-w-0 flex-1 truncate text-sm hover:underline md:block"
+        title={`${t.nav.scenario}: ${run.mandate.question}`}
       >
         {run.mandate.question}
-      </span>
+      </Link>
       <Chip className={cn("hidden shrink-0 sm:inline-flex", status.cls)}>
         {snap.status === "running" ? (
           <span className="size-1.5 animate-pulse rounded-full bg-current" />

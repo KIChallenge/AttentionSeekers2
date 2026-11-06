@@ -288,3 +288,37 @@ table with the totals as caption), negotiation view (rails on the sidebar surfac
 row plus a tinted timeline band, 2.5rem between rounds, cards with p-5 and relaxed leading),
 analysis, agent card, outcome and result, then topics, trace, models, method and the setup
 room. Archive and press viewer were left alone because other branches change them.
+
+## Scenarios first (branch `feat/scenarios`)
+
+Status: 2026-11-06, 08:00. Screenshots before and after live in the scratchpad
+(`pw/scenarios/before`, `pw/scenarios/after`, `after-dark-en`, `after-projector`), 1440x900 and
+1920x1080.
+
+The home page answered "which run do I open" with a hero card and a sixteen-row table in which
+every row repeated the same question. The jury thinks in questions, so the information
+architecture now starts there.
+
+- A scenario is one question setting, derived from run metadata (`lib/scenarios.ts`): the
+  template id, or the hash of a custom question, groups the runs; the round limit most runs of
+  the question used marks the main group, shorter runs become the check group ("Prüfläufe"),
+  and the committed fixture the demo. Only display names are mapped by hand
+  (`components/scenarios/messages.ts`); nothing is keyed by run id.
+- Home `/`: one card per scenario with the question, the number of runs, the model families,
+  the topics agreed in every run and the historical base rate of the dominant measure class
+  (overall rate as the fallback, none for custom questions). Check runs and demos fold below.
+  "Neue Frage" stays the page action.
+- Scenario `/scenarios/[key]` with URL-synced shadcn tabs (`?tab=`): Läufe (the runs data
+  table limited to the scenario, run labels instead of the question, open, replay, stage and
+  fork in the row menu), Ergebnis (the topic comparison from `components/topics` plus the
+  package figures per run), Perspektiven (one row per institution: start ring and one dot per
+  run at the final stance per topic, red lines with how often they were touched, what it
+  supported or opposed, the agent chat of the reference run, agent card per run), Koalitionen
+  (who voted with whom as a tinted matrix over all proposals and runs, the most frequent
+  alliances and blockers, minimal winning coalitions and blockers per decided proposal) and
+  Modelle (the model comparison from `feat/model-bias`).
+- `/topics/[key]` redirects to the Ergebnis tab; the run header's question links to the
+  scenario.
+
+The cross-run readings live in `lib/scenario-insights.ts` as pure functions over folded
+snapshots, tested against the two reference runs, so the tab components only lay them out.
