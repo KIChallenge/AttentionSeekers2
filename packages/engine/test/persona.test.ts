@@ -27,7 +27,7 @@ describe("persona dossiers", () => {
     for (const f of files) {
       const text = readFileSync(path.join(DOSSIER_DIR, f), "utf8");
       expect(findPersonNames(text), f).toEqual([]);
-      expect(text.includes("—"), f).toBe(false);
+      expect(text.includes(String.fromCharCode(0x2014)), f).toBe(false);
     }
   });
 

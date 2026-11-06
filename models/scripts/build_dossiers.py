@@ -250,7 +250,7 @@ def llm_enrich(role: str, label: str, chosen: dict[str, list[dict]], terms: list
 
 
 def nodash(s: str) -> str:
-    return s.replace("—", ",").replace("–", "-").strip()
+    return s.replace(chr(0x2014), ",").replace(chr(0x2013), "-").strip()
 
 
 def build(role: str, ctx: dict, use_llm: bool) -> tuple[str, dict]:
@@ -402,7 +402,7 @@ def main():
         kept = re.sub(r"\n{3,}", "\n\n", "\n".join(x for i, x in enumerate(lines) if i not in bad)).strip() + "\n"
         results[r] = (kept, {**meta, "dropped_lines": len(bad)})
     pii_guard.fail_closed([t for t, _ in results.values()], "dossiers")
-    if any("—" in t for t, _ in results.values()):
+    if any(chr(0x2014) in t for t, _ in results.values()):
         raise SystemExit("em dash in a dossier; nothing written")
     OUT.mkdir(parents=True, exist_ok=True)
     index = {"version": VERSION, "cutoff": CUTOFF, "dossiers": {}}
