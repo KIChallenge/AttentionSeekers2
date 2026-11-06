@@ -29,6 +29,11 @@ const signed = (x: number, lang: Lang, digits = 1) =>
 const FAMILY_DOT: Record<string, string> = {
   gpt: "bg-foreground",
   nova: "bg-warning",
+  deepseek: "bg-chart-1",
+  qwen: "bg-chart-2",
+  kimi: "bg-chart-3",
+  glm: "bg-chart-4",
+  mistral: "bg-chart-5",
   mixed: "bg-gray-alpha-500",
 };
 
@@ -47,7 +52,8 @@ function FamilyDot({ family, className }: { family: string; className?: string }
 
 function runLabel(r: RunColumn, t: TopicMessages): string {
   if (r.isReference) return `${t.reference}${r.id.endsWith("presse") ? " + Presse" : ""}`;
-  return t.label[r.label] ?? r.label;
+  const all = r.label.match(/^all_(.+)$/)?.[1];
+  return t.label[r.label] ?? (all ? t.allSeats(t.fam[all] ?? all) : r.label);
 }
 
 function agentName(id: string, lang: Lang) {
