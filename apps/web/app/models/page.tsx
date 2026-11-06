@@ -310,8 +310,8 @@ export default async function ModelsPage() {
               </TableBody>
             </Table>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {t.table.metrics}. {rank >= 1 ? t.table.caveat : null}
+          <p className="text-xs leading-relaxed whitespace-pre-line text-muted-foreground">
+            {t.table.metrics}.{rank >= 1 ? `\n${t.table.caveat}` : null}
           </p>
           {earlier.length ? (
             <details className="group rounded-2xl border bg-card">
