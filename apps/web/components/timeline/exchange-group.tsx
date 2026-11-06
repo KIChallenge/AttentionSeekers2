@@ -42,7 +42,7 @@ export function ExchangeGroup({
     <section
       aria-label={`${t.kind[key]}: ${L(exchange.trigger, lang)}`}
       data-exchange={exchange.id}
-      className={cn("space-y-2 border-l-2 pl-3", ACCENT[key])}
+      className={cn("space-y-3 border-l-2 pl-4", ACCENT[key])}
     >
       <header className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
         <span
@@ -89,7 +89,7 @@ export function ExchangeGroup({
       </header>
       {children}
       {exchange.outcome ? (
-        <p className="flex gap-2 rounded-xl bg-gray-alpha-50 px-3 py-1.5 text-xs">
+        <p className="flex gap-2 rounded-xl bg-gray-alpha-50 px-3.5 py-2 text-xs">
           <span className="shrink-0 text-muted-foreground">{t.outcome}</span>
           <span>{L(exchange.outcome, lang)}</span>
         </p>
