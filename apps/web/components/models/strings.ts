@@ -2,7 +2,18 @@
 // explanation lives here; every measured number comes from the models/ result files.
 import type { Lang } from "@sv/contracts";
 
-type Cmp = "more" | "less" | "same";
+export interface VerdictArgs {
+  /** Short model name of the best in-context arm, e.g. "qwen3-235b". */
+  model: string;
+  ctxBest: boolean;
+  ctxSign: string;
+  ctxChar: string;
+  /** Version key of the best fine-tuned adapter, e.g. "v2.1". */
+  adapter: string;
+  winsBase: number;
+  winsCtx: number;
+  total: number;
+}
 
 const de = {
   title: "Modelle",
@@ -11,10 +22,9 @@ const de = {
   notMeasured: "nicht gemessen",
   verdict: {
     title: "Ergebnis in einem Satz",
-    text: (wins: number, total: number) =>
-      `Die Adapter schlagen das gepromptete Basismodell nur bei ${wins} von ${total} Institutionen im In-Character-Score und verlieren insgesamt bei Register und Stance-Richtung.`,
-    decision:
-      "Deshalb sprechen die Agenten standardmäßig über Frontier-Modelle mit gefitteten Stance-Profilen. Die Adapter bleiben ein gemessenes, offen dokumentiertes Experiment.",
+    text: (v: VerdictArgs) =>
+      `Das System nutzt standardmäßig Dossier-Personas auf starken Modellen, weil das Dossier mit ${v.model} im Mittel ${v.ctxBest ? "am besten" : "gut"} abschneidet: Stance-Richtung ${v.ctxSign}, In-Character ${v.ctxChar}. Die Adapter ${v.adapter} treffen die Stance-Richtung bei ${v.winsBase} von ${v.total} Institutionen öfter als die gepromptete Basis, gegen das Dossier bei ${v.winsCtx}.`,
+    decision: "Die Adapter bleiben ein gemessenes, offen dokumentiertes Experiment.",
     kpis: {
       inChar: "In-Character (Mittel)",
       sign: "Stance-Richtung getroffen",
@@ -67,37 +77,17 @@ const de = {
     ],
   },
   table: {
-    title: "Je Institution: Adapter gegen Basis",
-    sub: "In-Character: mittlere Wahrscheinlichkeit des Klassifikators, dass der Text von dieser Institution stammt (Zufall etwa 0,10). Stance: Anteil der Held-out-Zeilen, bei denen ein LLM-Judge dieselbe Richtung wie im echten Absatz sieht. Urteil nach In-Character, Gleichstand unter 0,05 Abstand.",
+    title: "Je Institution: Adapter, Basis, Dossier",
+    arms: { adapter: "Adapter", base: "Basis", context: "Dossier" },
+    earlier: "Frühere Versionen",
+    metrics:
+      "Stance-Richtung: Anteil der Held-out-Zeilen, bei denen ein LLM-Judge dieselbe Richtung wie im echten Absatz sieht.\nIn-Character: mittlere Wahrscheinlichkeit des Klassifikators, dass der Text von dieser Institution stammt (Zufall etwa 0,10).\nBester Wert je Zeile hervorgehoben",
     institution: "Institution",
-    train: "Training",
     heldout: "Held-out",
-    evalLoss: "Eval-Loss",
-    trainLoss: "Train-Loss",
-    seconds: "Sekunden",
     inChar: "In-Character",
     sign: "Stance-Richtung",
-    within1: "± 1 Stufe",
-    verdict: "Urteil",
-    note: "Einordnung",
-    adapter: "A",
-    base: "B",
-    legend: "A = Adapter sv-<rolle>, B = Basis sv-base mit derselben Rollenkarte",
     verdicts: { better: "besser", worse: "schlechter", tie: "gleich" },
     all: "Alle (mikro)",
-    noteText: (v: "better" | "worse" | "tie", stance: Cmp) => {
-      const reg = {
-        better: "Klingt deutlich mehr nach der Institution als die Basis",
-        worse: "Klingt weniger nach der Institution als die Basis",
-        tie: "Im Register kein klarer Unterschied",
-      }[v];
-      const st = {
-        more: "trifft die Stance-Richtung öfter",
-        less: "trifft die Stance-Richtung seltener",
-        same: "Stance-Richtung etwa gleich oft",
-      }[stance];
-      return `${reg}; ${st}.`;
-    },
     caveat:
       "Kleine n bei Patientenvertretung und Finanzministerium. Der Klassifikator wurde auf demselben Zeitraum ausgewählt, absolute In-Character-Werte sind daher leicht optimistisch.",
   },
@@ -202,14 +192,6 @@ const de = {
     linkLabel: "huggingface.co/Aryt3",
     text: "Je Adapter ein privates Repository (Aryt3/sv-persona-<rolle>-qwen3-8b-lora) mit Modellkarte: diese Zahlen, die Grenzen (Schleifen, insgesamt schwächer als die Basis) und der Zweck als reine Forschungsdemo, nicht zur Vertretung echter Institutionen. Hochgeladen sind nur Adaptergewichte, Konfiguration und Karte, nie Trainingsdaten.",
   },
-  versions: {
-    title: "Adapter-Versionen",
-    sub: "Gleiche Held-out-Zeilen, gleicher Richter. v1-fix: dieselben v1-Adapter mit Wiederholungsstrafe, Stopp nach einem Absatz und Schnitt bei Wiederholung. v2: Haltung zuerst im Trainingsziel, Presse-Zeilen dazu, 2 Epochen. Basis: gepoolt über alle Läufe. Bester Wert je Zeile hervorgehoben.",
-    sign: "Haltungsrichtung",
-    inChar: "In-Character",
-    base: "Basis",
-    source: "models/out/eval_v2.md",
-  },
   sources: "Zahlen aus",
 };
 
@@ -222,10 +204,9 @@ const en: Dict = {
   notMeasured: "not measured",
   verdict: {
     title: "The result in one sentence",
-    text: (wins, total) =>
-      `The adapters beat the prompted base model on the in-character score for only ${wins} of ${total} institutions and lose overall on register and stance direction.`,
-    decision:
-      "So the agents speak through frontier models with fitted stance profiles by default. The adapters remain a measured, openly documented experiment.",
+    text: (v) =>
+      `The system uses dossier personas on strong models by default, because the dossier with ${v.model} does ${v.ctxBest ? "best" : "well"} on average: stance direction ${v.ctxSign}, in-character ${v.ctxChar}. The ${v.adapter} adapters match the stance direction more often than the prompted base for ${v.winsBase} of ${v.total} institutions, and more often than the dossier for ${v.winsCtx}.`,
+    decision: "The adapters remain a measured, openly documented experiment.",
     kpis: {
       inChar: "In-character (mean)",
       sign: "Stance direction matched",
@@ -278,37 +259,17 @@ const en: Dict = {
     ],
   },
   table: {
-    title: "Per institution: adapter vs base",
-    sub: "In-character: the classifier's mean probability that the text comes from this institution (chance about 0.10). Stance: share of held-out rows where an LLM judge sees the same direction as in the real paragraph. Verdict by in-character, tie below a 0.05 difference.",
+    title: "Per institution: adapter, base, dossier",
+    arms: { adapter: "Adapter", base: "Base", context: "Dossier" },
+    earlier: "Earlier versions",
+    metrics:
+      "Stance direction: share of held-out rows where an LLM judge sees the same direction as in the real paragraph.\nIn-character: the classifier's mean probability that the text comes from this institution (chance about 0.10).\nBest value per row highlighted",
     institution: "Institution",
-    train: "Train",
     heldout: "Held-out",
-    evalLoss: "Eval loss",
-    trainLoss: "Train loss",
-    seconds: "Seconds",
     inChar: "In-character",
     sign: "Stance direction",
-    within1: "± 1 step",
-    verdict: "Verdict",
-    note: "Reading",
-    adapter: "A",
-    base: "B",
-    legend: "A = adapter sv-<role>, B = base sv-base with the same role card",
     verdicts: { better: "better", worse: "worse", tie: "tie" },
     all: "All (micro)",
-    noteText: (v, stance) => {
-      const reg = {
-        better: "Sounds clearly more like the institution than the base",
-        worse: "Sounds less like the institution than the base",
-        tie: "No clear difference in register",
-      }[v];
-      const st = {
-        more: "matches the stance direction more often",
-        less: "matches the stance direction less often",
-        same: "stance direction about as often",
-      }[stance];
-      return `${reg}; ${st}.`;
-    },
     caveat:
       "Small n for patients and the finance ministry. The classifier was selected on the same period, so absolute in-character values are slightly optimistic.",
   },
@@ -411,14 +372,6 @@ const en: Dict = {
     link: "https://huggingface.co/Aryt3",
     linkLabel: "huggingface.co/Aryt3",
     text: "One private repository per adapter (Aryt3/sv-persona-<role>-qwen3-8b-lora) with a model card: these numbers, the limitations (loops, weaker than the base overall) and the intended use as a research demo only, not for representing real institutions. Only adapter weights, config and card are uploaded, never training data.",
-  },
-  versions: {
-    title: "Adapter versions",
-    sub: "Same held-out rows, same judge. v1-fix: the same v1 adapters with a repetition penalty, a stop after one paragraph and a cut at the first repeat. v2: stance first in the training target, press rows added, 2 epochs. Base: pooled over all runs. Best value per row highlighted.",
-    sign: "Stance direction",
-    inChar: "In-character",
-    base: "Base",
-    source: "models/out/eval_v2.md",
   },
   sources: "Numbers from",
 };

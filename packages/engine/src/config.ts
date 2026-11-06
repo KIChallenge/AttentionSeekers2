@@ -53,6 +53,14 @@ export interface RedLineDef {
 }
 interface TemplateSeed {
   decisionRule: "consensus" | "qualified_majority" | "veto_players";
+  /** Quorum for qualified_majority, and for veto_players when set (default: simple majority). */
+  qualifiedMajority?: { needed: number; of: number };
+  /**
+   * Per-template profile overrides (historical backtests): a 2018 seat must not carry the
+   * 2026 profile. Merged over agents.json while the template is active; redLineIds here
+   * also limits which red lines apply.
+   */
+  profiles?: Record<string, Partial<Profile>>;
   roundLimit: number;
   budgetCeilingPct: number;
   agents: string[];
@@ -82,7 +90,23 @@ export const L = (de: string, en?: string): LocalizedText => ({
 });
 export const bi = (b: Bi): LocalizedText => L(b.de, b.en);
 
+let activeTemplate: string | null = null;
+
+/** Selects the template whose profile overrides apply (one run per process). */
+export function setActiveTemplate(template: string | null): void {
+  activeTemplate = template;
+}
+
+const overrideOf = (agentId: string): Partial<Profile> | undefined =>
+  activeTemplate ? templatesFile[activeTemplate]?.profiles?.[agentId] : undefined;
+
 export function profileOf(agentId: string): Profile {
+  const base = baseProfileOf(agentId);
+  const o = overrideOf(agentId);
+  return o ? { ...base, ...o } : base;
+}
+
+function baseProfileOf(agentId: string): Profile {
   const p = agentsFile.agents[agentId];
   if (p) return p;
   const c = catalogAgent(agentId);
@@ -116,7 +140,8 @@ export function delegatesOf(agentId: string): DelegateDef[] {
 }
 
 export function redLinesOf(agentId: string): RedLineDef[] {
-  return agentsFile.redLines.filter((r) => r.agentId === agentId);
+  const only = overrideOf(agentId)?.redLineIds;
+  return agentsFile.redLines.filter((r) => r.agentId === agentId && (!only || only.includes(r.id)));
 }
 
 export function allRedLines(): RedLineDef[] {
@@ -143,7 +168,8 @@ export function redLineEntity(r: RedLineDef, segmentOf?: (sourceId: string) => s
 }
 
 export function templateSeed(template: string): TemplateSeed | null {
-  return templatesFile[template] ?? null;
+  const seed = templatesFile[template];
+  return seed && typeof seed === "object" ? seed : null;
 }
 
 export function seedTopics(seed: TemplateSeed): Topic[] {

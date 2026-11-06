@@ -82,93 +82,93 @@
     "chamber_commerce": {
      "n": 30,
      "adapter": 0.0974,
-     "baseline": 0.5534,
+     "baseline": 0.5533,
      "stance_sign_adapter": 0.5,
-     "stance_sign_baseline": 0.5,
+     "stance_sign_baseline": 0.525,
      "within1_adapter": 0.5667,
-     "within1_baseline": 0.5444
+     "within1_baseline": 0.5833
     },
     "chamber_labour": {
      "n": 30,
      "adapter": 0.3918,
-     "baseline": 0.2164,
+     "baseline": 0.2157,
      "stance_sign_adapter": 0.2667,
-     "stance_sign_baseline": 0.6778,
+     "stance_sign_baseline": 0.6833,
      "within1_adapter": 0.4667,
-     "within1_baseline": 0.6778
+     "within1_baseline": 0.6833
     },
     "hospitals": {
      "n": 28,
      "adapter": 0.1803,
-     "baseline": 0.1271,
+     "baseline": 0.1279,
      "stance_sign_adapter": 0.4643,
-     "stance_sign_baseline": 0.6429,
+     "stance_sign_baseline": 0.6607,
      "within1_adapter": 0.7857,
-     "within1_baseline": 0.7143
+     "within1_baseline": 0.7321
     },
     "laender": {
      "n": 30,
      "adapter": 0.5723,
-     "baseline": 0.7373,
+     "baseline": 0.7356,
      "stance_sign_adapter": 0.5,
-     "stance_sign_baseline": 0.5889,
+     "stance_sign_baseline": 0.5833,
      "within1_adapter": 0.6667,
-     "within1_baseline": 0.6889
+     "within1_baseline": 0.6833
     },
     "medical_chamber": {
      "n": 30,
      "adapter": 0.237,
-     "baseline": 0.3197,
+     "baseline": 0.3246,
      "stance_sign_adapter": 0.3333,
-     "stance_sign_baseline": 0.6778,
+     "stance_sign_baseline": 0.6917,
      "within1_adapter": 0.7667,
-     "within1_baseline": 0.6778
+     "within1_baseline": 0.6917
     },
     "ministry_finance": {
      "n": 24,
      "adapter": 0.3251,
-     "baseline": 0.6635,
+     "baseline": 0.6655,
      "stance_sign_adapter": 0.4583,
-     "stance_sign_baseline": 0.3889,
+     "stance_sign_baseline": 0.3854,
      "within1_adapter": 0.9167,
-     "within1_baseline": 0.7639
+     "within1_baseline": 0.75
     },
     "nursing": {
      "n": 30,
      "adapter": 0.6585,
-     "baseline": 0.3908,
+     "baseline": 0.3968,
      "stance_sign_adapter": 0.3333,
-     "stance_sign_baseline": 0.5222,
+     "stance_sign_baseline": 0.525,
      "within1_adapter": 0.7,
      "within1_baseline": 0.5333
     },
     "patients": {
      "n": 12,
      "adapter": 0.595,
-     "baseline": 0.6784,
+     "baseline": 0.6794,
      "stance_sign_adapter": 0.3333,
-     "stance_sign_baseline": 0.4722,
+     "stance_sign_baseline": 0.4583,
      "within1_adapter": 0.4167,
-     "within1_baseline": 0.5278
+     "within1_baseline": 0.5
     },
     "social_insurance": {
      "n": 30,
      "adapter": 0.5221,
-     "baseline": 0.5673,
+     "baseline": 0.5665,
      "stance_sign_adapter": 0.7,
-     "stance_sign_baseline": 0.5556,
+     "stance_sign_baseline": 0.55,
      "within1_adapter": 0.8333,
-     "within1_baseline": 0.5889
+     "within1_baseline": 0.5917
     }
    },
    "all": {
     "n": 244,
     "adapter": 0.3867,
-    "baseline": 0.4556,
+    "baseline": 0.4569,
     "stance_sign_adapter": 0.4385,
-    "stance_sign_baseline": 0.5683,
+    "stance_sign_baseline": 0.5738,
     "within1_adapter": 0.6926,
-    "within1_baseline": 0.6393
+    "within1_baseline": 0.6455
    }
   },
   "v1-fix": {
@@ -178,93 +178,93 @@
     "chamber_commerce": {
      "n": 30,
      "adapter": 0.1546,
-     "baseline": 0.5534,
+     "baseline": 0.5533,
      "stance_sign_adapter": 0.5,
-     "stance_sign_baseline": 0.5,
+     "stance_sign_baseline": 0.525,
      "within1_adapter": 0.6667,
-     "within1_baseline": 0.5444
+     "within1_baseline": 0.5833
     },
     "chamber_labour": {
      "n": 30,
      "adapter": 0.5262,
-     "baseline": 0.2164,
+     "baseline": 0.2157,
      "stance_sign_adapter": 0.3667,
-     "stance_sign_baseline": 0.6778,
+     "stance_sign_baseline": 0.6833,
      "within1_adapter": 0.4,
-     "within1_baseline": 0.6778
+     "within1_baseline": 0.6833
     },
     "hospitals": {
      "n": 28,
      "adapter": 0.2438,
-     "baseline": 0.1271,
+     "baseline": 0.1279,
      "stance_sign_adapter": 0.6429,
-     "stance_sign_baseline": 0.6429,
+     "stance_sign_baseline": 0.6607,
      "within1_adapter": 0.8214,
-     "within1_baseline": 0.7143
+     "within1_baseline": 0.7321
     },
     "laender": {
      "n": 30,
      "adapter": 0.6474,
-     "baseline": 0.7373,
+     "baseline": 0.7356,
      "stance_sign_adapter": 0.6,
-     "stance_sign_baseline": 0.5889,
+     "stance_sign_baseline": 0.5833,
      "within1_adapter": 0.6667,
-     "within1_baseline": 0.6889
+     "within1_baseline": 0.6833
     },
     "medical_chamber": {
      "n": 30,
      "adapter": 0.1189,
-     "baseline": 0.3197,
+     "baseline": 0.3246,
      "stance_sign_adapter": 0.4667,
-     "stance_sign_baseline": 0.6778,
+     "stance_sign_baseline": 0.6917,
      "within1_adapter": 0.6667,
-     "within1_baseline": 0.6778
+     "within1_baseline": 0.6917
     },
     "ministry_finance": {
      "n": 24,
      "adapter": 0.2268,
-     "baseline": 0.6635,
+     "baseline": 0.6655,
      "stance_sign_adapter": 0.5,
-     "stance_sign_baseline": 0.3889,
+     "stance_sign_baseline": 0.3854,
      "within1_adapter": 0.7917,
-     "within1_baseline": 0.7639
+     "within1_baseline": 0.75
     },
     "nursing": {
      "n": 30,
      "adapter": 0.4272,
-     "baseline": 0.3908,
+     "baseline": 0.3968,
      "stance_sign_adapter": 0.5,
-     "stance_sign_baseline": 0.5222,
+     "stance_sign_baseline": 0.525,
      "within1_adapter": 0.7333,
      "within1_baseline": 0.5333
     },
     "patients": {
      "n": 12,
      "adapter": 0.4788,
-     "baseline": 0.6784,
+     "baseline": 0.6794,
      "stance_sign_adapter": 0.25,
-     "stance_sign_baseline": 0.4722,
+     "stance_sign_baseline": 0.4583,
      "within1_adapter": 0.4167,
-     "within1_baseline": 0.5278
+     "within1_baseline": 0.5
     },
     "social_insurance": {
      "n": 30,
      "adapter": 0.3848,
-     "baseline": 0.5673,
+     "baseline": 0.5665,
      "stance_sign_adapter": 0.5667,
-     "stance_sign_baseline": 0.5556,
+     "stance_sign_baseline": 0.55,
      "within1_adapter": 0.7,
-     "within1_baseline": 0.5889
+     "within1_baseline": 0.5917
     }
    },
    "all": {
     "n": 244,
     "adapter": 0.3516,
-    "baseline": 0.4556,
+    "baseline": 0.4569,
     "stance_sign_adapter": 0.5041,
-    "stance_sign_baseline": 0.5683,
+    "stance_sign_baseline": 0.5738,
     "within1_adapter": 0.6639,
-    "within1_baseline": 0.6393
+    "within1_baseline": 0.6455
    }
   },
   "v2": {
@@ -274,93 +274,189 @@
     "chamber_commerce": {
      "n": 30,
      "adapter": 0.0307,
-     "baseline": 0.5534,
+     "baseline": 0.5533,
      "stance_sign_adapter": 0.0667,
-     "stance_sign_baseline": 0.5,
+     "stance_sign_baseline": 0.525,
      "within1_adapter": 0.7667,
-     "within1_baseline": 0.5444
+     "within1_baseline": 0.5833
     },
     "chamber_labour": {
      "n": 30,
      "adapter": 0.21,
-     "baseline": 0.2164,
+     "baseline": 0.2157,
      "stance_sign_adapter": 0.5333,
-     "stance_sign_baseline": 0.6778,
+     "stance_sign_baseline": 0.6833,
      "within1_adapter": 0.6667,
-     "within1_baseline": 0.6778
+     "within1_baseline": 0.6833
     },
     "hospitals": {
      "n": 28,
      "adapter": 0.0394,
-     "baseline": 0.1271,
+     "baseline": 0.1279,
      "stance_sign_adapter": 0.1429,
-     "stance_sign_baseline": 0.6429,
+     "stance_sign_baseline": 0.6607,
      "within1_adapter": 0.9643,
-     "within1_baseline": 0.7143
+     "within1_baseline": 0.7321
     },
     "laender": {
      "n": 30,
      "adapter": 0.5893,
-     "baseline": 0.7373,
+     "baseline": 0.7356,
      "stance_sign_adapter": 0.4667,
-     "stance_sign_baseline": 0.5889,
+     "stance_sign_baseline": 0.5833,
      "within1_adapter": 0.6333,
-     "within1_baseline": 0.6889
+     "within1_baseline": 0.6833
     },
     "medical_chamber": {
      "n": 30,
      "adapter": 0.1022,
-     "baseline": 0.3197,
+     "baseline": 0.3246,
      "stance_sign_adapter": 0.2667,
-     "stance_sign_baseline": 0.6778,
+     "stance_sign_baseline": 0.6917,
      "within1_adapter": 0.8667,
-     "within1_baseline": 0.6778
+     "within1_baseline": 0.6917
     },
     "ministry_finance": {
      "n": 24,
      "adapter": 0.1821,
-     "baseline": 0.6635,
+     "baseline": 0.6655,
      "stance_sign_adapter": 0.2917,
-     "stance_sign_baseline": 0.3889,
+     "stance_sign_baseline": 0.3854,
      "within1_adapter": 0.7083,
-     "within1_baseline": 0.7639
+     "within1_baseline": 0.75
     },
     "nursing": {
      "n": 30,
      "adapter": 0.7221,
-     "baseline": 0.3908,
+     "baseline": 0.3968,
      "stance_sign_adapter": 0,
-     "stance_sign_baseline": 0.5222,
+     "stance_sign_baseline": 0.525,
      "within1_adapter": 0.6333,
      "within1_baseline": 0.5333
     },
     "patients": {
      "n": 12,
      "adapter": 0.049,
-     "baseline": 0.6784,
+     "baseline": 0.6794,
      "stance_sign_adapter": 0,
-     "stance_sign_baseline": 0.4722,
+     "stance_sign_baseline": 0.4583,
      "within1_adapter": 0.9167,
-     "within1_baseline": 0.5278
+     "within1_baseline": 0.5
     },
     "social_insurance": {
      "n": 30,
      "adapter": 0.2733,
-     "baseline": 0.5673,
+     "baseline": 0.5665,
      "stance_sign_adapter": 0.7,
-     "stance_sign_baseline": 0.5556,
+     "stance_sign_baseline": 0.55,
      "within1_adapter": 0.7333,
-     "within1_baseline": 0.5889
+     "within1_baseline": 0.5917
     }
    },
    "all": {
     "n": 244,
     "adapter": 0.2618,
-    "baseline": 0.4556,
+    "baseline": 0.4569,
     "stance_sign_adapter": 0.2951,
-    "stance_sign_baseline": 0.5683,
+    "stance_sign_baseline": 0.5738,
     "within1_adapter": 0.7541,
-    "within1_baseline": 0.6393
+    "within1_baseline": 0.6455
+   }
+  },
+  "v2.1": {
+   "version": "v2.1",
+   "run": "20261106-042021",
+   "institutions": {
+    "chamber_commerce": {
+     "n": 30,
+     "adapter": 0.1465,
+     "baseline": 0.5533,
+     "stance_sign_adapter": 0.3667,
+     "stance_sign_baseline": 0.525,
+     "within1_adapter": 0.5,
+     "within1_baseline": 0.5833
+    },
+    "chamber_labour": {
+     "n": 30,
+     "adapter": 0.4492,
+     "baseline": 0.2157,
+     "stance_sign_adapter": 0.5,
+     "stance_sign_baseline": 0.6833,
+     "within1_adapter": 0.5,
+     "within1_baseline": 0.6833
+    },
+    "hospitals": {
+     "n": 28,
+     "adapter": 0.2892,
+     "baseline": 0.1279,
+     "stance_sign_adapter": 0.7143,
+     "stance_sign_baseline": 0.6607,
+     "within1_adapter": 0.7857,
+     "within1_baseline": 0.7321
+    },
+    "laender": {
+     "n": 30,
+     "adapter": 0.5652,
+     "baseline": 0.7356,
+     "stance_sign_adapter": 0.5,
+     "stance_sign_baseline": 0.5833,
+     "within1_adapter": 0.6,
+     "within1_baseline": 0.6833
+    },
+    "medical_chamber": {
+     "n": 30,
+     "adapter": 0.1649,
+     "baseline": 0.3246,
+     "stance_sign_adapter": 0.7,
+     "stance_sign_baseline": 0.6917,
+     "within1_adapter": 0.7667,
+     "within1_baseline": 0.6917
+    },
+    "ministry_finance": {
+     "n": 24,
+     "adapter": 0.2999,
+     "baseline": 0.6655,
+     "stance_sign_adapter": 0.2083,
+     "stance_sign_baseline": 0.3854,
+     "within1_adapter": 0.625,
+     "within1_baseline": 0.75
+    },
+    "nursing": {
+     "n": 30,
+     "adapter": 0.6186,
+     "baseline": 0.3968,
+     "stance_sign_adapter": 0.7,
+     "stance_sign_baseline": 0.525,
+     "within1_adapter": 0.7333,
+     "within1_baseline": 0.5333
+    },
+    "patients": {
+     "n": 12,
+     "adapter": 0.4179,
+     "baseline": 0.6794,
+     "stance_sign_adapter": 0.5833,
+     "stance_sign_baseline": 0.4583,
+     "within1_adapter": 0.5833,
+     "within1_baseline": 0.5
+    },
+    "social_insurance": {
+     "n": 30,
+     "adapter": 0.4859,
+     "baseline": 0.5665,
+     "stance_sign_adapter": 0.6,
+     "stance_sign_baseline": 0.55,
+     "within1_adapter": 0.7,
+     "within1_baseline": 0.5917
+    }
+   },
+   "all": {
+    "n": 244,
+    "adapter": 0.382,
+    "baseline": 0.4569,
+    "stance_sign_adapter": 0.5451,
+    "stance_sign_baseline": 0.5738,
+    "within1_adapter": 0.6475,
+    "within1_baseline": 0.6455
    }
   },
   "card-gpt-6-sol": {

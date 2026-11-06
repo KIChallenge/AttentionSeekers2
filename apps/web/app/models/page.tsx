@@ -1,10 +1,13 @@
 import { AGENT_CATALOG } from "@sv/contracts";
+import Link from "next/link";
 import type { ReactNode } from "react";
+import { armModel, micro, pickArms, winners } from "@/components/models/arms";
 import { loadModelsData } from "@/components/models/data.server";
 import { type Verdict, verdict } from "@/components/models/parse";
 import { Playground } from "@/components/models/playground";
 import { modelsT } from "@/components/models/strings";
 import { Page, PageHead, SectionHead } from "@/components/shell/page";
+import { modelBiasT } from "@/components/topics/model-bias-messages";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -79,55 +82,69 @@ export default async function ModelsPage() {
   const roleCode = (role: string) => AGENT_CATALOG.find((x) => x.role === role)?.code ?? "";
   const roleColor = (role: string) => AGENT_CATALOG.find((x) => x.role === role)?.color;
 
-  // Per-institution rows: the JSON is authoritative for in-character and stance sign, the
-  // markdown adds within-one-step, sizes and losses.
-  const rows = (d.eval?.rows ?? []).map((r) => {
-    const fid = d.fidelity?.institutions[r.role];
-    const tr = d.eval?.training.find((x) => x.role === r.role);
-    const a = fid?.adapter ?? r.inCharAdapter;
-    const b = fid?.baseline ?? r.inCharBase;
-    const sa = fid?.stance_sign_adapter ?? r.signAdapter;
-    const sb = fid?.stance_sign_baseline ?? r.signBase;
-    const v = verdict(a, b);
-    const stance =
-      sa === null || sb === null
-        ? "same"
-        : sa - sb > 0.05
-          ? "more"
-          : sb - sa > 0.05
-            ? "less"
-            : "same";
-    const delta = a !== null && b !== null ? a - b : null;
-    return { ...r, a, b, sa, sb, v, delta, stance: stance as "more" | "less" | "same", tr };
-  });
-  const order: Record<Verdict, number> = { better: 0, tie: 1, worse: 2 };
-  rows.sort(
-    (x, y) =>
-      order[x.v ?? "tie"] - order[y.v ?? "tie"] ||
-      (y.a ?? 0) - (y.b ?? 0) - ((x.a ?? 0) - (x.b ?? 0)),
+  // The headline comparison: best fine-tuned adapter, its prompted base and the best
+  // in-context arm, all from persona_fidelity.json (versions) at request time.
+  const pick = pickArms(d.fidelity);
+  const [adKey, ad] = pick?.adapter ?? ["", null];
+  const [cxKey, cx] = pick?.context ?? ["", null];
+  const roles = Object.keys(ad?.institutions ?? {}).sort((x, y) =>
+    roleName(x).localeCompare(roleName(y)),
   );
-  const wins = rows.filter((r) => r.v === "better").length;
-  const all = d.eval?.all;
-  const allA = d.fidelity?.all.adapter ?? all?.inCharAdapter ?? null;
-  const allB = d.fidelity?.all.baseline ?? all?.inCharBase ?? null;
-  const allV = verdict(allA, allB);
-  const loops = d.eval?.loops;
-  const versions = Object.entries(d.fidelity?.versions ?? {});
-  const versionRoles = versions.length
-    ? Object.keys(versions[0][1].institutions).sort((x, y) =>
-        roleName(x).localeCompare(roleName(y)),
-      )
-    : [];
+  const rows = roles.map((role) => {
+    const a = ad?.institutions[role];
+    const c = cx?.institutions[role];
+    const sign = [a?.stance_sign_adapter, a?.stance_sign_baseline, c?.stance_sign_adapter];
+    const char = [a?.adapter, a?.baseline, c?.adapter];
+    return {
+      role,
+      n: a?.n ?? null,
+      sign,
+      char,
+      v: verdict(a?.adapter ?? null, a?.baseline ?? null),
+    };
+  });
+  const mA = ad ? micro(ad, "adapter") : null;
+  const mB = ad ? micro(ad, "baseline") : null;
+  const mC = cx ? micro(cx, "adapter") : null;
+  const microRow = {
+    n: mA?.n ?? null,
+    sign: [mA?.sign, mB?.sign, mC?.sign],
+    char: [mA?.char, mB?.char, mC?.char],
+  };
+  const gt = (x: number | null | undefined, y: number | null | undefined) =>
+    x !== null && x !== undefined && y !== null && y !== undefined && x > y;
+  const verdictArgs = {
+    model: armModel(cxKey),
+    ctxBest: winners(microRow.sign).has(2) && winners(microRow.char).has(2),
+    ctxSign: fmt(mC?.sign),
+    ctxChar: fmt(mC?.char),
+    adapter: adKey,
+    winsBase: rows.filter((r) => gt(r.sign[0], r.sign[1])).length,
+    winsCtx: rows.filter((r) => gt(r.sign[0], r.sign[2])).length,
+    total: rows.length,
+  };
+  const loops = d.versionLoops[adKey] ?? null;
+  const earlier = pick?.rest ?? [];
   const institutions = rows.map((r) => ({
     role: r.role,
     name: roleName(r.role),
     code: roleCode(r.role),
     verdict: r.v,
   }));
+  const adapterLabel = `${t.verdict.adapter} ${adKey}`;
   const kpis = [
-    { label: t.verdict.kpis.inChar, a: allA, b: allB },
-    { label: t.verdict.kpis.sign, a: all?.signAdapter ?? null, b: all?.signBase ?? null },
-    { label: t.verdict.kpis.within1, a: all?.within1Adapter ?? null, b: all?.within1Base ?? null },
+    { label: t.verdict.kpis.inChar, a: mA?.char ?? null, b: mB?.char ?? null },
+    { label: t.verdict.kpis.sign, a: mA?.sign ?? null, b: mB?.sign ?? null },
+    {
+      label: t.verdict.kpis.within1,
+      a: ad?.all.within1_adapter ?? null,
+      b: ad?.all.within1_baseline ?? null,
+    },
+  ];
+  const armHeads = [
+    { label: `${t.table.arms.adapter} ${adKey}`, title: `sv-<role> ${adKey}` },
+    { label: t.table.arms.base, title: "sv-base" },
+    { label: t.table.arms.context, title: cx?.label ?? cxKey },
   ];
   const groups: Verdict[] = ["better", "tie", "worse"];
 
@@ -140,6 +157,9 @@ export default async function ModelsPage() {
           <>
             <Button asChild variant="outline">
               <a href="#playground">{t.verdict.tryIt}</a>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/topics/wartezeiten/models">{modelBiasT(lang).link}</Link>
             </Button>
             <Button asChild variant="outline">
               <a href={t.hf.link} target="_blank" rel="noreferrer">
@@ -163,7 +183,9 @@ export default async function ModelsPage() {
           <div className="text-xs tracking-wide text-muted-foreground uppercase">
             {t.verdict.title}
           </div>
-          <p className="max-w-4xl text-lg leading-snug">{t.verdict.text(wins, rows.length)}</p>
+          {ad && cx ? (
+            <p className="max-w-4xl text-lg leading-snug">{t.verdict.text(verdictArgs)}</p>
+          ) : null}
           <p className="max-w-4xl text-sm text-muted-foreground">{t.verdict.decision}</p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {kpis.map((k) => {
@@ -177,7 +199,7 @@ export default async function ModelsPage() {
                     >
                       {fmt(k.a)}
                     </span>
-                    <span className="text-xs text-muted-foreground">{t.verdict.adapter}</span>
+                    <span className="text-xs text-muted-foreground">{adapterLabel}</span>
                     <span
                       className={cn("text-xl", (k.b ?? 0) < (k.a ?? 0) && "text-muted-foreground")}
                     >
@@ -195,7 +217,9 @@ export default async function ModelsPage() {
               );
             })}
             <div className="rounded-xl border p-3">
-              <div className="text-xs text-muted-foreground">{t.verdict.kpis.loops}</div>
+              <div className="text-xs text-muted-foreground">
+                {t.verdict.kpis.loops} ({adKey})
+              </div>
               <div className="num mt-1 text-xl tabular-nums">
                 {loops ? `${loops.n} ${t.verdict.of} ${loops.of}` : "?"}
               </div>
@@ -217,7 +241,7 @@ export default async function ModelsPage() {
                         <span
                           key={r.role}
                           className="inline-flex items-center gap-1.5 text-sm"
-                          title={`${t.table.inChar} ${fmt(r.a)} / ${fmt(r.b)}`}
+                          title={`${t.table.inChar} ${fmt(r.char[0])} / ${fmt(r.char[1])}`}
                         >
                           <span
                             className="inline-block size-2 rounded-full"
@@ -234,249 +258,138 @@ export default async function ModelsPage() {
           ) : null}
         </section>
 
-        <Section title={t.table.title} sub={rank >= 1 ? t.table.sub : undefined}>
+        <Section title={t.table.title}>
           <div className="rounded-2xl border bg-card">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t.table.institution}</TableHead>
-                  {rank >= 2 ? (
-                    <>
-                      <TableHead className="text-right">{t.table.train}</TableHead>
-                      <TableHead className="text-right">{t.table.heldout}</TableHead>
-                      <TableHead className="text-right">{t.table.trainLoss}</TableHead>
-                      <TableHead className="text-right">{t.table.seconds}</TableHead>
-                      <TableHead className="text-right">{t.table.evalLoss}</TableHead>
-                    </>
-                  ) : null}
-                  <TableHead className="text-right">
-                    {t.table.inChar} {t.table.adapter} / {t.table.base}
+                  <TableHead rowSpan={2} className="align-bottom">
+                    {t.table.institution}
                   </TableHead>
-                  {rank >= 1 ? (
-                    <>
-                      <TableHead className="text-right">
-                        {t.table.sign} {t.table.adapter} / {t.table.base}
-                      </TableHead>
-                      <TableHead className="text-right">
-                        {t.table.within1} {t.table.adapter} / {t.table.base}
-                      </TableHead>
-                    </>
+                  {rank >= 2 ? (
+                    <TableHead rowSpan={2} className="text-right align-bottom">
+                      {t.table.heldout}
+                    </TableHead>
                   ) : null}
-                  <TableHead>{t.table.verdict}</TableHead>
-                  <TableHead>{t.table.note}</TableHead>
+                  <TableHead colSpan={3} className="border-l text-center text-foreground">
+                    {t.table.sign}
+                  </TableHead>
+                  <TableHead colSpan={3} className="border-l text-center text-foreground">
+                    {t.table.inChar}
+                  </TableHead>
+                </TableRow>
+                <TableRow>
+                  {[0, 1].map((g) =>
+                    armHeads.map((h, i) => (
+                      <TableHead
+                        key={`${g}-${h.label}`}
+                        title={h.title}
+                        className={cn("text-right", i === 0 && "border-l")}
+                      >
+                        {h.label}
+                      </TableHead>
+                    )),
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.role}>
+                {[...rows, { role: "all", ...microRow }].map((r) => (
+                  <TableRow
+                    key={r.role}
+                    className={r.role === "all" ? "bg-muted/40 font-medium" : undefined}
+                  >
                     <TableCell className="font-medium whitespace-nowrap">
-                      <span
-                        className="mr-2 inline-block size-2 rounded-full align-middle"
-                        style={{ background: roleColor(r.role) }}
-                      />
-                      {roleName(r.role)}
-                      {rank >= 2 ? (
-                        <span className="ml-2 font-mono text-xs text-muted-foreground">
-                          sv-{r.role}
-                        </span>
-                      ) : null}
-                    </TableCell>
-                    {rank >= 2 ? (
-                      <>
-                        <Num>{fmt(r.tr?.nTrain, f0)}</Num>
-                        <Num>{fmt(r.tr?.nHeldout, f0)}</Num>
-                        <Num>{fmt(r.tr?.trainLoss)}</Num>
-                        <Num>{fmt(r.tr?.seconds, f0)}</Num>
-                        <Num>{fmt(r.tr?.evalLoss)}</Num>
-                      </>
-                    ) : null}
-                    <Pair
-                      a={r.a}
-                      b={r.b}
-                      fmt={fmt}
-                      delta={signed(r.delta)}
-                      tone={deltaClass(r.delta)}
-                    />
-                    {rank >= 1 ? (
-                      <>
-                        <Pair a={r.sa} b={r.sb} fmt={fmt} />
-                        <Pair a={r.within1Adapter} b={r.within1Base} fmt={fmt} />
-                      </>
-                    ) : null}
-                    <TableCell>
-                      {r.v ? (
-                        <Badge variant="outline" className={verdictClass[r.v]}>
-                          {t.table.verdicts[r.v]}
-                        </Badge>
-                      ) : (
-                        <span className="text-xs text-muted-foreground italic">
-                          {t.notMeasured}
-                        </span>
+                      {r.role === "all" ? null : (
+                        <span
+                          className="mr-2 inline-block size-2 rounded-full align-middle"
+                          style={{ background: roleColor(r.role) }}
+                        />
                       )}
+                      {r.role === "all" ? t.table.all : roleName(r.role)}
                     </TableCell>
-                    <TableCell className="min-w-[16rem] text-sm whitespace-normal text-muted-foreground">
-                      {r.v ? t.table.noteText(r.v, r.stance) : null}
-                    </TableCell>
+                    {rank >= 2 ? <Num>{fmt(r.n, f0)}</Num> : null}
+                    <Triple values={r.sign} fmt={fmt} />
+                    <Triple values={r.char} fmt={fmt} />
                   </TableRow>
                 ))}
-                {all ? (
-                  <TableRow className="bg-muted/40 font-medium">
-                    <TableCell>{t.table.all}</TableCell>
-                    {rank >= 2 ? (
-                      <>
-                        <Num>
-                          {fmt(
-                            d.eval?.training.reduce((s, x) => s + (x.nTrain ?? 0), 0),
-                            f0,
-                          )}
-                        </Num>
-                        <Num>{fmt(all.n, f0)}</Num>
-                        <TableCell />
-                        <TableCell />
-                        <TableCell />
-                      </>
-                    ) : null}
-                    <Pair
-                      a={allA}
-                      b={allB}
-                      fmt={fmt}
-                      delta={signed(allA !== null && allB !== null ? allA - allB : null)}
-                      tone={deltaClass(allA !== null && allB !== null ? allA - allB : null)}
-                    />
-                    {rank >= 1 ? (
-                      <>
-                        <Pair a={all.signAdapter} b={all.signBase} fmt={fmt} />
-                        <Pair a={all.within1Adapter} b={all.within1Base} fmt={fmt} />
-                      </>
-                    ) : null}
-                    <TableCell>
-                      {allV ? (
-                        <Badge variant="outline" className={verdictClass[allV]}>
-                          {t.table.verdicts[allV]}
-                        </Badge>
-                      ) : null}
-                    </TableCell>
-                    <TableCell />
-                  </TableRow>
-                ) : null}
               </TableBody>
             </Table>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {t.table.legend}. {rank >= 1 ? t.table.caveat : null}
+          <p className="text-xs leading-relaxed whitespace-pre-line text-muted-foreground">
+            {t.table.metrics}.{rank >= 1 ? `\n${t.table.caveat}` : null}
           </p>
+          {earlier.length ? (
+            <details className="group rounded-2xl border bg-card">
+              <summary className="cursor-pointer px-4 py-3 text-sm font-medium select-none">
+                {t.table.earlier}
+              </summary>
+              <div className="border-t">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead rowSpan={2} className="align-bottom">
+                        {t.table.institution}
+                      </TableHead>
+                      <TableHead
+                        colSpan={earlier.length}
+                        className="border-l text-center text-foreground"
+                      >
+                        {t.table.sign}
+                      </TableHead>
+                      <TableHead
+                        colSpan={earlier.length}
+                        className="border-l text-center text-foreground"
+                      >
+                        {t.table.inChar}
+                      </TableHead>
+                    </TableRow>
+                    <TableRow>
+                      {[0, 1].map((g) =>
+                        earlier.map(([k, v], i) => (
+                          <TableHead
+                            key={`${g}-${k}`}
+                            title={v.label ?? k}
+                            className={cn("text-right", i === 0 && "border-l")}
+                          >
+                            {k}
+                          </TableHead>
+                        )),
+                      )}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[...roles, "all"].map((role) => {
+                      const cell = (v: (typeof earlier)[number][1]) =>
+                        role === "all" ? micro(v, "adapter") : null;
+                      const sign = earlier.map(
+                        ([, v]) => cell(v)?.sign ?? v.institutions[role]?.stance_sign_adapter,
+                      );
+                      const char = earlier.map(
+                        ([, v]) => cell(v)?.char ?? v.institutions[role]?.adapter,
+                      );
+                      return (
+                        <TableRow
+                          key={role}
+                          className={role === "all" ? "bg-muted/40 font-medium" : undefined}
+                        >
+                          <TableCell className="whitespace-nowrap">
+                            {role === "all" ? t.table.all : roleName(role)}
+                          </TableCell>
+                          <Triple values={sign} fmt={fmt} quiet />
+                          <Triple values={char} fmt={fmt} quiet />
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </details>
+          ) : null}
         </Section>
 
         <Section id="playground" title={t.playground.title} sub={t.playground.sub}>
           <Playground lang={lang} institutions={institutions} examples={d.examples} />
         </Section>
-
-        {versions.length && rank >= 1 ? (
-          <Section
-            title={`${t.versions.title}: ${versions.map(([k]) => k).join(", ")}`}
-            sub={t.versions.sub}
-          >
-            <div className="rounded-2xl border bg-card">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead rowSpan={2} className="align-bottom">
-                      {t.table.institution}
-                    </TableHead>
-                    <TableHead
-                      colSpan={versions.length + 1}
-                      className="border-l text-center font-medium text-foreground"
-                    >
-                      {t.versions.sign}
-                    </TableHead>
-                    <TableHead
-                      colSpan={versions.length + 1}
-                      className="border-l text-center font-medium text-foreground"
-                    >
-                      {t.versions.inChar}
-                    </TableHead>
-                  </TableRow>
-                  <TableRow>
-                    {versions.map(([k, v], i) => (
-                      <TableHead key={`s-${k}`} className={cn("text-right", i === 0 && "border-l")}>
-                        {v.label ?? k}
-                      </TableHead>
-                    ))}
-                    <TableHead className="text-right">{t.versions.base}</TableHead>
-                    {versions.map(([k, v], i) => (
-                      <TableHead key={`i-${k}`} className={cn("text-right", i === 0 && "border-l")}>
-                        {v.label ?? k}
-                      </TableHead>
-                    ))}
-                    <TableHead className="text-right">{t.versions.base}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[...versionRoles, "all"].map((role) => {
-                    const pick = (v: (typeof versions)[number][1]) =>
-                      role === "all" ? v.all : v.institutions[role];
-                    const base = pick(versions[0][1]);
-                    const signVals = [
-                      ...versions.map(([, v]) => pick(v)?.stance_sign_adapter ?? null),
-                      base?.stance_sign_baseline ?? null,
-                    ];
-                    const charVals = [
-                      ...versions.map(([, v]) => pick(v)?.adapter ?? null),
-                      base?.baseline ?? null,
-                    ];
-                    const bestOf = (xs: Array<number | null>) =>
-                      Math.max(...xs.map((x) => x ?? Number.NEGATIVE_INFINITY));
-                    const bestSign = bestOf(signVals);
-                    const bestChar = bestOf(charVals);
-                    return (
-                      <TableRow
-                        key={role}
-                        className={role === "all" ? "bg-muted/40 font-medium" : undefined}
-                      >
-                        <TableCell className="whitespace-nowrap">
-                          {role === "all" ? t.table.all : roleName(role)}
-                        </TableCell>
-                        {signVals.map((v, i) => (
-                          <Num
-                            // biome-ignore lint/suspicious/noArrayIndexKey: fixed column order
-                            key={`s-${i}`}
-                            className={cn(
-                              i === 0 && "border-l",
-                              v !== null && v === bestSign
-                                ? "font-semibold"
-                                : "text-muted-foreground",
-                            )}
-                          >
-                            {fmt(v)}
-                          </Num>
-                        ))}
-                        {charVals.map((v, i) => (
-                          <Num
-                            // biome-ignore lint/suspicious/noArrayIndexKey: fixed column order
-                            key={`i-${i}`}
-                            className={cn(
-                              i === 0 && "border-l",
-                              v !== null && v === bestChar
-                                ? "font-semibold"
-                                : "text-muted-foreground",
-                            )}
-                          >
-                            {fmt(v)}
-                          </Num>
-                        ))}
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-            {rank >= 2 ? (
-              <p className="text-xs text-muted-foreground">
-                {t.sources} <span className="font-mono">{t.versions.source}</span>
-              </p>
-            ) : null}
-          </Section>
-        ) : null}
 
         {rank >= 1 ? (
           <Section title={t.why.title}>
@@ -679,28 +592,32 @@ function Num({ children, className }: { children: ReactNode; className?: string 
   return <TableCell className={cn("num text-right tabular-nums", className)}>{children}</TableCell>;
 }
 
-function Pair({
-  a,
-  b,
+/** Three arm values side by side; the best one (ties included) carries the success accent. */
+function Triple({
+  values,
   fmt,
-  delta,
-  tone,
+  quiet = false,
 }: {
-  a: number | null | undefined;
-  b: number | null | undefined;
+  values: Array<number | null | undefined>;
   fmt: (v: number | null | undefined) => string;
-  /** Signed difference shown after the pair, in the verdict tone. */
-  delta?: string;
-  tone?: string;
+  /** Bold instead of the accent, for the earlier-versions detail. */
+  quiet?: boolean;
 }) {
-  const aw = a !== null && a !== undefined && b !== null && b !== undefined && a > b;
-  const bw = a !== null && a !== undefined && b !== null && b !== undefined && b > a;
-  return (
-    <TableCell className="num text-right whitespace-nowrap tabular-nums">
-      <span className={cn(aw ? "font-semibold" : "text-muted-foreground")}>{fmt(a)}</span>
-      <span className="px-1 text-muted-foreground">/</span>
-      <span className={cn(bw ? "font-semibold" : "text-muted-foreground")}>{fmt(b)}</span>
-      {delta ? <span className={cn("ml-2 text-xs", tone)}>{delta}</span> : null}
-    </TableCell>
-  );
+  const win = winners(values);
+  return values.map((v, i) => (
+    <Num
+      // biome-ignore lint/suspicious/noArrayIndexKey: fixed column order
+      key={i}
+      className={cn(
+        i === 0 && "border-l",
+        win.has(i)
+          ? quiet
+            ? "font-semibold"
+            : "font-semibold text-success"
+          : "text-muted-foreground",
+      )}
+    >
+      {fmt(v)}
+    </Num>
+  ));
 }

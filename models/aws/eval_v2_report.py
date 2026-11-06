@@ -14,6 +14,7 @@ top-level v1 numbers there stay as they were.
 from __future__ import annotations
 
 import argparse
+import collections
 import json
 import re
 import statistics
@@ -59,12 +60,15 @@ def main():
     runs = {lab: Path(d) for lab, d in (r.split("=", 1) for r in a.run)}
     rows = {lab: [json.loads(l) for l in open(d / "rows.jsonl")] for lab, d in runs.items()}
     judge = json.loads((next(iter(runs.values())) / "report.json").read_text())["args"]["judge_model"]
-    cuts = {"v1": 0, "v2": 0}
+    def set_of(target_or_label: str) -> str:  # "<role>_v21" / "v2.1" -> "v21", "<role>" / "v1-fix" -> "v1"
+        m = re.search(r"_?(v\d+)$", target_or_label.replace(".", "").split("-")[0])
+        return m.group(1) if m else "v1"
+    cuts = collections.Counter()
     for p in a.proxy_log:
         for line in open(p):
             m = re.search(r"LOOP_CUT target=(\S+)", line)
             if m:
-                cuts["v2" if m.group(1).endswith("_v2") else "v1"] += 1
+                cuts[set_of(m.group(1))] += 1
     base_rows = [x for lab in rows for x in rows[lab]]  # base config is identical in every run
     cols = [(lab, "adapter", rows[lab]) for lab in runs] + [("base", "baseline", base_rows)]
 
@@ -97,7 +101,7 @@ def main():
             c = sum(loops(x["adapter_text"]) for x in xs)
             loop_line.append(f"- `{lab}` (no fix): {c} of {n} adapter outputs loop (counted on the stored text)")
         else:
-            c = cuts["v2" if lab.startswith("v2") else "v1"]
+            c = cuts[set_of(lab)]
             loop_line.append(f"- `{lab}` (fixed proxy): {c} of {n} raw adapter outputs loop and were cut at the "
                              f"repeat; {sum(loops(x['adapter_text']) for x in xs)} loop after the cut")
     base_loops = sum(loops(x["baseline_text"]) for x in base_rows)
@@ -113,6 +117,10 @@ def main():
           "- **v2**: `sv2-<role>`, LoRA r16, dropout 0.05, 2 epochs, lr 7e-5; targets prefixed with the judge-labelled "
           "stance (\"Haltung: ablehnend. ...\"), plus the person-free press-derived institution-voice rows (train split); "
           "same fixed proxy, which strips the prefix before the text is judged",
+          "- **v2.1**: `sv21-<role>`, the v2 data with the v1 schedule (3 epochs, lr 1e-4, r16, dropout 0.05) and at "
+          "least 36 optimiser steps per adapter (epochs raised for the small sets); fixed proxy with the paragraph rule "
+          "that skips a leading salutation or header instead of stopping at the first blank line (v1-fix and v2 were "
+          "measured with the plain stop)",
           "- **base**: `sv-base`, prompted Qwen3-8B with the same role card and context, no adapter, no fix; "
           "regenerated in each run with identical settings; the column pools the baseline rows of all runs", "",
           "## Stance sign agreement (same direction as the institution's real paragraph)", "", *tbl("sign"), "",
@@ -131,11 +139,14 @@ def main():
     md.append("")
     if a.train_summary:
         t = json.loads(Path(a.train_summary).read_text())
-        md += ["## Training v2 (one SageMaker job, per adapter)", "",
-               "| institution | n train | train loss | eval loss | seconds |", "|---|---:|---:|---:|---:|"]
+        ver = next(iter(t.values())).get("version", "adapters").replace("adapters-", "") or "v1"
+        md += [f"## Training {ver} (one SageMaker job, per adapter)", "",
+               "| institution | n train | epochs | steps | train loss | eval loss | seconds |",
+               "|---|---:|---:|---:|---:|---:|---:|"]
         for r, m in t.items():
             ev = (m.get("eval") or {}).get("eval_loss")
-            md.append(f"| {r} | {m['n_train']} | {m['train_loss']:.3f} | {'n/a' if ev is None else f'{ev:.2f}'} | {m['seconds']:.0f} |")
+            md.append(f"| {r} | {m['n_train']} | {m['epochs']:g} | {m.get('steps', 'n/a')} | {m['train_loss']:.3f} | "
+                      f"{'n/a' if ev is None else f'{ev:.2f}'} | {m['seconds']:.0f} |")
         md += ["", "Eval loss is on held-out rows without the stance prefix, so it is not comparable to v1.", ""]
     md += ["Caveats: stance labels come from an LLM judge (spot-check `rows.jsonl`); the v2 training stance labels "
            "come from the same judge, so v2 learned that judge's reading of the training paragraphs; small n for "

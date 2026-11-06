@@ -281,6 +281,22 @@ export default async function MethodPage() {
                   <p className="text-muted-foreground">
                     {note.backtest.result?.[lang] ?? t.notMeasured}
                   </p>
+                  {note.backtest.runs?.length ? (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {note.backtest.runs.map((id) => (
+                        <Badge key={id} variant="outline" asChild>
+                          <Link href={`/runs/${encodeURIComponent(id)}`} className="font-mono">
+                            {id}
+                          </Link>
+                        </Badge>
+                      ))}
+                      {note.backtest.doc ? (
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {note.backtest.doc}
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </article>
               </div>
             </Section>

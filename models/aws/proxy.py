@@ -15,13 +15,15 @@ think block itself and sends the LMI `inputs`/`parameters` schema. `stream: true
 with one content chunk (the endpoint itself is not streamed).
 Endpoints: GET /v1/models, POST /v1/chat/completions, GET /health.
 
-Adapter sets: sv-<role> = v1 adapter "<role>", sv2-<role> = v2 adapter "<role>_v2" (both staged on the same
-endpoint by deploy.py single; SV_PROXY_SETS=v1 hides the v2 ids). v2 targets start with
+Adapter sets: sv-<role> = v1 adapter "<role>", sv2-<role> = v2 adapter "<role>_v2", sv21-<role> = v2.1 adapter
+"<role>_v21" (staged on the same endpoint by deploy.py single). SV_PROXY_SETS lists the exposed sets and must
+match the deployed ones (default v1,v21, the served pair since 2026-11-06 03:xx). v2 and v2.1 targets start with
 "Haltung: <label>." (stance first); the proxy strips that prefix from the text and returns it as
 `x_stance`.
 
 Inference fix for adapter targets (sv-base is left as is, so the baseline stays comparable):
-repetition_penalty 1.1, frequency_penalty 0.3, stop after one paragraph ("\n\n"), max tokens capped at
+repetition_penalty 1.1, frequency_penalty 0.3, one paragraph (leading salutation or header lines such as
+"Sehr geehrte Damen und Herren," are skipped, then the first real paragraph is kept), max tokens capped at
 320 (the real paragraphs have a median of about 480 characters), and the text is cut at the first sentence
 that repeats an earlier one. no_repeat_ngram_size is not sent: the vLLM backend of the LMI container
 ignores it (checked with size 2, bigrams still repeat). SV_GEN_FIX=0 restores the v1 behaviour.
@@ -45,12 +47,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import BASE_IC, BASE_MODEL, ENDPOINT, REGION, ROLES, ic_name, session  # noqa: E402
 
 MODE = os.environ.get("SV_SM_MODE", "adapters")
-SETS = os.environ.get("SV_PROXY_SETS", "v1,v2").split(",")
+SETS = os.environ.get("SV_PROXY_SETS", "v1,v21").split(",")
 MODELS = ({f"sv-{r}": r for r in ROLES} if "v1" in SETS else {}) \
     | ({f"sv2-{r}": f"{r}_v2" for r in ROLES} if "v2" in SETS else {}) \
+    | ({f"sv21-{r}": f"{r}_v21" for r in ROLES} if "v21" in SETS else {}) \
     | {"sv-base": "base", BASE_MODEL: "base"}  # model id -> target (LMI adapter name, or base)
 GEN_FIX = os.environ.get("SV_GEN_FIX", "1") != "0"
-FIX = {"repetition_penalty": 1.1, "frequency_penalty": 0.3, "stop": ["\n\n"]}
+FIX = {"repetition_penalty": 1.1, "frequency_penalty": 0.3}  # paragraph cut is done in first_paragraph()
+HEADER_RE = re.compile(r"^\s*(\*\*|#|sehr geehrte|liebe|betreff|betrifft|stellungnahme|gz\b|datum\b|an das|an den|an die)",
+                       re.I)
 FIX_MAX_TOKENS = 320
 STANCE_RE = re.compile(r"^\s*Haltung:\s*(ablehnend|eher ablehnend|neutral|zustimmend mit Vorbehalten|zustimmend)\.\s*")
 _rt = None
@@ -101,6 +106,17 @@ def render(messages: list[dict]) -> str:
     return "".join(out) + "<|im_start|>assistant\n<think>\n\n</think>\n\n"
 
 
+def first_paragraph(text: str) -> str:
+    """One paragraph: skip leading salutation/header paragraphs, keep the first substantive one."""
+    paras = [p.strip() for p in re.split(r"\n\s*\n", text.strip()) if p.strip()]
+    for p in paras:
+        lines = [ln for ln in p.splitlines() if ln.strip() and not HEADER_RE.match(ln)]
+        body = " ".join(ln.strip() for ln in lines)
+        if len(body) >= 60:
+            return body
+    return paras[0] if paras else ""
+
+
 def cut_repeats(text: str) -> str:
     """Drop everything from the first sentence (25+ chars) that already occurred: the loop failure mode."""
     seen, out = set(), []
@@ -145,6 +161,9 @@ def generate(target: str, messages: list[dict], max_tokens: int = 600, temperatu
     text = text.split("<|im_end|>")[0].strip()
     stance, text = split_stance(text)
     if fix:
+        text = first_paragraph(text)
+        if stance is None:  # the stance prefix may follow a skipped salutation
+            stance, text = split_stance(text)
         cut = cut_repeats(text)
         if cut != text:  # counted by the eval: a loop the sampling settings alone did not prevent
             sys.stderr.write(f"{time.strftime('%H:%M:%S')} LOOP_CUT target={target} chars {len(text)}->{len(cut)}\n")

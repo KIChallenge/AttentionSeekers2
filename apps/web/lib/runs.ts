@@ -6,6 +6,7 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import {
   foldRun,
+  ImpactFigure,
   parseNdjson,
   type RunEvent,
   type RunSnapshot,
@@ -49,6 +50,25 @@ export async function loadRunEvents(runId: string): Promise<RunEvent[] | null> {
   const file = path.join(/*turbopackIgnore: true*/ replayDir(), `${runId}.ndjson`);
   if (!existsSync(file)) return null;
   return parseNdjson(await readFile(file, "utf8"));
+}
+
+/** Recomputed impact (runs/<id>.impact.json), preferred over the run's own impact event. */
+export async function loadImpactSidecar(
+  runId: string,
+): Promise<{ figures: ImpactFigure[]; measures: string[] } | null> {
+  if (!isRunId(runId)) return null;
+  const file = path.join(/*turbopackIgnore: true*/ replayDir(), `${runId}.impact.json`);
+  if (!existsSync(file)) return null;
+  try {
+    const raw = JSON.parse(await readFile(file, "utf8"));
+    return {
+      figures: ImpactFigure.array().parse(raw.figures),
+      measures: Array.isArray(raw.measures) ? raw.measures.map(String) : [],
+    };
+  } catch (error) {
+    console.warn("impact_sidecar_invalid", runId, error instanceof Error ? error.message : error);
+    return null;
+  }
 }
 
 export async function loadRunSnapshot(runId: string): Promise<RunSnapshot | null> {

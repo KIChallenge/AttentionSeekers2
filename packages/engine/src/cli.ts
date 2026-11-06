@@ -4,6 +4,7 @@
 //            [--room-file room.json] [--mandate-file mandate.json] [--stdout] [--no-db]
 //            [--out-dir runs] [--variant mixed|swapped|all_<family>] [--models gm=qwen,sv=gpt]
 //            (families: gpt, deepseek, qwen, kimi, glm, mistral, gpt-oss, nova, ...)
+//            [--rule consensus|qualified_majority|veto_players]  (overrides the template rule)
 //            [--base <runId>] [--label X]  (with --variant or --models: Run.variant =
 //            model_ensemble, labelled X or the variant name)
 //   room     --question "..." [--template ...] [--select]   prints { room, mandate } JSON
@@ -13,6 +14,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import {
+  DecisionRule,
   foldRun,
   Mandate,
   parseNdjson,
@@ -38,6 +40,7 @@ const { positionals, values } = parseArgs({
     "as-of": { type: "string" },
     seed: { type: "string" },
     climate: { type: "string" },
+    rule: { type: "string" },
     agents: { type: "string" },
     model: { type: "string" },
     "room-file": { type: "string" },
@@ -67,7 +70,7 @@ function roomFromArgs() {
   const template = Template.parse(values.template ?? "custom");
   const question = values.question ?? TEMPLATES.find((t) => t.id === template)?.question ?? "";
   if (!question) throw new Error("--question is required");
-  return defaultRoom({
+  const room = defaultRoom({
     question,
     template,
     roundLimit: values.rounds ? Number(values.rounds) : undefined,
@@ -77,6 +80,9 @@ function roomFromArgs() {
     agentIds: values.agents?.split(",").map((x) => x.trim()),
     model: values.model,
   });
+  if (!values.rule) return room;
+  // A rule override drops the template quorum, so the standard rule applies as written.
+  return { ...room, decisionRule: DecisionRule.parse(values.rule), qualifiedMajority: null };
 }
 
 /**

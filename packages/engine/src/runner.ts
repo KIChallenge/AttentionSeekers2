@@ -46,6 +46,7 @@ import {
   profileOf,
   REPO_ROOT,
   redLinesOf,
+  setActiveTemplate,
   verifierFor,
 } from "./config.ts";
 import {
@@ -65,7 +66,7 @@ import {
 } from "./exchanges.ts";
 import { runExpert } from "./expert.ts";
 import { forecast } from "./forecast.ts";
-import { DEFAULT_BASELINE_EUR_BN, packageFigures, proposalFigures } from "./impact.ts";
+import { runImpactFigures } from "./impact.ts";
 import { type CallMeta, usage } from "./llm.ts";
 import { exchangeOutcome, summarizeRound } from "./moderator.ts";
 import { PHASE_NAMES, phaseFor, shuffle } from "./phases.ts";
@@ -193,6 +194,7 @@ interface At {
 export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
   const started = performance.now();
   const usage0 = { ...usage };
+  setActiveTemplate(opts.room.template);
   let room = opts.room;
   let mandate = opts.mandate;
   let mandateMeta: CallMeta | null = null;
@@ -1882,12 +1884,8 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
         .filter((p) => p.status !== "withdrawn")
         .sort((a, b) => b.acceptance - a.acceptance)
         .slice(0, 1);
-  const baseline = room.budgetCeiling.baselineEurBn ?? DEFAULT_BASELINE_EUR_BN;
-  const baselineIsAssumption = room.budgetCeiling.baselineEurBn === null;
-  const figures = [
-    ...measures.flatMap((p) => proposalFigures(p, baseline, baselineIsAssumption)),
-    ...packageFigures(measures, baseline, baselineIsAssumption, room.budgetCeiling.maxIncreasePct),
-  ];
+  // Evidence-based figures first, the proposers' own estimates as "proposer:<id>".
+  const figures = runImpactFigures(measures, room.budgetCeiling.maxIncreasePct);
   w.emit({ type: "impact.computed", figures });
   const fc = await forecast(runId, mandate.question, room.asOf, measures);
   w.emit({

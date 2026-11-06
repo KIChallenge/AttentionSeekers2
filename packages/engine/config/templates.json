@@ -154,5 +154,712 @@
         "sourceSegmentId": null
       }
     ]
+  },
+  "backtest_svog_2018": {
+    "$comment": "Historical backtest (FR-H7): SV-OG 2018, ME 75/ME XXVI, first draft 2018-09-14; run with --as-of 2018-09-13. Topics are the government's announced key points as public before the cutoff, not the draft text. Profiles replace the 2026 ones; red lines and dossiers are not used (they postdate the cutoff). Rule: the government side (ministry, finance, NR majority) are the veto players and a third of the table suffices, so they can pass a package alone.",
+    "decisionRule": "veto_players",
+    "qualifiedMajority": {
+      "needed": 1,
+      "of": 3
+    },
+    "roundLimit": 5,
+    "budgetCeilingPct": 0,
+    "agents": ["gm", "fm", "nr", "sv", "abk", "wk", "bl", "ak", "pv"],
+    "topics": [
+      {
+        "id": "t-traeger",
+        "key": "carrier_count",
+        "label": {
+          "de": "Trägerzahl",
+          "en": "Number of carriers"
+        },
+        "measure": {
+          "de": "Verringerung der Sozialversicherungsträger von 21 auf höchstens fünf",
+          "en": "Reduce the social insurance carriers from 21 to at most five"
+        }
+      },
+      {
+        "id": "t-gkk",
+        "key": "gkk_merger",
+        "label": {
+          "de": "Kassenfusion",
+          "en": "Fund merger"
+        },
+        "measure": {
+          "de": "Zusammenführung der neun Gebietskrankenkassen zu einer bundesweiten Kasse mit Landesstellen",
+          "en": "Merge the nine regional health funds into one national fund with regional offices"
+        }
+      },
+      {
+        "id": "t-paritaet",
+        "key": "self_governance_parity",
+        "label": {
+          "de": "Parität",
+          "en": "Parity"
+        },
+        "measure": {
+          "de": "Parität von Dienstgeber- und Dienstnehmervertretung in den Verwaltungskörpern",
+          "en": "Parity of employer and employee representatives in the governing bodies"
+        }
+      },
+      {
+        "id": "t-gremien",
+        "key": "governance_bodies",
+        "label": {
+          "de": "Gremien",
+          "en": "Governing bodies"
+        },
+        "measure": {
+          "de": "Verkleinerung der Selbstverwaltungsgremien, Dachverband mit rotierendem Vorsitz statt Hauptverband, stärkere Aufsicht des Ministeriums",
+          "en": "Smaller self-governance bodies, an umbrella association with rotating chair instead of the Hauptverband, stronger ministerial supervision"
+        }
+      },
+      {
+        "id": "t-pruefung",
+        "key": "contribution_audit",
+        "label": {
+          "de": "Beitragsprüfung",
+          "en": "Contribution audit"
+        },
+        "measure": {
+          "de": "Prüfung der lohnabhängigen Beiträge durch die Finanzverwaltung statt durch die Krankenkassen",
+          "en": "Audit of payroll contributions by the tax administration instead of the health funds"
+        }
+      },
+      {
+        "id": "t-einsparung",
+        "key": "savings_claim",
+        "label": {
+          "de": "Einsparung",
+          "en": "Savings"
+        },
+        "measure": {
+          "de": "Verwaltungseinsparung von einer Milliarde Euro bis 2023 zugunsten der Versorgung",
+          "en": "Administrative savings of one billion euro by 2023, redirected to care"
+        }
+      },
+      {
+        "id": "t-land",
+        "key": "regional_autonomy",
+        "label": {
+          "de": "Landesstellen",
+          "en": "Regional offices"
+        },
+        "measure": {
+          "de": "Budget- und Vertragshoheit zentral bei der bundesweiten Kasse, Landesstellen mit begrenzter Eigenverantwortung",
+          "en": "Budget and contract authority central at the national fund, regional offices with limited own responsibility"
+        }
+      }
+    ],
+    "axes": [
+      {
+        "id": "x",
+        "label": {
+          "de": "Steuerung",
+          "en": "Governance"
+        },
+        "poles": [
+          {
+            "de": "Regionale Selbstverwaltung",
+            "en": "Regional self-governance"
+          },
+          {
+            "de": "Zentrale Steuerung",
+            "en": "Central steering"
+          }
+        ],
+        "topicWeights": {
+          "t-traeger": 0.25,
+          "t-gkk": 0.3,
+          "t-land": 0.25,
+          "t-gremien": 0.2
+        }
+      },
+      {
+        "id": "y",
+        "label": {
+          "de": "Machtbalance",
+          "en": "Balance of power"
+        },
+        "poles": [
+          {
+            "de": "Versichertenvertretung",
+            "en": "Insured persons' representation"
+          },
+          {
+            "de": "Dienstgeber und Staat",
+            "en": "Employers and state"
+          }
+        ],
+        "topicWeights": {
+          "t-paritaet": 0.5,
+          "t-pruefung": 0.3,
+          "t-einsparung": 0.2
+        }
+      }
+    ],
+    "scheduledEvents": [],
+    "profiles": {
+      "gm": {
+        "unit": "Sozial- und Gesundheitsressort, Sektion Sozialversicherung",
+        "vetoStatus": "formal_veto",
+        "vetoBasis": {
+          "de": "Entwurfsverantwortung, Teil der Regierungsmehrheit",
+          "en": "Drafting ministry, part of the government majority"
+        },
+        "goals": [
+          {
+            "de": "Weniger Träger und schlankere Verwaltung",
+            "en": "Fewer carriers and leaner administration"
+          },
+          {
+            "de": "Gleiche Leistungen für gleiche Beiträge",
+            "en": "Equal benefits for equal contributions"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Umsetzung des Regierungsprogramms 2017",
+            "en": "Implement the 2017 government programme"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Verfassungskonformität der Selbstverwaltung",
+            "en": "Constitutionality of self-governance"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Reform ohne zusätzliche Bundesmittel",
+            "en": "Reform without extra federal funds"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Strukturreform",
+            "en": "Structural reform",
+            "weight": 0.5
+          },
+          {
+            "de": "Einsparung",
+            "en": "Savings",
+            "weight": 0.3
+          },
+          {
+            "de": "Leistungsharmonisierung",
+            "en": "Benefit harmonisation",
+            "weight": 0.2
+          }
+        ],
+        "register": "regierungsamtlich, spricht von Strukturreform, Effizienz, Funktionärsabbau, Leistungsharmonisierung",
+        "keywords": "Sozialversicherung Strukturreform Zusammenlegung Träger Gebietskrankenkassen Hauptverband Selbstverwaltung Einsparung",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "gm-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "fm": {
+        "unit": "Budgetsektion",
+        "vetoStatus": "formal_veto",
+        "vetoBasis": {
+          "de": "Budgethoheit, Teil der Regierungsmehrheit",
+          "en": "Budget authority, part of the government majority"
+        },
+        "goals": [
+          {
+            "de": "Verwaltungskosten senken",
+            "en": "Cut administrative costs"
+          },
+          {
+            "de": "Beitragsprüfung bündeln",
+            "en": "Bundle the contribution audit"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Effiziente Abgabenprüfung",
+            "en": "Efficient levy audit"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Maastricht-Defizitpfad",
+            "en": "Maastricht deficit path"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Keine Mehrkosten für den Bund",
+            "en": "No extra cost for the federal budget"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Kosten",
+            "en": "Cost",
+            "weight": 0.6
+          },
+          {
+            "de": "Prüfeffizienz",
+            "en": "Audit efficiency",
+            "weight": 0.4
+          }
+        ],
+        "register": "budgetär, spricht von Effizienz, Verwaltungskosten, Prüfdichte, Haushaltspfad",
+        "keywords": "Budget Kosten Beitragsprüfung Finanzverwaltung Einsparung Verwaltung Träger",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "fm-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "nr": {
+        "unit": "Regierungsmehrheit (ÖVP und FPÖ) im Nationalrat",
+        "vetoStatus": "formal_veto",
+        "vetoBasis": {
+          "de": "Einfache Mehrheit im Nationalrat für das Bundesgesetz",
+          "en": "Simple majority in the Nationalrat for the federal act"
+        },
+        "goals": [
+          {
+            "de": "Sichtbare Strukturreform noch 2018 beschließen",
+            "en": "Pass a visible structural reform in 2018"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Zusage aus dem Regierungsprogramm einlösen",
+            "en": "Deliver the government programme pledge"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Inkrafttreten mit 2020",
+            "en": "Entry into force by 2020"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Kostenneutral",
+            "en": "Cost neutral"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Reformtempo",
+            "en": "Pace of reform",
+            "weight": 0.5
+          },
+          {
+            "de": "Einsparung",
+            "en": "Savings",
+            "weight": 0.3
+          },
+          {
+            "de": "Parität",
+            "en": "Parity",
+            "weight": 0.2
+          }
+        ],
+        "register": "parlamentarisch, spricht von Mehrheit, Regierungsprogramm, Funktionären, Reformstau",
+        "keywords": "Sozialversicherung Reform Zusammenlegung Parität Selbstverwaltung Träger Gebietskrankenkassen",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "nr-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "sv": {
+        "unit": "Hauptverband und Gebietskrankenkassen",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Selbstverwaltung, Begutachtung; kein Vetorecht gegen ein Bundesgesetz",
+          "en": "Self-governance, consultation; no veto over a federal act"
+        },
+        "goals": [
+          {
+            "de": "Regionale Versorgungsverantwortung erhalten",
+            "en": "Keep regional responsibility for care"
+          },
+          {
+            "de": "Selbstverwaltung durch die Versicherten sichern",
+            "en": "Secure self-governance by the insured"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Rücklagen und Budgets der Kassen in der Region",
+            "en": "Funds' reserves and budgets stay in the region"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Gesamtverträge mit den Landesärztekammern",
+            "en": "Collective contracts with the regional medical chambers"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Fusionskosten nicht aus Beiträgen",
+            "en": "Merger costs not from contributions"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Versorgung",
+            "en": "Care",
+            "weight": 0.4
+          },
+          {
+            "de": "Selbstverwaltung",
+            "en": "Self-governance",
+            "weight": 0.35
+          },
+          {
+            "de": "Kosten",
+            "en": "Cost",
+            "weight": 0.25
+          }
+        ],
+        "register": "kostenträgerorientiert, spricht von Versichertengemeinschaft, Selbstverwaltung, Gebarung, regionaler Versorgung",
+        "keywords": "Sozialversicherung Hauptverband Gebietskrankenkasse Selbstverwaltung Versicherte Fusion Träger",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "sv-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          },
+          {
+            "id": "sv-dg",
+            "role": {
+              "de": "Dienstgebervertretung in der Selbstverwaltung",
+              "en": "Employer side of self-governance"
+            },
+            "topicKeys": ["self_governance_parity", "contribution_audit", "savings_claim"]
+          },
+          {
+            "id": "sv-dn",
+            "role": {
+              "de": "Dienstnehmervertretung in der Selbstverwaltung",
+              "en": "Employee side of self-governance"
+            },
+            "topicKeys": ["gkk_merger", "carrier_count", "regional_autonomy", "governance_bodies"]
+          }
+        ]
+      },
+      "abk": {
+        "unit": "Bundesarbeitskammer, Abteilung Sozialversicherung",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Gesetzliche Interessenvertretung, Begutachtung",
+          "en": "Statutory interest body, consultation"
+        },
+        "goals": [
+          {
+            "de": "Mehrheit der Versichertenvertretung in der Krankenversicherung halten",
+            "en": "Keep the insured's majority in health insurance bodies"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Keine Leistungskürzung durch die Fusion",
+            "en": "No benefit cuts through the merger"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Sozialpartnerschaftlicher Weg",
+            "en": "Social partnership route"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Beitragsmittel für Versorgung",
+            "en": "Contribution money for care"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Selbstverwaltung",
+            "en": "Self-governance",
+            "weight": 0.5
+          },
+          {
+            "de": "Leistungen",
+            "en": "Benefits",
+            "weight": 0.5
+          }
+        ],
+        "register": "arbeitnehmerorientiert, spricht von Versicherten, Selbstverwaltung, Leistungsniveau, Machtverschiebung",
+        "keywords": "Arbeiterkammer Versicherte Selbstverwaltung Parität Gebietskrankenkasse Leistungen Beiträge",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "abk-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "wk": {
+        "unit": "Wirtschaftskammer, Abteilung Sozialpolitik",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Gesetzliche Interessenvertretung, Begutachtung",
+          "en": "Statutory interest body, consultation"
+        },
+        "goals": [
+          {
+            "de": "Parität für die Beitragszahler der Dienstgeberseite",
+            "en": "Parity for employers as contributors"
+          },
+          {
+            "de": "Lohnnebenkosten senken",
+            "en": "Cut non-wage labour costs"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Schlanke Verwaltung",
+            "en": "Lean administration"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Sozialpartnerschaft",
+            "en": "Social partnership"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Keine Beitragserhöhung",
+            "en": "No contribution increase"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Kosten",
+            "en": "Cost",
+            "weight": 0.5
+          },
+          {
+            "de": "Parität",
+            "en": "Parity",
+            "weight": 0.5
+          }
+        ],
+        "register": "wirtschaftsnah, spricht von Lohnnebenkosten, Effizienz, Beitragszahlern, Verwaltungsabbau",
+        "keywords": "Wirtschaftskammer Dienstgeber Parität Lohnnebenkosten Verwaltung Träger Beiträge",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "wk-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "bl": {
+        "unit": "Landesgesundheitsreferate",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Gesundheitsplanung und Spitäler; kein Vetorecht gegen das Bundesgesetz",
+          "en": "Health planning and hospitals; no veto over the federal act"
+        },
+        "goals": [
+          {
+            "de": "Regionale Steuerung der Versorgung",
+            "en": "Regional steering of care"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Mittel der Gebietskrankenkassen bleiben im Land",
+            "en": "Regional health fund money stays in the Land"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Zielsteuerung auf Landesebene",
+            "en": "Target-based steering at Land level"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Keine Lastverschiebung zu den Spitälern",
+            "en": "No cost shift to hospitals"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Regionalität",
+            "en": "Regional control",
+            "weight": 0.6
+          },
+          {
+            "de": "Versorgung",
+            "en": "Care",
+            "weight": 0.4
+          }
+        ],
+        "register": "föderal, spricht von Landesebene, Regionalität, Versorgungsplanung, Zielsteuerung",
+        "keywords": "Länder Land Gebietskrankenkasse regional Landesstellen Versorgung",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "bl-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "ak": {
+        "unit": "Österreichische Ärztekammer",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Gesamtvertragspartner, Begutachtung; kein Vetorecht gegen das Bundesgesetz",
+          "en": "Party to collective contracts, consultation; no veto over the federal act"
+        },
+        "goals": [
+          {
+            "de": "Regionale Gesamtverträge erhalten",
+            "en": "Keep regional collective contracts"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Einsparungen müssen bei den Patienten ankommen",
+            "en": "Savings must reach patients"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Gesamtvertrag nach ASVG",
+            "en": "Collective contract under the ASVG"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Keine Honorarkürzung durch Vereinheitlichung",
+            "en": "No fee cuts through harmonisation"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Vertragsfreiheit",
+            "en": "Contract autonomy",
+            "weight": 0.5
+          },
+          {
+            "de": "Versorgung",
+            "en": "Care",
+            "weight": 0.5
+          }
+        ],
+        "register": "standespolitisch, spricht von Gesamtvertrag, Kassenstellen, Patientenversorgung, Honorar",
+        "keywords": "Ärztekammer Gesamtvertrag Honorar Kassen Vertragspartner regional",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "ak-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "pv": {
+        "unit": "Patientenanwaltschaften",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Beratend, ohne Entscheidungsmacht",
+          "en": "Advisory, no decision power"
+        },
+        "goals": [
+          {
+            "de": "Gleiche Leistungen für alle Versicherten",
+            "en": "Equal benefits for all insured"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Versorgung vor Ort sichern",
+            "en": "Secure local care"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Keine formale Rolle in der Selbstverwaltung",
+            "en": "No formal role in self-governance"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Einsparungen in Leistungen umsetzen",
+            "en": "Turn savings into benefits"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Leistungsharmonisierung",
+            "en": "Benefit harmonisation",
+            "weight": 0.6
+          },
+          {
+            "de": "Zugang",
+            "en": "Access",
+            "weight": 0.4
+          }
+        ],
+        "register": "patientenorientiert, spricht von Versicherten, gleichen Leistungen, Wohnortnähe",
+        "keywords": "Patienten Leistungen Versicherte Harmonisierung Versorgung",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "pv-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      }
+    }
   }
 }

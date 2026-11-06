@@ -393,6 +393,25 @@ const de = {
     toAnalysis: "Analyse",
     package: "Paket",
     status: "Status",
+    ev: {
+      accepted: "Angenommenes Paket",
+      fallback: "Stärkster offener Vorschlag",
+      proposer: "Schätzung der Vorschlagenden",
+      brief: "Beispielpaket der Angabe",
+      wait: "Δ Wartezeit, Jahr 5",
+      cost: "Kosten p.a.",
+      spend: "Anteil Gesundheitsausgaben",
+      classes: "Maßnahmenklassen",
+      sources: (n: number) => (n === 1 ? "1 Quelle" : `${n} Quellen`),
+      noEvidence: "keine Evidenz, Annahme",
+      claimed: (w: string, b: string) => `laut Angabe ${w} % und +${b} %`,
+      briefNote: (v: string, lo: string, hi: string, spend: string, inRange: boolean) =>
+        `Nach derselben Evidenz trägt das Beispielpaket etwa ${v} % Wartezeit (Spanne ${lo} bis ${hi} %), nicht −22 %${inRange ? "; −22 % erreicht es nur am oberen Rand, wenn jede Maßnahme maximal wirkt" : "; −22 % liegt außerhalb der Spanne"}. Die Kosten liegen bei etwa ${spend} % der Gesundheitsausgaben, nicht +4,3 %.`,
+      perMeasure: (n: number) => `Je Maßnahme (${n})`,
+      method:
+        "Jede Klasse zählt einmal; überlappende Mechanismen werden abgezinst, Gruppen kombinieren mit abnehmendem Ertrag, Einführung linear über fünf Jahre. Basis: Gesundheitsausgaben 2024 laut Statistik Austria.",
+      legacy: "Lauf vor der Evidenztabelle berechnet; Zahlen sind Schätzungen der Vorschlagenden.",
+    },
   },
   result: {
     title: "Ergebnisdokument",
@@ -444,6 +463,10 @@ const de = {
     round: (n: number) => `Runde ${n}`,
     failed: "Die Antwort ist fehlgeschlagen. Bitte erneut fragen.",
     thinking: "antwortet",
+    seatModel: "Sitz:",
+    answerModel: "Antwort:",
+    cut: "gekürzt nach dem letzten sauberen Satz",
+    regenerated: "neu erzeugt",
   },
   common: {
     round: "Runde",
@@ -834,6 +857,25 @@ const en: RunStrings = {
     toAnalysis: "Analysis",
     package: "Package",
     status: "Status",
+    ev: {
+      accepted: "Accepted package",
+      fallback: "Strongest open proposal",
+      proposer: "Proposers' estimate",
+      brief: "Example package from the brief",
+      wait: "Δ waiting time, year 5",
+      cost: "Cost p.a.",
+      spend: "Share of health spending",
+      classes: "Measure classes",
+      sources: (n) => (n === 1 ? "1 source" : `${n} sources`),
+      noEvidence: "no evidence, assumption",
+      claimed: (w, b) => `brief claims ${w} % and +${b} %`,
+      briefNote: (v, lo, hi, spend, inRange) =>
+        `On the same evidence the example package gives about ${v} % waiting time (range ${lo} to ${hi} %), not −22 %${inRange ? "; it reaches −22 % only at the top of the range, with every measure at its strongest" : "; −22 % lies outside the range"}. Cost is about ${spend} % of health spending, not +4.3 %.`,
+      perMeasure: (n) => `Per measure (${n})`,
+      method:
+        "Each class counts once; overlapping mechanisms are discounted, groups combine with diminishing returns, phase-in is linear over five years. Baseline: 2024 health expenditure from Statistik Austria.",
+      legacy: "Run computed before the evidence table; figures are the proposers' estimates.",
+    },
   },
   result: {
     title: "Result document",
@@ -884,6 +926,10 @@ const en: RunStrings = {
     round: (n: number) => `Round ${n}`,
     failed: "The answer failed. Please ask again.",
     thinking: "answering",
+    seatModel: "Seat:",
+    answerModel: "Answer:",
+    cut: "cut after the last clean sentence",
+    regenerated: "regenerated",
   },
   common: {
     round: "Round",
