@@ -1,0 +1,62 @@
+{
+  "runId": "scenario-wartezeiten-budget-generous",
+  "packageId": "k-5",
+  "verdict": "carries",
+  "label": {
+    "lang": "de",
+    "text": "trägt",
+    "translations": {
+      "en": "carries"
+    }
+  },
+  "conditions": [
+    {
+      "agentId": "pf",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Evaluation nach 12, 36 und 60 Monaten muss Pflegeeffekte messen, insbesondere die Inanspruchnahme durch Community-Nursing-Personal und entlastende Effekte in der primärpflegerischen Versorgung.",
+        "translations": {
+          "en": "The evaluation after 12, 36 and 60 months must measure nursing effects, particularly the involvement of Community Nursing staff and relieving effects in primary nursing care."
+        }
+      }
+    },
+    {
+      "agentId": "ka",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Evaluation nach 12, 36 und 60 Monaten muss messbare Entlastungseffekte auf die Spitalsambulanzen nachweisen, um eine Fortsetzung oder Ausweitung des Piloten zu legitimieren.",
+        "translations": {
+          "en": "The evaluation after 12, 36 and 60 months must demonstrate measurable relief effects on hospital outpatient departments to justify continuation or expansion of the pilot."
+        }
+      }
+    },
+    {
+      "agentId": "pv",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Es muss sichergestellt werden, dass die Veröffentlichung der Wartezeiten und Namenslisten für Kassenstellen tatsächlich verbindlich erfolgt und regelmäßig aktualisiert wird.",
+        "translations": {
+          "en": "It must be ensured that the publication of waiting times and lists of names for panel doctors is indeed binding and regularly updated."
+        }
+      }
+    },
+    {
+      "agentId": "ak",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Stellenplanung für die zusätzlichen Termine im 1450-Pilot erfolgt ausschließlich im Rahmen des bestehenden Gesamtvertrags und nicht durch nebenvertragliche Vereinbarungen oder Ausnahmegenehmigungen.",
+        "translations": {
+          "en": "The planning of additional positions for the 1450 pilot must take place exclusively within the framework of the existing global agreement and not via extracurricular agreements or exceptional permits."
+        }
+      }
+    }
+  ],
+  "pairsChecked": 6,
+  "conflicts": [],
+  "model": "azure/gpt-6-sol",
+  "checkedAt": "2026-11-06T06:04:19.549Z"
+}

@@ -1,0 +1,110 @@
+{
+  "runId": "scenario-wartezeiten-budget-tight",
+  "packageId": "k-5",
+  "verdict": "carries_if_reconciled",
+  "label": {
+    "lang": "de",
+    "text": "trägt nur, wenn die Bedingungen vereinbar sind",
+    "translations": {
+      "en": "carries only if the conditions can be reconciled"
+    }
+  },
+  "conditions": [
+    {
+      "agentId": "sv",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Sozialversicherung muss vor jeder Freigabe von Stellen und Mitteln die konkrete, belegte Umschichtung aus den genannten stationären Ausgabenposten sowie die Absicherung gegen Kostenüberschreitungen nachweisen können. Solange dieser Nachweis nicht erbracht ist, erfolgt keine Mittelbindung.",
+        "translations": {
+          "en": "The Social Insurance must be able to demonstrate, prior to each release of positions and funds, the concrete, documented reallocation from the specified inpatient expenditure items as well as the protection against cost overruns. No commitment of funds will occur without this proof."
+        }
+      }
+    },
+    {
+      "agentId": "pf",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die vertragliche Honorierung pflegerischer Leistungen in den Primärversorgungseinheiten muss auf der Grundlage von PVE-Verträgen erfolgen und sich an einem auskömmlichen, gesondert ausgewiesenen Kostendeckungsansatz orientieren, der die Kompetenzerweiterung in Community Nursing sicherstellt.",
+        "translations": {
+          "en": "The contractual remuneration of nursing services in primary care units must be based on PVE contracts and follow an adequate, separately budgeted cost-coverage approach that ensures expanded competencies in Community Nursing."
+        }
+      }
+    },
+    {
+      "agentId": "ka",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Der Nachweis der Entlastung der Spitalsambulanzen erfolgt anhand messbarer, quartalsweiser Daten zu Ambulanzfrequenzen und Fehlversorgung, die vor Freigabe jeder Stellentranche vorliegen müssen.",
+        "translations": {
+          "en": "The proof of hospital outpatient clinic relief must be based on measurable, quarterly data on outpatient frequencies and misutilization, which must be available prior to the release of each tranche of positions."
+        }
+      }
+    },
+    {
+      "agentId": "pv",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Ein verbindlicher Rechtsanspruch auf einen Facharzttermin innerhalb von maximal vier Wochen muss im Paket verankert werden.",
+        "translations": {
+          "en": "A binding legal entitlement to a specialist appointment within a maximum of four weeks must be included in the package."
+        }
+      }
+    },
+    {
+      "agentId": "ak",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die zusätzlichen 250 Stellen pro Jahr müssen abgesichert sein und langfristig gestellt werden, sobald die Finanzierung im Gesamtvertrag fixiert ist - nicht nur als befristeter Pilot.",
+        "translations": {
+          "en": "The additional 250 positions per year must be secured and permanently established once financing is fixed within the global contract - not just as a time-limited pilot."
+        }
+      }
+    }
+  ],
+  "pairsChecked": 10,
+  "conflicts": [
+    {
+      "a": "sv",
+      "b": "pf",
+      "severity": "tension",
+      "note": {
+        "lang": "de",
+        "text": "Die kostendeckende Pflegehonorierung benötigt gesicherte Mittel aus der von der Sozialversicherung verlangten belegten Umschichtung.",
+        "translations": {
+          "en": "Cost-covering nursing fees require secured funds from the documented reallocation required by social insurance."
+        }
+      }
+    },
+    {
+      "a": "sv",
+      "b": "pv",
+      "severity": "tension",
+      "note": {
+        "lang": "de",
+        "text": "Ein einklagbarer Vierwochentermin kann Ausgaben auslösen, bevor die Sozialversicherung deren Deckung nachgewiesen hat.",
+        "translations": {
+          "en": "An enforceable four-week appointment right could create costs before social insurance has demonstrated funding."
+        }
+      }
+    },
+    {
+      "a": "pf",
+      "b": "ak",
+      "severity": "tension",
+      "note": {
+        "lang": "de",
+        "text": "Kostendeckende Pflegehonorierung und langfristige Kassenstellen beanspruchen beide gesicherte Mittel; die Aufteilung muss ausdrücklich gedeckt sein.",
+        "translations": {
+          "en": "Cost-covering nursing fees and permanent contracted specialist posts both require secured funds; their allocation must be explicitly funded."
+        }
+      }
+    }
+  ],
+  "model": "azure/gpt-6-sol",
+  "checkedAt": "2026-11-06T06:04:24.814Z"
+}

@@ -1,0 +1,121 @@
+{
+  "runId": "scenario-wartezeiten-climate-confrontational",
+  "packageId": "k-5",
+  "verdict": "carries_if_reconciled",
+  "label": {
+    "lang": "de",
+    "text": "trägt nur, wenn die Bedingungen vereinbar sind",
+    "translations": {
+      "en": "carries only if the conditions can be reconciled"
+    }
+  },
+  "conditions": [
+    {
+      "agentId": "sv",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Mittel für die honorierter Zusatztermine und 1450 müssen eindeutig aus dem bestehenden Facharztbudget stammen und dürfen keine Doppelerfassung oder neue Belastung der Versichertengemeinschaft bedeuten. Eine Laufzeitverlängerung ist nur zulässig, wenn gezeigt wird, dass die Umschichtung im Gesamtvertrag versicherungsfachlich tragfähig ist und keine anderen Versorgungsbereiche beeinträchtigt.",
+        "translations": {
+          "en": "The funds for remunerated additional appointments and 1450 must clearly stem from the existing specialist budget and must not involve double counting or impose new burdens on the insured community. An extension of the pilot period is only permissible if it is demonstrated that the reallocation within the global contract is sustainable and does not impair other areas of care."
+        }
+      }
+    },
+    {
+      "agentId": "pf",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Mitwirkung von Community Nursing im Pilotprojekt muss in den PVE-Verträgen verankert sein, mit klar geregelten, honorierten Leistungen für organisatorische Orientierung und Weiterleitung innerhalb der Vermittlung über 1450.",
+        "translations": {
+          "en": "The involvement of Community Nursing in the pilot project must be anchored in PVE contracts, with clearly defined and remunerated services for organizational orientation and referral within the 1450-mediated process."
+        }
+      }
+    },
+    {
+      "agentId": "ka",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Entlastung der Spitalsambulanzen wird in der Evaluation nach zwölf und 24 Monaten als messbare Reduktion der Ambulanzfrequenzen nachgewiesen, bevor weitere Mittel für Zusatztermine freigegeben werden.",
+        "translations": {
+          "en": "Ambulance department relief must be verified as a measurable reduction in ambulatory care frequencies during the 12- and 24-month evaluations before additional funds for supplementary appointments are released."
+        }
+      }
+    },
+    {
+      "agentId": "va",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Im Gesamtvertrag wird verbindlich geregelt, dass die Honorierung der Zusatztermine die vollen Ordinationskosten deckt und vor Leistungserbringung zugesagt wird.",
+        "translations": {
+          "en": "The overall contract bindingly stipulates that the remuneration of additional appointments covers full practice costs and is committed before service delivery."
+        }
+      }
+    },
+    {
+      "agentId": "pv",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Eine verbindliche Zusage zur flächendeckenden Einführung der Terminvermittlung über 1450 nach erfolgreicher Evaluation des Piloten.",
+        "translations": {
+          "en": "A binding commitment to nationwide implementation of appointment scheduling via 1450 after successful pilot evaluation."
+        }
+      }
+    },
+    {
+      "agentId": "ak",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Mitwirkung von Community Nursing ist strikt auf administratives Case Management und telefonische Voranamnese begrenzt, ohne medizinische Erstbeurteilung, und muss im Gesamtvertrag vertraglich exakt abgegrenzt werden.",
+        "translations": {
+          "en": "The involvement of Community Nursing is strictly limited to administrative case management and pre-triage by phone without medical initial assessment, and must be precisely defined in the contract within the framework agreement."
+        }
+      }
+    }
+  ],
+  "pairsChecked": 15,
+  "conflicts": [
+    {
+      "a": "sv",
+      "b": "pf",
+      "severity": "tension",
+      "note": {
+        "lang": "de",
+        "text": "Die honorierte Mitwirkung von Community Nursing benötigt eine ausdrücklich gedeckte Finanzierung aus dem begrenzten 1450 Betrag, ohne das PVE Budget zusätzlich zu belasten.",
+        "translations": {
+          "en": "Paid Community Nursing work requires explicit funding within the limited 1450 allocation without an additional charge to the PVE budget."
+        }
+      }
+    },
+    {
+      "a": "sv",
+      "b": "va",
+      "severity": "tension",
+      "note": {
+        "lang": "de",
+        "text": "Die volle Kostendeckung der Zusatztermine muss innerhalb der verfügbaren Umschichtung aus dem bestehenden Facharztbudget finanziert werden.",
+        "translations": {
+          "en": "Full cost coverage for additional appointments must be financed within the available reallocation from the existing specialist budget."
+        }
+      }
+    },
+    {
+      "a": "sv",
+      "b": "pv",
+      "severity": "tension",
+      "note": {
+        "lang": "de",
+        "text": "Eine verbindliche flächendeckende Einführung nach erfolgreicher Evaluation lässt sich nicht ohne Weiteres mit der zusätzlichen Finanzierungsprüfung und dem begrenzten Budget vereinbaren.",
+        "translations": {
+          "en": "A binding nationwide rollout after a successful evaluation cannot automatically be reconciled with the further funding review and limited budget."
+        }
+      }
+    }
+  ],
+  "model": "azure/gpt-6-sol",
+  "checkedAt": "2026-11-06T06:04:26.592Z"
+}
