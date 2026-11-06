@@ -23,11 +23,11 @@ Choice. Among the 155 episodes the most recent decided ones are ME 343 MTD-Geset
 
 `uv run python -m svforecast.cli forecast --measure-class digitalisation --proposer health_ministry --date 2023-04-05 --k 5` (and `--target three`); pool 113 episodes knowable before 2023-04-05.
 
-| Target | Method | Prediction | 90% interval |
-| --- | --- | --- | --- |
-| Enacted within 24 months | proposer and coalition (8 drafts) | 0.94 | 0.79 to 1.00 |
-| Enacted within 24 months | weighted analogs | 0.87 | 0.80 to 0.93 |
-| Three classes | weighted analogs | as drafted 0.40, modified 0.41, not enacted 0.20 | modified 0.30 to 0.52 |
+| Target                   | Method                            | Prediction                                       | 90% interval          |
+| ------------------------ | --------------------------------- | ------------------------------------------------ | --------------------- |
+| Enacted within 24 months | proposer and coalition (8 drafts) | 0.94                                             | 0.79 to 1.00          |
+| Enacted within 24 months | weighted analogs                  | 0.87                                             | 0.80 to 0.93          |
+| Three classes            | weighted analogs                  | as drafted 0.40, modified 0.41, not enacted 0.20 | modified 0.30 to 0.52 |
 
 Analogs: IVF-Fonds-Gesetz 2021, Epidemiegesetz 2021 (two), Suchtmittelgesetz 2020, GBRG-Novelle 2020. Reality: enacted after 15 months, modified (text similarity 0.36). Both forecasts hit, the three-class one only by a hair (0.41 against 0.40).
 
@@ -37,32 +37,32 @@ The run ended at the round limit with no single proposal accepted, but the moder
 
 Per provision, stance on the drafted measure (-2 rejected, +2 as drafted). Sim: final-round median of the veto seats `gm fm nr`; package: what the carried compromise says.
 
-| Provision | Draft | Law 2024 | Sim | Package | Match |
-| --- | --- | --- | --- | --- | --- |
-| Storage duty for all vaccinating providers | +2 | +2 kept | 1.0 | kept | hit |
-| Ordinance for mandatory retro entry | +2 | +2 kept | 0.75 | voluntary; duty only once paid for | miss, softer |
-| Ministry as controller after the pilot | +2 | +2 kept | 1.5 | kept, plus treatment-contact ordinance | hit |
-| eHealth service desk | +2 | +1 merged into a joint support unit with the ombudsman | 1.25 | kept, free, separated from the ombudsman | partial: same concern, opposite fix |
-| Personal-level data use | +2 | +2 kept | 0.5 | limited to set purposes, logged | miss, softer |
-| Providers bear costs, no compensation | +2 | +2 kept | 0.0 | no new duties without funding, 1.8 M EUR a year, 12-month pilot | miss, softer |
-| Colon gender form | +2 | -2 dropped | 0.5 | silent | miss |
-| Added in parliament: 1450 and rescue services in ELGA, identification by name and SV number | none | added | none | none | miss; a Dachverband proposal for e-card identity checks was rejected 3:6 |
+| Provision                                                                                   | Draft | Law 2024                                               | Sim  | Package                                                         | Match                                                                    |
+| ------------------------------------------------------------------------------------------- | ----- | ------------------------------------------------------ | ---- | --------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Storage duty for all vaccinating providers                                                  | +2    | +2 kept                                                | 1.0  | kept                                                            | hit                                                                      |
+| Ordinance for mandatory retro entry                                                         | +2    | +2 kept                                                | 0.75 | voluntary; duty only once paid for                              | miss, softer                                                             |
+| Ministry as controller after the pilot                                                      | +2    | +2 kept                                                | 1.5  | kept, plus treatment-contact ordinance                          | hit                                                                      |
+| eHealth service desk                                                                        | +2    | +1 merged into a joint support unit with the ombudsman | 1.25 | kept, free, separated from the ombudsman                        | partial: same concern, opposite fix                                      |
+| Personal-level data use                                                                     | +2    | +2 kept                                                | 0.5  | limited to set purposes, logged                                 | miss, softer                                                             |
+| Providers bear costs, no compensation                                                       | +2    | +2 kept                                                | 0.0  | no new duties without funding, 1.8 M EUR a year, 12-month pilot | miss, softer                                                             |
+| Colon gender form                                                                           | +2    | -2 dropped                                             | 0.5  | silent                                                          | miss                                                                     |
+| Added in parliament: 1450 and rescue services in ELGA, identification by name and SV number | none  | added                                                  | none | none                                                            | miss; a Dachverband proposal for e-card identity checks was rejected 3:6 |
 
 Two of seven provisions match, one partly. The sim moved on the right provisions in two places (the service desk was the only drafted measure the law changed, and the identification question came up), but the main miss repeats SV-OG: every disputed cost question was resolved in favour of the objectors, while the real government kept the cost allocation and the obligations as drafted. The colon form, the one provision the law dropped outright, came up only in passing: every seat stayed neutral to positive (median +0.5) and nobody argued to drop it; in consultation only the Tirol hospitals had raised it.
 
 Preference attainment per institution: mean over topics of |ideal - draft| - |ideal - outcome|, ideal = the institution's own round-1 stance; outcome = the coded law or the sim column above.
 
-| Institution | Opening mean | Law 2024 | Sim |
-| --- | --- | --- | --- |
-| Wirtschaftskammer | +0.07 | +0.14 | +1.21 |
-| NR majority | +0.36 | 0.00 | +1.21 |
-| Arbeiterkammer | +0.71 | -0.14 | +1.07 |
-| Ärztekammer | +0.29 | -0.14 | +1.07 |
-| Länder | +0.21 | -0.14 | +0.93 |
-| BMF | +0.43 | +0.14 | +0.79 |
-| Health ministry | +1.07 | 0.00 | +0.57 |
-| Patientenanwaltschaften | +1.00 | -0.43 | +0.50 |
-| Dachverband | +1.07 | 0.00 | +0.43 |
+| Institution             | Opening mean | Law 2024 | Sim   |
+| ----------------------- | ------------ | -------- | ----- |
+| Wirtschaftskammer       | +0.07        | +0.14    | +1.21 |
+| NR majority             | +0.36        | 0.00     | +1.21 |
+| Arbeiterkammer          | +0.71        | -0.14    | +1.07 |
+| Ärztekammer             | +0.29        | -0.14    | +1.07 |
+| Länder                  | +0.21        | -0.14    | +0.93 |
+| BMF                     | +0.43        | +0.14    | +0.79 |
+| Health ministry         | +1.07        | 0.00     | +0.57 |
+| Patientenanwaltschaften | +1.00        | -0.43    | +0.50 |
+| Dachverband             | +1.07        | 0.00     | +0.43 |
 
 In reality nobody gained much against the draft; the dropped colon form is what moves the law column. In the sim everyone gains, because the seats open below the draft, the drafting ministry included (+1.07, not +2). Same main miss as in 2018: the models do not play a government that legislates over the table.
 
@@ -72,22 +72,22 @@ Proposals: 8 tabled (Ärztekammer 2, Länder 3, Patientenanwaltschaften 2, Dachv
 
 `pnpm --filter @sv/engine recall --episode gtelg`, no context, three samples per family, keyword grading (`runs/backtest-gtelg-2023-recall.json`).
 
-| Family | Seats | Outcome detail (1450, support unit, BGBl) |
-| --- | --- | --- |
-| gpt-6-sol | gm fm nr abk wk, moderator, Experte | 0 of 3; says it does not reliably know whether or in which form it passed |
-| GLM-5 | bl | 0 of 3 |
-| Qwen3 235B | sv ak | 0 of 3 ("Ich weiß es nicht") |
-| Devstral 2 | pv | 0 of 3 |
+| Family     | Seats                               | Outcome detail (1450, support unit, BGBl)                                 |
+| ---------- | ----------------------------------- | ------------------------------------------------------------------------- |
+| gpt-6-sol  | gm fm nr abk wk, moderator, Experte | 0 of 3; says it does not reliably know whether or in which form it passed |
+| GLM-5      | bl                                  | 0 of 3                                                                    |
+| Qwen3 235B | sv ak                               | 0 of 3 ("Ich weiß es nicht")                                              |
+| Devstral 2 | pv                                  | 0 of 3                                                                    |
 
 The grader marks 4 of 12 answers `adoption_only`, all false positives: "beschlossen" appears in "ob ... beschlossen wurde". No family recalls the outcome. Unlike SV-OG 2018, this episode is clean on parametric memory, so the misses above are the simulator's, not a memory effect, and the hits are not memory either.
 
 ## Verdict
 
-| | Forecast | Simulation | Reality |
-| --- | --- | --- | --- |
-| Enacted | 0.87 to 0.94 | yes, package carried 7:0 with 2 conditional | yes, BGBl. I Nr. 105/2024 |
+|                        | Forecast                       | Simulation                                                 | Reality                                                       |
+| ---------------------- | ------------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------- |
+| Enacted                | 0.87 to 0.94                   | yes, package carried 7:0 with 2 conditional                | yes, BGBl. I Nr. 105/2024                                     |
 | As drafted or modified | modified 0.41, as drafted 0.40 | modified, softer: retro entry, data use and costs weakened | modified: service desk merged, colon form dropped, 1450 added |
-| Provisions | none | 2 of 7 match, 1 partly | |
+| Provisions             | none                           | 2 of 7 match, 1 partly                                     |                                                               |
 
 The reference class gets the coarse outcome right. The simulator gets enactment and the modified class right but for the wrong reasons: it softens the obligations and the cost allocation that the real government kept, and it misses what parliament actually changed. One episode, one seed.
 
