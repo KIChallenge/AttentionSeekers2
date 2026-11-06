@@ -5,8 +5,8 @@ import "./env.ts";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { parseNdjson } from "@sv/contracts";
-import { closeDb, getDb } from "../src/client.ts";
 import { eq } from "drizzle-orm";
+import { closeDb, getDb } from "../src/client.ts";
 import { loadRun } from "../src/run-store.ts";
 import { runEvents } from "../src/schema.ts";
 
