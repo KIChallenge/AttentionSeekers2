@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { loadMethodNote } from "@/components/method/note.server";
+import { REFERENCE_GROUPS } from "@/components/method/references";
 import { methodT } from "@/components/method/strings";
 import { Page, PageHead, SectionHead } from "@/components/shell/page";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -334,6 +335,34 @@ export default async function MethodPage() {
               </TableBody>
             </Table>
           </div>
+        </Section>
+
+        <Section title={t.refs.title}>
+          <div className="grid gap-3 md:grid-cols-2">
+            {REFERENCE_GROUPS.map((g) => (
+              <article key={g.name.de} className="rounded-2xl border bg-card p-4">
+                <div className="mb-2 font-medium">{g.name[lang]}</div>
+                <ul className="space-y-1.5 text-sm">
+                  {g.papers.map((p) => (
+                    <li key={p.url}>
+                      <a
+                        href={p.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline underline-offset-2"
+                      >
+                        {p.cite}
+                      </a>{" "}
+                      <span className="text-muted-foreground">{p.title}</span>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t.refs.full} <span className="font-mono">docs/references.md</span>
+          </p>
         </Section>
 
         <Section title={t.limits.title}>
