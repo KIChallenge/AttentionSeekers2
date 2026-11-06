@@ -2,6 +2,8 @@
 that trains the 9 institution adapters sequentially.
 
   uv run python -I train_job.py launch [--epochs 3]
+  SV_SFT_DIR=../data/v2/sft uv run python -I train_job.py launch --version v2 --epochs 2 --lr 7e-5 --no-upload-base
+      (v2: data under data/sft-v2/, adapters under adapters-v2/, v1 objects are never overwritten)
   uv run python -I train_job.py status [job]       # status, billable seconds, last log lines
   uv run python -I train_job.py cost               # billable seconds x price of every project job
 """
@@ -24,16 +26,16 @@ SFT = Path(os.environ.get("SV_SFT_DIR", HERE.parent / "data" / "sft"))  # gitign
 PRICE_TRAIN = 2.76  # USD/h, ml.g6e.xlarge training, eu-north-1 (on-demand)
 
 
-def upload_data(s3):
+def upload_data(s3, prefix):
     n = 0
     for r in ROLES:
         for split in ("train", "heldout"):
             p = SFT / f"{r}.{split}.jsonl"
             if not p.exists():
                 raise SystemExit(f"missing {p}")
-            s3.upload_file(str(p), bucket(), f"data/sft/{p.name}")
+            s3.upload_file(str(p), bucket(), f"{prefix}/{p.name}")
             n += 1
-    print(f"uploaded {n} SFT files to s3://<bucket>/data/sft/")
+    print(f"uploaded {n} SFT files from {SFT} to s3://<bucket>/{prefix}/")
 
 
 def upload_code(s3) -> str:
@@ -51,10 +53,13 @@ def launch(a):
     running = sm.list_training_jobs(StatusEquals="InProgress", NameContains=PROJECT)["TrainingJobSummaries"]
     if running:
         raise SystemExit(f"a project job is already running: {running[0]['TrainingJobName']}")
-    upload_data(s3)
+    v1 = a.version == "v1"
+    data_prefix = "data/sft" if v1 else f"data/sft-{a.version}"
+    upload_data(s3, data_prefix)
     code = upload_code(s3)
-    name = f"{PROJECT}-lora-{time.strftime('%m%d-%H%M%S')}"
-    hp = {"roles": ",".join(ROLES), "bucket": bucket(), "epochs": str(a.epochs), "rank": "16", "max-len": "2048",
+    name = f"{PROJECT}-lora{'' if v1 else '-' + a.version}-{time.strftime('%m%d-%H%M%S')}"
+    hp = {"roles": ",".join(ROLES), "bucket": bucket(), "epochs": str(a.epochs), "rank": str(a.rank), "max-len": "2048",
+          "lr": str(a.lr), "dropout": "0.05", "out-prefix": "adapters" if v1 else f"adapters-{a.version}",
           "upload-base": "1" if a.upload_base else "0"}
     hp = {k: json.dumps(v) for k, v in hp.items()}
     hp.update({"sagemaker_program": json.dumps("sm_train.py"), "sagemaker_submit_directory": json.dumps(code),
@@ -64,7 +69,7 @@ def launch(a):
         AlgorithmSpecification={"TrainingImage": image("huggingface-pytorch-training", TRAIN_IMAGE_TAG),
                                 "TrainingInputMode": "File", "EnableSageMakerMetricsTimeSeries": False},
         InputDataConfig=[{"ChannelName": "sft", "DataSource": {"S3DataSource": {
-            "S3DataType": "S3Prefix", "S3Uri": f"s3://{bucket()}/data/sft/", "S3DataDistributionType": "FullyReplicated"}}}],
+            "S3DataType": "S3Prefix", "S3Uri": f"s3://{bucket()}/{data_prefix}/", "S3DataDistributionType": "FullyReplicated"}}}],
         OutputDataConfig={"S3OutputPath": f"s3://{bucket()}/jobs/"},
         ResourceConfig={"InstanceType": INSTANCE, "InstanceCount": 1, "VolumeSizeInGB": 120},
         StoppingCondition={"MaxRuntimeInSeconds": 3 * 3600},
@@ -110,6 +115,9 @@ def main():
     p = sub.add_parser("launch")
     p.add_argument("--epochs", type=float, default=3)
     p.add_argument("--no-upload-base", dest="upload_base", action="store_false")
+    p.add_argument("--version", default="v1", help="adapter set: v1 (adapters/) or e.g. v2 (adapters-v2/)")
+    p.add_argument("--lr", type=float, default=1e-4)
+    p.add_argument("--rank", type=int, default=16)
     p = sub.add_parser("status")
     p.add_argument("job", nargs="?")
     p.add_argument("--lines", type=int, default=25)
