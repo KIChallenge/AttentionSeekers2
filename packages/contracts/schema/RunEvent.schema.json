@@ -569,6 +569,59 @@
                 },
                 "coldRatification": {
                   "type": "boolean"
+                },
+                "decisionRule": {
+                  "type": "string",
+                  "enum": [
+                    "consensus",
+                    "qualified_majority",
+                    "veto_players"
+                  ]
+                },
+                "budgetCeilingPct": {
+                  "type": "number"
+                },
+                "climate": {
+                  "type": "string",
+                  "enum": [
+                    "cooperative",
+                    "neutral",
+                    "confrontational"
+                  ]
+                },
+                "endConditions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "lang": {
+                        "type": "string",
+                        "enum": [
+                          "de",
+                          "en"
+                        ]
+                      },
+                      "text": {
+                        "type": "string"
+                      },
+                      "translations": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "de": {
+                            "type": "string"
+                          },
+                          "en": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "lang",
+                      "text"
+                    ]
+                  }
                 }
               },
               "required": [
@@ -598,6 +651,7 @@
                     "pve",
                     "impfstrategie",
                     "neue_leistungen",
+                    "backtest_svog_2018",
                     "custom"
                   ]
                 },
@@ -1222,6 +1276,29 @@
                     "kind",
                     "episodeId"
                   ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "model_ensemble"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "baseRunId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "label",
+                    "baseRunId"
+                  ]
                 }
               ]
             },
@@ -1525,6 +1602,82 @@
                   "code": {
                     "type": "string",
                     "maxLength": 3
+                  },
+                  "delegates": {
+                    "maxItems": 3,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "object",
+                          "properties": {
+                            "lang": {
+                              "type": "string",
+                              "enum": [
+                                "de",
+                                "en"
+                              ]
+                            },
+                            "text": {
+                              "type": "string"
+                            },
+                            "translations": {
+                              "default": {},
+                              "type": "object",
+                              "properties": {
+                                "de": {
+                                  "type": "string"
+                                },
+                                "en": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "required": [
+                            "lang",
+                            "text"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "role"
+                      ]
+                    }
+                  },
+                  "persona": {
+                    "type": "object",
+                    "properties": {
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "dossier",
+                          "profile"
+                        ]
+                      },
+                      "version": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "sha256": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "mode",
+                      "version",
+                      "sha256"
+                    ]
                   }
                 },
                 "required": [
@@ -2222,6 +2375,11 @@
                         "null"
                       ]
                     },
+                    "reasoningTokens": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
                     "params": {
                       "type": "object",
                       "properties": {
@@ -2311,6 +2469,146 @@
                 {
                   "type": "null"
                 }
+              ]
+            },
+            "exchangeId": {
+              "type": "string"
+            },
+            "delegateId": {
+              "type": "string"
+            },
+            "addressedTo": {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[a-z]{2,4}$"
+                  },
+                  {
+                    "type": "string",
+                    "const": "moderator"
+                  },
+                  {
+                    "type": "string",
+                    "const": "expert"
+                  }
+                ]
+              }
+            },
+            "timing": {
+              "type": "object",
+              "properties": {
+                "startMin": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "durationMin": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "required": [
+                "startMin",
+                "durationMin"
+              ]
+            },
+            "gate": {
+              "type": "object",
+              "properties": {
+                "action": {
+                  "type": "string",
+                  "enum": [
+                    "accepted",
+                    "regenerated",
+                    "flagged"
+                  ]
+                },
+                "first": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "check": {
+                        "type": "string",
+                        "enum": [
+                          "relevance",
+                          "repetition",
+                          "register",
+                          "negotiation",
+                          "con",
+                          "grounding"
+                        ]
+                      },
+                      "passed": {
+                        "type": "boolean"
+                      },
+                      "reason": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "value": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "check",
+                      "passed",
+                      "reason"
+                    ]
+                  }
+                },
+                "retry": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "check": {
+                        "type": "string",
+                        "enum": [
+                          "relevance",
+                          "repetition",
+                          "register",
+                          "negotiation",
+                          "con",
+                          "grounding"
+                        ]
+                      },
+                      "passed": {
+                        "type": "boolean"
+                      },
+                      "reason": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "value": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "check",
+                      "passed",
+                      "reason"
+                    ]
+                  }
+                },
+                "rejectedText": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "action",
+                "first"
               ]
             }
           },
@@ -3945,6 +4243,183 @@
                 "string",
                 "null"
               ]
+            },
+            "capacityEffect": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "number"
+                    },
+                    "low": {
+                      "type": "number"
+                    },
+                    "high": {
+                      "type": "number"
+                    },
+                    "unit": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "value",
+                    "low",
+                    "high",
+                    "unit"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "financing": {
+              "type": "object",
+              "properties": {
+                "lang": {
+                  "type": "string",
+                  "enum": [
+                    "de",
+                    "en"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                },
+                "translations": {
+                  "default": {},
+                  "type": "object",
+                  "properties": {
+                    "de": {
+                      "type": "string"
+                    },
+                    "en": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "lang",
+                "text"
+              ]
+            },
+            "components": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "lang": {
+                    "type": "string",
+                    "enum": [
+                      "de",
+                      "en"
+                    ]
+                  },
+                  "text": {
+                    "type": "string"
+                  },
+                  "translations": {
+                    "default": {},
+                    "type": "object",
+                    "properties": {
+                      "de": {
+                        "type": "string"
+                      },
+                      "en": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "lang",
+                  "text"
+                ]
+              }
+            },
+            "measureClass": {
+              "type": "string",
+              "enum": [
+                "capacity_expansion",
+                "capacity_reduction",
+                "fee_change",
+                "new_service",
+                "service_restriction",
+                "digitalisation",
+                "structural_reform",
+                "scope_of_practice",
+                "access_rule",
+                "prevention_program",
+                "workforce",
+                "drug_reimbursement",
+                "financing_rule",
+                "monitoring_reporting",
+                "other"
+              ]
+            },
+            "votes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "agentId": {
+                    "type": "string",
+                    "pattern": "^[a-z]{2,4}$"
+                  },
+                  "vote": {
+                    "type": "string",
+                    "enum": [
+                      "support",
+                      "conditional",
+                      "oppose"
+                    ]
+                  },
+                  "reason": {
+                    "type": "object",
+                    "properties": {
+                      "lang": {
+                        "type": "string",
+                        "enum": [
+                          "de",
+                          "en"
+                        ]
+                      },
+                      "text": {
+                        "type": "string"
+                      },
+                      "translations": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "de": {
+                            "type": "string"
+                          },
+                          "en": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "lang",
+                      "text"
+                    ]
+                  },
+                  "round": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "agentId",
+                  "vote",
+                  "reason",
+                  "round"
+                ]
+              }
             }
           },
           "required": [
@@ -5140,6 +5615,64 @@
                 "lang",
                 "text"
               ]
+            },
+            "recommendations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "object",
+                    "properties": {
+                      "lang": {
+                        "type": "string",
+                        "enum": [
+                          "de",
+                          "en"
+                        ]
+                      },
+                      "text": {
+                        "type": "string"
+                      },
+                      "translations": {
+                        "default": {},
+                        "type": "object",
+                        "properties": {
+                          "de": {
+                            "type": "string"
+                          },
+                          "en": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "required": [
+                      "lang",
+                      "text"
+                    ]
+                  },
+                  "priority": {
+                    "type": "string",
+                    "enum": [
+                      "high",
+                      "medium",
+                      "low"
+                    ]
+                  },
+                  "proposalIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "text",
+                  "priority",
+                  "proposalIds"
+                ]
+              }
             }
           },
           "required": [
@@ -5381,6 +5914,368 @@
         "tMs",
         "type",
         "lesson"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "number",
+          "const": 1
+        },
+        "runId": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "tMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "exchange.opened"
+        },
+        "exchange": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "round": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "phase": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "plenary",
+                "bilateral",
+                "caucus"
+              ]
+            },
+            "participants": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[a-z]{2,4}$"
+                  },
+                  {
+                    "type": "string",
+                    "const": "moderator"
+                  },
+                  {
+                    "type": "string",
+                    "const": "expert"
+                  }
+                ]
+              }
+            },
+            "topicId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "trigger": {
+              "type": "object",
+              "properties": {
+                "lang": {
+                  "type": "string",
+                  "enum": [
+                    "de",
+                    "en"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                },
+                "translations": {
+                  "default": {},
+                  "type": "object",
+                  "properties": {
+                    "de": {
+                      "type": "string"
+                    },
+                    "en": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "lang",
+                "text"
+              ]
+            },
+            "utteranceIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^u\\d+-\\d{2,}$"
+              }
+            },
+            "outcome": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "lang": {
+                      "type": "string",
+                      "enum": [
+                        "de",
+                        "en"
+                      ]
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "translations": {
+                      "default": {},
+                      "type": "object",
+                      "properties": {
+                        "de": {
+                          "type": "string"
+                        },
+                        "en": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "lang",
+                    "text"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "startMin": {
+              "type": "number",
+              "minimum": 0
+            },
+            "endMin": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "id",
+            "round",
+            "phase",
+            "kind",
+            "participants",
+            "topicId",
+            "trigger",
+            "utteranceIds",
+            "outcome"
+          ]
+        }
+      },
+      "required": [
+        "v",
+        "runId",
+        "seq",
+        "tMs",
+        "type",
+        "exchange"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "number",
+          "const": 1
+        },
+        "runId": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "tMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "exchange.closed"
+        },
+        "exchange": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "round": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "phase": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "plenary",
+                "bilateral",
+                "caucus"
+              ]
+            },
+            "participants": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[a-z]{2,4}$"
+                  },
+                  {
+                    "type": "string",
+                    "const": "moderator"
+                  },
+                  {
+                    "type": "string",
+                    "const": "expert"
+                  }
+                ]
+              }
+            },
+            "topicId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "trigger": {
+              "type": "object",
+              "properties": {
+                "lang": {
+                  "type": "string",
+                  "enum": [
+                    "de",
+                    "en"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                },
+                "translations": {
+                  "default": {},
+                  "type": "object",
+                  "properties": {
+                    "de": {
+                      "type": "string"
+                    },
+                    "en": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "lang",
+                "text"
+              ]
+            },
+            "utteranceIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^u\\d+-\\d{2,}$"
+              }
+            },
+            "outcome": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "lang": {
+                      "type": "string",
+                      "enum": [
+                        "de",
+                        "en"
+                      ]
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "translations": {
+                      "default": {},
+                      "type": "object",
+                      "properties": {
+                        "de": {
+                          "type": "string"
+                        },
+                        "en": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "lang",
+                    "text"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "startMin": {
+              "type": "number",
+              "minimum": 0
+            },
+            "endMin": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "id",
+            "round",
+            "phase",
+            "kind",
+            "participants",
+            "topicId",
+            "trigger",
+            "utteranceIds",
+            "outcome"
+          ]
+        }
+      },
+      "required": [
+        "v",
+        "runId",
+        "seq",
+        "tMs",
+        "type",
+        "exchange"
       ]
     },
     {
@@ -6906,6 +7801,395 @@
         "type",
         "message",
         "retryable"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "number",
+          "const": 1
+        },
+        "runId": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "tMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "llm.call"
+        },
+        "call": {
+          "type": "object",
+          "properties": {
+            "callId": {
+              "type": "string"
+            },
+            "parent": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "mandate",
+                    "utterance",
+                    "assessment",
+                    "lesson",
+                    "expert_check",
+                    "verification",
+                    "exchange_outcome",
+                    "summary",
+                    "impact"
+                  ]
+                },
+                "ref": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "kind",
+                "ref"
+              ]
+            },
+            "round": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "agentId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z]{2,4}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "speaker": {
+              "anyOf": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-z]{2,4}$"
+                    },
+                    {
+                      "type": "string",
+                      "const": "moderator"
+                    },
+                    {
+                      "type": "string",
+                      "const": "expert"
+                    }
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "provider": {
+              "type": "string"
+            },
+            "model": {
+              "type": "string",
+              "minLength": 1
+            },
+            "startedAtMs": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "durationMs": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "tokensIn": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "tokensCached": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "tokensOut": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "tokensReasoning": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "costUsd": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "attempts": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "ok",
+                "repaired",
+                "fallback",
+                "failed"
+              ]
+            },
+            "fallbackFrom": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "schemaName": {
+              "type": "string"
+            },
+            "error": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "gatewayRequestId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "inputPreview": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "system",
+                      "user",
+                      "assistant"
+                    ]
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "tokens": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "text": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "role",
+                  "title",
+                  "tokens",
+                  "text"
+                ]
+              }
+            },
+            "outputPreview": {
+              "type": "string"
+            },
+            "origin": {
+              "default": "recorded",
+              "type": "string",
+              "enum": [
+                "recorded",
+                "derived"
+              ]
+            },
+            "unknown": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "timing",
+                  "tokens",
+                  "model"
+                ]
+              }
+            }
+          },
+          "required": [
+            "callId",
+            "parent",
+            "round",
+            "agentId",
+            "speaker",
+            "provider",
+            "model",
+            "startedAtMs",
+            "durationMs",
+            "tokensIn",
+            "tokensCached",
+            "tokensOut",
+            "tokensReasoning",
+            "costUsd",
+            "attempts",
+            "status",
+            "fallbackFrom",
+            "schemaName"
+          ]
+        }
+      },
+      "required": [
+        "v",
+        "runId",
+        "seq",
+        "tMs",
+        "type",
+        "call"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "number",
+          "const": 1
+        },
+        "runId": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "tMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "type": {
+          "type": "string",
+          "const": "moderation.gate"
+        },
+        "gate": {
+          "type": "object",
+          "properties": {
+            "round": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "agenda_refused",
+                "exchange_closed_early",
+                "concrete_demand"
+              ]
+            },
+            "exchangeId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "topicId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "utteranceId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^u\\d+-\\d{2,}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "reason": {
+              "type": "object",
+              "properties": {
+                "lang": {
+                  "type": "string",
+                  "enum": [
+                    "de",
+                    "en"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                },
+                "translations": {
+                  "default": {},
+                  "type": "object",
+                  "properties": {
+                    "de": {
+                      "type": "string"
+                    },
+                    "en": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "lang",
+                "text"
+              ]
+            }
+          },
+          "required": [
+            "round",
+            "kind",
+            "exchangeId",
+            "topicId",
+            "utteranceId",
+            "reason"
+          ]
+        }
+      },
+      "required": [
+        "v",
+        "runId",
+        "seq",
+        "tMs",
+        "type",
+        "gate"
       ]
     },
     {
