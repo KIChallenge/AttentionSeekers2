@@ -5,35 +5,35 @@ Prompts are rebuilt from the recorded run `ensemble-wartezeiten-gpt` with the en
 
 Valid = schema-valid after at most one repair (local schema repair or one repair turn). Repaired = valid only thanks to a repair. Latency is per structured call including the repair turn. German = share of German stop words among German plus English stop words in the German free-text fields (English translation fields skipped). Cost is an estimate from MODEL_PRICES.
 
-| Model | Family | Valid | Repaired | Failed | p50 s | p95 s | Tokens in / out (reasoning) | German | Est. USD | Verdict |
-|---|---|---|---|---|---|---|---|---|---|---|
-| `azure/gpt-6-sol` | openai | 20/20 (100 %) | 0 (0 by turn) | 0 | 5.8 | 10.4 | 53262 / 15523 (1042) | 98 % | 0.162 | keep |
-| `bedrock/deepseek.v3.2` | deepseek | 20/20 (100 %) | 14 (1 by turn) | 0 | 20.9 | 168.1 | 71723 / 17747 (0) | 97 % | 0.077 | keep |
-| `bedrock/moonshotai.kimi-k2.5` | moonshot | 20/20 (100 %) | 14 (1 by turn) | 0 | 11.7 | 84.8 | 67334 / 21805 (0) | 96 % | 0.106 | keep |
-| `bedrock/qwen.qwen3-235b-a22b-2507-v1:0` | qwen | 20/20 (100 %) | 15 (1 by turn) | 0 | 14.5 | 53.1 | 76434 / 20322 (0) | 98 % | 0.035 | keep |
-| `bedrock/zai.glm-5` | zhipu | 20/20 (100 %) | 15 (0 by turn) | 0 | 13.5 | 24.5 | 65842 / 16332 (0) | 97 % | 0.118 | keep |
-| `bedrock/mistral.devstral-2-123b` | mistral | 19/20 (95 %) | 14 (0 by turn) | 1 | 11.2 | 23.0 | 67250 / 13413 (0) | 96 % | 0.054 | keep |
-| `bedrock/openai.gpt-oss-120b-1:0` | openai | 17/20 (85 %) | 12 (1 by turn) | 3 | 10.6 | 48.0 | 78482 / 37221 (19603) | 93 % | 0.034 | drop (valid < 90 %) |
-| `bedrock/minimax.minimax-m2.5` | minimax | 0/20 (0 %) | 0 (0 by turn) | 20 | 300.0 | 300.1 | 0 / 0 (0) | 0 % | 0.000 | drop (valid < 90 %) |
-| `bedrock/qwen.qwen3-32b-v1:0` | qwen | 17/20 (85 %) | 11 (2 by turn) | 3 | 5.3 | 18.5 | 85644 / 14687 (0) | 97 % | 0.022 | drop (valid < 90 %) |
-| `bedrock/zai.glm-4.7-flash` | zhipu | 19/20 (95 %) | 15 (1 by turn) | 1 | 6.3 | 35.6 | 81912 / 30505 (0) | 98 % | 0.018 | keep |
-| `bedrock/eu.amazon.nova-pro-v1:0` | amazon | 19/20 (95 %) | 6 (0 by turn) | 1 | 7.8 | 31.9 | 76537 / 14832 (0) | 97 % | 0.109 | keep |
+| Model                                    | Family   | Valid         | Repaired       | Failed | p50 s | p95 s | Tokens in / out (reasoning) | German | Est. USD | Verdict             |
+| ---------------------------------------- | -------- | ------------- | -------------- | ------ | ----- | ----- | --------------------------- | ------ | -------- | ------------------- |
+| `azure/gpt-6-sol`                        | openai   | 20/20 (100 %) | 0 (0 by turn)  | 0      | 5.8   | 10.4  | 53262 / 15523 (1042)        | 98 %   | 0.162    | keep                |
+| `bedrock/deepseek.v3.2`                  | deepseek | 20/20 (100 %) | 14 (1 by turn) | 0      | 20.9  | 168.1 | 71723 / 17747 (0)           | 97 %   | 0.077    | keep                |
+| `bedrock/moonshotai.kimi-k2.5`           | moonshot | 20/20 (100 %) | 14 (1 by turn) | 0      | 11.7  | 84.8  | 67334 / 21805 (0)           | 96 %   | 0.106    | keep                |
+| `bedrock/qwen.qwen3-235b-a22b-2507-v1:0` | qwen     | 20/20 (100 %) | 15 (1 by turn) | 0      | 14.5  | 53.1  | 76434 / 20322 (0)           | 98 %   | 0.035    | keep                |
+| `bedrock/zai.glm-5`                      | zhipu    | 20/20 (100 %) | 15 (0 by turn) | 0      | 13.5  | 24.5  | 65842 / 16332 (0)           | 97 %   | 0.118    | keep                |
+| `bedrock/mistral.devstral-2-123b`        | mistral  | 19/20 (95 %)  | 14 (0 by turn) | 1      | 11.2  | 23.0  | 67250 / 13413 (0)           | 96 %   | 0.054    | keep                |
+| `bedrock/openai.gpt-oss-120b-1:0`        | openai   | 17/20 (85 %)  | 12 (1 by turn) | 3      | 10.6  | 48.0  | 78482 / 37221 (19603)       | 93 %   | 0.034    | drop (valid < 90 %) |
+| `bedrock/minimax.minimax-m2.5`           | minimax  | 0/20 (0 %)    | 0 (0 by turn)  | 20     | 300.0 | 300.1 | 0 / 0 (0)                   | 0 %    | 0.000    | drop (valid < 90 %) |
+| `bedrock/qwen.qwen3-32b-v1:0`            | qwen     | 17/20 (85 %)  | 11 (2 by turn) | 3      | 5.3   | 18.5  | 85644 / 14687 (0)           | 97 %   | 0.022    | drop (valid < 90 %) |
+| `bedrock/zai.glm-4.7-flash`              | zhipu    | 19/20 (95 %)  | 15 (1 by turn) | 1      | 6.3   | 35.6  | 81912 / 30505 (0)           | 98 %   | 0.018    | keep                |
+| `bedrock/eu.amazon.nova-pro-v1:0`        | amazon   | 19/20 (95 %)  | 6 (0 by turn)  | 1      | 7.8   | 31.9  | 76537 / 14832 (0)           | 97 %   | 0.109    | keep                |
 
 ## Per kind (valid / calls)
 
-| Model | strategy | utterance | lesson | verification |
-|---|---|---|---|---|
-| gpt | 5/5 | 5/5 | 5/5 | 5/5 |
-| deepseek | 5/5 | 5/5 | 5/5 | 5/5 |
-| kimi | 5/5 | 5/5 | 5/5 | 5/5 |
-| qwen | 5/5 | 5/5 | 5/5 | 5/5 |
-| glm | 5/5 | 5/5 | 5/5 | 5/5 |
-| mistral | 5/5 | 4/5 | 5/5 | 5/5 |
-| gpt-oss | 5/5 | 2/5 | 5/5 | 5/5 |
-| minimax | 0/5 | 0/5 | 0/5 | 0/5 |
-| qwen-32b | 4/5 | 3/5 | 5/5 | 5/5 |
-| glm-flash | 4/5 | 5/5 | 5/5 | 5/5 |
-| nova | 5/5 | 4/5 | 5/5 | 5/5 |
+| Model     | strategy | utterance | lesson | verification |
+| --------- | -------- | --------- | ------ | ------------ |
+| gpt       | 5/5      | 5/5       | 5/5    | 5/5          |
+| deepseek  | 5/5      | 5/5       | 5/5    | 5/5          |
+| kimi      | 5/5      | 5/5       | 5/5    | 5/5          |
+| qwen      | 5/5      | 5/5       | 5/5    | 5/5          |
+| glm       | 5/5      | 5/5       | 5/5    | 5/5          |
+| mistral   | 5/5      | 4/5       | 5/5    | 5/5          |
+| gpt-oss   | 5/5      | 2/5       | 5/5    | 5/5          |
+| minimax   | 0/5      | 0/5       | 0/5    | 0/5          |
+| qwen-32b  | 4/5      | 3/5       | 5/5    | 5/5          |
+| glm-flash | 4/5      | 5/5       | 5/5    | 5/5          |
+| nova      | 5/5      | 4/5       | 5/5    | 5/5          |
 
 ## Sample utterance (German text, first 240 characters) and errors
 
@@ -41,8 +41,8 @@ Valid = schema-valid after at most one repair (local schema repair or one repair
 - **deepseek**: Wir unterstützen das Ziel, die Wartezeiten zu reduzieren, sehen aber die größten Effekte in einer Entlastung der Spitalsambulanzen. Jede Finanzierung muss hier an Messlatten geknüpft werden, die die tatsächliche Entlastung der stationären B
 - **kimi**: Enge Wartezeiten an Facharztterminen entstehen durch Fehlversorgung in der Spitalsambulanz. Wir fordern messbare Entlastung unserer Ambulanzen durch strukturierte Verlagerung in die Primärversorgung bei Best Point of Service und einem gereg
 - **qwen**: Wir als Krankenanstalten setzen uns für eine Entlastung der Spitalsambulanzen ein, um Wartezeiten zu reduzieren. Die Planbarkeit der Budgets ist dabei entscheidend. Eine Umschichtung bestehender Mittel zugunsten ambulanter Kapazitäten ist d
-- **glm**: Die Krankenanstalten stehen vor der Herausforderung, dass ein erheblicher Teil der Ambulanzfrequenzen auf Versorgungsfälle entfällt, die im niedergelassenen Bereich besser aufgehoben wären. Eine Entlastung der Spitalsambulanzen ist für uns 
-- **mistral**: Wir als Krankenanstalten sehen eine Entlastung der Spitalsambulanzen als entscheidend an, um die Wartezeiten auf Facharzttermine zu reduzieren. Unsere wichtigste Bedingung ist, dass geplante Budgets nicht überschritten werden dürfen. Dabei 
+- **glm**: Die Krankenanstalten stehen vor der Herausforderung, dass ein erheblicher Teil der Ambulanzfrequenzen auf Versorgungsfälle entfällt, die im niedergelassenen Bereich besser aufgehoben wären. Eine Entlastung der Spitalsambulanzen ist für uns
+- **mistral**: Wir als Krankenanstalten sehen eine Entlastung der Spitalsambulanzen als entscheidend an, um die Wartezeiten auf Facharzttermine zu reduzieren. Unsere wichtigste Bedingung ist, dass geplante Budgets nicht überschritten werden dürfen. Dabei
   - error: [ { "expected": "string", "code": "invalid_type", "path": [ "respondsTo" ], "message": "Invalid input: expected
 - **gpt-oss**: Wir als Krankenanstalten fordern planbare Budgets, um die Reduktion der Facharztwartzeiten nachhaltig zu sichern. Eine messbare Entlastung der Spitalsambulanzen ist Voraussetzung für jede Budgeterhöhung über das aktuelle Niveau. Ohne nachwe
   - error: [ { "expected": "string", "code": "invalid_type", "path": [ "proposal", "titleDe" ], "message": "Invalid i
@@ -51,7 +51,7 @@ Valid = schema-valid after at most one repair (local schema repair or one repair
 - **minimax**: (no valid utterance)
   - error: The operation was aborted due to timeout
 - **qwen-32b**: Die Krankenanstalten verfolgen die Entlastung der Spitalsambulanzen, wobei planbare Budgets Priorität besitzen. Wir erwarten, die Spitalfinanzierung der Länder nicht weiter zu belasten, bei jeder Kürzung ist eine messbare Entlastung vorausz
-  - error: [ { "code": "invalid_value", "values": [ "financing", "competence", "self_governance", "legislation", 
+  - error: [ { "code": "invalid_value", "values": [ "financing", "competence", "self_governance", "legislation",
   - error: LLM agent_turn: empty response
 - **glm-flash**: Die Spitäler unterstützen die Senkung von Wartezeiten durch Effizienzsteigerung und Primärversorgungsstärkung. Wir fordern hiervon planbare Entlastungen für unsere Budgets, die durch Einnahmen aus Leistungsbezug entstehen. Die quadrierten G
   - error: [ { "code": "invalid_value", "values": [ "cost", "revenue", "workload", "competence", "political_cre
