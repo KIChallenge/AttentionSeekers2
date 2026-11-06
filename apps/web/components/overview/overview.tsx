@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import funnel from "../../../../press/derived/archive_funnel.json";
 import { type ArmRow, SourcesByYear, StanceArms, type YearRow } from "./charts";
 import { overviewT } from "./messages";
+import { ModelLean } from "./model-lean";
 
 type Lang = "de" | "en";
 
@@ -338,6 +339,7 @@ function SimulationCard({ data, lang }: { data: Overview; lang: Lang }) {
           </ol>
         </div>
       ) : null}
+      {r ? <ModelLean r={r} lang={lang} /> : null}
     </Section>
   );
 }

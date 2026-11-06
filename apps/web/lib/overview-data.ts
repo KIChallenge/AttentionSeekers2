@@ -3,6 +3,7 @@
 // read at request time; the archive counts are cached in data.server.ts, the rest is cheap.
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import type { LocalizedText } from "@sv/contracts";
 import { type ArchiveOverview, archiveOverview } from "@/components/archive/data.server";
 import { type Fidelity, loadModelsData } from "@/components/models/data.server";
 import { loadModelBias } from "./model-bias-data";
@@ -36,6 +37,10 @@ export interface RankedRun {
   rank: number;
   run: RunColumn;
   tier: "near" | "mid" | "far";
+  /** Mean signed shift of all institutions, final minus expected, per axis (-4..4). */
+  direction: { x: number | null; y: number | null };
+  /** Accepted / tabled proposals; null when nothing was tabled. */
+  acceptRate: number | null;
 }
 
 export interface Overview {
@@ -47,7 +52,14 @@ export interface Overview {
   backtest: BacktestFacts | null;
   simulation: SimulationTotals;
   /** Model ranking of the scenario with the most runs, "erwartbar" first. */
-  ranking: { scenarioKey: string; rows: RankedRun[] } | null;
+  ranking: {
+    scenarioKey: string;
+    rows: RankedRun[];
+    /** Axis poles [negative, positive] for the direction chart. */
+    axes: { x: [LocalizedText, LocalizedText]; y: [LocalizedText, LocalizedText] } | null;
+    /** Historical share of health first drafts enacted within 24 months. */
+    histRate: number;
+  } | null;
 }
 
 async function pressPageCount(): Promise<number> {
@@ -65,9 +77,23 @@ async function rankingOf(scenarioKey: string | null): Promise<Overview["ranking"
     const run = runs.get(id);
     if (!run) return [];
     const tier = i < n / 3 ? "near" : i < (2 * n) / 3 ? "mid" : "far";
-    return [{ rank: i + 1, run, tier } as RankedRun];
+    const row = bias.bias.rows.find((r) => r.id === id);
+    return [
+      {
+        rank: i + 1,
+        run,
+        tier,
+        direction: row?.direction ?? { x: null, y: null },
+        acceptRate: row?.temperament.acceptRate ?? null,
+      } as RankedRun,
+    ];
   });
-  return rows.length ? { scenarioKey, rows } : null;
+  const ax = (id: "x" | "y") => bias.bias.axes.find((a) => a.id === id)?.poles;
+  const x = ax("x");
+  const y = ax("y");
+  return rows.length
+    ? { scenarioKey, rows, axes: x && y ? { x, y } : null, histRate: bias.bias.histRate }
+    : null;
 }
 
 export async function loadOverview(

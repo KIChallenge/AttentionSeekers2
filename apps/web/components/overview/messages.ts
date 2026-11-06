@@ -91,6 +91,10 @@ const de = {
     qualitySub: (n: number) => `Mittel über ${n} geprüfte Läufe`,
     rank: "Erwartbar bis abseits",
     rankLink: "Modellvergleich",
+    leanTitle: "Wohin jedes Modell die Institutionen zieht",
+    leanExpected: "erwartet",
+    acceptTitle: "Angenommene Vorschläge je Modell",
+    acceptHist: "Historisch beschlossen",
     tier: { near: "erwartbar", mid: "dazwischen", far: "abseits" } as Record<string, string>,
   },
 };
@@ -177,6 +181,10 @@ const en: typeof de = {
     qualitySub: (n) => `Mean over ${n} audited runs`,
     rank: "Expected to off track",
     rankLink: "Model comparison",
+    leanTitle: "Where each model pulls the institutions",
+    leanExpected: "expected",
+    acceptTitle: "Accepted proposals per model",
+    acceptHist: "Historically enacted",
     tier: { near: "expected", mid: "in between", far: "off track" },
   },
 };
