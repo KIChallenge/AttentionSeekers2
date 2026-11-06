@@ -258,6 +258,16 @@ export function AgentCard({ agentId }: { agentId: string }) {
                 <dt className="text-muted-foreground">{t.live.model}</dt>
                 <dd className="font-mono text-xs">{run.modelAssignment[agentId] ?? "-"}</dd>
               </Level>
+              <Level min="engineer">
+                <dt className="text-muted-foreground">Persona</dt>
+                <dd className="font-mono text-xs">
+                  {cfg.persona
+                    ? cfg.persona.mode === "dossier"
+                      ? `dossier ${cfg.persona.version ?? ""} ${cfg.persona.sha256 ?? ""}`.trim()
+                      : "profile"
+                    : "profile (vor Dossiers)"}
+                </dd>
+              </Level>
             </dl>
           </Panel>
           <Panel title={t.agent.goals}>

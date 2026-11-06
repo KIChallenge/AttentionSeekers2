@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Chip, Empty } from "@/components/run/bits";
 import { agentLook } from "@/components/run/helpers";
 import { useRun } from "@/components/run/run-context";
+import { usePrefs } from "@/components/shell/providers";
+import { cn } from "@/lib/utils";
 import { CallDetail } from "./call-detail";
 import { buildTrace, runningTotals, totals } from "./model";
 import { traceStrings } from "./strings";
@@ -57,6 +59,7 @@ export function TraceView({
   loadTrace: (runId: string, utteranceId: string) => Promise<UtteranceTrace | null>;
 }) {
   const { snap, run, lang } = useRun();
+  const { level } = usePrefs();
   const t = traceStrings[lang];
   const recorded = snap.llmCalls ?? [];
   const isDerived = recorded.length === 0 && derived.length > 0;
@@ -103,18 +106,21 @@ export function TraceView({
   const models = [...new Set(calls.map((c) => c.model))];
   const statuses = [...new Set(calls.map((c) => c.status))];
 
+  const executive = level === "executive";
+  const filtersOn = !executive;
+
   return (
     <main className="mx-auto max-w-[1800px] px-4 pt-5 pb-12 sm:px-6">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div className="max-w-3xl">
-          <h1 className="text-2xl font-semibold">
-            {t.title}
-            <Chip className={isDerived ? "ml-2 border-dashed align-middle" : "ml-2 align-middle"}>
-              {isDerived ? t.derived : t.recorded}
-            </Chip>
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t.sub}</p>
-        </div>
+        <h1 className="text-2xl font-semibold" title={t.sub}>
+          {t.title}
+          <Chip
+            className={isDerived ? "ml-2 border-dashed align-middle" : "ml-2 align-middle"}
+            title={isDerived ? t.derivedBanner : undefined}
+          >
+            {isDerived ? t.derived : t.recorded}
+          </Chip>
+        </h1>
       </div>
       {isDerived ? (
         <p className="mb-4 rounded-xl border border-dashed bg-gray-alpha-50 p-3 text-sm text-muted-foreground">
@@ -125,46 +131,57 @@ export function TraceView({
         <Empty>{t.detail.empty}</Empty>
       ) : (
         <>
-          <SummaryHeader totals={all} lang={lang} t={t} derived={isDerived} />
-          <div className="my-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-            <Select
-              label={t.filters.agent}
-              value={agent}
-              onChange={setAgent}
-              all={t.filters.all}
-              options={speakers.map((s) => ({ value: s, label: agentLook(run, s, lang).name }))}
-            />
-            <Select
-              label={t.filters.model}
-              value={model}
-              onChange={setModel}
-              all={t.filters.all}
-              options={models.map((m) => ({ value: m, label: m }))}
-            />
-            <Select
-              label={t.filters.status}
-              value={status}
-              onChange={setStatus}
-              all={t.filters.all}
-              options={statuses.map((s) => ({ value: s, label: t.status[s] }))}
-            />
-            {agent || model || status ? (
-              <button
-                type="button"
-                className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-                onClick={() => {
-                  setAgent("");
-                  setModel("");
-                  setStatus("");
-                }}
-              >
-                {t.filters.reset}
-              </button>
+          <SummaryHeader totals={all} lang={lang} t={t} />
+          <div
+            className={cn(
+              "my-3 flex flex-wrap items-center gap-x-4 gap-y-2",
+              !filtersOn && !isDerived && "hidden",
+            )}
+          >
+            {filtersOn ? (
+              <>
+                <Select
+                  label={t.filters.agent}
+                  value={agent}
+                  onChange={setAgent}
+                  all={t.filters.all}
+                  options={speakers.map((s) => ({ value: s, label: agentLook(run, s, lang).name }))}
+                />
+                <Select
+                  label={t.filters.model}
+                  value={model}
+                  onChange={setModel}
+                  all={t.filters.all}
+                  options={models.map((m) => ({ value: m, label: m }))}
+                />
+                <Select
+                  label={t.filters.status}
+                  value={status}
+                  onChange={setStatus}
+                  all={t.filters.all}
+                  options={statuses.map((s) => ({ value: s, label: t.status[s] }))}
+                />
+                {agent || model || status ? (
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                    onClick={() => {
+                      setAgent("");
+                      setModel("");
+                      setStatus("");
+                    }}
+                  >
+                    {t.filters.reset}
+                  </button>
+                ) : null}
+                <span className="text-xs text-muted-foreground">
+                  {t.filters.showing(filtered.length, calls.length)}
+                </span>
+              </>
             ) : null}
-            <span className="text-xs text-muted-foreground">
-              {t.filters.showing(filtered.length, calls.length)}
-            </span>
-            <span className="ml-auto text-[11px] text-muted-foreground">{t.legend}</span>
+            {isDerived ? (
+              <span className="ml-auto text-[11px] text-muted-foreground">{t.legend}</span>
+            ) : null}
           </div>
           <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_400px]">
             <Waterfall
@@ -175,6 +192,8 @@ export function TraceView({
               selected={selected}
               onSelect={(c) => setSelected(c.callId)}
               running={running}
+              engineer={level === "engineer"}
+              roundsClosed={executive}
             />
             <aside className="lg:sticky lg:top-[104px] lg:max-h-[calc(100vh-120px)] lg:overflow-auto">
               {sel ? (

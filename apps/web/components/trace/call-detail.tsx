@@ -13,6 +13,7 @@ import { Chip, Tile, UttRef } from "@/components/run/bits";
 import { agentLook, claimStateClass, L, withKeys } from "@/components/run/helpers";
 import { SourceChip } from "@/components/run/provenance";
 import { useRun } from "@/components/run/run-context";
+import { usePrefs } from "@/components/shell/providers";
 import { cn } from "@/lib/utils";
 import { fmtClock, fmtInt, fmtMs, fmtUsd } from "./format";
 import { familyColor, hasTiming } from "./model";
@@ -79,6 +80,7 @@ export function CallDetail({
   loadTrace: (runId: string, utteranceId: string) => Promise<UtteranceTrace | null>;
 }) {
   const { run, runId, snap, lang } = useRun();
+  const engineer = usePrefs().level === "engineer";
   const d = t.detail;
   const isUtt = call.parent.kind === "utterance" && call.parent.ref;
   const u = isUtt && call.parent.ref ? snap.utterances[call.parent.ref] : undefined;
@@ -125,9 +127,9 @@ export function CallDetail({
       <div className="flex items-start gap-2">
         <Tile id={who} size="md" />
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold">
+          <div className="text-sm font-semibold" title={ref ?? undefined}>
             {t.kind[call.parent.kind]}
-            {ref && ref.length < 40 ? (
+            {ref && ref.length < 40 && engineer ? (
               <span className="ml-1.5 font-mono text-xs font-normal text-muted-foreground">
                 {ref}
               </span>
@@ -163,10 +165,14 @@ export function CallDetail({
         >
           {t.status[call.status]}
         </Chip>
-        <Chip className={cn(call.origin === "derived" && "border-dashed")}>
-          {call.origin === "derived" ? t.derived : t.recorded}
-        </Chip>
-        <Chip className="font-mono">{call.callId}</Chip>
+        {engineer ? (
+          <>
+            <Chip className={cn(call.origin === "derived" && "border-dashed")}>
+              {call.origin === "derived" ? t.derived : t.recorded}
+            </Chip>
+            <Chip className="font-mono">{call.callId}</Chip>
+          </>
+        ) : null}
       </div>
       {call.origin === "derived" ? (
         <p className="text-[11px] text-muted-foreground">
@@ -177,13 +183,17 @@ export function CallDetail({
       <Section title={d.telemetry}>
         <Kv
           rows={[
-            [d.provider, call.provider],
-            [
-              d.schema,
-              <span key="schema" className="font-mono">
-                {call.schemaName}
-              </span>,
-            ],
+            ...(engineer
+              ? ([
+                  [d.provider, call.provider],
+                  [
+                    d.schema,
+                    <span key="schema" className="font-mono">
+                      {call.schemaName}
+                    </span>,
+                  ],
+                ] as Array<[string, ReactNode]>)
+              : []),
             [d.start, hasTiming(call) ? fmtClock(call.startedAtMs) : nr],
             [d.duration, hasTiming(call) ? fmtMs(call.durationMs, lang) : nr],
             [d.tokensIn, unknownTokens ? nr : fmtInt(call.tokensIn, lang)],
@@ -192,13 +202,19 @@ export function CallDetail({
             [d.reasoning, unknownTokens ? nr : fmtInt(call.tokensReasoning, lang)],
             [d.cost, call.costUsd === null ? nr : fmtUsd(call.costUsd, lang)],
             [d.attempts, String(call.attempts)],
-            [d.fallbackFrom, call.fallbackFrom ?? "-"],
-            [
-              d.requestId,
-              <span key="rid" className="font-mono">
-                {call.gatewayRequestId ?? "-"}
-              </span>,
-            ],
+            ...(call.fallbackFrom
+              ? ([[d.fallbackFrom, call.fallbackFrom]] as Array<[string, ReactNode]>)
+              : []),
+            ...(engineer
+              ? ([
+                  [
+                    d.requestId,
+                    <span key="rid" className="font-mono">
+                      {call.gatewayRequestId ?? "-"}
+                    </span>,
+                  ],
+                ] as Array<[string, ReactNode]>)
+              : []),
           ]}
         />
         {call.error ? (

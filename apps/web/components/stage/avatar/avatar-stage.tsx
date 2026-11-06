@@ -16,7 +16,7 @@ import type { TileRole } from "../stage-tile";
 import type { StageStrings } from "../strings";
 import type { StageLive } from "../use-stage-player";
 import type { AvatarScene, StageCue } from "./avatar-scene";
-import { figureStyle } from "./figure-style";
+import { type FigureKind, figureStyle, realisticAssets, realisticStyle } from "./figure-style";
 
 // 3D mode of the stage (PRD 2.15). Same grid as the tile view, but each tile is a viewport
 // into one shared WebGL canvas. The tiles themselves are transparent frames carrying the name
@@ -117,6 +117,7 @@ export function AvatarStage({
   s,
   onFail,
   layout,
+  figures = "stylized",
   className,
 }: {
   seats: AvatarSeat[];
@@ -129,6 +130,8 @@ export function AvatarStage({
   s: StageStrings;
   onFail: (why: string) => void;
   layout?: AvatarLayout;
+  /** Figure style; "realistic" loads the textured characters (opt-in, see realistic.ts). */
+  figures?: FigureKind;
   className?: string;
 }) {
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -208,6 +211,7 @@ export function AvatarStage({
         const card = resolve("var(--card)");
         scene = new mod.AvatarScene(canvas, {
           url: ASSET,
+          figures,
           lang,
           cols,
           gazeFromRects: free,
@@ -216,16 +220,20 @@ export function AvatarStage({
           onLost: fail,
         });
         sceneRef.current = scene;
+        const realistic = figures === "realistic";
+        const assets = realistic ? realisticAssets(seatList.map((x) => x.id)) : null;
         const specs = seatList.flatMap((seat) => {
           const el = tileRefs.current.get(seat.id);
           if (!el) return [];
           const rgb = resolve(seat.color);
+          const suit = hex(seat.kind === "agent" ? rgb : mix(rgb, card, 0.15));
           return [
             {
               id: seat.id,
               el,
               bg: hex(mix(card, rgb, 0.08)),
-              style: figureStyle(seat.id, hex(seat.kind === "agent" ? rgb : mix(rgb, card, 0.15))),
+              url: assets?.get(seat.id),
+              style: realistic ? realisticStyle(seat.id, suit) : figureStyle(seat.id, suit),
             },
           ];
         });
@@ -249,7 +257,7 @@ export function AvatarStage({
       scene?.dispose();
       sceneRef.current = null;
     };
-  }, [seatList, lang, cols, free, frameScale, liveRef, measure, paintBackgrounds]);
+  }, [seatList, lang, cols, free, frameScale, figures, liveRef, measure, paintBackgrounds]);
 
   // Free layout: frames glide to their new rects; follow them frame by frame while they move.
   const rectKey = layout

@@ -184,20 +184,25 @@ function HistoryCell({
       </span>
     );
   return (
-    <div className="flex flex-col gap-1 text-xs">
+    <div
+      className="flex flex-col gap-1 text-xs"
+      title={rate.via ? `${rate.via} ${t.via(cls)}` : cls}
+    >
       <span className="leading-snug">
         {t.histShort(rate.k, rate.n)}
         {rate.low !== null && rate.high !== null ? (
-          <span className="num text-muted-foreground">
-            {` (90 %: ${pct(rate.low)} ${lang === "de" ? "bis" : "to"} ${pct(rate.high)})`}
+          <span className="num block text-muted-foreground">
+            {`90 %: ${pct(rate.low)} ${lang === "de" ? "bis" : "to"} ${pct(rate.high)}`}
           </span>
         ) : null}
       </span>
-      <span className="text-muted-foreground">
-        <span className="font-mono">{rate.via ?? cls}</span>
-        {rate.via ? <span>{` ${t.via(cls)}`}</span> : null}
-        {rate.smallN ? <span className="ml-1 text-warning">{t.smallN}</span> : null}
-      </span>
+      {rate.smallN ? <span className="text-warning">{t.smallN}</span> : null}
+      <Level min="engineer">
+        <span className="text-muted-foreground">
+          <span className="font-mono">{rate.via ?? cls}</span>
+          {rate.via ? <span>{` ${t.via(cls)}`}</span> : null}
+        </span>
+      </Level>
     </div>
   );
 }
@@ -442,132 +447,17 @@ export function TopicView({
   const overall = hist.overall;
   return (
     <div className="flex flex-col gap-6">
-      <section className="rounded-2xl border bg-card p-5 shadow-xs" aria-label={t.summaryTitle}>
+      <section className="rounded-2xl border bg-card p-4 shadow-xs" aria-label={t.summaryTitle}>
         <h2 className="text-base font-semibold">{t.summaryTitle}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{cmp.question}</p>
-        <ul className="mt-3 flex max-w-4xl flex-col gap-1 text-[15px] leading-snug">
+        <ul className="mt-2 flex max-w-4xl flex-col gap-0.5 text-sm leading-snug">
           {sentences.map((s) => (
             <li key={s}>{s}</li>
           ))}
         </ul>
-        <p className="mt-3 max-w-4xl border-l-2 border-warning/60 pl-3 text-xs text-muted-foreground">
+        <p className="mt-2 max-w-4xl border-l-2 border-warning/60 pl-3 text-xs text-muted-foreground">
           {t.caveat}
         </p>
-      </section>
-
-      <section className="rounded-2xl border bg-card shadow-xs" aria-label={t.runsTitle}>
-        <div className="p-4 pb-2">
-          <h2 className="text-base font-semibold">{t.runsTitle}</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">{t.runsSub}</p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-sm">
-            <thead className="text-left text-xs text-muted-foreground">
-              <tr>
-                <th className="px-4 py-2 font-medium">{t.col.run}</th>
-                <th className="px-3 py-2 font-medium">{t.col.seats}</th>
-                <th className="px-3 py-2 font-medium">{t.col.agreed}</th>
-                <th className="px-3 py-2 font-medium">{t.col.accepted}</th>
-                <th className="px-3 py-2 font-medium">{t.col.wait}</th>
-                <th className="px-3 py-2 font-medium">{t.col.cost}</th>
-                <th className="px-3 py-2 font-medium">{t.col.duration}</th>
-                <Level min="engineer">
-                  <th className="px-3 py-2 font-medium">{t.col.tokens}</th>
-                </Level>
-              </tr>
-            </thead>
-            <tbody>
-              {cmp.runs.map((r) => (
-                <tr key={r.id} className="border-t align-top">
-                  <td className="px-4 py-2.5">
-                    <a href={`/runs/${r.id}`} className="font-medium hover:underline">
-                      {runLabel(r, t)}
-                    </a>
-                    <Level min="engineer">
-                      <div className="font-mono text-[11px] text-muted-foreground">{r.id}</div>
-                    </Level>
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <span className="inline-flex items-center gap-1.5">
-                      <FamilyDot family={r.seatFamilies} />
-                      {r.seatFamilies === "mixed" ? (
-                        <span className="flex flex-wrap gap-0.5">
-                          {Object.entries(r.seatModels).map(([a, m]) => (
-                            <span
-                              key={a}
-                              className="inline-flex items-center gap-0.5 rounded border px-1 text-[10px]"
-                              title={m}
-                            >
-                              {catalogAgent(a)?.code ?? a}
-                              <FamilyDot family={familyOf(m)} className="size-1.5" />
-                            </span>
-                          ))}
-                        </span>
-                      ) : (
-                        t.seatsLine(t.fam[r.seatFamilies] ?? r.seatFamilies)
-                      )}
-                    </span>
-                    <Level min="engineer">
-                      <div className="mt-1 font-mono text-[10px] leading-tight text-muted-foreground">
-                        {[...new Set(Object.values(r.seatModels))].map((m) => (
-                          <div key={m}>
-                            {m}:{" "}
-                            {Object.entries(r.seatModels)
-                              .filter(([, x]) => x === m)
-                              .map(([a]) => a)
-                              .join(",")}
-                          </div>
-                        ))}
-                      </div>
-                    </Level>
-                    {r.fallbackCalls > 0 ? (
-                      <div className="mt-1 text-[11px] text-warning">
-                        {t.fallback(r.fallbackCalls, r.seatCalls)}
-                      </div>
-                    ) : null}
-                  </td>
-                  <td className="num px-3 py-2.5">
-                    {r.agreed}/{r.of}
-                  </td>
-                  <td className="num px-3 py-2.5">
-                    {r.accepted}/{r.tabled}
-                  </td>
-                  <td className="num px-3 py-2.5">
-                    {r.waitChangePct === null ? "–" : `${signed(r.waitChangePct, lang)} %`}
-                  </td>
-                  <td className="num px-3 py-2.5">
-                    {r.costEurMio === null ? "–" : `${signed(r.costEurMio, lang, 0)} Mio. EUR`}
-                  </td>
-                  <td className="num px-3 py-2.5 text-muted-foreground">
-                    {formatDuration(r.durationMs)}
-                  </td>
-                  <Level min="engineer">
-                    <td className="num px-3 py-2.5 text-xs text-muted-foreground">
-                      {r.costUsd === null
-                        ? "–"
-                        : `${Math.round(r.tokensIn / 1000)}k / ${Math.round(r.tokensOut / 1000)}k · ~${r.costUsd.toFixed(1)} USD`}
-                    </td>
-                  </Level>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 border-t px-4 py-2 text-[11px] text-muted-foreground">
-          {["gpt", "nova", "mixed"].map((f) => (
-            <span key={f} className="inline-flex items-center gap-1">
-              <FamilyDot family={f} /> {t.fam[f]}
-            </span>
-          ))}
-          {excluded.length ? (
-            <Level min="engineer">
-              <span>
-                {t.excluded}:{" "}
-                {excluded.map((e) => `${e.id} (${t.excludedReason[e.reason]})`).join(", ")}
-              </span>
-            </Level>
-          ) : null}
-        </div>
       </section>
 
       <section className="rounded-2xl border bg-card shadow-xs" aria-label={t.topicsTitle}>
@@ -646,8 +536,8 @@ export function TopicView({
                     <tr>
                       <td colSpan={n + 2} className="p-0">
                         <details className="group">
-                          <summary className="cursor-pointer px-4 py-1.5 text-xs text-muted-foreground hover:text-foreground">
-                            {t.stanceSpread} · {t.proposals}
+                          <summary className="cursor-pointer px-4 py-1.5 text-[11px] text-muted-foreground hover:text-foreground">
+                            {t.details}
                           </summary>
                           <TopicDetail row={row} runs={cmp.runs} rate={rate} lang={lang} t={t} />
                         </details>
@@ -661,33 +551,159 @@ export function TopicView({
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_1fr]">
-        <section className="rounded-2xl border bg-card shadow-xs" aria-label={t.seatsTitle}>
+      <Level min="analyst">
+        <section className="rounded-2xl border bg-card shadow-xs" aria-label={t.runsTitle}>
           <div className="p-4 pb-2">
-            <h2 className="text-base font-semibold">{t.seatsTitle}</h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">{t.seatsSub}</p>
+            <h2 className="text-base font-semibold">{t.runsTitle}</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">{t.runsSub}</p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] text-sm">
+            <table className="w-full min-w-[760px] text-sm">
               <thead className="text-left text-xs text-muted-foreground">
                 <tr>
-                  <th className="px-3 py-2 font-medium">{t.col.institution}</th>
-                  <th className="px-3 py-2 font-medium">{t.col.between}</th>
-                  <th className="px-3 py-2 font-medium">{t.col.within}</th>
-                  <th className="px-3 py-2 font-medium">{t.col.verdict}</th>
+                  <th className="px-4 py-2 font-medium">{t.col.run}</th>
+                  <th className="px-3 py-2 font-medium">{t.col.seats}</th>
+                  <th className="px-3 py-2 font-medium">{t.col.agreed}</th>
+                  <th className="px-3 py-2 font-medium">{t.col.accepted}</th>
+                  <th className="px-3 py-2 font-medium">{t.col.wait}</th>
+                  <th className="px-3 py-2 font-medium">{t.col.cost}</th>
+                  <th className="px-3 py-2 font-medium">{t.col.duration}</th>
+                  <Level min="engineer">
+                    <th className="px-3 py-2 font-medium">{t.col.tokens}</th>
+                  </Level>
                 </tr>
               </thead>
               <tbody>
-                {[...cmp.seats]
-                  .sort((a, b) => (b.betweenFamilies ?? -1) - (a.betweenFamilies ?? -1))
-                  .map((s) => (
-                    <SeatRow key={s.agentId} s={s} lang={lang} t={t} />
-                  ))}
+                {cmp.runs.map((r) => (
+                  <tr key={r.id} className="border-t align-top">
+                    <td className="px-4 py-2.5">
+                      <a href={`/runs/${r.id}`} className="font-medium hover:underline">
+                        {runLabel(r, t)}
+                      </a>
+                      <Level min="engineer">
+                        <div className="font-mono text-[11px] text-muted-foreground">{r.id}</div>
+                      </Level>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <span className="inline-flex items-center gap-1.5">
+                        <FamilyDot family={r.seatFamilies} />
+                        {r.seatFamilies === "mixed" ? (
+                          <span className="flex flex-wrap gap-0.5">
+                            {Object.entries(r.seatModels).map(([a, m]) => (
+                              <span
+                                key={a}
+                                className="inline-flex items-center gap-0.5 rounded border px-1 text-[10px]"
+                                title={m}
+                              >
+                                {catalogAgent(a)?.code ?? a}
+                                <FamilyDot family={familyOf(m)} className="size-1.5" />
+                              </span>
+                            ))}
+                          </span>
+                        ) : (
+                          t.seatsLine(t.fam[r.seatFamilies] ?? r.seatFamilies)
+                        )}
+                      </span>
+                      <Level min="engineer">
+                        <div className="mt-1 font-mono text-[10px] leading-tight text-muted-foreground">
+                          {[...new Set(Object.values(r.seatModels))].map((m) => (
+                            <div key={m}>
+                              {m}:{" "}
+                              {Object.entries(r.seatModels)
+                                .filter(([, x]) => x === m)
+                                .map(([a]) => a)
+                                .join(",")}
+                            </div>
+                          ))}
+                        </div>
+                      </Level>
+                      {r.fallbackCalls > 0 ? (
+                        <div className="mt-1 text-[11px] text-warning">
+                          {t.fallback(r.fallbackCalls, r.seatCalls)}
+                        </div>
+                      ) : null}
+                    </td>
+                    <td className="num px-3 py-2.5">
+                      {r.agreed}/{r.of}
+                    </td>
+                    <td className="num px-3 py-2.5">
+                      {r.accepted}/{r.tabled}
+                    </td>
+                    <td className="num px-3 py-2.5">
+                      {r.waitChangePct === null ? (
+                        <span className="text-xs text-muted-foreground">{t.noFigure}</span>
+                      ) : (
+                        `${signed(r.waitChangePct, lang)} %`
+                      )}
+                    </td>
+                    <td className="num px-3 py-2.5">
+                      {r.costEurMio === null ? (
+                        <span className="text-xs text-muted-foreground">{t.noFigure}</span>
+                      ) : (
+                        `${signed(r.costEurMio, lang, 0)} Mio. EUR`
+                      )}
+                    </td>
+                    <td className="num px-3 py-2.5 text-muted-foreground">
+                      {formatDuration(r.durationMs)}
+                    </td>
+                    <Level min="engineer">
+                      <td className="num px-3 py-2.5 text-xs text-muted-foreground">
+                        {r.costUsd === null
+                          ? "–"
+                          : `${Math.round(r.tokensIn / 1000)}k / ${Math.round(r.tokensOut / 1000)}k · ~${r.costUsd.toFixed(1)} USD`}
+                      </td>
+                    </Level>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-          <p className="border-t px-4 py-2 text-[11px] text-muted-foreground">{t.caveat}</p>
+          <div className="flex flex-wrap items-center gap-3 border-t px-4 py-2 text-[11px] text-muted-foreground">
+            {["gpt", "nova", "mixed"].map((f) => (
+              <span key={f} className="inline-flex items-center gap-1">
+                <FamilyDot family={f} /> {t.fam[f]}
+              </span>
+            ))}
+            {excluded.length ? (
+              <Level min="engineer">
+                <span>
+                  {t.excluded}:{" "}
+                  {excluded.map((e) => `${e.id} (${t.excludedReason[e.reason]})`).join(", ")}
+                </span>
+              </Level>
+            ) : null}
+          </div>
         </section>
+      </Level>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_1fr]">
+        <Level min="analyst">
+          <section className="rounded-2xl border bg-card shadow-xs" aria-label={t.seatsTitle}>
+            <div className="p-4 pb-2">
+              <h2 className="text-base font-semibold">{t.seatsTitle}</h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">{t.seatsSub}</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[520px] text-sm">
+                <thead className="text-left text-xs text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-2 font-medium">{t.col.institution}</th>
+                    <th className="px-3 py-2 font-medium">{t.col.between}</th>
+                    <th className="px-3 py-2 font-medium">{t.col.within}</th>
+                    <th className="px-3 py-2 font-medium">{t.col.verdict}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...cmp.seats]
+                    .sort((a, b) => (b.betweenFamilies ?? -1) - (a.betweenFamilies ?? -1))
+                    .map((s) => (
+                      <SeatRow key={s.agentId} s={s} lang={lang} t={t} />
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </Level>
 
         <section className="rounded-2xl border bg-card p-4 shadow-xs" aria-label={t.histTitle}>
           <h2 className="text-base font-semibold">{t.histTitle}</h2>

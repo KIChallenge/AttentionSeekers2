@@ -13,6 +13,7 @@ import { L, profileOf, redLinesOf } from "./config.ts";
 import { findPersonNames } from "./guard.ts";
 import { DEFAULT_BASELINE_EUR_BN } from "./impact.ts";
 import { type CallMeta, estimateTokens, type Message, structured } from "./llm.ts";
+import { personaBlock } from "./persona/index.ts";
 import { PHASE_NAMES } from "./phases.ts";
 import { failedGated, gateFeedback } from "./quality/checks.ts";
 import type { Passage } from "./retrieval.ts";
@@ -211,6 +212,8 @@ export function systemPrompt(s: RunState, agentId: string, delegateRole?: string
       : "",
     `Sprachregister: ${p.register}.`,
     `Verhandlungsklima: ${CLIMATE_DE[s.room.climate]}. Druck: Zeit ${s.room.pressures.time}, Budget ${s.room.pressures.budget}, Öffentlichkeit ${s.room.pressures.public}.`,
+    // SV_PERSONA_MODE=dossier: the institution's dossier (empty string in profile mode)
+    personaBlock(agentId),
     "",
     "Regeln:",
     "- Nenne niemals reale Personen (keine Namen, keine Titel mit Namen, keine Zitate von Personen). Nur Institutionen.",

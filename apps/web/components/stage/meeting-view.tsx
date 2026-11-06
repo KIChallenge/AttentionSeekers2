@@ -32,6 +32,7 @@ import {
   AvatarStage,
   type SeatState,
 } from "./avatar/avatar-stage";
+import type { FigureKind } from "./avatar/figure-style";
 import { captionChunks, chunkAt, meetingLayout, type Rect } from "./meeting-logic";
 import { StageFigure } from "./stage-tile";
 import type { StageStrings } from "./strings";
@@ -68,6 +69,7 @@ export function MeetingView({
   lang,
   s,
   use3d,
+  figures = "stylized",
   onFail3d,
   onExit,
   round,
@@ -79,6 +81,7 @@ export function MeetingView({
   lang: "de" | "en";
   s: StageStrings;
   use3d: boolean;
+  figures?: FigureKind;
   onFail3d: (why: string) => void;
   onExit: () => void;
   round: number | null;
@@ -231,6 +234,7 @@ export function MeetingView({
               s={s}
               onFail={onFail3d}
               layout={layout}
+              figures={figures}
               className="absolute inset-0"
             />
           ) : (

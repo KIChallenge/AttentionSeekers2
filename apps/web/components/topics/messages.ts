@@ -72,6 +72,8 @@ const de = {
   stanceSpread: "Endhaltung je Institution und Lauf",
   spread: "Spannweite",
   proposals: "Vorschläge je Lauf",
+  details: "Haltung und Vorschläge je Lauf",
+  noFigure: "ohne Schätzung",
   figures: "Wirkung der angenommenen Maßnahmen",
   noFigures: "keine angenommene Maßnahme mit Wirkungsschätzung",
   verdict: {
@@ -188,6 +190,8 @@ const en: TopicMessages = {
   stanceSpread: "Final stance per institution and run",
   spread: "Range",
   proposals: "Proposals per run",
+  details: "Stance and proposals per run",
+  noFigure: "no estimate",
   figures: "Impact of the accepted measures",
   noFigures: "no accepted measure with an impact estimate",
   verdict: {
