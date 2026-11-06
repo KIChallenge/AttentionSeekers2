@@ -1,0 +1,122 @@
+{
+  "question": "Was ist mit der im April 2023 in Österreich in Begutachtung geschickten Novelle des Gesundheitstelematikgesetzes zum elektronischen Impfpass geschehen? Antworte knapp mit dem, was du über Beschluss, Inhalt und spätere Änderungen weißt. Wenn du es nicht weißt, sag das.",
+  "date": "2026-11-06",
+  "results": [
+    {
+      "alias": "gpt",
+      "sample": 1,
+      "model": "azure/gpt-6-sol",
+      "answer": "Ich weiß nicht verlässlich, ob und in welcher Fassung die im April 2023 begutachtete Novelle beschlossen wurde oder welche späteren Änderungen es gab. Der elektronische Impfpass dient der digitalen Erfassung von Impfungen; die konkreten Bestimmungen dieser Novelle möchte ich ohne Prüfung nicht behaupten.",
+      "hits": [
+        "adopted"
+      ],
+      "level": "adoption_only",
+      "cost": 0.001873
+    },
+    {
+      "alias": "gpt",
+      "sample": 2,
+      "model": "azure/gpt-6-sol",
+      "answer": "Ich weiß nicht verlässlich, ob und in welcher Form die im April 2023 begutachtete Novelle beschlossen wurde oder welche späteren Änderungen es gab. Der Entwurf betraf die gesetzliche Ausgestaltung des elektronischen Impfpasses; zu seinem endgültigen Inhalt möchte ich ohne Prüfung nichts behaupten.",
+      "hits": [
+        "adopted"
+      ],
+      "level": "adoption_only",
+      "cost": 0.002313
+    },
+    {
+      "alias": "gpt",
+      "sample": 3,
+      "model": "azure/gpt-6-sol",
+      "answer": "Soweit ich weiß, wurde der elektronische Impfpass in Österreich gesetzlich verankert: Impfungen werden zentral elektronisch dokumentiert; anders als bei anderen ELGA-Anwendungen ist kein Opt-out vorgesehen. Ob und wann genau die im April 2023 begutachtete Novelle beschlossen wurde und welche Änderungen später daran vorgenommen wurden, weiß ich nicht verlässlich.",
+      "hits": [
+        "adopted"
+      ],
+      "level": "adoption_only",
+      "cost": 0.002233
+    },
+    {
+      "alias": "qwen",
+      "sample": 1,
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "answer": "Ich weiß es nicht.",
+      "hits": [],
+      "level": "none",
+      "cost": 0.000075
+    },
+    {
+      "alias": "qwen",
+      "sample": 2,
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "answer": "Ich weiß es nicht.",
+      "hits": [],
+      "level": "none",
+      "cost": 0.000075
+    },
+    {
+      "alias": "qwen",
+      "sample": 3,
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "answer": "Ich weiß es nicht.",
+      "hits": [],
+      "level": "none",
+      "cost": 0.000075
+    },
+    {
+      "alias": "glm",
+      "sample": 1,
+      "model": "bedrock/zai.glm-5",
+      "answer": "Ich weiß darüber nichts.",
+      "hits": [],
+      "level": "none",
+      "cost": 0.000312
+    },
+    {
+      "alias": "glm",
+      "sample": 2,
+      "model": "bedrock/zai.glm-5",
+      "answer": "Ich habe keine spezifischen Informationen darüber, was genau mit dieser Novelle des österreichischen Gesundheitstelematikgesetzes zum elektronischen Impfpass nach der Begutachtung im April 2023 geschehen ist. Mir liegen keine aktuellen Informationen zu Beschluss, Inhalt oder späteren Änderungen dieser spezifischen Gesetzesnovelle vor.",
+      "hits": [],
+      "level": "none",
+      "cost": 0.000766
+    },
+    {
+      "alias": "glm",
+      "sample": 3,
+      "model": "bedrock/zai.glm-5",
+      "answer": "Ich habe keine aktuellen Informationen darüber, was mit dieser Novelle nach der Begutachtung geschehen ist. Ich weiß nicht, ob und wann sie beschlossen wurde oder welche inhaltlichen Änderungen eventuell vorgenommen wurden.",
+      "hits": [
+        "adopted"
+      ],
+      "level": "adoption_only",
+      "cost": 0.000594
+    },
+    {
+      "alias": "mistral",
+      "sample": 1,
+      "model": "bedrock/mistral.devstral-2-123b",
+      "answer": "Ich weiß es nicht.",
+      "hits": [],
+      "level": "none",
+      "cost": 0.000093
+    },
+    {
+      "alias": "mistral",
+      "sample": 2,
+      "model": "bedrock/mistral.devstral-2-123b",
+      "answer": "Ich weiß nicht, was mit der im April 2023 in Österreich in Begutachtung geschickten Novelle des Gesundheitstelematikgesetzes zum elektronischen Impfpass geschehen ist.",
+      "hits": [],
+      "level": "none",
+      "cost": 0.000167
+    },
+    {
+      "alias": "mistral",
+      "sample": 3,
+      "model": "bedrock/mistral.devstral-2-123b",
+      "answer": "Novelle des Gesundheitstelematikgesetzes April 2023 Österreich",
+      "hits": [],
+      "level": "none",
+      "cost": 0.000115
+    }
+  ]
+}
