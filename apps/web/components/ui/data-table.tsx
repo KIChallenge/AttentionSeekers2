@@ -97,8 +97,11 @@ export function DataTableFacetedFilter<TData, TValue>({
   noResults,
   clearLabel,
   selectedLabel,
+  counts,
 }: {
   column?: Column<TData, TValue>;
+  /** Facet counts per option; defaults to the column's unique values (scalar columns). */
+  counts?: Map<string, number>;
   title: string;
   options: Array<{ value: string; label: string; icon?: ReactNode }>;
   searchPlaceholder?: string;
@@ -107,7 +110,7 @@ export function DataTableFacetedFilter<TData, TValue>({
   selectedLabel: (n: number) => string;
 }) {
   if (!column) return null;
-  const facets = column.getFacetedUniqueValues();
+  const facets = counts ?? column.getFacetedUniqueValues();
   const selected = new Set((column.getFilterValue() as string[] | undefined) ?? []);
   return (
     <Popover>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { laneT } from "@/components/entity/messages";
 import { AgentTile } from "@/components/run/agent-tile";
 import { usePrefs } from "@/components/shell/providers";
@@ -27,12 +27,15 @@ export function ForkButton({
   agents,
   available,
   size = "sm",
+  trigger,
 }: {
   runId: string;
   rounds: number;
   agents: string[];
   available: boolean;
   size?: "sm" | "xs";
+  /** Custom trigger (for example a menu); receives the opener and whether forking is available. */
+  trigger?: (open: () => void, available: boolean) => ReactNode;
 }) {
   const { t: base, lang } = usePrefs();
   const t = laneT(lang);
@@ -43,6 +46,7 @@ export function ForkButton({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  if (!available && trigger) return <>{trigger(() => undefined, false)}</>;
   if (!available)
     return (
       <TooltipProvider delayDuration={150}>
@@ -87,9 +91,13 @@ export function ForkButton({
 
   return (
     <>
-      <Button size={size} variant="ghost" onClick={() => setOpen(true)}>
-        {base.dashboard.fork}
-      </Button>
+      {trigger ? (
+        trigger(() => setOpen(true), true)
+      ) : (
+        <Button size={size} variant="ghost" onClick={() => setOpen(true)}>
+          {base.dashboard.fork}
+        </Button>
+      )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
