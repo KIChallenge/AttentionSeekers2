@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import gc
+import math
 import json
 import os
 import tarfile
@@ -67,12 +68,16 @@ def train_one(role, a, base_dir, s3):
         log(f"[{role}] no training rows, skip")
         return None
     out = WORK / "lora" / role
+    # floor on optimiser steps: small sets otherwise get too few updates (v2 underfit at about 24 steps)
+    per_epoch = math.ceil(len(tr) / (a.batch * a.grad_acc))
+    epochs = max(a.epochs, math.ceil(a.min_steps / per_epoch)) if a.min_steps else a.epochs
+    log(f"[{role}] {len(tr)} rows, {per_epoch} steps/epoch, {epochs} epochs, {per_epoch * epochs} steps")
     t0 = time.time()
     model = AutoModelForCausalLM.from_pretrained(base_dir, torch_dtype=torch.bfloat16, attn_implementation="sdpa")
     lora = LoraConfig(r=a.rank, lora_alpha=2 * a.rank, lora_dropout=a.dropout, task_type="CAUSAL_LM",
                       target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"])
     cfg = SFTConfig(
-        output_dir=str(out / "checkpoints"), num_train_epochs=a.epochs, learning_rate=a.lr,
+        output_dir=str(out / "checkpoints"), num_train_epochs=epochs, learning_rate=a.lr,
         per_device_train_batch_size=a.batch, gradient_accumulation_steps=a.grad_acc, lr_scheduler_type="cosine",
         warmup_ratio=0.05, bf16=True, logging_steps=10, save_strategy="no",
         eval_strategy="epoch" if ev else "no", per_device_eval_batch_size=a.batch, max_length=a.max_len,
@@ -88,7 +93,7 @@ def train_one(role, a, base_dir, s3):
     c = json.loads(cfg_p.read_text())
     c["base_model_name_or_path"] = a.base
     cfg_p.write_text(json.dumps(c, indent=2))
-    meta = {"role": role, "base": a.base, "n_train": len(tr), "n_eval": len(ev), "epochs": a.epochs, "lr": a.lr,
+    meta = {"role": role, "base": a.base, "n_train": len(tr), "n_eval": len(ev), "epochs": epochs, "steps": per_epoch * epochs, "lr": a.lr,
             "rank": a.rank, "alpha": 2 * a.rank, "dropout": a.dropout, "version": a.out_prefix, "max_len": a.max_len, "train_loss": res.training_loss,
             "eval": ev_metrics, "seconds": round(time.time() - t0, 1)}
     (out / "train_meta.json").write_text(json.dumps(meta, indent=1))
@@ -122,6 +127,7 @@ def main():
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--upload-base", type=int, default=1)
     ap.add_argument("--dropout", type=float, default=0.05)
+    ap.add_argument("--min-steps", type=int, default=0, help="raise epochs per adapter until this many steps")
     ap.add_argument("--out-prefix", default="adapters", help="S3 prefix for this adapter set (v1: adapters)")
     a = ap.parse_args()
     import torch
