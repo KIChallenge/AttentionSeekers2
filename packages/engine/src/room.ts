@@ -246,25 +246,21 @@ export async function buildMandate(
       };
     };
     const half = Math.ceil(ids.length / 2);
-    axes = [
-      mk(0, {
-        id: "x",
-        label: L("Steuerung", "Governance"),
-        poles: [
-          L("Selbstverwaltung", "Self-governance"),
-          L("Zentrale Steuerung", "Central steering"),
-        ],
-        topicWeights: Object.fromEntries(ids.slice(0, half).map((id) => [id, 1 / half])),
-      }),
-      mk(1, {
-        id: "y",
-        label: L("Ressourcen", "Resources"),
-        poles: [L("Umschichtung", "Reallocation"), L("Zusätzliche Mittel", "Additional funds")],
-        topicWeights: Object.fromEntries(
-          ids.slice(half).map((id) => [id, 1 / Math.max(1, ids.length - half)]),
-        ),
-      }),
-    ];
+    // without model-proposed axes each axis is named by its own topics, read as for or against
+    const named = (part: typeof topics) => ({
+      de: part.map((t) => t.label.text).join(", "),
+      en: part.map((t) => t.label.translations.en ?? t.label.text).join(", "),
+    });
+    const axis = (id: "x" | "y", part: typeof topics): Axis => {
+      const n = named(part);
+      return {
+        id,
+        label: L(n.de, n.en),
+        poles: [L(`Gegen ${n.de}`, `Against ${n.en}`), L(`Für ${n.de}`, `For ${n.en}`)],
+        topicWeights: Object.fromEntries(part.map((t) => [t.id, 1 / Math.max(1, part.length)])),
+      };
+    };
+    axes = [mk(0, axis("x", topics.slice(0, half))), mk(1, axis("y", topics.slice(half)))];
   }
 
   const tpl = TEMPLATES.find((t) => t.id === room.template);

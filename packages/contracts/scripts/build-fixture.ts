@@ -690,17 +690,20 @@ const run: Run = {
     axes: [
       {
         id: "x",
-        label: L("Steuerung", "Governance"),
+        label: L("Patientensteuerung", "Patient steering"),
         poles: [
-          L("Selbstverwaltung", "Self-governance"),
-          L("Zentrale Steuerung", "Central steering"),
+          L("Gegen Patientensteuerung", "Against patient steering"),
+          L("Für Patientensteuerung", "For patient steering"),
         ],
         topicWeights: { [T.tss]: 0.3, [T.wo4]: 0.3, [T.pve]: 0.4 },
       },
       {
         id: "y",
-        label: L("Ressourcen", "Resources"),
-        poles: [L("Umschichtung", "Reallocation"), L("Zusätzliche Mittel", "Additional funds")],
+        label: L("Kapazitätsausbau", "Capacity expansion"),
+        poles: [
+          L("Gegen Kapazitätsausbau", "Against capacity expansion"),
+          L("Für Kapazitätsausbau", "For capacity expansion"),
+        ],
         topicWeights: { [T.stellen]: 0.4, [T.hon]: 0.4, [T.tele]: 0.2 },
       },
     ],

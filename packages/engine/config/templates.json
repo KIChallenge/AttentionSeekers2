@@ -95,17 +95,17 @@
       {
         "id": "x",
         "label": {
-          "de": "Steuerung",
-          "en": "Governance"
+          "de": "Patientensteuerung",
+          "en": "Patient steering"
         },
         "poles": [
           {
-            "de": "Selbstverwaltung",
-            "en": "Self-governance"
+            "de": "Gegen Patientensteuerung",
+            "en": "Against patient steering"
           },
           {
-            "de": "Zentrale Steuerung",
-            "en": "Central steering"
+            "de": "Für Patientensteuerung",
+            "en": "For patient steering"
           }
         ],
         "topicWeights": {
@@ -117,17 +117,17 @@
       {
         "id": "y",
         "label": {
-          "de": "Ressourcen",
-          "en": "Resources"
+          "de": "Kapazitätsausbau",
+          "en": "Capacity expansion"
         },
         "poles": [
           {
-            "de": "Umschichtung",
-            "en": "Reallocation"
+            "de": "Gegen Kapazitätsausbau",
+            "en": "Against capacity expansion"
           },
           {
-            "de": "Zusätzliche Mittel",
-            "en": "Additional funds"
+            "de": "Für Kapazitätsausbau",
+            "en": "For capacity expansion"
           }
         ],
         "topicWeights": {
