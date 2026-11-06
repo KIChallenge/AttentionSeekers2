@@ -11,6 +11,8 @@ export const SourceKind = z.enum([
   "parliament",
   "ris",
   "audit",
+  /** Added 2026-11-06 (legal basis, FR-P6): one provision of federal law from RIS, segmented by Absatz. */
+  "law",
 ]);
 export type SourceKind = z.infer<typeof SourceKind>;
 
@@ -38,6 +40,34 @@ export const Source = z.object({
   /** Import refuses anything else (CON-1/CON-2 fail-closed). */
   personFiltered: z.literal(true),
   corpusRevision: z.string(),
+  /** Added 2026-11-06 (legal basis, FR-P6): RIS metadata of a "law" source. */
+  law: z
+    .object({
+      lawKey: z.string(),
+      lawTitle: z.string(),
+      provision: z.string(),
+      heading: z.string().nullable(),
+      risId: z.string(),
+      gesetzesnummer: z.string(),
+      /** Inkrafttretensdatum of the stored version. */
+      validFrom: IsoDate,
+      /** Ausserkrafttretensdatum, null while in force. */
+      validTo: IsoDate.nullable(),
+      /** Last amending act, "BGBl. I Nr. 191/2023". */
+      amendedBy: z.string().nullable(),
+      promulgation: z.string(),
+      /** Version history as RIS lists it (as-of rule: versionAsOf in packages/db/src/legal/ris.ts). */
+      versions: z.array(
+        z.object({
+          risId: z.string(),
+          validFrom: IsoDate,
+          validTo: IsoDate.nullable(),
+          amendedBy: z.string().nullable(),
+        }),
+      ),
+      retrievedAt: IsoDate,
+    })
+    .optional(),
 });
 export type Source = z.infer<typeof Source>;
 

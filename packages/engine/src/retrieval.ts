@@ -5,6 +5,7 @@
 // is checked again in fuse(). SV_RETRIEVAL=fulltext switches the vector branch off.
 import type { CitationRef, RetrievalTrace } from "@sv/contracts";
 import { type SQL, sql } from "drizzle-orm";
+import { lawBranchQuery, lawRecencyWeight } from "./legal/retrieval.ts";
 
 export interface Passage {
   /** Short handle shown to the model, e.g. "E3". */
@@ -154,6 +155,8 @@ export function fuse(input: {
   vector?: Row[];
   own?: Row[];
   extra?: Row[];
+  /** Legal basis (kind "law"), its own ranked list (legal/retrieval.ts). */
+  law?: Row[];
   asOf: string;
   role: string;
 }): Scored[] {
@@ -165,12 +168,14 @@ export function fuse(input: {
   const lex = rank(input.lexical);
   const vec = rank(input.vector);
   const ownR = rank(input.own);
+  const lawR = rank(input.law);
   const sim = new Map((input.vector ?? []).map((r) => [r.segment_id, r.similarity ?? null]));
   const all = [
     ...(input.extra ?? []),
     ...input.lexical,
     ...(input.vector ?? []),
     ...(input.own ?? []),
+    ...(input.law ?? []),
   ];
   const seen = new Set<string>();
   return all
@@ -178,13 +183,16 @@ export function fuse(input: {
     .filter((r) => !seen.has(r.segment_id) && Boolean(seen.add(r.segment_id)))
     .map((r) => {
       const date = isoDay(r.date);
-      const w = recencyWeight(date, input.asOf);
+      const w = lawRecencyWeight(r.kind, recencyWeight(date, input.asOf));
       const lr = lex.get(r.segment_id);
       const vr = vec.get(r.segment_id);
       const or = ownR.get(r.segment_id);
+      const ar = lawR.get(r.segment_id);
       const rrf =
-        (lr ? 1 / (RRF_K + lr) : 0) + (vr ? 1 / (RRF_K + vr) : 0) + (or ? 1 / (RRF_K + or) : 0) ||
-        1 / (RRF_K + 30);
+        (lr ? 1 / (RRF_K + lr) : 0) +
+          (vr ? 1 / (RRF_K + vr) : 0) +
+          (or ? 1 / (RRF_K + or) : 0) +
+          (ar ? 1 / (RRF_K + ar) : 0) || 1 / (RRF_K + 30);
       return {
         r,
         date,
@@ -238,6 +246,7 @@ export async function retrieve(opts: {
   let ownRows: Row[] = [];
   let vecRows: Row[] = [];
   let extraRows: Row[] = [];
+  let lawRows: Row[] = [];
   try {
     const store = await import("@sv/db");
     const tsq = terms.join(" OR ");
@@ -290,7 +299,8 @@ export async function retrieve(opts: {
             });
           })
         : Promise.resolve([] as Row[]);
-    const [l, o, v] = await Promise.all([
+    const law = d.execute(lawBranchQuery(tsq, asOf, excludedRevision()));
+    const [l, o, v, a] = await Promise.all([
       lexical,
       own,
       vector.catch((error) => {
@@ -301,9 +311,11 @@ export async function retrieve(opts: {
         );
         return [] as Row[];
       }),
+      law,
     ]);
     lexRows = (l as unknown as { rows: Row[] }).rows;
     ownRows = (o as unknown as { rows: Row[] }).rows;
+    lawRows = (a as unknown as { rows: Row[] }).rows;
     vecRows = v.map((r) => ({ ...r, similarity: Number(r.similarity) }));
     if (opts.includeSegmentIds?.length) {
       // A failed lookup of injected segments must not switch retrieval off for the process.
@@ -331,6 +343,7 @@ export async function retrieve(opts: {
     vector: vecRows,
     own: ownRows,
     extra: extraRows,
+    law: lawRows,
     asOf,
     role,
   }).slice(0, limit * 2);

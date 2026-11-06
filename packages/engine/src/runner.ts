@@ -69,6 +69,7 @@ import {
 import { runExpert } from "./expert.ts";
 import { forecast } from "./forecast.ts";
 import { runImpactFigures } from "./impact.ts";
+import { legalNotesFor } from "./legal/index.ts";
 import { type CallMeta, usage } from "./llm.ts";
 import { exchangeOutcome, summarizeRound } from "./moderator.ts";
 import { PHASE_NAMES, phaseFor, shuffle } from "./phases.ts";
@@ -1272,6 +1273,7 @@ export async function runNegotiation(opts: RunOptions): Promise<RunResult> {
       });
       w.emit({ type: "utterance.trace", trace });
       for (const p of changed) w.emit({ type: "proposal.updated", proposal: p });
+      for (const n of legalNotesFor(s, changed, uttId)) w.emit({ type: "expert.note", ...n });
       for (const p of positions) w.emit({ type: "position.updated", position: p });
       if (lesson && out.lessonApplied.applied && out.lessonApplied.note.trim()) {
         w.emit({

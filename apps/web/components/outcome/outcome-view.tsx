@@ -4,6 +4,7 @@ import { type Forecast, type ImpactFigure, topicStatus } from "@sv/contracts";
 import Link from "next/link";
 import { useState } from "react";
 import { statusLabel } from "@/components/analysis/consensus-matrix";
+import { LegalBadge } from "@/components/legal/legal-badge";
 import { COMPROMISE_T, CompromiseBlock } from "@/components/outcome/compromise";
 import { type EvidenceInfo, ImpactCompare } from "@/components/outcome/impact-compare";
 import { Chip, Empty, Panel, Tile } from "@/components/run/bits";
@@ -64,6 +65,7 @@ function ForecastCard({ f }: { f: Forecast }) {
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-mono text-xs text-muted-foreground">{f.measureId}</span>
           <span className="font-medium">{title}</span>
+          {p ? <LegalBadge proposal={p} lang={lang} /> : null}
         </div>
         {f.status === "ok" && f.k !== null ? (
           <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -335,6 +337,11 @@ export function OutcomeView({
                                       {mid}
                                     </span>{" "}
                                     {p ? L(p.title, lang) : null}
+                                    {p ? (
+                                      <span className="block">
+                                        <LegalBadge proposal={p} lang={lang} />
+                                      </span>
+                                    ) : null}
                                   </span>
                                 </div>
                               </td>
