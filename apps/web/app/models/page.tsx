@@ -400,15 +400,15 @@ export default async function ModelsPage() {
                     </TableHead>
                   </TableRow>
                   <TableRow>
-                    {versions.map(([k], i) => (
+                    {versions.map(([k, v], i) => (
                       <TableHead key={`s-${k}`} className={cn("text-right", i === 0 && "border-l")}>
-                        {k}
+                        {v.label ?? k}
                       </TableHead>
                     ))}
                     <TableHead className="text-right">{t.versions.base}</TableHead>
-                    {versions.map(([k], i) => (
+                    {versions.map(([k, v], i) => (
                       <TableHead key={`i-${k}`} className={cn("text-right", i === 0 && "border-l")}>
-                        {k}
+                        {v.label ?? k}
                       </TableHead>
                     ))}
                     <TableHead className="text-right">{t.versions.base}</TableHead>

@@ -1,0 +1,206 @@
+{
+  "version": "dossier-v1",
+  "cutoff": "2023-01-01",
+  "dossiers": {
+    "chamber_commerce": {
+      "role": "chamber_commerce",
+      "agent": "wk",
+      "n_sn": 140,
+      "n_press": 38,
+      "n_reforms": 5,
+      "topics": [
+        "public_health",
+        "pflege",
+        "arzneimittel",
+        "finanzierung",
+        "krankenanstalten",
+        "digital"
+      ],
+      "dropped_lines": 1,
+      "chars": 9124,
+      "tokens_est": 2534,
+      "sha256": "b592fc0c4e2e09f9"
+    },
+    "chamber_labour": {
+      "role": "chamber_labour",
+      "agent": "abk",
+      "n_sn": 211,
+      "n_press": 56,
+      "n_reforms": 5,
+      "topics": ["pflege", "public_health", "arzneimittel", "finanzierung", "digital", "aerzte"],
+      "dropped_lines": 1,
+      "chars": 8990,
+      "tokens_est": 2497,
+      "sha256": "866f5270fa3b3134"
+    },
+    "contract_physicians": {
+      "role": "contract_physicians",
+      "agent": "va",
+      "n_sn": 24,
+      "n_press": 12,
+      "n_reforms": 2,
+      "topics": ["aerzte", "finanzierung", "pflege", "digital", "krankenanstalten"],
+      "dropped_lines": 2,
+      "chars": 6056,
+      "tokens_est": 1682,
+      "sha256": "9532c16925a5ea4f"
+    },
+    "hospitals": {
+      "role": "hospitals",
+      "agent": "ka",
+      "n_sn": 151,
+      "n_press": 39,
+      "n_reforms": 5,
+      "topics": [
+        "krankenanstalten",
+        "pflege",
+        "arzneimittel",
+        "public_health",
+        "aerzte",
+        "digital"
+      ],
+      "dropped_lines": 6,
+      "chars": 7803,
+      "tokens_est": 2168,
+      "sha256": "6a50d58d79b641a1"
+    },
+    "industry_pharma": {
+      "role": "industry_pharma",
+      "agent": "ind",
+      "n_sn": 0,
+      "n_press": 50,
+      "n_reforms": 0,
+      "topics": ["arzneimittel", "finanzierung", "digital", "aerzte", "public_health"],
+      "dropped_lines": 6,
+      "chars": 3815,
+      "tokens_est": 1060,
+      "sha256": "ea6b499108b24a47"
+    },
+    "laender": {
+      "role": "laender",
+      "agent": "bl",
+      "n_sn": 1381,
+      "n_press": 47,
+      "n_reforms": 5,
+      "topics": [
+        "public_health",
+        "pflege",
+        "aerzte",
+        "krankenanstalten",
+        "digital",
+        "arzneimittel"
+      ],
+      "dropped_lines": 1,
+      "chars": 9333,
+      "tokens_est": 2592,
+      "sha256": "9809e69e8a69624c"
+    },
+    "medical_chamber": {
+      "role": "medical_chamber",
+      "agent": "ak",
+      "n_sn": 139,
+      "n_press": 72,
+      "n_reforms": 5,
+      "topics": [
+        "aerzte",
+        "public_health",
+        "digital",
+        "krankenanstalten",
+        "pflege",
+        "arzneimittel"
+      ],
+      "dropped_lines": 1,
+      "chars": 8879,
+      "tokens_est": 2466,
+      "sha256": "702b1a28fd1bf61d"
+    },
+    "ministry_finance": {
+      "role": "ministry_finance",
+      "agent": "fm",
+      "n_sn": 145,
+      "n_press": 12,
+      "n_reforms": 5,
+      "topics": [
+        "pflege",
+        "finanzierung",
+        "public_health",
+        "sozialversicherung",
+        "aerzte",
+        "arzneimittel"
+      ],
+      "dropped_lines": 4,
+      "chars": 9024,
+      "tokens_est": 2507,
+      "sha256": "98f10e01422fdaf5"
+    },
+    "ministry_health": {
+      "role": "ministry_health",
+      "agent": "gm",
+      "n_sn": 1,
+      "n_press": 24,
+      "n_reforms": 1,
+      "topics": [
+        "finanzierung",
+        "arzneimittel",
+        "krankenanstalten",
+        "public_health",
+        "pflege",
+        "aerzte"
+      ],
+      "dropped_lines": 0,
+      "chars": 6538,
+      "tokens_est": 1816,
+      "sha256": "f31d094677c4c19e"
+    },
+    "nursing": {
+      "role": "nursing",
+      "agent": "pf",
+      "n_sn": 156,
+      "n_press": 19,
+      "n_reforms": 5,
+      "topics": ["pflege", "aerzte", "digital", "public_health", "arzneimittel"],
+      "dropped_lines": 2,
+      "chars": 6751,
+      "tokens_est": 1875,
+      "sha256": "e0ebfa6adb299c0a"
+    },
+    "patients": {
+      "role": "patients",
+      "agent": "pv",
+      "n_sn": 136,
+      "n_press": 47,
+      "n_reforms": 5,
+      "topics": [
+        "public_health",
+        "digital",
+        "aerzte",
+        "pflege",
+        "krankenanstalten",
+        "arzneimittel"
+      ],
+      "dropped_lines": 5,
+      "chars": 7378,
+      "tokens_est": 2049,
+      "sha256": "3f81ade30fa694fe"
+    },
+    "social_insurance": {
+      "role": "social_insurance",
+      "agent": "sv",
+      "n_sn": 247,
+      "n_press": 41,
+      "n_reforms": 5,
+      "topics": [
+        "public_health",
+        "sozialversicherung",
+        "pflege",
+        "aerzte",
+        "arzneimittel",
+        "digital"
+      ],
+      "dropped_lines": 3,
+      "chars": 8327,
+      "tokens_est": 2313,
+      "sha256": "a1297bc0b1ba79b8"
+    }
+  }
+}

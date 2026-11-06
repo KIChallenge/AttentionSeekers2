@@ -362,6 +362,606 @@
     "within1_adapter": 0.7541,
     "within1_baseline": 0.6393
    }
+  },
+  "card-gpt-6-sol": {
+   "version": "card-gpt-6-sol",
+   "run": "dossier-main",
+   "label": "Rollenkarte, gpt-6-sol",
+   "kind": "context_persona",
+   "model": "azure/gpt-6-sol",
+   "prompt": "card",
+   "institutions": {
+    "chamber_commerce": {
+     "n": 30,
+     "adapter": 0.5308,
+     "baseline": 0.5308,
+     "stance_sign_adapter": 0.4667,
+     "stance_sign_baseline": 0.4667,
+     "within1_adapter": 0.5,
+     "within1_baseline": 0.5
+    },
+    "chamber_labour": {
+     "n": 30,
+     "adapter": 0.3592,
+     "baseline": 0.3592,
+     "stance_sign_adapter": 0.4333,
+     "stance_sign_baseline": 0.4333,
+     "within1_adapter": 0.4333,
+     "within1_baseline": 0.4333
+    },
+    "hospitals": {
+     "n": 28,
+     "adapter": 0.1578,
+     "baseline": 0.1578,
+     "stance_sign_adapter": 0.6429,
+     "stance_sign_baseline": 0.6429,
+     "within1_adapter": 0.7143,
+     "within1_baseline": 0.7143
+    },
+    "laender": {
+     "n": 30,
+     "adapter": 0.8641,
+     "baseline": 0.8641,
+     "stance_sign_adapter": 0.5333,
+     "stance_sign_baseline": 0.5333,
+     "within1_adapter": 0.6333,
+     "within1_baseline": 0.6333
+    },
+    "medical_chamber": {
+     "n": 30,
+     "adapter": 0.3081,
+     "baseline": 0.3081,
+     "stance_sign_adapter": 0.7,
+     "stance_sign_baseline": 0.7,
+     "within1_adapter": 0.7333,
+     "within1_baseline": 0.7333
+    },
+    "ministry_finance": {
+     "n": 24,
+     "adapter": 0.8358,
+     "baseline": 0.8358,
+     "stance_sign_adapter": 0.5417,
+     "stance_sign_baseline": 0.5417,
+     "within1_adapter": 0.875,
+     "within1_baseline": 0.875
+    },
+    "nursing": {
+     "n": 30,
+     "adapter": 0.4368,
+     "baseline": 0.4368,
+     "stance_sign_adapter": 0.5667,
+     "stance_sign_baseline": 0.5667,
+     "within1_adapter": 0.6,
+     "within1_baseline": 0.6
+    },
+    "patients": {
+     "n": 12,
+     "adapter": 0.3341,
+     "baseline": 0.3341,
+     "stance_sign_adapter": 0.4167,
+     "stance_sign_baseline": 0.4167,
+     "within1_adapter": 0.4167,
+     "within1_baseline": 0.4167
+    },
+    "social_insurance": {
+     "n": 30,
+     "adapter": 0.7619,
+     "baseline": 0.7619,
+     "stance_sign_adapter": 0.6,
+     "stance_sign_baseline": 0.6,
+     "within1_adapter": 0.6333,
+     "within1_baseline": 0.6333
+    }
+   },
+   "all": {
+    "n": 244,
+    "adapter": 0.5177,
+    "baseline": 0.5177,
+    "stance_sign_adapter": 0.5533,
+    "stance_sign_baseline": 0.5533,
+    "within1_adapter": 0.623,
+    "within1_baseline": 0.623
+   }
+  },
+  "card-deepseek-v3.2": {
+   "version": "card-deepseek-v3.2",
+   "run": "dossier-main",
+   "label": "Rollenkarte, deepseek-v3.2",
+   "kind": "context_persona",
+   "model": "bedrock/deepseek.v3.2",
+   "prompt": "card",
+   "institutions": {
+    "chamber_commerce": {
+     "n": 30,
+     "adapter": 0.7741,
+     "baseline": 0.7741,
+     "stance_sign_adapter": 0.5,
+     "stance_sign_baseline": 0.5,
+     "within1_adapter": 0.5333,
+     "within1_baseline": 0.5333
+    },
+    "chamber_labour": {
+     "n": 30,
+     "adapter": 0.3107,
+     "baseline": 0.3107,
+     "stance_sign_adapter": 0.5667,
+     "stance_sign_baseline": 0.5667,
+     "within1_adapter": 0.5667,
+     "within1_baseline": 0.5667
+    },
+    "hospitals": {
+     "n": 28,
+     "adapter": 0.1386,
+     "baseline": 0.1386,
+     "stance_sign_adapter": 0.5714,
+     "stance_sign_baseline": 0.5714,
+     "within1_adapter": 0.6429,
+     "within1_baseline": 0.6429
+    },
+    "laender": {
+     "n": 30,
+     "adapter": 0.7815,
+     "baseline": 0.7815,
+     "stance_sign_adapter": 0.6,
+     "stance_sign_baseline": 0.6,
+     "within1_adapter": 0.6,
+     "within1_baseline": 0.6
+    },
+    "medical_chamber": {
+     "n": 30,
+     "adapter": 0.3931,
+     "baseline": 0.3931,
+     "stance_sign_adapter": 0.6667,
+     "stance_sign_baseline": 0.6667,
+     "within1_adapter": 0.6667,
+     "within1_baseline": 0.6667
+    },
+    "ministry_finance": {
+     "n": 24,
+     "adapter": 0.7849,
+     "baseline": 0.7849,
+     "stance_sign_adapter": 0.5417,
+     "stance_sign_baseline": 0.5417,
+     "within1_adapter": 0.7917,
+     "within1_baseline": 0.7917
+    },
+    "nursing": {
+     "n": 30,
+     "adapter": 0.4427,
+     "baseline": 0.4427,
+     "stance_sign_adapter": 0.6667,
+     "stance_sign_baseline": 0.6667,
+     "within1_adapter": 0.7,
+     "within1_baseline": 0.7
+    },
+    "patients": {
+     "n": 12,
+     "adapter": 0.5786,
+     "baseline": 0.5786,
+     "stance_sign_adapter": 0.5,
+     "stance_sign_baseline": 0.5,
+     "within1_adapter": 0.5,
+     "within1_baseline": 0.5
+    },
+    "social_insurance": {
+     "n": 30,
+     "adapter": 0.5036,
+     "baseline": 0.5036,
+     "stance_sign_adapter": 0.7667,
+     "stance_sign_baseline": 0.7667,
+     "within1_adapter": 0.8,
+     "within1_baseline": 0.8
+    }
+   },
+   "all": {
+    "n": 244,
+    "adapter": 0.5157,
+    "baseline": 0.5157,
+    "stance_sign_adapter": 0.6066,
+    "stance_sign_baseline": 0.6066,
+    "within1_adapter": 0.6516,
+    "within1_baseline": 0.6516
+   }
+  },
+  "card-qwen3-235b": {
+   "version": "card-qwen3-235b",
+   "run": "dossier-main",
+   "label": "Rollenkarte, qwen3-235b",
+   "kind": "context_persona",
+   "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+   "prompt": "card",
+   "institutions": {
+    "chamber_commerce": {
+     "n": 30,
+     "adapter": 0.5452,
+     "baseline": 0.5452,
+     "stance_sign_adapter": 0.6,
+     "stance_sign_baseline": 0.6,
+     "within1_adapter": 0.6333,
+     "within1_baseline": 0.6333
+    },
+    "chamber_labour": {
+     "n": 30,
+     "adapter": 0.2949,
+     "baseline": 0.2949,
+     "stance_sign_adapter": 0.5667,
+     "stance_sign_baseline": 0.5667,
+     "within1_adapter": 0.5667,
+     "within1_baseline": 0.5667
+    },
+    "hospitals": {
+     "n": 28,
+     "adapter": 0.2155,
+     "baseline": 0.2155,
+     "stance_sign_adapter": 0.6071,
+     "stance_sign_baseline": 0.6071,
+     "within1_adapter": 0.6786,
+     "within1_baseline": 0.6786
+    },
+    "laender": {
+     "n": 30,
+     "adapter": 0.7442,
+     "baseline": 0.7442,
+     "stance_sign_adapter": 0.6,
+     "stance_sign_baseline": 0.6,
+     "within1_adapter": 0.6667,
+     "within1_baseline": 0.6667
+    },
+    "medical_chamber": {
+     "n": 30,
+     "adapter": 0.3376,
+     "baseline": 0.3376,
+     "stance_sign_adapter": 0.6667,
+     "stance_sign_baseline": 0.6667,
+     "within1_adapter": 0.6667,
+     "within1_baseline": 0.6667
+    },
+    "ministry_finance": {
+     "n": 24,
+     "adapter": 0.6887,
+     "baseline": 0.6887,
+     "stance_sign_adapter": 0.5417,
+     "stance_sign_baseline": 0.5417,
+     "within1_adapter": 0.875,
+     "within1_baseline": 0.875
+    },
+    "nursing": {
+     "n": 30,
+     "adapter": 0.5438,
+     "baseline": 0.5438,
+     "stance_sign_adapter": 0.6667,
+     "stance_sign_baseline": 0.6667,
+     "within1_adapter": 0.7,
+     "within1_baseline": 0.7
+    },
+    "patients": {
+     "n": 12,
+     "adapter": 0.4484,
+     "baseline": 0.4484,
+     "stance_sign_adapter": 0.8333,
+     "stance_sign_baseline": 0.8333,
+     "within1_adapter": 0.8333,
+     "within1_baseline": 0.8333
+    },
+    "social_insurance": {
+     "n": 30,
+     "adapter": 0.5106,
+     "baseline": 0.5106,
+     "stance_sign_adapter": 0.5,
+     "stance_sign_baseline": 0.5,
+     "within1_adapter": 0.5333,
+     "within1_baseline": 0.5333
+    }
+   },
+   "all": {
+    "n": 244,
+    "adapter": 0.4805,
+    "baseline": 0.4805,
+    "stance_sign_adapter": 0.6066,
+    "stance_sign_baseline": 0.6066,
+    "within1_adapter": 0.668,
+    "within1_baseline": 0.668
+   }
+  },
+  "dossier-gpt-6-sol": {
+   "version": "dossier-gpt-6-sol",
+   "run": "dossier-main",
+   "label": "Kontext-Persona (Dossier), gpt-6-sol",
+   "kind": "context_persona",
+   "model": "azure/gpt-6-sol",
+   "prompt": "dossier",
+   "institutions": {
+    "chamber_commerce": {
+     "n": 30,
+     "adapter": 0.5531,
+     "baseline": 0.5308,
+     "stance_sign_adapter": 0.5667,
+     "stance_sign_baseline": 0.4667,
+     "within1_adapter": 0.6,
+     "within1_baseline": 0.5
+    },
+    "chamber_labour": {
+     "n": 30,
+     "adapter": 0.3026,
+     "baseline": 0.3592,
+     "stance_sign_adapter": 0.3667,
+     "stance_sign_baseline": 0.4333,
+     "within1_adapter": 0.4,
+     "within1_baseline": 0.4333
+    },
+    "hospitals": {
+     "n": 28,
+     "adapter": 0.2214,
+     "baseline": 0.1578,
+     "stance_sign_adapter": 0.6429,
+     "stance_sign_baseline": 0.6429,
+     "within1_adapter": 0.7143,
+     "within1_baseline": 0.7143
+    },
+    "laender": {
+     "n": 30,
+     "adapter": 0.8215,
+     "baseline": 0.8641,
+     "stance_sign_adapter": 0.6,
+     "stance_sign_baseline": 0.5333,
+     "within1_adapter": 0.7,
+     "within1_baseline": 0.6333
+    },
+    "medical_chamber": {
+     "n": 30,
+     "adapter": 0.3582,
+     "baseline": 0.3081,
+     "stance_sign_adapter": 0.6,
+     "stance_sign_baseline": 0.7,
+     "within1_adapter": 0.6667,
+     "within1_baseline": 0.7333
+    },
+    "ministry_finance": {
+     "n": 24,
+     "adapter": 0.879,
+     "baseline": 0.8358,
+     "stance_sign_adapter": 0.4583,
+     "stance_sign_baseline": 0.5417,
+     "within1_adapter": 0.7917,
+     "within1_baseline": 0.875
+    },
+    "nursing": {
+     "n": 30,
+     "adapter": 0.4465,
+     "baseline": 0.4368,
+     "stance_sign_adapter": 0.6333,
+     "stance_sign_baseline": 0.5667,
+     "within1_adapter": 0.6667,
+     "within1_baseline": 0.6
+    },
+    "patients": {
+     "n": 12,
+     "adapter": 0.2068,
+     "baseline": 0.3341,
+     "stance_sign_adapter": 0.5833,
+     "stance_sign_baseline": 0.4167,
+     "within1_adapter": 0.5833,
+     "within1_baseline": 0.4167
+    },
+    "social_insurance": {
+     "n": 30,
+     "adapter": 0.648,
+     "baseline": 0.7619,
+     "stance_sign_adapter": 0.6667,
+     "stance_sign_baseline": 0.6,
+     "within1_adapter": 0.7,
+     "within1_baseline": 0.6333
+    }
+   },
+   "all": {
+    "n": 244,
+    "adapter": 0.5069,
+    "baseline": 0.5177,
+    "stance_sign_adapter": 0.5697,
+    "stance_sign_baseline": 0.5533,
+    "within1_adapter": 0.6475,
+    "within1_baseline": 0.623
+   }
+  },
+  "dossier-deepseek-v3.2": {
+   "version": "dossier-deepseek-v3.2",
+   "run": "dossier-main",
+   "label": "Kontext-Persona (Dossier), deepseek-v3.2",
+   "kind": "context_persona",
+   "model": "bedrock/deepseek.v3.2",
+   "prompt": "dossier",
+   "institutions": {
+    "chamber_commerce": {
+     "n": 30,
+     "adapter": 0.6479,
+     "baseline": 0.7741,
+     "stance_sign_adapter": 0.5667,
+     "stance_sign_baseline": 0.5,
+     "within1_adapter": 0.6667,
+     "within1_baseline": 0.5333
+    },
+    "chamber_labour": {
+     "n": 30,
+     "adapter": 0.3187,
+     "baseline": 0.3107,
+     "stance_sign_adapter": 0.4333,
+     "stance_sign_baseline": 0.5667,
+     "within1_adapter": 0.4333,
+     "within1_baseline": 0.5667
+    },
+    "hospitals": {
+     "n": 28,
+     "adapter": 0.2883,
+     "baseline": 0.1386,
+     "stance_sign_adapter": 0.6071,
+     "stance_sign_baseline": 0.5714,
+     "within1_adapter": 0.6786,
+     "within1_baseline": 0.6429
+    },
+    "laender": {
+     "n": 30,
+     "adapter": 0.7541,
+     "baseline": 0.7815,
+     "stance_sign_adapter": 0.5667,
+     "stance_sign_baseline": 0.6,
+     "within1_adapter": 0.5667,
+     "within1_baseline": 0.6
+    },
+    "medical_chamber": {
+     "n": 30,
+     "adapter": 0.3599,
+     "baseline": 0.3931,
+     "stance_sign_adapter": 0.7333,
+     "stance_sign_baseline": 0.6667,
+     "within1_adapter": 0.7333,
+     "within1_baseline": 0.6667
+    },
+    "ministry_finance": {
+     "n": 24,
+     "adapter": 0.9266,
+     "baseline": 0.7849,
+     "stance_sign_adapter": 0.4583,
+     "stance_sign_baseline": 0.5417,
+     "within1_adapter": 0.9583,
+     "within1_baseline": 0.7917
+    },
+    "nursing": {
+     "n": 30,
+     "adapter": 0.2838,
+     "baseline": 0.4427,
+     "stance_sign_adapter": 0.4667,
+     "stance_sign_baseline": 0.6667,
+     "within1_adapter": 0.5,
+     "within1_baseline": 0.7
+    },
+    "patients": {
+     "n": 12,
+     "adapter": 0.2977,
+     "baseline": 0.5786,
+     "stance_sign_adapter": 0.4167,
+     "stance_sign_baseline": 0.5,
+     "within1_adapter": 0.4167,
+     "within1_baseline": 0.5
+    },
+    "social_insurance": {
+     "n": 30,
+     "adapter": 0.4343,
+     "baseline": 0.5036,
+     "stance_sign_adapter": 0.7,
+     "stance_sign_baseline": 0.7667,
+     "within1_adapter": 0.7333,
+     "within1_baseline": 0.8
+    }
+   },
+   "all": {
+    "n": 244,
+    "adapter": 0.483,
+    "baseline": 0.5157,
+    "stance_sign_adapter": 0.5615,
+    "stance_sign_baseline": 0.6066,
+    "within1_adapter": 0.6393,
+    "within1_baseline": 0.6516
+   }
+  },
+  "dossier-qwen3-235b": {
+   "version": "dossier-qwen3-235b",
+   "run": "dossier-main",
+   "label": "Kontext-Persona (Dossier), qwen3-235b",
+   "kind": "context_persona",
+   "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+   "prompt": "dossier",
+   "institutions": {
+    "chamber_commerce": {
+     "n": 30,
+     "adapter": 0.7379,
+     "baseline": 0.5452,
+     "stance_sign_adapter": 0.6667,
+     "stance_sign_baseline": 0.6,
+     "within1_adapter": 0.7667,
+     "within1_baseline": 0.6333
+    },
+    "chamber_labour": {
+     "n": 30,
+     "adapter": 0.3817,
+     "baseline": 0.2949,
+     "stance_sign_adapter": 0.7,
+     "stance_sign_baseline": 0.5667,
+     "within1_adapter": 0.7,
+     "within1_baseline": 0.5667
+    },
+    "hospitals": {
+     "n": 28,
+     "adapter": 0.3167,
+     "baseline": 0.2155,
+     "stance_sign_adapter": 0.7857,
+     "stance_sign_baseline": 0.6071,
+     "within1_adapter": 0.8571,
+     "within1_baseline": 0.6786
+    },
+    "laender": {
+     "n": 30,
+     "adapter": 0.8354,
+     "baseline": 0.7442,
+     "stance_sign_adapter": 0.5667,
+     "stance_sign_baseline": 0.6,
+     "within1_adapter": 0.6333,
+     "within1_baseline": 0.6667
+    },
+    "medical_chamber": {
+     "n": 30,
+     "adapter": 0.5183,
+     "baseline": 0.3376,
+     "stance_sign_adapter": 0.6667,
+     "stance_sign_baseline": 0.6667,
+     "within1_adapter": 0.7,
+     "within1_baseline": 0.6667
+    },
+    "ministry_finance": {
+     "n": 24,
+     "adapter": 0.8074,
+     "baseline": 0.6887,
+     "stance_sign_adapter": 0.5833,
+     "stance_sign_baseline": 0.5417,
+     "within1_adapter": 0.875,
+     "within1_baseline": 0.875
+    },
+    "nursing": {
+     "n": 30,
+     "adapter": 0.4663,
+     "baseline": 0.5438,
+     "stance_sign_adapter": 0.6333,
+     "stance_sign_baseline": 0.6667,
+     "within1_adapter": 0.6667,
+     "within1_baseline": 0.7
+    },
+    "patients": {
+     "n": 12,
+     "adapter": 0.4223,
+     "baseline": 0.4484,
+     "stance_sign_adapter": 0.5833,
+     "stance_sign_baseline": 0.8333,
+     "within1_adapter": 0.5833,
+     "within1_baseline": 0.8333
+    },
+    "social_insurance": {
+     "n": 30,
+     "adapter": 0.6016,
+     "baseline": 0.5106,
+     "stance_sign_adapter": 0.5667,
+     "stance_sign_baseline": 0.5,
+     "within1_adapter": 0.6,
+     "within1_baseline": 0.5333
+    }
+   },
+   "all": {
+    "n": 244,
+    "adapter": 0.5719,
+    "baseline": 0.4805,
+    "stance_sign_adapter": 0.6434,
+    "stance_sign_baseline": 0.6066,
+    "within1_adapter": 0.7131,
+    "within1_baseline": 0.668
+   }
   }
  }
 }

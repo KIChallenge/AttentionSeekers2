@@ -243,6 +243,22 @@ Download the adapters first if they should outlive the bucket:
 `models/hf/fetch_adapters.sh` downloads the adapters, `models/hf/publish.py` writes the cards and uploads
 to private repos only with `--execute`.
 
+### Kontext-Persona (dossier, no fine-tuning; branch `feat/persona-dossier`)
+
+- **Build** (`scripts/build_dossiers.py`): one dossier per institution in `packages/engine/config/dossiers/<role>.md`
+  (12 institutions, 1,000 to 2,600 tokens), only from material dated before 2023-01-01: engine profile and red lines,
+  judge-labelled Stellungnahme paragraphs (`data/v2`), press positions, forecasting episodes. Evidence lines are
+  paraphrased by one gpt-6-sol call per institution (cached in `out/dossier_cache/`), carry source ids, and every
+  dossier passes `pii_guard` (fail closed); the engine test suite re-checks them with the TS guard.
+- **Eval** (`scripts/eval_dossier.py run|report`): same 244 held-out rows, judge and scorer as the adapter eval; arms
+  role card vs role card + dossier on gpt-6-sol, deepseek-v3.2 and qwen3-235b. `report` adds `context_persona`
+  entries to the `versions` block of `out/persona_fidelity.json` and writes `out/eval_dossier.md`.
+  Result (run `dossier-main`, about 17.8 USD): dossier + qwen3-235b wins overall (in-character 0.57, sign 0.64,
+  within one step 0.71 vs adapter v1 0.39 / 0.44 / 0.69 and sv-base 0.46 / 0.55 / 0.63); for gpt-6-sol the dossier
+  is a wash against the role card, for deepseek it is slightly worse.
+- **Engine**: `SV_PERSONA_MODE=dossier|profile` (default `dossier`), module `packages/engine/src/persona/`; the agent
+  card shows mode, dossier version and hash at engineer level.
+
 ### Azure Foundry fine-tuning (blocked server-side, see status below)
 
 Credentials come from the repo `.env` (`BIFROST_SEED_AZURE_ENDPOINT` = v1 base URL, `BIFROST_SEED_AZURE_KEY`,
