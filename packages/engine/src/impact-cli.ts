@@ -1,6 +1,6 @@
 // Recomputes the impact figures of recorded runs without re-running the debate.
 // Folds runs/<id>.ndjson, picks the same measures as the runner (accepted proposals, else the
-// most accepted open one) and writes runs/<id>.impact.json. The NDJSON files stay untouched;
+// proposals of a carried compromise package, else the most accepted open one) and writes runs/<id>.impact.json. The NDJSON files stay untouched;
 // the outcome page prefers the sidecar when it exists.
 //   node --no-warnings packages/engine/src/impact-cli.ts [runId ...]
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -13,6 +13,13 @@ export function measuresOf(snap: RunSnapshot): Proposal[] {
   const all = Object.values(snap.proposals);
   const accepted = all.filter((p) => p.status === "accepted");
   if (accepted.length) return accepted;
+  // A compromise package that carried in the ratification round stands for its proposals.
+  if (snap.compromiseResult?.passes) {
+    const carried = (snap.compromise?.basedOn ?? [])
+      .map((id) => snap.proposals[id])
+      .filter((p): p is Proposal => Boolean(p));
+    if (carried.length) return carried;
+  }
   return all
     .filter((p) => p.status !== "withdrawn")
     .sort((a, b) => b.acceptance - a.acceptance)
