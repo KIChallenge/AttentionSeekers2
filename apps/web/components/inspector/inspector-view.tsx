@@ -72,7 +72,6 @@ export function InspectorView({
             {t.inspector.title}{" "}
             <span className="font-mono text-base text-muted-foreground">{u.id}</span>
           </h1>
-          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{t.inspector.sub}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex rounded-control border p-0.5 text-xs">

@@ -271,7 +271,6 @@ export function TrajectoryChart() {
           ) : null}
         </p>
       ) : null}
-      <p className="mt-1 text-xs text-muted-foreground">{t.analysis.trajectorySub}</p>
     </div>
   );
 }
