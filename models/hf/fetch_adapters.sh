@@ -14,6 +14,7 @@ set -euo pipefail
 REGION="${SV_AWS_REGION:-eu-north-1}"
 PROJECT="sv-ki-challenge"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PREFIX="${SV_ADAPTER_PREFIX:-adapters}"   # adapters-v2 for the v2 set (then pass out/lora-sagemaker-v2)
 OUT="${1:-$HERE/../out/lora-sagemaker}"
 ROLES=(laender social_insurance chamber_labour nursing hospitals ministry_finance chamber_commerce medical_chamber patients)
 
@@ -26,7 +27,7 @@ mkdir -p "$OUT"
 echo "bucket=$BUCKET out=$OUT"
 
 for role in "${ROLES[@]}"; do
-  aws s3 sync --region "$REGION" "s3://$BUCKET/adapters/$role/" "$OUT/$role/" \
+  aws s3 sync --region "$REGION" "s3://$BUCKET/$PREFIX/$role/" "$OUT/$role/" \
     --exclude "*" --include "adapter_config.json" --include "adapter_model.safetensors"
   for f in adapter_config.json adapter_model.safetensors; do
     [ -s "$OUT/$role/$f" ] || { echo "missing $role/$f" >&2; exit 1; }

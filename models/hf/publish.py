@@ -3,6 +3,8 @@
   python -I models/hf/publish.py                      # dry run (default): write cards, print the plan
   python -I models/hf/publish.py --execute            # create private repos and upload adapters
   python -I models/hf/publish.py --roles nursing,hospitals --hf-user Aryt3
+  python -I models/hf/publish.py --version v2          # v2 set: repos ...-qwen3-8b-lora-v2, numbers from
+                                                       # persona_fidelity.json "versions"/"v2" and eval_v2.md
 
 Inputs: adapter folders from fetch_adapters.sh (default models/out/lora-sagemaker/<role>/, each with
 adapter_config.json + adapter_model.safetensors), the eval numbers in models/out/eval_sagemaker.md and
@@ -44,8 +46,8 @@ BASE = "Qwen/Qwen3-8B"
 TIE = 0.05
 
 
-def repo_name(user: str, role: str) -> str:
-    return f"{user}/sv-persona-{role}-qwen3-8b-lora"
+def repo_name(user: str, role: str, version: str = "v1") -> str:
+    return f"{user}/sv-persona-{role}-qwen3-8b-lora" + ("" if version == "v1" else f"-{version}")
 
 
 def read_env_token() -> str | None:
@@ -106,12 +108,64 @@ def load_eval() -> dict:
             "run": run.group(1) if run else "?", "fid_all": fid["all"]}
 
 
+def load_eval_v2() -> dict:
+    """Same shape as load_eval(), from the versions block written by models/aws/eval_v2_report.py."""
+    fid = json.loads((MODELS / "out" / "persona_fidelity.json").read_text())
+    v = (fid.get("versions") or {}).get("v2")
+    if not v:
+        sys.exit("persona_fidelity.json has no versions.v2 block; run models/aws/eval_v2_report.py first")
+    md = (MODELS / "out" / "eval_v2.md").read_text()
+    stats_p = MODELS / "data" / "v2" / "stats.json"
+    stats = json.loads(stats_p.read_text()) if stats_p.exists() else {}
+
+    def row(x):
+        return {"in-char adapter": x["adapter"], "in-char baseline": x["baseline"], "n": x["n"],
+                "sign adapter": x["stance_sign_adapter"], "sign baseline": x["stance_sign_baseline"],
+                "within1 adapter": x["within1_adapter"], "within1 baseline": x["within1_baseline"]}
+    per = {r: row(x) for r, x in v["institutions"].items()}
+    for r in per:
+        per[r]["n train"] = stats.get(r, {}).get("n_train")
+    loops = re.search(r"`v2` \(fixed proxy\): (\d+) of (\d+) raw adapter outputs loop", md)
+    return {"per": per, "all": row(v["all"]), "loops": loops.groups() if loops else ("?", "?"), "run": v["run"],
+            "fid_all": {"n": v["all"]["n"], "adapter": v["all"]["adapter"], "baseline": v["all"]["baseline"]}}
+
+
 def f2(x) -> str:
     return "n/a" if x is None else f"{x:.2f}"
 
 
-def card(role: str, ev: dict) -> str:
+def card(role: str, ev: dict, version: str = "v1") -> str:
     r = ev["per"].get(role, {})
+    name = f"sv-persona-{role}-qwen3-8b-lora" + ("" if version == "v1" else f"-{version}")
+    win_ic = [k for k, x in sorted(ev["per"].items())
+              if (x.get("in-char adapter") or 0) > (x.get("in-char baseline") or 0)]
+    win_sg = [k for k, x in sorted(ev["per"].items())
+              if (x.get("sign adapter") or 0) > (x.get("sign baseline") or 0)]
+    behind = ((ev["fid_all"]["adapter"] or 0) < (ev["fid_all"]["baseline"] or 0)
+              and (ev["all"].get("sign adapter") or 0) < (ev["all"].get("sign baseline") or 0))
+    overall = ("**Overall the adapters underperform the prompted base model**" if behind
+               else "Overall the adapters are mixed against the prompted base model")
+    if version == "v1":
+        recipe = """- Data: {nt} SFT rows (train), {nh} held-out rows. System = institution
+  role card, user = draft-law context (title, citation, date, referenced provisions), assistant = the
+  institution's documented position paragraph. Loss on the assistant paragraph only.
+- Out-of-time split: train on statements before 2023-01-01, evaluate after.
+- LoRA rank 16, alpha 32, all attention and MLP projections, 3 epochs, lr 1e-4 cosine, batch 4 x
+  grad-acc 4, max length 2048, bf16, Qwen3 non-thinking chat template. One SageMaker training job
+  (ml.g6e.xlarge) for all nine adapters."""
+        loop_note = "repeat a sentence at temperature 0.3.\n  Use a repetition penalty or a lower max length."
+    else:
+        recipe = """- Data: {nt} SFT rows (train): the v1 Stellungnahme rows plus person-free press-derived
+  institution-voice rows (train split, before 2023-01-01), deduplicated. Each target starts with a
+  stance label from an LLM judge ("Haltung: ablehnend. ..."), so the adapter states its direction
+  first; strip that prefix before showing the text. Loss on the assistant turn only.
+- Out-of-time split: train on statements before 2023-01-01, evaluate after (same held-out rows as v1).
+- LoRA rank 16, alpha 32, dropout 0.05, all attention and MLP projections, 2 epochs, lr 7e-5 cosine,
+  batch 4 x grad-acc 4, max length 2048, bf16, Qwen3 non-thinking chat template. One SageMaker job."""
+        loop_note = ("loop in the raw generation even with\n  repetition_penalty 1.1, frequency_penalty 0.3 "
+                     "and a stop after one paragraph; the serving proxy cuts at the first repeated sentence.")
+    recipe = recipe.format(nt=int(r["n train"]) if r.get("n train") else "n/a",
+                           nh=int(r["n held-out"]) if r.get("n held-out") else int(r["n"]) if r.get("n") else "n/a")
     a, b = r.get("in-char adapter"), r.get("in-char baseline")
     verdict = "n/a" if a is None or b is None else ("tie" if abs(a - b) < TIE else ("better" if a > b else "worse"))
     al = ev["all"]
@@ -134,7 +188,7 @@ tags:
 - health-policy
 ---
 
-# sv-persona-{role}-qwen3-8b-lora
+# {name}
 
 LoRA adapter on `{BASE}` that writes a one-paragraph position in the register of the Austrian
 institution role `{role}` in a Begutachtung (draft-law consultation) setting. Built for a hackathon
@@ -160,20 +214,14 @@ Verdict on in-character score (tie below {TIE} difference): **{verdict}**.
 
 Across all nine adapters (micro, n {ev['fid_all']['n']}): in-character {f2(ev['fid_all']['adapter'])} adapter vs
 {f2(ev['fid_all']['baseline'])} base, stance direction {f2(al.get('sign adapter'))} vs {f2(al.get('sign baseline'))},
-within one step {f2(al.get('within1 adapter'))} vs {f2(al.get('within1 baseline'))}. **Overall the adapters
-underperform the prompted base model**; they beat it on the in-character score only for nursing,
-chamber_labour and hospitals. The simulator therefore uses frontier models with fitted stance profiles
-by default.
+within one step {f2(al.get('within1 adapter'))} vs {f2(al.get('within1 baseline'))}. {overall}; they beat it on the
+in-character score for {', '.join(win_ic) or 'no institution'} and on stance direction for
+{', '.join(win_sg) or 'no institution'}. The simulator therefore uses frontier models with fitted stance
+profiles by default.
 
 ## Training
 
-- Data: {int(r['n train']) if r.get('n train') else 'n/a'} SFT rows (train), {int(r['n held-out']) if r.get('n held-out') else 'n/a'} held-out rows. System = institution
-  role card, user = draft-law context (title, citation, date, referenced provisions), assistant = the
-  institution's documented position paragraph. Loss on the assistant paragraph only.
-- Out-of-time split: train on statements before 2023-01-01, evaluate after.
-- LoRA rank 16, alpha 32, all attention and MLP projections, 3 epochs, lr 1e-4 cosine, batch 4 x
-  grad-acc 4, max length 2048, bf16, Qwen3 non-thinking chat template. One SageMaker training job
-  (ml.g6e.xlarge) for all nine adapters.
+{recipe}
 - Train loss {f2(r.get('train loss'))}, eval loss {f2(r.get('eval loss'))}.
 
 ## Masking procedure
@@ -194,8 +242,7 @@ anywhere else; the text of the statements belongs to the institutions.
 
 ## Limitations
 
-- **Loops:** {n_loop} of {n_all} adapter outputs in the held-out eval repeat a sentence at temperature 0.3.
-  Use a repetition penalty or a lower max length.
+- **Loops:** {n_loop} of {n_all} adapter outputs in the held-out eval {loop_note}
 - Underperforms the prompted base overall on register and stance direction (see above).
 - Reflects 2007 to 2022 statements; positions drift. Statements are opening positions and mostly
   critical by genre, so the adapter can over-produce opposition.
@@ -236,33 +283,37 @@ licence. Copyright for the base model remains with its authors. No training data
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--adapters", type=Path, default=MODELS / "out" / "lora-sagemaker")
-    ap.add_argument("--staging", type=Path, default=MODELS / "out" / "hf")
+    ap.add_argument("--version", default="v1", choices=["v1", "v2"])
+    ap.add_argument("--adapters", type=Path, help="default out/lora-sagemaker (v1) or out/lora-sagemaker-v2")
+    ap.add_argument("--staging", type=Path, help="default out/hf (v1) or out/hf-v2")
     ap.add_argument("--roles", default=",".join(ROLES_WITH_ADAPTER))
     ap.add_argument("--hf-user", default=os.environ.get("HF_USER", "Aryt3"))
     mode = ap.add_mutually_exclusive_group()
     mode.add_argument("--dry-run", action="store_true", default=True, help="default: write cards, upload nothing")
     mode.add_argument("--execute", action="store_true", help="create PRIVATE repos and upload")
     a = ap.parse_args()
+    sfx = "" if a.version == "v1" else f"-{a.version}"
+    a.adapters = a.adapters or MODELS / "out" / f"lora-sagemaker{sfx}"
+    a.staging = a.staging or MODELS / "out" / f"hf{sfx}"
 
     roles = [r.strip() for r in a.roles.split(",") if r.strip()]
     unknown = [r for r in roles if r not in ROLES_WITH_ADAPTER]
     if unknown:
         sys.exit(f"no adapter for roles: {unknown}")
-    ev = load_eval()
+    ev = load_eval() if a.version == "v1" else load_eval_v2()
 
     plan, missing = [], []
     for role in roles:
         src, dst = a.adapters / role, a.staging / role
         dst.mkdir(parents=True, exist_ok=True)
-        (dst / "README.md").write_text(card(role, ev))
+        (dst / "README.md").write_text(card(role, ev, a.version))
         (dst / "LICENSE-NOTICE.md").write_text(NOTICE)
         have = [f for f in ADAPTER_FILES if (src / f).is_file()]
         for f in have:
             shutil.copy2(src / f, dst / f)
         if len(have) < len(ADAPTER_FILES):
             missing.append(role)
-        plan.append((role, repo_name(a.hf_user, role), have))
+        plan.append((role, repo_name(a.hf_user, role, a.version), have))
 
     # Fail closed: nothing outside the allowlist may sit in a staging folder that gets uploaded.
     for role, _, _ in plan:
@@ -311,7 +362,7 @@ def main():
             sys.exit(f"{repo} is not private after create, stopping before upload")
         api.upload_folder(repo_id=repo, repo_type="model", folder_path=str(a.staging / role),
                           allow_patterns=UPLOAD_ALLOW,
-                          commit_message=f"sv persona adapter {role} (Qwen3-8B LoRA r16), model card")
+                          commit_message=f"sv persona adapter {role} {a.version} (Qwen3-8B LoRA r16), model card")
         print(f"uploaded {repo} (private)")
 
 
