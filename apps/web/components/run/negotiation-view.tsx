@@ -541,6 +541,7 @@ export function NegotiationView({
               }}
               collapsible
               defaultOpen={false}
+              focusRound={viewRound}
               className="shadow-none"
             />
           </div>
