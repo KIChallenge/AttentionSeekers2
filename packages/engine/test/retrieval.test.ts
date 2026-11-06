@@ -1,7 +1,15 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
+import { PgDialect } from "drizzle-orm/pg-core";
 import { describe, expect, it } from "vitest";
-import { fuse, queryTerms, type Row, retrievalMode, retrieve } from "../src/retrieval.ts";
+import {
+  fuse,
+  includeSegmentsQuery,
+  queryTerms,
+  type Row,
+  retrievalMode,
+  retrieve,
+} from "../src/retrieval.ts";
 
 // Invented rows; ids and texts are placeholders, not corpus content.
 function row(id: string, date: string, text: string, role = "other", similarity?: number): Row {
@@ -95,13 +103,36 @@ describe("hybrid retrieval fusion", () => {
   });
 });
 
+describe("includeSegmentIds lookup", () => {
+  it("binds the id list as one text[] parameter behind the as-of predicate", () => {
+    const ids = ["a#1", "b#2", "c#3"];
+    const q = new PgDialect().sqlToQuery(includeSegmentsQuery(ids, "2024-06-30"));
+    expect(q.sql).toMatch(/any\(\$1::text\[\]\)/);
+    expect(q.sql).toMatch(/src\.date <= \$2::date/);
+    expect(q.params).toEqual([ids, "2024-06-30"]);
+  });
+
+  it("keeps a single id an array, never a scalar", () => {
+    const q = new PgDialect().sqlToQuery(includeSegmentsQuery(["only#1"], "2024-06-30"));
+    expect(q.params[0]).toEqual(["only#1"]);
+  });
+});
+
 // Live check against the shared database: SV_RETRIEVAL_IT=1 pnpm --filter @sv/engine test
 const rootEnv = path.resolve(import.meta.dirname, "../../../.env");
 describe.skipIf(process.env.SV_RETRIEVAL_IT !== "1")("hybrid retrieval (live database)", () => {
   if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 
   it("returns no passage dated after asOf, with the vector branch active", async () => {
-    const asOf = "2019-12-31";
+    const asOf = "2023-12-31";
+    // Warm the query vector patiently; a throttled call would test the fallback instead.
+    const { embedQuery } = await import("@sv/db");
+    expect(
+      await embedQuery("Wartezeiten auf Termine bei Fachärztinnen und Fachärzten verkürzen", {
+        retries: 12,
+        timeoutMs: 30_000,
+      }),
+    ).not.toBeNull();
     const r = await retrieve({
       query: "Wartezeiten auf Termine bei Fachärztinnen und Fachärzten verkürzen",
       role: "social_insurance",
@@ -112,5 +143,24 @@ describe.skipIf(process.env.SV_RETRIEVAL_IT !== "1")("hybrid retrieval (live dat
     expect(r.passages.length).toBeGreaterThan(0);
     expect(r.passages.every((p) => p.date <= asOf)).toBe(true);
     expect(r.trace.candidates.some((c) => c.vectorRank !== null)).toBe(true);
+  }, 30_000);
+
+  it("injects included segments and keeps retrieving afterwards", async () => {
+    const asOf = "2026-11-06";
+    const base = await retrieve({ query: "Primärversorgung", role: "x", asOf, mode: "fulltext" });
+    const ids = base.passages.slice(0, 2).map((p) => p.segmentId);
+    expect(ids.length).toBe(2);
+    const r = await retrieve({
+      query: "Pflegeassistenz Ausbildung",
+      role: "x",
+      asOf,
+      mode: "fulltext",
+      includeSegmentIds: [...ids, "does-not-exist#0"],
+      use: 10,
+    });
+    const got = new Set(r.trace.candidates.map((c) => c.segmentId));
+    for (const id of ids) expect(got.has(id)).toBe(true);
+    const again = await retrieve({ query: "Telemedizin", role: "x", asOf, mode: "fulltext" });
+    expect(again.passages.length).toBeGreaterThan(0);
   }, 30_000);
 });

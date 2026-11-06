@@ -4,6 +4,7 @@
 // eligibility predicate (date <= asOf) sits inside every SQL branch, before ranking, and
 // is checked again in fuse(). SV_RETRIEVAL=fulltext switches the vector branch off.
 import type { CitationRef, RetrievalTrace } from "@sv/contracts";
+import { type SQL, sql } from "drizzle-orm";
 
 export interface Passage {
   /** Short handle shown to the model, e.g. "E3". */
@@ -199,6 +200,20 @@ export function fuse(input: {
 }
 
 /**
+ * Segments injected by a fork edit (includeSegmentIds), still behind the as-of predicate.
+ * The id list is bound as ONE text[] parameter: interpolating a JS array directly makes
+ * drizzle expand it into a row literal, which Postgres rejects inside any().
+ */
+export function includeSegmentsQuery(ids: string[], asOf: string): SQL {
+  return sql`
+    select s.id as segment_id, s.source_id, s.text, src.date::text as date, src.institution_code,
+           src.institution_role, src.kind, src.title, src.outlet, src.corpus_revision, 0.5 as rank
+    from segments s join sources src on src.id = s.source_id
+    where s.id = any(${sql.param(ids)}::text[]) and src.date <= ${asOf}::date
+      and src.person_filtered = true`;
+}
+
+/**
  * Retrieves passages for one agent. Own-institution passages enter as their own ranked
  * list, every score is multiplied by the recency weight. Returns used passages (top
  * `use`) and the full candidate trace, including discarded ones with a reason.
@@ -224,7 +239,6 @@ export async function retrieve(opts: {
   let vecRows: Row[] = [];
   let extraRows: Row[] = [];
   try {
-    const { sql } = await import("drizzle-orm");
     const store = await import("@sv/db");
     const tsq = terms.join(" OR ");
     // Bounded queries so the plan stays cheap on a large corpus: lexical top hits via the
@@ -292,12 +306,16 @@ export async function retrieve(opts: {
     ownRows = (o as unknown as { rows: Row[] }).rows;
     vecRows = v.map((r) => ({ ...r, similarity: Number(r.similarity) }));
     if (opts.includeSegmentIds?.length) {
-      const extra = await d.execute(sql`
-        select s.id as segment_id, s.source_id, s.text, src.date::text as date, src.institution_code,
-               src.institution_role, src.kind, src.title, src.outlet, src.corpus_revision, 0.5 as rank
-        from segments s join sources src on src.id = s.source_id
-        where s.id = any(${sql.param(opts.includeSegmentIds)}::text[]) and src.date <= ${asOf}::date`);
-      extraRows = (extra as unknown as { rows: Row[] }).rows;
+      // A failed lookup of injected segments must not switch retrieval off for the process.
+      try {
+        const extra = await d.execute(includeSegmentsQuery(opts.includeSegmentIds, asOf));
+        extraRows = (extra as unknown as { rows: Row[] }).rows;
+      } catch (error) {
+        console.warn(
+          "include_segments_failed",
+          error instanceof Error ? error.message.slice(0, 200) : error,
+        );
+      }
     }
   } catch (error) {
     console.warn("retrieval_failed", error instanceof Error ? error.message.slice(0, 200) : error);
