@@ -429,6 +429,14 @@ export function NegotiationView({
     );
   };
 
+  // a moment from "ask the debate": its round stays shown while the transcript scrolls there
+  const jumpToHit = (id: string) => {
+    followPaused.current = true;
+    const u = snap.utterances[id];
+    if (u) setViewRound(u.round);
+    jump(id);
+  };
+
   const select = (id: string) => {
     setSelected(id);
     if (overlay) setSheetOpen(true);
@@ -565,7 +573,7 @@ export function NegotiationView({
                   run={run}
                   snap={snap}
                   onHits={setHits}
-                  onJump={jump}
+                  onJump={jumpToHit}
                 />
               }
               className="shadow-none"
