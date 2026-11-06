@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { CommandPalette } from "@/components/entity/command-palette";
+import { overviewT } from "@/components/overview/messages";
 import { OverviewSection } from "@/components/overview/overview";
 import { scenarioT } from "@/components/scenarios/messages";
 import { ScenarioGrid } from "@/components/scenarios/scenario-grid";
-import { Page, PageHead } from "@/components/shell/page";
+import { Page, PageHead, Section } from "@/components/shell/page";
 import { Button } from "@/components/ui/button";
 import { loadOverview } from "@/lib/overview-data";
 import { loadScenarioCards } from "@/lib/scenario-runs";
@@ -12,9 +13,8 @@ import { loadAll } from "@/lib/topic-runs";
 
 export const dynamic = "force-dynamic";
 
-// Home: one card per scenario (question setting); the runs live on the scenario page. Below
-// the scenarios, the overview reads the data base, the persona models, the forecasting
-// record and the run totals at request time.
+// Home: the overview first (data base, persona models, forecasting record and run totals,
+// read at request time), then one card per scenario; the runs live on the scenario page.
 export default async function HomePage() {
   const { t, lang } = await serverPrefs();
   const loaded = await loadAll();
@@ -27,7 +27,7 @@ export default async function HomePage() {
   return (
     <Page width="wide">
       <PageHead
-        title={scenarioT(lang).title}
+        title={overviewT(lang).title}
         actions={
           <>
             <CommandPalette />
@@ -37,8 +37,10 @@ export default async function HomePage() {
           </>
         }
       />
-      <ScenarioGrid cards={cards} />
-      <OverviewSection data={overview} lang={lang} />
+      <OverviewSection data={overview} lang={lang} showTitle={false} />
+      <Section variant="plain" title={scenarioT(lang).title}>
+        <ScenarioGrid cards={cards} />
+      </Section>
     </Page>
   );
 }

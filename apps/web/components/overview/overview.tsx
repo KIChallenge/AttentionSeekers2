@@ -91,10 +91,19 @@ function LinkButton({
   );
 }
 
-export function OverviewSection({ data, lang }: { data: Overview; lang: Lang }) {
+export function OverviewSection({
+  data,
+  lang,
+  showTitle = true,
+}: {
+  data: Overview;
+  lang: Lang;
+  /** Off when the page head already carries the overview title (home). */
+  showTitle?: boolean;
+}) {
   const t = overviewT(lang);
   return (
-    <Section variant="plain" title={t.title}>
+    <Section variant="plain" title={showTitle ? t.title : undefined}>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <DataCard data={data} lang={lang} />
         <ModelsCard data={data} lang={lang} />
