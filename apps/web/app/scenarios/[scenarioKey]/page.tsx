@@ -11,8 +11,10 @@ import { ImpactAcrossRuns, ModelsPlaceholder } from "@/components/scenarios/resu
 import { ScenarioTabs } from "@/components/scenarios/scenario-tabs";
 import { EmptyState, Meta, Page, PageHead } from "@/components/shell/page";
 import { topicT } from "@/components/topics/messages";
+import { ModelBiasView } from "@/components/topics/model-bias-view";
 import { TopicView } from "@/components/topics/topic-view";
 import { Button } from "@/components/ui/button";
+import { loadModelBias } from "@/lib/model-bias-data";
 import { loadScenario } from "@/lib/scenario-runs";
 import { serverPrefs } from "@/lib/server-prefs";
 
@@ -33,6 +35,7 @@ export default async function ScenarioPage({
   const { lang, t } = await serverPrefs();
   const s = scenarioT(lang);
   const { scenario, cmp, hist, perspectives, coalitions, reference } = data;
+  const modelBias = scenario.kind === "main" ? await loadModelBias(scenario.baseKey) : null;
   const labels: Record<string, string> = {};
   for (const r of cmp?.runs ?? []) labels[r.id] = runLabelOf(r, lang);
   for (const r of scenario.runs)
@@ -112,7 +115,11 @@ export default async function ScenarioPage({
               perspectivesPanel
             ),
           koalitionen: <Coalitions cp={coalitions} labels={labels} />,
-          modelle: <ModelsPlaceholder topicKey={scenario.baseKey} />,
+          modelle: modelBias ? (
+            <ModelBiasView data={modelBias} />
+          ) : (
+            <ModelsPlaceholder topicKey={scenario.baseKey} />
+          ),
         }}
       />
     </Page>

@@ -1,6 +1,7 @@
 // Strings for the scenario grid and the scenario page (DE/EN). Kept local like the topic
 // strings so the shared message files stay small.
 import { TEMPLATES, type Template } from "@sv/contracts";
+import { runLabel } from "@/components/topics/family";
 import { topicT } from "@/components/topics/messages";
 import type { ScenarioKind } from "@/lib/scenarios";
 import type { RunColumn } from "@/lib/topic-compare";
@@ -203,9 +204,4 @@ const en: ScenarioMessages = {
 export const scenarioT = (lang: Lang): ScenarioMessages => (lang === "de" ? de : en);
 
 /** Same reading of a run column as the topic comparison: reference, ensemble label or variant. */
-export function runLabelOf(r: RunColumn, lang: Lang): string {
-  const t = topicT(lang);
-  if (r.isReference) return `${t.reference}${r.id.endsWith("presse") ? " + Presse" : ""}`;
-  const all = r.label.match(/^all_(.+)$/)?.[1];
-  return t.label[r.label] ?? (all ? t.allSeats(t.fam[all] ?? all) : r.label);
-}
+export const runLabelOf = (r: RunColumn, lang: Lang): string => runLabel(r, topicT(lang));
