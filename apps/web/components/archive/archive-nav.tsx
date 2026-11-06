@@ -9,13 +9,15 @@ export function ArchiveNav({
   active,
 }: {
   lang: Lang;
-  active: "search" | "episodes" | "stats" | null;
+  active: "search" | "episodes" | "stats" | "press" | null;
 }) {
   const t = laneT(lang);
+  const de = lang === "de";
   const tabs = [
     { key: "search", href: "/archive", label: t.archive.tabs.search },
     { key: "episodes", href: "/archive/episodes", label: t.archive.tabs.episodes },
     { key: "stats", href: "/archive/stats", label: t.archive.tabs.stats },
+    { key: "press", href: "/archive/presse", label: de ? "Pressespiegel" : "Press review" },
   ] as const;
   return (
     <div className="mb-5 flex flex-wrap items-center gap-2">
