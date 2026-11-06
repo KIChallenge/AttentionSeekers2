@@ -438,6 +438,19 @@ function wireModel(model: string): string {
   return i >= 0 ? model.slice(i + 1) : model;
 }
 
+async function* chunksOf(body: ReadableStream<Uint8Array>): AsyncGenerator<Uint8Array> {
+  const reader = body.getReader();
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) return;
+      if (value) yield value;
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 async function* gatewayStream(model: string, messages: Message[], o: StreamOptions) {
   const base = (process.env.OPENAI_COMPATIBLE_BASE_URL ?? "").replace(/\/+$/, "");
   const key = process.env.OPENAI_COMPATIBLE_API_KEY ?? "";
@@ -461,7 +474,7 @@ async function* gatewayStream(model: string, messages: Message[], o: StreamOptio
     throw new Error(`LLM ${res.status}: ${redact((await res.text()).slice(0, 300))}`);
   const decoder = new TextDecoder();
   let buf = "";
-  for await (const chunk of res.body) {
+  for await (const chunk of chunksOf(res.body)) {
     buf += decoder.decode(chunk as Uint8Array, { stream: true });
     let nl = buf.indexOf("\n");
     while (nl >= 0) {
@@ -552,7 +565,7 @@ async function* bedrockStream(model: string, messages: Message[], o: StreamOptio
   if (!res.ok || !res.body)
     throw new Error(`Bedrock ${res.status}: ${redact((await res.text()).slice(0, 300))}`);
   let buf = new Uint8Array(0);
-  for await (const chunk of res.body) {
+  for await (const chunk of chunksOf(res.body)) {
     const next = new Uint8Array(buf.byteLength + (chunk as Uint8Array).byteLength);
     next.set(buf);
     next.set(chunk as Uint8Array, buf.byteLength);
