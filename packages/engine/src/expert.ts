@@ -4,10 +4,10 @@
 import type { Claim, ModelVerdict } from "@sv/contracts";
 import { z } from "zod";
 import { L } from "./config.ts";
-import { type CallMeta, structured } from "./llm.ts";
+import { type CallMeta, type Message, structured } from "./llm.ts";
 import type { RunState } from "./state.ts";
 
-const CheckOut = z.object({
+export const CheckOut = z.object({
   checks: z.array(
     z.object({
       claimId: z.string(),
@@ -37,14 +37,13 @@ function claimLine(s: RunState, c: Claim): string {
   return `${c.id} (${c.utteranceId}, ${c.kind}${c.numeric ? `, Wert ${c.numeric.value} ${c.numeric.unit}` : ""}): "${c.atomicText}"\n   Belege: ${sources || "keine (Annahme)"}`;
 }
 
-async function check(
+/** Prompt of one expert check or verification (shared with the model smoke test). */
+export function checkMessages(
   s: RunState,
-  model: string,
-  name: string,
   stance: string,
   fresh: Claim[],
   earlier: Claim[],
-): Promise<{ checks: Check[]; meta: CallMeta } | null> {
+): Message[] {
   const user = [
     "Prüfe jede neue Aussage gegen ihre Belege und gegen frühere Aussagen anderer Akteure.",
     "verdict: supported = Beleg trägt die Aussage; partial = teilweise; unsupported = Beleg fehlt oder trägt sie nicht; contradicted = widerspricht einer früheren Aussage oder dem Beleg.",
@@ -60,14 +59,29 @@ async function check(
         .join("\n") || "keine"
     }`,
   ].join("\n");
+  return [
+    {
+      role: "system",
+      content: `Du bist der Experte für Zahlen und Fakten im österreichischen Gesundheitswesen. ${stance}`,
+    },
+    { role: "user", content: user },
+  ];
+}
+
+/** Stance of the independent second check (FR-N7). */
+export const VERIFY_STANCE =
+  "Unabhängige Zweitprüfung: sei streng, akzeptiere nur, was der Beleg wörtlich oder rechnerisch trägt.";
+
+async function check(
+  s: RunState,
+  model: string,
+  name: string,
+  stance: string,
+  fresh: Claim[],
+  earlier: Claim[],
+): Promise<{ checks: Check[]; meta: CallMeta } | null> {
   try {
-    const r = await structured(model, name, CheckOut, [
-      {
-        role: "system",
-        content: `Du bist der Experte für Zahlen und Fakten im österreichischen Gesundheitswesen. ${stance}`,
-      },
-      { role: "user", content: user },
-    ]);
+    const r = await structured(model, name, CheckOut, checkMessages(s, stance, fresh, earlier));
     return { checks: r.data.checks, meta: r.meta };
   } catch (error) {
     console.warn("expert_failed", name, error instanceof Error ? error.message : error);

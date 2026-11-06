@@ -144,7 +144,7 @@ function telemetry(
 }
 
 /** Rebuilds the mutable run state from a folded snapshot (fork from round N). */
-function stateFromSnapshot(s: RunState, snap: RunSnapshot) {
+export function stateFromSnapshot(s: RunState, snap: RunSnapshot) {
   for (const id of snap.utteranceOrder) {
     const u = snap.utterances[id];
     if (u) s.utterances.push(u);

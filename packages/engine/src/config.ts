@@ -240,6 +240,34 @@ const hasSecondFamily = () =>
  */
 export const SECOND_MODEL = (): string | null =>
   process.env.SV_SECOND_MODEL ?? (hasSecondFamily() ? "bedrock/eu.amazon.nova-pro-v1:0" : null);
+/**
+ * Short family names for --models and the smoke test. Bedrock ids verified on demand in
+ * eu-north-1 on 2026-11-06 (Converse API, German answers).
+ */
+export const MODEL_ALIASES: Record<string, string> = {
+  nova: "bedrock/eu.amazon.nova-pro-v1:0",
+  deepseek: "bedrock/deepseek.v3.2",
+  kimi: "bedrock/moonshotai.kimi-k2.5",
+  qwen: "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+  "qwen-32b": "bedrock/qwen.qwen3-32b-v1:0",
+  glm: "bedrock/zai.glm-5",
+  "glm-flash": "bedrock/zai.glm-4.7-flash",
+  mistral: "bedrock/mistral.devstral-2-123b",
+  "gpt-oss": "bedrock/openai.gpt-oss-120b-1:0",
+  minimax: "bedrock/minimax.minimax-m2.5",
+};
+
+/** "gpt" is the gateway default; other aliases map to Bedrock ids; full ids pass through. */
+export function resolveModelAlias(m: string): string {
+  if (m === "gpt" || m === "primary") return DEFAULT_MODEL();
+  if (m === "second") {
+    const second = SECOND_MODEL();
+    if (!second) throw new Error("second model family is not configured");
+    return second;
+  }
+  return MODEL_ALIASES[m] ?? m;
+}
+
 /** Institutions seated on the second family by default (two-family floor, FR-X1). */
 export const SECOND_FAMILY_AGENTS = (): string[] =>
   (process.env.SV_SECOND_FAMILY_AGENTS ?? "ak,pf,bl,pv")
