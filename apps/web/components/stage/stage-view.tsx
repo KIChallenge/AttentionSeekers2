@@ -126,9 +126,9 @@ export function StageView() {
   const exchangeStart = exchange ? Math.max(0, indexOf(exchange.fromId)) : 0;
   const exchangeEnd = exchange ? indexOf(exchange.toId) : -1;
   const textOf = useCallback((u: Utterance) => L(u.text, lang), [lang]);
-  // FR-S8: by default the stage plays only the selected exchange (statement, then the
-  // rebuttal, then stop); "whole run" plays on through the record.
-  const [scope, setScope] = useState<"exchange" | "run">("exchange");
+  // The stage plays on through the whole record by default and never stops between lines;
+  // "exchange" (statement, rebuttal, stop) is still available as an explicit choice (FR-S8).
+  const [scope, setScope] = useState<"exchange" | "run">("run");
   const nextOf = useCallback(
     (i: number) => {
       if (scope === "exchange" && exchange) {
@@ -166,7 +166,6 @@ export function StageView() {
   const { toggle, setIdx, idx, setPlaying } = p;
   const jumpSharpest = useCallback(() => {
     if (!exchange) return;
-    setScope("exchange");
     setIdx(exchangeStart);
     setPlaying(true);
   }, [exchange, exchangeStart, setIdx, setPlaying]);

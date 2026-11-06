@@ -110,25 +110,49 @@ function restyle(root: THREE.Object3D, st: FigureStyle, grad: THREE.Texture) {
 }
 
 function addGlasses(head: TalkingHead, grad: THREE.Texture) {
+  // Thin frames that sit on the face: smaller rims, a faint lens, a bridge and two temple arms
+  // running back towards the ears, so the glasses read as an object and not as floating rings.
   const l = head.objectLeftEye.getWorldPosition(new THREE.Vector3());
   const r = head.objectRightEye.getWorldPosition(new THREE.Vector3());
-  const mat = new THREE.MeshToonMaterial({ color: 0x23262b, gradientMap: grad });
-  const g = new THREE.Group();
   const half = l.distanceTo(r) / 2;
-  const ring = new THREE.TorusGeometry(half * 0.78, half * 0.09, 6, 20);
+  const frame = new THREE.MeshToonMaterial({ color: 0x2b2f36, gradientMap: grad });
+  const lens = new THREE.MeshBasicMaterial({
+    color: 0xdfe8f0,
+    transparent: true,
+    opacity: 0.12,
+    depthWrite: false,
+  });
+  const g = new THREE.Group();
+  const rimR = half * 0.58;
+  const rim = new THREE.TorusGeometry(rimR, half * 0.035, 6, 28);
+  const glass = new THREE.CircleGeometry(rimR, 28);
   for (const s of [-1, 1]) {
-    const m = new THREE.Mesh(ring, mat);
+    const m = new THREE.Mesh(rim, frame);
+    m.scale.set(1.12, 0.82, 1);
     m.position.set(s * half, 0, 0);
     g.add(m);
+    const pane = new THREE.Mesh(glass, lens);
+    pane.scale.set(1.12, 0.82, 1);
+    pane.position.set(s * half, 0, -half * 0.01);
+    g.add(pane);
+    const arm = new THREE.Mesh(
+      new THREE.CylinderGeometry(half * 0.025, half * 0.025, half * 1.9, 5),
+      frame,
+    );
+    arm.rotation.x = Math.PI / 2;
+    arm.position.set(s * (half + rimR * 1.12), half * 0.05, -half * 0.95);
+    g.add(arm);
   }
   const bridge = new THREE.Mesh(
-    new THREE.CylinderGeometry(half * 0.07, half * 0.07, half * 0.5, 5),
-    mat,
+    new THREE.CylinderGeometry(half * 0.03, half * 0.03, half * 2 - rimR * 2.2, 5),
+    frame,
   );
   bridge.rotation.z = Math.PI / 2;
+  bridge.position.y = half * 0.12;
   g.add(bridge);
   g.position.copy(l).add(r).multiplyScalar(0.5);
-  g.position.z += half * 0.75;
+  g.position.y -= half * 0.04;
+  g.position.z += half * 0.42;
   head.objectHead.attach(g);
 }
 

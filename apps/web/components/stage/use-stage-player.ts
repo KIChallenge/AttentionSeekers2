@@ -281,6 +281,8 @@ export function useStagePlayer({
     let lastT = performance.now();
     let done = false;
     let el: HTMLAudioElement | null = null;
+    let lastPos = -1;
+    let lastMove = performance.now();
     const buf = new Uint8Array(1024);
 
     if (src) {
@@ -297,10 +299,17 @@ export function useStagePlayer({
         if (mode === "route") void refreshUsage();
         window.setTimeout(advance, 450 / speed);
       };
-      el.play().catch(() => {
-        // Autoplay blocked or file missing: fall back to silent timing for this one.
+      // A failed or stalled file must never stop the stage: fall back to silent timing.
+      const toSilent = () => {
+        if (done || !el) return;
+        el.pause();
         el = null;
         setHeard(id);
+      };
+      el.onerror = toSilent;
+      el.play().catch(() => {
+        // Autoplay blocked or file missing: fall back to silent timing for this one.
+        toSilent();
       });
     }
 
@@ -315,6 +324,17 @@ export function useStagePlayer({
       lastT = now;
       if (done) return;
       if (el) {
+        // watchdog: no progress for 8 s (network hiccup, broken stream) means carry on silently
+        if (el.currentTime !== lastPos) {
+          lastPos = el.currentTime;
+          lastMove = now;
+        } else if (now - lastMove > 8000) {
+          el.pause();
+          el = null;
+          elapsedRef.current = (lastPos * 1000) / speed;
+          raf = requestAnimationFrame(tick);
+          return;
+        }
         // a freshly streamed render has no duration until it ends: estimate from the text
         const d = Number.isFinite(el.duration) && el.duration > 0 ? el.duration : 0;
         const p = d ? el.currentTime / d : Math.min(0.97, (el.currentTime * 1000) / duration);
