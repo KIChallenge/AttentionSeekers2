@@ -240,6 +240,7 @@ const de = {
       parliament: "Parlament",
       ris: "RIS",
       audit: "Prüfbericht",
+      law: "Rechtsgrundlage",
     },
     licences: {
       stellungnahme: "Stellungnahme, Zitat mit Quellenangabe",
@@ -594,6 +595,7 @@ const en: LaneMessages = {
       parliament: "Parliament",
       ris: "RIS",
       audit: "Audit report",
+      law: "Legal basis",
     },
     licences: {
       stellungnahme: "Statement, quote with attribution",

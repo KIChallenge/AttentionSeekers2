@@ -33,6 +33,12 @@ function isScaffold(text: string): boolean {
   return s.length < 40;
 }
 
+/** "law-asvg-342#1a" -> "Abs. 1a"; unnumbered provisions keep the ordinal. */
+function absatzLabel(segmentId: string, ordinal: number): string {
+  const key = segmentId.split("#")[1] ?? "";
+  return /^\d/.test(key) ? `Abs. ${key}` : String(ordinal);
+}
+
 export default async function SourcePage({
   params,
   searchParams,
@@ -62,6 +68,9 @@ export default async function SourcePage({
   const [uses, similar] = await Promise.all([usesOfSource(s.id), similarPassages(s.id)]);
   const reg = d.draftLaw ? await caseForDraftLaw(d.draftLaw) : null;
   const licenceKey = d.licenceLabel in t.archive.licenceLine ? d.licenceLabel : "unknown";
+  // Legal basis (kind "law", FR-P6): heading, Absatz labels, validity and RIS version history.
+  const law = s.kind === "law" ? s.law : undefined;
+  const de = lang === "de";
   return (
     <Page>
       <ArchiveNav lang={lang} active={null} />
@@ -85,6 +94,7 @@ export default async function SourcePage({
               </Badge>
             </div>
             <h1 className="text-2xl leading-snug">{s.title ?? s.legalRef ?? s.id}</h1>
+            {law?.heading ? <p className="text-muted-foreground">{law.heading}</p> : null}
             <div className="font-mono text-xs text-muted-foreground">
               {s.id} · {s.date}
               {s.outlet ? ` · ${s.outlet}` : ""}
@@ -100,7 +110,8 @@ export default async function SourcePage({
               {s.url ? (
                 <Button asChild size="sm">
                   <a href={s.url} target="_blank" rel="noreferrer noopener">
-                    {t.archive.detail.original} ↗
+                    {law ? (de ? "Original im RIS" : "Original in RIS") : t.archive.detail.original}{" "}
+                    ↗
                   </a>
                 </Button>
               ) : (
@@ -134,15 +145,19 @@ export default async function SourcePage({
               <span className="num text-xs text-muted-foreground">
                 {d.segments.length} {t.archive.detail.segments}
               </span>
-              <Badge
-                variant="outline"
-                className="border-dashed text-muted-foreground"
-                title={t.archive.detail.maskedNote}
-              >
-                ▒ {d.maskedCount} {t.archive.detail.maskedCount}
-              </Badge>
+              {law ? null : (
+                <Badge
+                  variant="outline"
+                  className="border-dashed text-muted-foreground"
+                  title={t.archive.detail.maskedNote}
+                >
+                  ▒ {d.maskedCount} {t.archive.detail.maskedCount}
+                </Badge>
+              )}
             </div>
-            <p className="mb-3 text-xs text-muted-foreground">{t.archive.detail.maskedNote}</p>
+            {law ? null : (
+              <p className="mb-3 text-xs text-muted-foreground">{t.archive.detail.maskedNote}</p>
+            )}
             {d.clipped ? (
               <p className="mb-3 text-xs text-warning">{t.archive.detail.pressClip}</p>
             ) : null}
@@ -151,7 +166,7 @@ export default async function SourcePage({
             ) : (
               <ol className="space-y-2">
                 {(() => {
-                  const hidden = d.segments.filter((g) => isScaffold(g.text)).length;
+                  const hidden = law ? 0 : d.segments.filter((g) => isScaffold(g.text)).length;
                   return hidden ? (
                     <li className="pb-1 text-xs text-muted-foreground">
                       {showAll
@@ -175,7 +190,11 @@ export default async function SourcePage({
                 })()}
                 {d.segments
                   .filter(
-                    (g) => showAll || !isScaffold(g.text) || uses.some((u) => u.segmentId === g.id),
+                    (g) =>
+                      showAll ||
+                      law ||
+                      !isScaffold(g.text) ||
+                      uses.some((u) => u.segmentId === g.id),
                   )
                   .map((g) => {
                     const cited = uses.filter((u) => u.segmentId === g.id);
@@ -186,7 +205,7 @@ export default async function SourcePage({
                         className={`grid grid-cols-[3rem_minmax(0,1fr)] gap-3 rounded-lg px-1 py-1 text-[15px] leading-relaxed ${cited.length ? "bg-warning/10" : ""}`}
                       >
                         <span className="pt-1 text-right font-mono text-[10px] text-muted-foreground">
-                          {g.ordinal}
+                          {law ? absatzLabel(g.id, g.ordinal) : g.ordinal}
                         </span>
                         <div>
                           <MaskedText text={g.text} maskedLabel={t.archive.detail.masked} />
@@ -307,6 +326,41 @@ export default async function SourcePage({
                         </EntityLink>
                       </div>
                     ) : null}
+                  </dd>
+                </>
+              ) : null}
+              {law ? (
+                <>
+                  <dt className="text-muted-foreground">
+                    {de ? "In Kraft seit" : "In force since"}
+                  </dt>
+                  <dd className="font-mono text-xs">
+                    {law.validFrom}
+                    {law.validTo ? ` ${de ? "bis" : "until"} ${law.validTo}` : ""}
+                  </dd>
+                  <dt className="text-muted-foreground">{de ? "Fassung" : "Version"}</dt>
+                  <dd className="text-xs">
+                    {law.amendedBy ?? law.promulgation}
+                    <div className="text-muted-foreground">
+                      {de ? "abgerufen" : "retrieved"} {law.retrievedAt}
+                    </div>
+                  </dd>
+                  <dt className="text-muted-foreground">{de ? "Versionen" : "Versions"}</dt>
+                  <dd className="text-xs">
+                    <details>
+                      <summary className="cursor-pointer">
+                        {law.versions.length} {de ? "Fassungen im RIS" : "versions in RIS"}
+                      </summary>
+                      <ol className="mt-1 space-y-0.5 font-mono text-[11px]">
+                        {[...law.versions].reverse().map((v) => (
+                          <li key={v.risId}>
+                            {v.validFrom}
+                            {v.validTo ? ` ${de ? "bis" : "to"} ${v.validTo}` : ""}
+                            {v.amendedBy ? ` · ${v.amendedBy}` : ""}
+                          </li>
+                        ))}
+                      </ol>
+                    </details>
                   </dd>
                 </>
               ) : null}

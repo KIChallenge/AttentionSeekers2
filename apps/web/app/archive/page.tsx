@@ -68,7 +68,10 @@ export default async function ArchivePage({ searchParams }: { searchParams: Prom
   return (
     <Page>
       <PageHead title={base.archive.title} sub={base.archive.sub} />
-      <ArchiveNav lang={lang} active="search" />
+      <ArchiveNav
+        lang={lang}
+        active={query.kinds.length === 1 && query.kinds[0] === "law" ? "law" : "search"}
+      />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside
           className="order-2 space-y-5 lg:order-1 lg:sticky lg:top-[66px] lg:self-start"
