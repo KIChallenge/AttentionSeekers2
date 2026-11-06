@@ -30,6 +30,12 @@ export const ImpactFigure = z.object({
   uncertainty: LocalizedText,
   modelVersion: z.string(),
   notModelled: z.boolean(),
+  /** Added 2026-11-06 (impact calibration): evidence table or the proposers' own estimate. */
+  basis: z.enum(["evidence", "proposer"]).optional(),
+  /** Added 2026-11-06: evidence classes behind the figure (keys of impact-evidence.json). */
+  evidenceClasses: z.array(z.string()).optional(),
+  /** Added 2026-11-06: distinct sources behind the figure. */
+  sourceCount: z.number().int().optional(),
 });
 export type ImpactFigure = z.infer<typeof ImpactFigure>;
 

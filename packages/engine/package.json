@@ -14,7 +14,8 @@
     "validate": "node --no-warnings src/cli.ts validate",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "quality": "node --env-file-if-exists=../../.env --no-warnings src/quality-cli.ts"
+    "quality": "node --env-file-if-exists=../../.env --no-warnings src/quality-cli.ts",
+    "impact": "node --no-warnings src/impact-cli.ts"
   },
   "dependencies": {
     "@sv/contracts": "workspace:*",

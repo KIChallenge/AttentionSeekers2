@@ -4,6 +4,7 @@ import { type Forecast, type ImpactFigure, topicStatus } from "@sv/contracts";
 import Link from "next/link";
 import { useState } from "react";
 import { statusLabel } from "@/components/analysis/consensus-matrix";
+import { type EvidenceInfo, ImpactCompare } from "@/components/outcome/impact-compare";
 import { Chip, Empty, Panel, Tile } from "@/components/run/bits";
 import { fmtNum, L } from "@/components/run/helpers";
 import { SourceChip } from "@/components/run/provenance";
@@ -142,16 +143,31 @@ function ForecastCard({ f }: { f: Forecast }) {
   );
 }
 
-export function OutcomeView() {
+export type { EvidenceInfo };
+
+const isPackageRow = (id: string) => id === "package" || id.includes(":");
+
+export function OutcomeView({
+  impact,
+  brief,
+  evidence,
+}: {
+  /** Recomputed sidecar figures; null falls back to the run's own impact event. */
+  impact: ImpactFigure[] | null;
+  brief: ImpactFigure[];
+  evidence: EvidenceInfo;
+}) {
   const { snap, run, t, lang, runId } = useRun();
+  const figures = impact ?? snap.figures;
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const proposals = snap.proposalOrder.map((id) => snap.proposals[id]).filter((p) => !!p);
   const classes = { consensus: 0, majority: 0, minority: 0, no_result: 0 };
   for (const tp of run.mandate.topics) classes[topicStatus(snap, tp.id).status]++;
   const failed = proposals.filter((p) => p?.status === "rejected").length;
   const byMeasure = new Map<string, ImpactFigure[]>();
-  for (const f of snap.figures)
-    byMeasure.set(f.measureId, [...(byMeasure.get(f.measureId) ?? []), f]);
+  for (const f of figures)
+    if (!isPackageRow(f.measureId))
+      byMeasure.set(f.measureId, [...(byMeasure.get(f.measureId) ?? []), f]);
   const metrics = [
     "cost_eur_pa",
     "sv_spend_pp",
@@ -159,15 +175,21 @@ export function OutcomeView() {
     "wait_weeks_median",
     "posts_filled",
   ] as const;
-  const usedMetrics = metrics.filter((m) => snap.figures.some((f) => f.metric === m));
+  const usedMetrics = metrics.filter((m) =>
+    figures.some((f) => f.metric === m && !isPackageRow(f.measureId)),
+  );
   const pkg = proposals
     .filter((p) => p?.status === "accepted")
     .sort((a, b) => (b?.topicIds.length ?? 0) - (a?.topicIds.length ?? 0))[0];
-  const pkgFig = (m: string) => snap.figures.find((f) => f.measureId === pkg?.id && f.metric === m);
+  const pkgFig = (m: string) =>
+    figures.find((f) => f.measureId === "package" && f.metric === m) ??
+    figures.find((f) => f.measureId === pkg?.id && f.metric === m);
   const pkgForecast = snap.forecasts.find((f) => f.measureId === pkg?.id);
   const cap = run.room.budgetCeiling.maxIncreasePct;
   const sv = pkgFig("sv_spend_pp");
   const wait = pkgFig("wait_change_pct");
+  const sourcesOf = (f?: ImpactFigure) =>
+    f?.sourceCount ? ` · ${t.outcome.ev.sources(f.sourceCount)}` : "";
 
   return (
     <Page width="full">
@@ -207,7 +229,7 @@ export function OutcomeView() {
           </div>
           <div className="text-xs text-muted-foreground">{t.outcome.metric.sv_spend_pp}</div>
           <div className="mt-1 text-xs text-muted-foreground">
-            {sv ? `${t.outcome.range} ${rangeOf(sv, lang)} · ` : ""}cap +{cap} %
+            {sv ? `${t.outcome.range} ${rangeOf(sv, lang)} · ` : ""}cap +{cap} %{sourcesOf(sv)}
           </div>
         </div>
         <div className="rounded-2xl border bg-card p-5">
@@ -221,7 +243,7 @@ export function OutcomeView() {
           <div className="text-xs text-muted-foreground">{t.outcome.metric.wait_change_pct}</div>
           <div className="mt-1 text-xs text-muted-foreground">
             {wait ? `${t.outcome.range} ${rangeOf(wait, lang)} · ` : ""}
-            {lang === "de" ? "Ziel" : "target"} −20 %
+            {lang === "de" ? "Ziel" : "target"} −20 %{sourcesOf(wait)}
           </div>
         </div>
         <div className="rounded-2xl border bg-card p-5">
@@ -256,149 +278,172 @@ export function OutcomeView() {
           title={t.outcome.effects}
           aside={<span className="text-xs text-muted-foreground">{t.outcome.effectsSub}</span>}
         >
-          {snap.figures.length === 0 ? (
+          {figures.length === 0 ? (
             <Empty>{t.outcome.noFigures}</Empty>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-left text-xs text-muted-foreground">
-                  <tr className="border-b">
-                    <th className="sticky left-0 bg-card py-2 pr-2 font-normal">
-                      {t.outcome.measure}
-                    </th>
-                    <th className="px-2 font-normal">{t.outcome.status}</th>
-                    {usedMetrics.map((m) => (
-                      <th key={m} className="px-2 text-right font-normal">
-                        {t.outcome.metric[m]}
-                      </th>
-                    ))}
-                    <th className="px-2 font-normal" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...byMeasure.entries()].map(([mid, figs]) => {
-                    const p = snap.proposals[mid];
-                    const inputs = figs.flatMap((f) => f.inputs);
-                    const assumptions = inputs.filter((i) => i.assumption).length;
-                    return [
-                      <tr key={mid} className="border-b align-top">
-                        <td className="sticky left-0 max-w-[380px] bg-card py-2.5 pr-2">
-                          <div className="flex items-start gap-2">
-                            {p ? <Tile id={p.originAgent} /> : null}
-                            <span>
-                              <span className="font-mono text-xs text-muted-foreground">{mid}</span>{" "}
-                              {p ? L(p.title, lang) : null}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-2 py-2.5">
-                          {p?.outcomeClass ? (
-                            <Chip
-                              className={cn(
-                                p.outcomeClass === "consensus" &&
-                                  "border-success/30 bg-success/10 text-success",
-                                p.outcomeClass === "minority" && "border-warning/40 text-warning",
-                              )}
-                            >
-                              {statusLabel(p.outcomeClass, lang)}
-                              {" · "}
-                              {p.supporters.length}/{run.agents.length}
-                            </Chip>
-                          ) : null}
-                        </td>
-                        {usedMetrics.map((m) => {
-                          const f = figs.find((x) => x.metric === m);
-                          return (
-                            <td key={m} className="num px-2 py-2.5 text-right whitespace-nowrap">
-                              {f ? (
-                                f.notModelled ? (
-                                  <span className="text-muted-foreground">
-                                    {t.outcome.notModelled}
-                                  </span>
-                                ) : (
-                                  <>
-                                    {fmtFig(f, lang)}
-                                    <div className="text-[11px] text-muted-foreground">
-                                      {rangeOf(f, lang)}
-                                    </div>
-                                  </>
-                                )
-                              ) : (
-                                <span className="text-muted-foreground">·</span>
-                              )}
-                            </td>
-                          );
-                        })}
-                        <td className="px-2 py-2.5 text-right">
-                          <button
-                            type="button"
-                            onClick={() => setOpen((o) => ({ ...o, [mid]: !o[mid] }))}
-                            aria-expanded={!!open[mid]}
-                            className="rounded-control border px-2 py-0.5 text-xs whitespace-nowrap hover:border-foreground/40"
-                          >
-                            {t.outcome.assumptions} {assumptions ? `(${assumptions})` : ""}{" "}
-                            {open[mid] ? "▴" : "▾"}
-                          </button>
-                        </td>
-                      </tr>,
-                      open[mid] ? (
-                        <tr key={`${mid}-a`} className="border-b bg-gray-alpha-50">
-                          <td colSpan={usedMetrics.length + 3} className="p-3">
-                            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                              {figs.map((f) => (
-                                <div key={f.metric} className="space-y-1.5 text-xs">
-                                  <div className="font-medium">{t.outcome.metric[f.metric]}</div>
-                                  <div>
-                                    <span className="text-muted-foreground">
-                                      {t.outcome.inputs}:{" "}
-                                    </span>
-                                    {f.inputs.length
-                                      ? f.inputs.map((i) => (
-                                          <span
-                                            key={i.name.text}
-                                            className="mr-2 inline-flex flex-wrap items-center gap-1"
-                                          >
-                                            {L(i.name, lang)}:{" "}
-                                            <span className="font-mono">{i.value}</span>
-                                            {i.citation ? (
-                                              <SourceChip cite={i.citation} compact />
-                                            ) : null}
-                                            {i.assumption ? (
-                                              <Chip className="border-dashed">
-                                                {t.outcome.assumption}
-                                              </Chip>
-                                            ) : null}
-                                          </span>
-                                        ))
-                                      : "·"}
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">
-                                      {t.outcome.formula}:{" "}
-                                    </span>
-                                    <code className="font-mono">{f.formula}</code>
-                                  </div>
-                                  <div>
-                                    <span className="text-muted-foreground">
-                                      {t.outcome.uncertainty}:{" "}
-                                    </span>
-                                    {L(f.uncertainty, lang)}
-                                  </div>
-                                  <div className="text-muted-foreground">
-                                    {t.outcome.modelVersion}{" "}
-                                    <span className="font-mono">{f.modelVersion}</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </td>
+            <div className="space-y-4">
+              <ImpactCompare
+                figures={figures}
+                brief={brief}
+                evidence={evidence}
+                fallback={!proposals.some((p) => p?.status === "accepted")}
+              />
+              {byMeasure.size ? (
+                <details>
+                  <summary className="cursor-pointer text-sm text-muted-foreground">
+                    {t.outcome.ev.perMeasure(byMeasure.size)}
+                  </summary>
+                  <div className="mt-2 overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="text-left text-xs text-muted-foreground">
+                        <tr className="border-b">
+                          <th className="sticky left-0 bg-card py-2 pr-2 font-normal">
+                            {t.outcome.measure}
+                          </th>
+                          <th className="px-2 font-normal">{t.outcome.status}</th>
+                          {usedMetrics.map((m) => (
+                            <th key={m} className="px-2 text-right font-normal">
+                              {t.outcome.metric[m]}
+                            </th>
+                          ))}
+                          <th className="px-2 font-normal" />
                         </tr>
-                      ) : null,
-                    ];
-                  })}
-                </tbody>
-              </table>
-              <p className="mt-2 text-xs text-muted-foreground">{t.outcome.nonAdditive}</p>
+                      </thead>
+                      <tbody>
+                        {[...byMeasure.entries()].map(([mid, figs]) => {
+                          const p = snap.proposals[mid];
+                          const inputs = figs.flatMap((f) => f.inputs);
+                          const assumptions = inputs.filter((i) => i.assumption).length;
+                          return [
+                            <tr key={mid} className="border-b align-top">
+                              <td className="sticky left-0 max-w-[380px] bg-card py-2.5 pr-2">
+                                <div className="flex items-start gap-2">
+                                  {p ? <Tile id={p.originAgent} /> : null}
+                                  <span>
+                                    <span className="font-mono text-xs text-muted-foreground">
+                                      {mid}
+                                    </span>{" "}
+                                    {p ? L(p.title, lang) : null}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-2 py-2.5">
+                                {p?.outcomeClass ? (
+                                  <Chip
+                                    className={cn(
+                                      p.outcomeClass === "consensus" &&
+                                        "border-success/30 bg-success/10 text-success",
+                                      p.outcomeClass === "minority" &&
+                                        "border-warning/40 text-warning",
+                                    )}
+                                  >
+                                    {statusLabel(p.outcomeClass, lang)}
+                                    {" · "}
+                                    {p.supporters.length}/{run.agents.length}
+                                  </Chip>
+                                ) : null}
+                              </td>
+                              {usedMetrics.map((m) => {
+                                const f = figs.find((x) => x.metric === m);
+                                return (
+                                  <td
+                                    key={m}
+                                    className="num px-2 py-2.5 text-right whitespace-nowrap"
+                                  >
+                                    {f ? (
+                                      f.notModelled ? (
+                                        <span className="text-muted-foreground">
+                                          {t.outcome.notModelled}
+                                        </span>
+                                      ) : (
+                                        <>
+                                          {fmtFig(f, lang)}
+                                          <div className="text-[11px] text-muted-foreground">
+                                            {rangeOf(f, lang)}
+                                          </div>
+                                        </>
+                                      )
+                                    ) : (
+                                      <span className="text-muted-foreground">·</span>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                              <td className="px-2 py-2.5 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => setOpen((o) => ({ ...o, [mid]: !o[mid] }))}
+                                  aria-expanded={!!open[mid]}
+                                  className="rounded-control border px-2 py-0.5 text-xs whitespace-nowrap hover:border-foreground/40"
+                                >
+                                  {t.outcome.assumptions} {assumptions ? `(${assumptions})` : ""}{" "}
+                                  {open[mid] ? "▴" : "▾"}
+                                </button>
+                              </td>
+                            </tr>,
+                            open[mid] ? (
+                              <tr key={`${mid}-a`} className="border-b bg-gray-alpha-50">
+                                <td colSpan={usedMetrics.length + 3} className="p-3">
+                                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                                    {figs.map((f) => (
+                                      <div key={f.metric} className="space-y-1.5 text-xs">
+                                        <div className="font-medium">
+                                          {t.outcome.metric[f.metric]}
+                                        </div>
+                                        <div>
+                                          <span className="text-muted-foreground">
+                                            {t.outcome.inputs}:{" "}
+                                          </span>
+                                          {f.inputs.length
+                                            ? f.inputs.map((i) => (
+                                                <span
+                                                  key={i.name.text}
+                                                  className="mr-2 inline-flex flex-wrap items-center gap-1"
+                                                >
+                                                  {L(i.name, lang)}:{" "}
+                                                  <span className="font-mono">{i.value}</span>
+                                                  {i.citation ? (
+                                                    <SourceChip cite={i.citation} compact />
+                                                  ) : null}
+                                                  {i.assumption ? (
+                                                    <Chip className="border-dashed">
+                                                      {t.outcome.assumption}
+                                                    </Chip>
+                                                  ) : null}
+                                                </span>
+                                              ))
+                                            : "·"}
+                                        </div>
+                                        <div>
+                                          <span className="text-muted-foreground">
+                                            {t.outcome.formula}:{" "}
+                                          </span>
+                                          <code className="font-mono">{f.formula}</code>
+                                        </div>
+                                        <div>
+                                          <span className="text-muted-foreground">
+                                            {t.outcome.uncertainty}:{" "}
+                                          </span>
+                                          {L(f.uncertainty, lang)}
+                                        </div>
+                                        <div className="text-muted-foreground">
+                                          {t.outcome.modelVersion}{" "}
+                                          <span className="font-mono">{f.modelVersion}</span>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </td>
+                              </tr>
+                            ) : null,
+                          ];
+                        })}
+                      </tbody>
+                    </table>
+                    <p className="mt-2 text-xs text-muted-foreground">{t.outcome.nonAdditive}</p>
+                  </div>
+                </details>
+              ) : null}
             </div>
           )}
         </Panel>

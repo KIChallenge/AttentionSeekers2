@@ -1,0 +1,711 @@
+{
+  "runId": "fixture-wartezeiten",
+  "modelVersion": "impact-0.3-evidence",
+  "evidenceVersion": "evidence-2026-11-06",
+  "measures": [
+    "p-05",
+    "p-06"
+  ],
+  "figures": [
+    {
+      "measureId": "p-05",
+      "metric": "wait_change_pct",
+      "value": -1,
+      "low": -3,
+      "high": 0,
+      "unit": "%",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Erweiterte Kompetenzen der Gesundheitsberufe",
+            "translations": {
+              "en": "Extended scope for health professions"
+            }
+          },
+          "value": "2 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Wirkung im ersten Jahr",
+            "translations": {
+              "en": "Effect in year one"
+            }
+          },
+          "value": "-0.3 %",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "classes deduplicated; r_class = effect * scope * phase_in(year 5); group = r1 + 0.5*r2 + 0.25*r3; total = 1 - prod(1 - group); dWait = -total",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Bandbreite aus der Evidenztabelle (2 Quellen), Jahr 5; keine amtliche Wartezeitenreihe",
+        "translations": {
+          "en": "Range from the evidence table (2 sources), year 5; no official waiting-time series"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "scope_of_practice"
+      ],
+      "sourceCount": 2
+    },
+    {
+      "measureId": "p-05",
+      "metric": "cost_eur_pa",
+      "value": 40,
+      "low": 10,
+      "high": 100,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Erweiterte Kompetenzen der Gesundheitsberufe",
+            "translations": {
+              "en": "Extended scope for health professions"
+            }
+          },
+          "value": "2 Quellen",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "cost = sum over classes (posts * cost_per_post * fill_rate, or class cost range)",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Kostenbandbreiten je Klasse, großteils Annahmen; Wechselwirkungen nicht modelliert",
+        "translations": {
+          "en": "Cost ranges per class, mostly assumptions; interactions not modelled"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "scope_of_practice"
+      ],
+      "sourceCount": 2
+    },
+    {
+      "measureId": "p-05",
+      "metric": "sv_spend_pp",
+      "value": 0.07,
+      "low": 0.02,
+      "high": 0.17,
+      "unit": "% der Gesundheitsausgaben",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Laufende Gesundheitsausgaben 2024",
+            "translations": {
+              "en": "Current health expenditure 2024"
+            }
+          },
+          "value": "57.8 Mrd. EUR",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "spend_pct = cost_mio / health_expenditure_mio * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt der Kostenbandbreite; Basis Statistik Austria",
+        "translations": {
+          "en": "Follows the cost range; baseline Statistik Austria"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "scope_of_practice"
+      ],
+      "sourceCount": 2
+    },
+    {
+      "measureId": "p-06",
+      "metric": "wait_change_pct",
+      "value": -4.4,
+      "low": -14.7,
+      "high": -0.6,
+      "unit": "%",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+            "translations": {
+              "en": "1450 appointment brokering and digital specialist triage"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Telemedizin und eKonsil",
+            "translations": {
+              "en": "Telemedicine and e-consults"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Wartezeiten-Dashboard und Monitoring",
+            "translations": {
+              "en": "Waiting-time dashboard and monitoring"
+            }
+          },
+          "value": "2 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Wirkung im ersten Jahr",
+            "translations": {
+              "en": "Effect in year one"
+            }
+          },
+          "value": "-2.4 %",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "classes deduplicated; r_class = effect * scope * phase_in(year 5); group = r1 + 0.5*r2 + 0.25*r3; total = 1 - prod(1 - group); dWait = -total",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Bandbreite aus der Evidenztabelle (8 Quellen), Jahr 5; keine amtliche Wartezeitenreihe",
+        "translations": {
+          "en": "Range from the evidence table (8 sources), year 5; no official waiting-time series"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "triage_routing",
+        "telemedicine",
+        "monitoring_transparency"
+      ],
+      "sourceCount": 8
+    },
+    {
+      "measureId": "p-06",
+      "metric": "cost_eur_pa",
+      "value": 43,
+      "low": 11,
+      "high": 110,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+            "translations": {
+              "en": "1450 appointment brokering and digital specialist triage"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Telemedizin und eKonsil",
+            "translations": {
+              "en": "Telemedicine and e-consults"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Wartezeiten-Dashboard und Monitoring",
+            "translations": {
+              "en": "Waiting-time dashboard and monitoring"
+            }
+          },
+          "value": "2 Quellen",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "cost = sum over classes (posts * cost_per_post * fill_rate, or class cost range)",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Kostenbandbreiten je Klasse, großteils Annahmen; Wechselwirkungen nicht modelliert",
+        "translations": {
+          "en": "Cost ranges per class, mostly assumptions; interactions not modelled"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "triage_routing",
+        "telemedicine",
+        "monitoring_transparency"
+      ],
+      "sourceCount": 8
+    },
+    {
+      "measureId": "p-06",
+      "metric": "sv_spend_pp",
+      "value": 0.07,
+      "low": 0.02,
+      "high": 0.19,
+      "unit": "% der Gesundheitsausgaben",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Laufende Gesundheitsausgaben 2024",
+            "translations": {
+              "en": "Current health expenditure 2024"
+            }
+          },
+          "value": "57.8 Mrd. EUR",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "spend_pct = cost_mio / health_expenditure_mio * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt der Kostenbandbreite; Basis Statistik Austria",
+        "translations": {
+          "en": "Follows the cost range; baseline Statistik Austria"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "triage_routing",
+        "telemedicine",
+        "monitoring_transparency"
+      ],
+      "sourceCount": 8
+    },
+    {
+      "measureId": "package",
+      "metric": "wait_change_pct",
+      "value": -4.6,
+      "low": -15.5,
+      "high": -0.6,
+      "unit": "% (Ziel -20 %)",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Erweiterte Kompetenzen der Gesundheitsberufe",
+            "translations": {
+              "en": "Extended scope for health professions"
+            }
+          },
+          "value": "2 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+            "translations": {
+              "en": "1450 appointment brokering and digital specialist triage"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Telemedizin und eKonsil",
+            "translations": {
+              "en": "Telemedicine and e-consults"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Wartezeiten-Dashboard und Monitoring",
+            "translations": {
+              "en": "Waiting-time dashboard and monitoring"
+            }
+          },
+          "value": "2 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Wirkung im ersten Jahr",
+            "translations": {
+              "en": "Effect in year one"
+            }
+          },
+          "value": "-2.5 %",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "classes deduplicated; r_class = effect * scope * phase_in(year 5); group = r1 + 0.5*r2 + 0.25*r3; total = 1 - prod(1 - group); dWait = -total",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Bandbreite aus der Evidenztabelle (10 Quellen), Jahr 5; keine amtliche Wartezeitenreihe",
+        "translations": {
+          "en": "Range from the evidence table (10 sources), year 5; no official waiting-time series"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "scope_of_practice",
+        "triage_routing",
+        "telemedicine",
+        "monitoring_transparency"
+      ],
+      "sourceCount": 10
+    },
+    {
+      "measureId": "package",
+      "metric": "cost_eur_pa",
+      "value": 83,
+      "low": 21,
+      "high": 210,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Erweiterte Kompetenzen der Gesundheitsberufe",
+            "translations": {
+              "en": "Extended scope for health professions"
+            }
+          },
+          "value": "2 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+            "translations": {
+              "en": "1450 appointment brokering and digital specialist triage"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Telemedizin und eKonsil",
+            "translations": {
+              "en": "Telemedicine and e-consults"
+            }
+          },
+          "value": "3 Quellen",
+          "citation": null,
+          "assumption": false
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Wartezeiten-Dashboard und Monitoring",
+            "translations": {
+              "en": "Waiting-time dashboard and monitoring"
+            }
+          },
+          "value": "2 Quellen",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "cost = sum over classes (posts * cost_per_post * fill_rate, or class cost range)",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Kostenbandbreiten je Klasse, großteils Annahmen; Wechselwirkungen nicht modelliert",
+        "translations": {
+          "en": "Cost ranges per class, mostly assumptions; interactions not modelled"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "scope_of_practice",
+        "triage_routing",
+        "telemedicine",
+        "monitoring_transparency"
+      ],
+      "sourceCount": 10
+    },
+    {
+      "measureId": "package",
+      "metric": "sv_spend_pp",
+      "value": 0.14,
+      "low": 0.04,
+      "high": 0.36,
+      "unit": "% der Gesundheitsausgaben (Deckel 5 %)",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Laufende Gesundheitsausgaben 2024",
+            "translations": {
+              "en": "Current health expenditure 2024"
+            }
+          },
+          "value": "57.8 Mrd. EUR",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "spend_pct = cost_mio / health_expenditure_mio * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt der Kostenbandbreite; Basis Statistik Austria",
+        "translations": {
+          "en": "Follows the cost range; baseline Statistik Austria"
+        }
+      },
+      "modelVersion": "impact-0.3-evidence",
+      "notModelled": false,
+      "basis": "evidence",
+      "evidenceClasses": [
+        "scope_of_practice",
+        "triage_routing",
+        "telemedicine",
+        "monitoring_transparency"
+      ],
+      "sourceCount": 10
+    },
+    {
+      "measureId": "proposer:p-05",
+      "metric": "cost_eur_pa",
+      "value": 45,
+      "low": 30,
+      "high": 70,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Kostenschätzung des einbringenden Akteurs",
+            "translations": {
+              "en": "Cost estimate by the proposing actor"
+            }
+          },
+          "value": "45 (30 bis 70) Mio. EUR p.a.",
+          "citation": null,
+          "assumption": true
+        }
+      ],
+      "formula": "cost = proposer_estimate (low..high)",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Bandbreite aus der Schätzung des einbringenden Akteurs; nicht unabhängig kalkuliert",
+        "translations": {
+          "en": "Range from the proposer's estimate; not independently costed"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:p-05",
+      "metric": "sv_spend_pp",
+      "value": 0.08,
+      "low": 0.05,
+      "high": 0.12,
+      "unit": "% der Gesundheitsausgaben",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Kostenschätzung des einbringenden Akteurs",
+            "translations": {
+              "en": "Cost estimate by the proposing actor"
+            }
+          },
+          "value": "45 (30 bis 70) Mio. EUR p.a.",
+          "citation": null,
+          "assumption": true
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Laufende Gesundheitsausgaben, Basis",
+            "translations": {
+              "en": "Current health expenditure, baseline"
+            }
+          },
+          "value": "57.8 Mrd. EUR",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "spend_pct = cost_mio / (baseline_bn * 1000) * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt der Kostenbandbreite",
+        "translations": {
+          "en": "Follows the cost range"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:p-06",
+      "metric": "cost_eur_pa",
+      "value": 410,
+      "low": 340,
+      "high": 520,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Kostenschätzung des einbringenden Akteurs",
+            "translations": {
+              "en": "Cost estimate by the proposing actor"
+            }
+          },
+          "value": "410 (340 bis 520) Mio. EUR p.a.",
+          "citation": null,
+          "assumption": true
+        }
+      ],
+      "formula": "cost = proposer_estimate (low..high)",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Bandbreite aus der Schätzung des einbringenden Akteurs; nicht unabhängig kalkuliert",
+        "translations": {
+          "en": "Range from the proposer's estimate; not independently costed"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:p-06",
+      "metric": "sv_spend_pp",
+      "value": 0.71,
+      "low": 0.59,
+      "high": 0.9,
+      "unit": "% der Gesundheitsausgaben",
+      "inputs": [
+        {
+          "name": {
+            "lang": "de",
+            "text": "Kostenschätzung des einbringenden Akteurs",
+            "translations": {
+              "en": "Cost estimate by the proposing actor"
+            }
+          },
+          "value": "410 (340 bis 520) Mio. EUR p.a.",
+          "citation": null,
+          "assumption": true
+        },
+        {
+          "name": {
+            "lang": "de",
+            "text": "Laufende Gesundheitsausgaben, Basis",
+            "translations": {
+              "en": "Current health expenditure, baseline"
+            }
+          },
+          "value": "57.8 Mrd. EUR",
+          "citation": null,
+          "assumption": false
+        }
+      ],
+      "formula": "spend_pct = cost_mio / (baseline_bn * 1000) * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt der Kostenbandbreite",
+        "translations": {
+          "en": "Follows the cost range"
+        }
+      },
+      "notModelled": false,
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer"
+    },
+    {
+      "measureId": "proposer:package",
+      "metric": "cost_eur_pa",
+      "value": 455,
+      "low": 370,
+      "high": 590,
+      "unit": "Mio. EUR p.a.",
+      "inputs": [],
+      "formula": "sum(cost) over proposals",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Summe der Schätzungen",
+        "translations": {
+          "en": "Sum of the estimates"
+        }
+      },
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer",
+      "notModelled": false
+    },
+    {
+      "measureId": "proposer:package",
+      "metric": "sv_spend_pp",
+      "value": 0.79,
+      "low": 0.64,
+      "high": 1.02,
+      "unit": "% der Gesundheitsausgaben (Deckel 5 %)",
+      "inputs": [],
+      "formula": "spend_pct = sum(cost_mio) / (baseline_bn * 1000) * 100",
+      "uncertainty": {
+        "lang": "de",
+        "text": "Folgt den Schätzungen",
+        "translations": {
+          "en": "Follows the estimates"
+        }
+      },
+      "modelVersion": "impact-0.2-proposer",
+      "basis": "proposer",
+      "notModelled": false
+    }
+  ]
+}
