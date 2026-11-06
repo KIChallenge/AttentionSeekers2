@@ -463,6 +463,10 @@ const de = {
     round: (n: number) => `Runde ${n}`,
     failed: "Die Antwort ist fehlgeschlagen. Bitte erneut fragen.",
     thinking: "antwortet",
+    seatModel: "Sitz:",
+    answerModel: "Antwort:",
+    cut: "gekürzt nach dem letzten sauberen Satz",
+    regenerated: "neu erzeugt",
   },
   common: {
     round: "Runde",
@@ -922,6 +926,10 @@ const en: RunStrings = {
     round: (n: number) => `Round ${n}`,
     failed: "The answer failed. Please ask again.",
     thinking: "answering",
+    seatModel: "Seat:",
+    answerModel: "Answer:",
+    cut: "cut after the last clean sentence",
+    regenerated: "regenerated",
   },
   common: {
     round: "Round",

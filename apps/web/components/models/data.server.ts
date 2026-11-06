@@ -31,6 +31,7 @@ export const FILES = {
   eval: "out/eval_sagemaker.md",
   fidelity: "out/persona_fidelity.json",
   examples: "out/eval_examples.json",
+  evalV2: "out/eval_v2.md",
   classifier: "cards/classifier_report.md",
   readme: "README.md",
   institutions: "configs/institutions.yaml",
@@ -78,6 +79,10 @@ const Fidelity = z.object({
         run: z.string(),
         /** Display name, e.g. "Kontext-Persona (Dossier), gpt-6-sol" (models/scripts/eval_dossier.py). */
         label: z.string().optional(),
+        /** "context_persona" for the in-context arms (card-*, dossier-*); absent for adapters. */
+        kind: z.string().optional(),
+        model: z.string().optional(),
+        prompt: z.string().optional(),
         institutions: z.record(z.string(), VersionScores),
         all: VersionScores,
       }),
@@ -125,17 +130,28 @@ export interface ModelsData {
   infra: Infra | null;
   institutions: InstitutionCard[];
   examples: EvalExample[];
+  /** Looping adapter outputs per version, from the "Loops" list in eval_v2.md. */
+  versionLoops: Record<string, { n: number; of: number }>;
   missing: string[];
 }
 
+/** Reads "- `v2.1` (fixed proxy): 0 of 244 raw adapter outputs loop" lines. */
+export function parseVersionLoops(md: string): Record<string, { n: number; of: number }> {
+  const out: Record<string, { n: number; of: number }> = {};
+  for (const m of md.matchAll(/^- `([^`]+)`[^:\n]*: (\d+) of (\d+) /gm))
+    if (m[1]) out[m[1]] = { n: Number(m[2]), of: Number(m[3]) };
+  return out;
+}
+
 export async function loadModelsData(): Promise<ModelsData> {
-  const [evalMd, fidelity, examples, classifier, readme, inst] = await Promise.all([
+  const [evalMd, fidelity, examples, classifier, readme, inst, evalV2] = await Promise.all([
     readText(FILES.eval),
     readText(FILES.fidelity),
     readText(FILES.examples),
     readText(FILES.classifier),
     readText(FILES.readme),
     readText(FILES.institutions),
+    readText(FILES.evalV2),
   ]);
   const fid = parseJson(fidelity, Fidelity);
   const ex = parseJson(examples, Examples);
@@ -162,6 +178,7 @@ export async function loadModelsData(): Promise<ModelsData> {
     infra: readme ? parseInfra(readme) : null,
     institutions: inst ? parseInstitutions(inst) : [],
     examples: guarded,
+    versionLoops: evalV2 ? parseVersionLoops(evalV2) : {},
     missing,
   };
 }

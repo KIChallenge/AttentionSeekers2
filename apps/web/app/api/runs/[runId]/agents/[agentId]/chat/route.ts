@@ -1,10 +1,14 @@
 import {
+  CHAT_MODEL,
   chatEvidence,
   chatMessages,
+  gatedAnswer,
   nameStreamGuard,
+  runText,
   seatFacts,
-  streamAnswer,
 } from "@sv/engine/chat";
+import { gateContext } from "@sv/engine/chat-gate";
+import { maskPersonNames } from "@sv/engine/guard";
 import { z } from "zod";
 import { loadRunSnapshot } from "@/lib/runs";
 
@@ -13,12 +17,16 @@ export const dynamic = "force-dynamic";
 
 // POST /api/runs/<runId>/agents/<agentId>/chat
 //
-// Ask one seat of a run about its stance. The answer comes from the seat's own model with the
-// persona, red lines, positions, utterances, votes, lessons and strategy it had in the run, and
-// evidence retrieved as of the run's as-of date. Nothing is stored: the browser sends its short
-// history with every question. The response is NDJSON:
-//   {"type":"meta","model":..,"sources":[..]}  evidence handles E1.. with source metadata
-//   {"type":"delta","text":..}                 name-guarded answer text
+// Ask one seat of a run about its stance. The answer comes from a strong chat model (CHAT_MODEL,
+// not the seat's run model) with the persona, red lines, positions, utterances, votes, lessons
+// and strategy the seat had in the run, and evidence retrieved as of the run's as-of date. The
+// output gate keeps clean sentences only and regenerates once when too much is lost. Nothing is
+// stored: the browser sends its short history with every question. The response is NDJSON:
+//   {"type":"meta","model":..,"seatModel":..,"sources":[..]}  answering model, the seat's run
+//                                                            model, evidence handles E1..
+//   {"type":"delta","text":..}                 gated, name-guarded answer text
+//   {"type":"reset"}                           drop the text so far: a regenerated answer follows
+//   {"type":"gate","answeredBy":..,"cut":..,"regenerated":..,"flagged":[..]}
 //   {"type":"done"} | {"type":"error","message":..}
 
 const Body = z.object({
@@ -58,19 +66,34 @@ export async function POST(
     recencyWeight: p.recencyWeight,
   }));
 
+  const model = CHAT_MODEL();
+  const gate = gateContext(...messages.map((m) => m.content), runText(snap));
   const enc = new TextEncoder();
   const body = new ReadableStream<Uint8Array>({
     async start(controller) {
       const send = (o: unknown) => controller.enqueue(enc.encode(`${JSON.stringify(o)}\n`));
-      send({ type: "meta", model: facts.model, sources });
-      const guard = nameStreamGuard();
+      send({ type: "meta", model, seatModel: facts.model, sources });
+      let guard = nameStreamGuard();
       try {
-        for await (const d of streamAnswer(facts.model, messages, { signal: req.signal })) {
-          const text = guard.push(d);
-          if (text) send({ type: "delta", text });
+        for await (const ev of gatedAnswer(model, messages, lang, gate, { signal: req.signal })) {
+          if (ev.type === "delta") {
+            const text = guard.push(ev.text);
+            if (text) send({ type: "delta", text });
+          } else if (ev.type === "reset") {
+            guard = nameStreamGuard();
+            send(ev);
+          } else {
+            const rest = guard.flush();
+            if (rest) send({ type: "delta", text: rest });
+            send({
+              type: "gate",
+              answeredBy: ev.answeredBy,
+              cut: ev.cut,
+              regenerated: ev.regenerated,
+              flagged: ev.flagged.map((w) => maskPersonNames(w)).slice(0, 12),
+            });
+          }
         }
-        const rest = guard.flush();
-        if (rest) send({ type: "delta", text: rest });
         send({ type: "done" });
       } catch (error) {
         if (!req.signal.aborted) {

@@ -35,7 +35,11 @@ interface Turn {
   role: "user" | "assistant";
   content: string;
   sources?: AskSource[];
+  /** The model that wrote this answer; the seat's run model is `seatModel`. */
   model?: string;
+  seatModel?: string;
+  /** Output gate: the answer was cut at the last clean sentence or regenerated. */
+  gate?: { cut: boolean; regenerated: boolean; flagged: string[] };
   pending?: boolean;
   failed?: boolean;
 }
@@ -134,6 +138,14 @@ function Answer({ turn }: { turn: Turn }) {
         </span>
       ) : null}
       {turn.failed ? <span className="block text-warning">{t.ask.failed}</span> : null}
+      {turn.gate && (turn.gate.cut || turn.gate.regenerated) ? (
+        <Level min="engineer">
+          <span className="mt-1 block font-mono text-[11px] text-muted-foreground">
+            {turn.gate.regenerated ? t.ask.regenerated : t.ask.cut}
+            {turn.gate.flagged.length ? `: ${turn.gate.flagged.join(", ")}` : ""}
+          </span>
+        </Level>
+      ) : null}
     </p>
   );
 }
@@ -214,9 +226,27 @@ export function AskSheet({
             type: string;
             text?: string;
             model?: string;
+            seatModel?: string;
             sources?: AskSource[];
+            answeredBy?: string;
+            cut?: boolean;
+            regenerated?: boolean;
+            flagged?: string[];
           };
-          if (ev.type === "meta") update({ model: ev.model, sources: ev.sources });
+          if (ev.type === "meta")
+            update({ model: ev.model, seatModel: ev.seatModel, sources: ev.sources });
+          else if (ev.type === "reset") {
+            text = "";
+            update({ content: "" });
+          } else if (ev.type === "gate")
+            update({
+              model: ev.answeredBy,
+              gate: {
+                cut: Boolean(ev.cut),
+                regenerated: Boolean(ev.regenerated),
+                flagged: ev.flagged ?? [],
+              },
+            });
           else if (ev.type === "delta") {
             text += ev.text ?? "";
             update({ content: text });
@@ -245,7 +275,8 @@ export function AskSheet({
       void ask(draft);
     }
   };
-  const model = [...turns].reverse().find((x) => x.model)?.model ?? run.modelAssignment[agentId];
+  const last = [...turns].reverse().find((x) => x.model);
+  const seatModel = last?.seatModel ?? run.modelAssignment[agentId];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -256,7 +287,10 @@ export function AskSheet({
             <SheetTitle className="truncate">{look.name}</SheetTitle>
             <SheetDescription className="sr-only">{t.ask.actionTitle(look.name)}</SheetDescription>
             <Level min="engineer">
-              <div className="truncate font-mono text-[11px] text-muted-foreground">{model}</div>
+              <div className="truncate font-mono text-[11px] text-muted-foreground">
+                {t.ask.seatModel} {seatModel}
+                {last?.model ? ` · ${t.ask.answerModel} ${last.model}` : ""}
+              </div>
             </Level>
           </div>
           {turns.length ? (
