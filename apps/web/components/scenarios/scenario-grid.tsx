@@ -86,7 +86,7 @@ export function ScenarioGrid({ cards }: { cards: ScenarioCard[] }) {
   const side = cards.filter((c) => c.kind !== "main");
   if (cards.length === 0) return <EmptyState title={s.noRuns} />;
   return (
-    <>
+    <div className="space-y-10">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {main.map((c) => (
           <Card key={c.key} c={c} />
@@ -105,17 +105,16 @@ export function ScenarioGrid({ cards }: { cards: ScenarioCard[] }) {
       {side.length ? (
         <details className="group space-y-4">
           <summary className="flex cursor-pointer list-none items-baseline gap-3 rounded-md text-base font-semibold tracking-tight focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none">
-            <span>{s.sideGroups}</span>
+            <span title={s.sideGroupsHint}>{s.sideGroups}</span>
             <Meta>{side.reduce((n, c) => n + c.runCount, 0)}</Meta>
-            <span className="text-sm font-normal text-muted-foreground">{s.sideGroupsHint}</span>
           </summary>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {side.map((c) => (
               <Card key={c.key} c={c} compact />
             ))}
           </div>
         </details>
       ) : null}
-    </>
+    </div>
   );
 }
