@@ -1,0 +1,44 @@
+# raw downloads and large derived artefacts stay local
+data/raw/
+data/cache/
+**/*.pdf
+**/.venv/
+node_modules/
+.next/
+# models/: code, configs and cards are tracked; weights, checkpoints are not
+models/**/*.safetensors
+models/**/checkpoints
+models/**/*.bin
+models/**/*.pt
+models/**/*.gguf
+models/**/*.joblib
+models/out/classifier/model/
+# raw LLM generations before the person-name guard
+models/out/dpo_cache/
+*.parquet
+# monorepo (added by app foundation)
+.turbo/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+.env
+.env.*
+!.env.example
+# caches and full-text derivatives stay local (public repo; person names, publication rights)
+forecasting/cache/
+data/derived/stellungnahmen*.jsonl
+models/data/**/*.jsonl
+models/out/
+**/*cache/
+__pycache__/
+*.pyc
+.pytest_cache/
+.claude/
+apps/web/AGENTS.md
+# press/: scripts, counts and metadata only; press text and its derivatives stay local
+press/work/
+press/derived/*.jsonl
+press/derived/sft/
+press/derived/*.jsonl
+press/derived/sft/
+press/work/

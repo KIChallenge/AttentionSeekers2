@@ -1,0 +1,480 @@
+{
+  "corpusRevision": "corpus-2026-10-31",
+  "sources": [
+    {
+      "id": "p-18821",
+      "kind": "press",
+      "institution": {
+        "code": "SV",
+        "nameDe": "Sozialversicherung",
+        "glossEn": "Social insurance (Dachverband, ÖGK)",
+        "role": "social_insurance"
+      },
+      "date": "2026-09-14",
+      "datePrecision": "day",
+      "outlet": "APA-OTS",
+      "title": "Sozialversicherung zu unbesetzten Kassenstellen",
+      "legalRef": null,
+      "url": null,
+      "licence": null,
+      "personFiltered": true,
+      "corpusRevision": "corpus-2026-10-31"
+    },
+    {
+      "id": "p-19544",
+      "kind": "stellungnahme",
+      "institution": {
+        "code": "ÄK",
+        "nameDe": "Ärztekammer",
+        "glossEn": "Medical Chamber",
+        "role": "medical_chamber"
+      },
+      "date": "2026-06-02",
+      "datePrecision": "day",
+      "outlet": null,
+      "title": "Stellungnahme zum Entwurf Gesundheitsreformbegleitgesetz",
+      "legalRef": null,
+      "url": null,
+      "licence": null,
+      "personFiltered": true,
+      "corpusRevision": "corpus-2026-10-31"
+    },
+    {
+      "id": "p-20877",
+      "kind": "press",
+      "institution": {
+        "code": "VÄ",
+        "nameDe": "Vertragsärzt:innen",
+        "glossEn": "Contracted physicians",
+        "role": "contract_physicians"
+      },
+      "date": "2026-08-21",
+      "datePrecision": "day",
+      "outlet": "Der Standard",
+      "title": "Vertragsärzt:innen zu Telemedizin",
+      "legalRef": null,
+      "url": null,
+      "licence": null,
+      "personFiltered": true,
+      "corpusRevision": "corpus-2026-10-31"
+    },
+    {
+      "id": "p-21003",
+      "kind": "parliament",
+      "institution": {
+        "code": "GM",
+        "nameDe": "Gesundheitsministerium",
+        "glossEn": "Federal Ministry of Health",
+        "role": "ministry_health"
+      },
+      "date": "2026-05-12",
+      "datePrecision": "day",
+      "outlet": null,
+      "title": "Regierungsvorlage Zielsteuerung-Gesundheit",
+      "legalRef": null,
+      "url": null,
+      "licence": null,
+      "personFiltered": true,
+      "corpusRevision": "corpus-2026-10-31"
+    },
+    {
+      "id": "p-22410",
+      "kind": "press",
+      "institution": {
+        "code": "PV",
+        "nameDe": "Patientenvertretung",
+        "glossEn": "Patient advocacy",
+        "role": "patients"
+      },
+      "date": "2026-10-03",
+      "datePrecision": "day",
+      "outlet": "Die Presse",
+      "title": "Patientenvertretung zu Wartezeiten",
+      "legalRef": null,
+      "url": null,
+      "licence": null,
+      "personFiltered": true,
+      "corpusRevision": "corpus-2026-10-31"
+    },
+    {
+      "id": "p-23118",
+      "kind": "stellungnahme",
+      "institution": {
+        "code": "FM",
+        "nameDe": "Finanzministerium",
+        "glossEn": "Federal Ministry of Finance",
+        "role": "ministry_finance"
+      },
+      "date": "2026-07-08",
+      "datePrecision": "day",
+      "outlet": null,
+      "title": "Stellungnahme Finanzrahmen Gesundheit",
+      "legalRef": null,
+      "url": null,
+      "licence": null,
+      "personFiltered": true,
+      "corpusRevision": "corpus-2026-10-31"
+    },
+    {
+      "id": "p-24002",
+      "kind": "stellungnahme",
+      "institution": {
+        "code": "BL",
+        "nameDe": "Bundesländer",
+        "glossEn": "Federal states (Länder)",
+        "role": "laender"
+      },
+      "date": "2026-04-17",
+      "datePrecision": "day",
+      "outlet": null,
+      "title": "Stellungnahme der Länder zur Primärversorgung",
+      "legalRef": null,
+      "url": null,
+      "licence": null,
+      "personFiltered": true,
+      "corpusRevision": "corpus-2026-10-31"
+    },
+    {
+      "id": "p-24390",
+      "kind": "audit",
+      "institution": {
+        "code": "KA",
+        "nameDe": "Krankenanstalten",
+        "glossEn": "Hospital operators",
+        "role": "hospitals"
+      },
+      "date": "2025-11-30",
+      "datePrecision": "day",
+      "outlet": null,
+      "title": "Bericht Spitalsambulanzen",
+      "legalRef": null,
+      "url": null,
+      "licence": null,
+      "personFiltered": true,
+      "corpusRevision": "corpus-2026-10-31"
+    },
+    {
+      "id": "p-24711",
+      "kind": "press",
+      "institution": {
+        "code": "PF",
+        "nameDe": "Pflegevertretung",
+        "glossEn": "Nursing representation",
+        "role": "nursing"
+      },
+      "date": "2026-09-29",
+      "datePrecision": "day",
+      "outlet": "APA-OTS",
+      "title": "Pflegevertretung zu Community Nursing",
+      "legalRef": null,
+      "url": null,
+      "licence": null,
+      "personFiltered": true,
+      "corpusRevision": "corpus-2026-10-31"
+    },
+    {
+      "id": "p-25001",
+      "kind": "statistic",
+      "institution": {
+        "code": "SV",
+        "nameDe": "Sozialversicherung",
+        "glossEn": "Social insurance (Dachverband, ÖGK)",
+        "role": "social_insurance"
+      },
+      "date": "2026-10-15",
+      "datePrecision": "day",
+      "outlet": null,
+      "title": "Gebarungsvorschau Krankenversicherung",
+      "legalRef": null,
+      "url": null,
+      "licence": null,
+      "personFiltered": true,
+      "corpusRevision": "corpus-2026-10-31"
+    },
+    {
+      "id": "p-30112",
+      "kind": "statistic",
+      "institution": {
+        "code": "SV",
+        "nameDe": "Sozialversicherung",
+        "glossEn": "Social insurance (Dachverband, ÖGK)",
+        "role": "social_insurance"
+      },
+      "date": "2026-10-28",
+      "datePrecision": "day",
+      "outlet": null,
+      "title": "Wartezeiten-Erhebung Fachärzt:innen",
+      "legalRef": null,
+      "url": null,
+      "licence": null,
+      "personFiltered": true,
+      "corpusRevision": "corpus-2026-10-31"
+    },
+    {
+      "id": "s-asvg-342",
+      "kind": "sozdok",
+      "institution": {
+        "code": "SV",
+        "nameDe": "Sozialversicherung",
+        "glossEn": "Social insurance (Dachverband, ÖGK)",
+        "role": "social_insurance"
+      },
+      "date": "2026-01-01",
+      "datePrecision": "day",
+      "outlet": null,
+      "title": "ASVG § 342",
+      "legalRef": "ASVG § 342",
+      "url": null,
+      "licence": null,
+      "personFiltered": true,
+      "corpusRevision": "corpus-2026-10-31"
+    }
+  ],
+  "segments": [
+    {
+      "id": "p-18821-s1",
+      "sourceId": "p-18821",
+      "ordinal": 1,
+      "start": 0,
+      "end": 117,
+      "text": "Mit Stichtag 1. Juli sind österreichweit rund 290 Kassenstellen unbesetzt, zwei Drittel davon in ländlichen Regionen.",
+      "textEn": null
+    },
+    {
+      "id": "p-19544-s1",
+      "sourceId": "p-19544",
+      "ordinal": 1,
+      "start": 0,
+      "end": 133,
+      "text": "Von den 650 im Vorjahr ausgeschriebenen Kassenstellen blieben 40 % ohne Bewerbung. Ursache ist die fehlende Attraktivität der Tarife.",
+      "textEn": null
+    },
+    {
+      "id": "p-20877-s1",
+      "sourceId": "p-20877",
+      "ordinal": 1,
+      "start": 0,
+      "end": 114,
+      "text": "Telemedizinische Erstkontakte als Kassenleistung setzen klare Haftungsregeln und eine eigene Tarifposition voraus.",
+      "textEn": null
+    },
+    {
+      "id": "p-21003-s1",
+      "sourceId": "p-21003",
+      "ordinal": 1,
+      "start": 0,
+      "end": 112,
+      "text": "Eine nationale Terminservicestelle über die Gesundheitshotline 1450 soll bis 2028 flächendeckend verfügbar sein.",
+      "textEn": null
+    },
+    {
+      "id": "p-22410-s1",
+      "sourceId": "p-22410",
+      "ordinal": 1,
+      "start": 0,
+      "end": 87,
+      "text": "In mehreren Fächern warten Patient:innen länger als acht Wochen auf einen Kassentermin.",
+      "textEn": null
+    },
+    {
+      "id": "p-23118-s1",
+      "sourceId": "p-23118",
+      "ordinal": 1,
+      "start": 0,
+      "end": 84,
+      "text": "Zusätzliche Dauerausgaben sind nur mit Gegenfinanzierung und Evaluierung vertretbar.",
+      "textEn": null
+    },
+    {
+      "id": "p-24002-s1",
+      "sourceId": "p-24002",
+      "ordinal": 1,
+      "start": 0,
+      "end": 130,
+      "text": "Die Länder fordern eine Mitentscheidung bei der Planung von Primärversorgungseinheiten über die Landes-Zielsteuerungskommissionen.",
+      "textEn": null
+    },
+    {
+      "id": "p-24390-s1",
+      "sourceId": "p-24390",
+      "ordinal": 1,
+      "start": 0,
+      "end": 84,
+      "text": "Ein relevanter Anteil der Ambulanzfälle wäre im niedergelassenen Bereich versorgbar.",
+      "textEn": null
+    },
+    {
+      "id": "p-24711-s1",
+      "sourceId": "p-24711",
+      "ordinal": 1,
+      "start": 0,
+      "end": 99,
+      "text": "Pflegerischer Erstkontakt in Primärversorgungseinheiten kann ärztliche Routinekontrollen entlasten.",
+      "textEn": null
+    },
+    {
+      "id": "p-25001-s1",
+      "sourceId": "p-25001",
+      "ordinal": 1,
+      "start": 0,
+      "end": 123,
+      "text": "Für Spitalsambulanzen sind im Folgejahr Pauschalzahlungen vorgesehen, aus denen 180 Mio. Euro umgeschichtet werden könnten.",
+      "textEn": null
+    },
+    {
+      "id": "p-30112-s1",
+      "sourceId": "p-30112",
+      "ordinal": 1,
+      "start": 0,
+      "end": 101,
+      "text": "Median-Wartezeit auf einen Kassentermin: sechs Wochen in Augenheilkunde, fünf Wochen in Dermatologie.",
+      "textEn": null
+    },
+    {
+      "id": "s-asvg-342-s1",
+      "sourceId": "s-asvg-342",
+      "ordinal": 1,
+      "start": 0,
+      "end": 115,
+      "text": "Der Gesamtvertrag regelt insbesondere die Festsetzung der Zahl und der örtlichen Verteilung der Vertragsärzt:innen.",
+      "textEn": null
+    }
+  ],
+  "redLines": [
+    {
+      "id": "rl-ak-1",
+      "role": "medical_chamber",
+      "text": {
+        "lang": "de",
+        "text": "Keine Stellenplanung außerhalb des Gesamtvertrags",
+        "translations": {
+          "en": "No post planning outside the collective contract"
+        }
+      },
+      "basis": {
+        "sourceId": "s-asvg-342",
+        "segmentId": "s-asvg-342-s1",
+        "start": null,
+        "end": null,
+        "recencyWeight": 1
+      },
+      "tier": "deep_core",
+      "topicKeys": [
+        "pve_planning",
+        "contract_posts"
+      ]
+    },
+    {
+      "id": "rl-ak-2",
+      "role": "medical_chamber",
+      "text": {
+        "lang": "de",
+        "text": "Keine Substitution der ärztlichen Erstdiagnose",
+        "translations": {
+          "en": "No substitution of the medical first diagnosis"
+        }
+      },
+      "basis": {
+        "sourceId": "p-19544",
+        "segmentId": "p-19544-s1",
+        "start": null,
+        "end": null,
+        "recencyWeight": 0.7
+      },
+      "tier": "policy_core",
+      "topicKeys": [
+        "nursing_first_contact",
+        "telemedicine"
+      ]
+    },
+    {
+      "id": "rl-va-1",
+      "role": "contract_physicians",
+      "text": {
+        "lang": "de",
+        "text": "Keine Terminpflicht ohne Honorierung",
+        "translations": {
+          "en": "No appointment obligation without remuneration"
+        }
+      },
+      "basis": {
+        "sourceId": "p-20877",
+        "segmentId": "p-20877-s1",
+        "start": null,
+        "end": null,
+        "recencyWeight": 0.86
+      },
+      "tier": "policy_core",
+      "topicKeys": [
+        "appointment_guarantee"
+      ]
+    },
+    {
+      "id": "rl-fm-1",
+      "role": "ministry_finance",
+      "text": {
+        "lang": "de",
+        "text": "Mehrausgaben nur innerhalb des Deckels und mit Gegenfinanzierung",
+        "translations": {
+          "en": "Extra spending only within the cap and with offsetting finance"
+        }
+      },
+      "basis": {
+        "sourceId": "p-23118",
+        "segmentId": "p-23118-s1",
+        "start": null,
+        "end": null,
+        "recencyWeight": 0.82
+      },
+      "tier": "deep_core",
+      "topicKeys": [
+        "fee_indexation",
+        "contract_posts"
+      ]
+    },
+    {
+      "id": "rl-bl-1",
+      "role": "laender",
+      "text": {
+        "lang": "de",
+        "text": "Keine Kostenverschiebung auf Länderbudgets ohne 15a-Ausgleich",
+        "translations": {
+          "en": "No cost shift onto Länder budgets without a 15a settlement"
+        }
+      },
+      "basis": {
+        "sourceId": "p-24002",
+        "segmentId": "p-24002-s1",
+        "start": null,
+        "end": null,
+        "recencyWeight": 0.74
+      },
+      "tier": "policy_core",
+      "topicKeys": [
+        "pve_planning"
+      ]
+    },
+    {
+      "id": "rl-sv-1",
+      "role": "social_insurance",
+      "text": {
+        "lang": "de",
+        "text": "Beitragssätze bleiben stabil",
+        "translations": {
+          "en": "Contribution rates stay stable"
+        }
+      },
+      "basis": {
+        "sourceId": "p-25001",
+        "segmentId": "p-25001-s1",
+        "start": null,
+        "end": null,
+        "recencyWeight": 0.95
+      },
+      "tier": "deep_core",
+      "topicKeys": [
+        "fee_indexation"
+      ]
+    }
+  ]
+}

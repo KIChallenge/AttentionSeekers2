@@ -1,0 +1,324 @@
+# UI simplification (branch `feat/ui-simplify`)
+
+Status: 2026-11-06, night before the jury. Screenshots before and after live in the scratchpad
+(`uisimp/before`, `uisimp/after`), 1440x900 and 1920x1080, run `reference-wartezeiten-presse`.
+
+## Default disclosure level: Analyst
+
+`docs/pitch.md` sets "Detailgrad Analyst" for both the desk and the projector, and steps 2 to 8
+of the click path need things Executive hides: citation chips, reply links, the strategic panel,
+the trajectory. So Analyst stays the default. The work below makes Analyst calm enough to carry
+the path; Engineer keeps everything it had (prompts, retrieval traces, model ids, telemetry,
+utterance ids, verifying models) and gains what moved out of Analyst. Executive is untouched
+except where a shared component got quieter.
+
+Rules applied on every screen:
+
+- One primary question per screen, answered above the fold at 1440x900.
+- One accent per meaning: success = verified or consensus, warning = contradicted or red line or
+  blocking, info = exchange kinds, the agent hue = identity. Nothing else carries colour.
+- Ids (`u2-10`, `c-1-02-1`, `rl-ak-1`, model ids) are Engineer-level or sit in a `title`.
+- Requirement ids (FR-M9, FR-R8, CON-1) leave the UI copy; they live in the docs.
+- Long lists collapse by default (`<details>`), with the count in the summary.
+- No truncated label fragments: a label is either shown whole or replaced by a tooltip.
+
+## Screen critiques
+
+### 1. Negotiation `/runs/[runId]` (heart of the demo)
+
+Primary question: "Who said what, in reply to whom, and where does the negotiation stand?"
+
+Noise before: the full speaker timeline (350 px) sits above the transcript with twelve
+truncated exchange labels ("Ple...", "T...", "Plenum · ..."); the roster repeats the institution
+unit under every name and lists eight coalition rows of tiles; the right panel opens on
+`u1-02` although the view starts at round 5, prints verifying-model verdicts in mono, and ends
+with the mandate objective; every utterance header carries name, role, addressees, id, reply
+pill with id and name, kind chip, red-line chip, proposal chips, model id; every citation chip
+shows `w 0.55 · 18 Mon.`; the round summary is a four-cell grid even when three cells say
+"keine"; lesson cards are open per round.
+
+Changes:
+
+- Timeline collapses to a compact strip (rows only, no label text) in the sticky header; one
+  button expands it. Exchange labels render text only when the band is wide enough, otherwise
+  the band keeps its tooltip and gets no fragment.
+- Roster becomes a slim rail: tile, name, speaking indicator; the unit is a tooltip; coalitions
+  live in a closed `<details>` with the count.
+- Right panel defaults to the stand of the negotiation (agreement per topic, most binding
+  conflict); selecting an utterance switches it to that utterance, with a way back. The
+  utterance id, verifying models and telemetry move to Engineer.
+- Utterance header: name, role, reply as "antwortet auf Ärztekammer", kind as quiet text,
+  red-line chip only. Ids and model in Engineer. Citation chips compact in the transcript.
+- Round summary: text and open conflicts first; agreement, failed proposals and new options in
+  a closed details row. Red lines show their text, not their id.
+- Lesson cards closed by default with the count.
+
+### 2. Dashboard `/`
+
+Primary question: "Which run do I open, and what came out of the reference run?"
+
+Noise: four stat tiles that say 3, 2/3, 18/21, 6; four badges on the pinned card; two CTA
+cards that duplicate the top bar; a mono line `id · 9 · 2 models` under every row.
+
+Changes: tiles become one muted line; badges reduce to outcome and template; CTA cards go; the
+mono line moves to Engineer; variant column goes (it is a filter).
+
+### 3. Stage `/runs/[runId]/stage`
+
+Primary question: "Who is speaking to whom right now?"
+
+Noise: subtitle header with role, addressee, kind chip, reply with id, "Ausgewählter Austausch"
+chip and an id link; the rail repeats the exchange. Not changed on this branch: the stage is
+being reworked on its own branch (voices, meeting mode), so `components/stage/**` stays
+untouched here. The stage only inherits the shared timeline's label rule (whole label or none).
+Suggested for that branch: subtitle keeps speaker, addressee and reply by name; ids and the
+exchange chip move to Engineer.
+
+### 4. Analysis `/runs/[runId]/analysis`
+
+Primary question: "Who moved, when, and who blocks?"
+
+Noise: end-condition chip in the title row; incentive matrix and proposal list open below the
+fold; red-line ids in the conflict cards. Changes: end condition becomes the subtitle; the
+incentive matrix closes by default; red lines show text.
+
+### 5. Agent card `/runs/[runId]/agents/[agentId]`
+
+Primary question: "Where does this institution start, what will it never accept, and what does
+it want?"
+
+Noise: a long subtitle paragraph; a broken stance grid at 1440 (bar squeezed to 64 px, labels
+wrapping); "Gespielt von" lists every utterance id; a footer of requirement ids. Changes: stance
+row is a flex row with one line of numbers; the subtitle goes; utterance ids become a count with
+a link (Engineer sees the list); model id to Engineer; the footer says what it means.
+
+### 6. Outcome and result
+
+Outcome: the four tiles show a lone "·" when a figure is missing; descriptor chips
+(`measure_class`, `payer`, `15a`...) sit under every forecast. Changes: missing figures say
+"nicht verfügbar"; descriptor chips move to Engineer. Result: model ids to Engineer.
+
+### 7. Archive, setup room
+
+Archive: facet lists show every institution; collapse after eight. Setup: model selectors per
+party and the "angepasst" chip stay, the model id moves behind the chip at Analyst.
+
+## Deliberately left
+
+- The stage (2D tiles, 3D avatars, voices) and the replay player are untouched beyond shared
+  components (timeline, utterance card, round summary, source chip).
+- The inspector keeps its full layout: it is the Engineer screen by definition.
+- No new strings; the few labels the new folds need reuse existing DE and EN entries.
+- Executive level is unchanged except where a shared component got quieter; the stand panel
+  (agreement per topic, binding conflict) now lives in the right rail at every level.
+
+## Playback controls (branch `feat/stage-controls`)
+
+Status: 2026-11-06, 02:00. Screenshots before and after live in the scratchpad
+(`pw/controls/before`, `pw/controls/after`), 1440x900 and 1920x1080, light, dark and
+projector, Meeting view at 1920x1080, run `reference-wartezeiten-presse`.
+
+Critique of the four surfaces as they were:
+
+- Stage transport (tiles and 3D): the play button is a 128 px wide text button whose "icon" is
+  a text character (`▶`, `❚❚`) drawn at font size, so it changes with the font and sits off the
+  baseline; previous and next are the emoji code points `⏮` `⏭`, which fall back to an 11 px
+  glyph; the sharpest rebuttal uses the `⚡` emoji. Three button shapes sit in one row (bordered
+  square, filled text button, info outline), the speed and scope segments are 28 px, the only
+  focus state is the browser outline, and nothing shows a pressed state. The playhead is a 2 px
+  bar at the centre of the active segment among 132 coloured segments, so it reads as data, not
+  as a handle, and the round labels `R1..R5` touch the strip.
+- Meeting pill: right idea (floating, fades when idle, play in the middle) but the same text
+  glyphs: previous and next render at about 11 px inside 44 px buttons, play is a text triangle
+  centred by the font, fullscreen uses `⛶` and `⤡`, which are missing in most fonts. Speed is a
+  mono text button that cycles with no sign that other values exist.
+- Replay player: `❚❚ Pause` as a 96 px text button at 32 px, `↺ Neu starten` as a ghost text
+  button, speed as four separate 24 px pills where the selected one is solid black (it looks
+  like a primary action), round jumps as 28 px ghost buttons. The scrubber playhead is fine but
+  the knob is 10 px and there is no progress fill behind the current event.
+- Run header: `▶ Live abspielen` is a 28 px pill next to a 28 px speed segment; both sit in a
+  44 px bar, so the hit target is smaller than the bar. The speed segment disappears below
+  `lg`.
+- Across all four: four different play glyphs, four button heights (28, 32, 36, 44 px), four
+  radii, tooltips only through `title` (no shortcut hint, nothing on touch), and the replay
+  player has no tooltips at all.
+
+One control system, `components/playback`:
+
+- `PlaybackButton`: round icon button with Hugeicons (Play, Pause, Previous, Next, Flash,
+  RotateLeft, Stop, FullScreen, Minimize, Cancel). Sizes `md` 36 px, `lg` 44 px, play/pause one
+  step larger (44 px, 56 px in Meeting) so it is the obvious control; projector mode scales
+  every size by 1.25 through the root font size. Variants: `primary` (filled, play/pause),
+  `ghost` (bordered on the light surfaces, translucent on the dark call surface), `accent`
+  (sharpest rebuttal), `danger` (leave meeting). Pressed state via `aria-pressed` with an inset
+  fill, focus with a 2 px ring and offset, active scale, 40 percent opacity when disabled.
+  Buttons do not keep pointer focus, so Space stays play/pause and never re-clicks a button.
+- `PlaybackTooltip`: label plus `Kbd` shortcut (DE "Leertaste", EN "Space"), also written to
+  `aria-label` and `aria-keyshortcuts`.
+- `SpeedControl`: compact segmented control, full-height options (36 px, 44 px on the call
+  surface), selected option as an inset pill, `aria-pressed` on every option.
+- Scrubbers keep their shape (utterance segments on the stage, recorded time in the replay) and
+  share one playhead: a 2 px line with a 14 px knob ringed in the surface colour; the stage
+  playhead moves within the current segment as the line is spoken.
+- Keyboard shortcuts unchanged: Space, arrows, S, F, R, Esc.
+
+Auto-continue check (headless Chrome, `pw/controls/autoplay.mjs`, one sample every 5 s): the
+tile stage played from utterance 33 to 35 of 132 over 80 s with ElevenLabs audio and was never
+paused between lines; the Meeting view went from 33 to 36 over 65 s at 1.5x, also without a stop.
+The whole-run default scope and the audio stall watchdog from `main` hold, nothing to fix there.
+Measured hit targets after the change: 36 px (prev, next, restart, every speed and scope option),
+44 px play/pause; Meeting 44 px and 56 px play/pause; projector 45 px and 55 px.
+
+## Newer screens (branch `feat/ui-pass-newer-views`)
+
+Status: 2026-11-06, 03:30. Screenshots before and after live in the scratchpad
+(`pw/newer/before`, `pw/newer/after`), 1440x900 and 1920x1080, light, dark, DE, EN, projector
+and all three levels; trace on `demo-agent-trace` (recorded) and `reference-wartezeiten-presse`
+(derived). Same rules as above: one question per screen above the fold, ids and model ids at
+Engineer, no truncated fragments, one accent per meaning.
+
+### 8. Agent trace `/runs/[runId]/trace`
+
+Primary question: "Where did the time, tokens and money go, and did anything fail or fall back?"
+
+Noise before: a two-line subtitle repeats the summary sentence; six stat tiles where two sub
+lines are cut ("Listenpreise je Modell, keine Abrec...", "0 Ausweichmodell · 11 repariert · 0
+..."), so the reliability answer is the one line that is truncated; the reliability tile shows
+"11" in the same weight as every other number, so repairs, fallbacks and failures are not
+distinguishable without reading the cut line; a legend line about dashed bars and diamonds sits
+on recorded runs where nothing is dashed; a derived run says "abgeleitet" four times (title chip,
+summary chip, banner, detail chip); every utterance row carries its id (`u1-02`) and every
+expert sub-call a truncated schema name ("expert_che..."); group titles carry the exchange id
+(`X1-01 · PLENUM`) and the prep title is cut at projector width ("STRATEGISCHE LAGEBEURTEIL...");
+the detail panel opens with the model id, call id and request id as chips and a telemetry
+list of twelve rows; Executive sees exactly what Analyst sees.
+
+Changes: the subtitle goes, the summary sentence carries the run and a second sentence states
+reliability in words with one accent (destructive for failures, warning for fallbacks, quiet for
+repairs, success when nothing went wrong); four tiles (run time, tokens in, tokens out, cost)
+with sub lines that wrap instead of truncating; the legend only appears on derived runs; the
+derived chip appears once in the title and once as the banner. Rows: utterance ids, schema
+names, call id, request id, provider and output schema move to Engineer; exchange groups read
+"Plenum", "Einzelgespräch: Ärztekammer, Pflegevertretung" with the id at Engineer; work-group
+titles are shorter and never truncate. Executive: no filter row, rounds closed by default, so
+the screen is the summary plus one line per round.
+
+### 9. Topic comparison `/topics/wartezeiten`
+
+Primary question: "Which results hold across models, which depend on the model, and what does
+history say?"
+
+Noise before: the runs table (six rows with nine seat chips each and three warning lines)
+sits between the summary and the topics table, so the answer to the primary question starts
+at 1900 px; every topic row repeats "Endhaltung je Institution und Lauf · Vorschläge je Lauf"
+as its details summary; the history cell prints the measure class in mono on every row
+(`workforce (nächste Klasse zu capacity_expansion)`) and the same 33 of 40 seven times; the
+caveat paragraph appears twice; missing figures show a lone dash; the seats table shows the
+family counts only at Engineer but the numbers without a scale hint at Analyst.
+
+Changes (presentation only, data loading and comparison logic untouched so the family branch
+merges cleanly): the topics table moves directly under the summary, the runs table below it;
+the details summary becomes "Haltung und Vorschläge je Lauf"; the history cell shows the rate
+and the interval at Analyst and the class mapping at Engineer; missing figures say "ohne
+Schätzung"; the caveat stays in the summary card only; Executive hides the runs table and the
+seats table and keeps summary, topics and history.
+
+### 10. Models `/models`
+
+Primary question: "Did training help, for whom, and can I try it?"
+
+Noise before: the verdict card answers "did it help" above the fold, but "for whom" is a table
+at 2000 px below two explanatory card rows (why, pipeline), and "can I try it" is the playground
+at 2600 px; the verdict badges use `secondary` (grey) for better and `destructive` for worse,
+so the one positive result is the least visible; the KPI pairs are mono at 20 px with "Adapter"
+and "Basis" labels in mono too; the per-institution table at Analyst has eleven columns
+including training sizes and losses; the versions block hard-codes "v1, v1 mit Inferenz-Fix,
+v2" in its title while the data has two versions, and lays out 2 x (versions + 1) flat columns;
+the playground status dot uses raw Tailwind colours (`emerald-500`, `red-500`) and prints
+model ids in every output title; the infrastructure block prints job, endpoint, instance and
+region ids at Analyst; the sources line in mono sits at every level.
+
+Changes: order becomes verdict (with a "for whom" strip of nine institutions coloured by
+verdict and a link to the playground and to Hugging Face), per-institution table, playground,
+versions, then why, pipeline, classifier, cost, licences; verdict tone is success for better,
+destructive for worse, quiet for tie, on the badges, the strip and a signed delta next to the
+in-character pair; training sizes, losses and seconds move to Engineer; the versions block
+takes 1 to 3 versions, groups the columns under "Haltungsrichtung" and "In-Character" headers,
+lists the versions it actually found and bolds the best value per row; playground status uses
+the success and destructive tokens and shows model ids at Engineer; the infra ids and the
+sources line move to Engineer; Executive sees verdict, table (reduced), playground and the
+licence and Hugging Face block.
+
+## Design system (branch `feat/ui-clean`)
+
+Status: 2026-11-06, 07:30. Screenshots before and after live in the scratchpad
+(`pw/clean/before`, `pw/clean/after`), 1440x900 and 1920x1080, light and dark, DE and EN,
+run `reference-wartezeiten-presse`. The pass follows the patterns of the team's earlier
+project (medlyn): shadcn/ui components, one page shell, sections as hairline cards.
+
+What the jury saw before: every screen set its own width and gutter, cards were drawn by hand
+with four paddings and two shadows, section titles came in three weights, filters sat in a row
+of their own above the table, the pinned run carried four equal buttons, and the three zones of
+the negotiation view shared one white surface with hairline borders.
+
+One system, `components/shell/page.tsx`:
+
+- `Page`: 1280px reading width (`wide` 1600px for dashboards with tables, `full` 1800px for
+  the run screens), 2rem gutters, 2rem between direct children. Nothing inside adds an outer
+  margin.
+- `PageHead`: title (2xl semibold), one-line muted description, actions on the right with at
+  most one primary button.
+- `Section`: the only section frame. `card` is a hairline card (`rounded-2xl border bg-card
+  p-5 sm:p-6`, no shadow) with a title row (base semibold, muted description, action);
+  `plain` is the same title row over a separator, for content that is itself a table or a
+  grid of cards. `Panel` on the run screens delegates to it. `SectionHead` alone for pages
+  that keep their own frames.
+- `Eyebrow` (11px, uppercase, muted; the only uppercase text), `Meta` (xs, muted, tabular
+  numbers) and `Stat` (label over value) carry metadata; `EmptyState` wraps the shadcn Empty.
+- Data tables: `components/ui/data-table.tsx` on TanStack Table v8 after the shadcn example.
+  Toolbar with search (InputGroup), faceted filters (dashed outline button, popover with
+  checkboxes and counts), reset; sortable column headers; caption under the table; row
+  actions in one kebab menu.
+- Type: one scale (2xl page title, base section title, sm body, xs metadata). Colour: one
+  accent per meaning as before; surfaces carry the structure (`bg-sidebar` for rails,
+  `bg-card` for sections). Badges only where they carry a state (outcome, verdict, status).
+
+Applied, in the pitch order: dashboard (hero card with one primary action, run list as data
+table with the totals as caption), negotiation view (rails on the sidebar surface, toolbar
+row plus a tinted timeline band, 2.5rem between rounds, cards with p-5 and relaxed leading),
+analysis, agent card, outcome and result, then topics, trace, models, method and the setup
+room. Archive and press viewer were left alone because other branches change them.
+
+## Scenarios first (branch `feat/scenarios`)
+
+Status: 2026-11-06, 08:00. Screenshots before and after live in the scratchpad
+(`pw/scenarios/before`, `pw/scenarios/after`, `after-dark-en`, `after-projector`), 1440x900 and
+1920x1080.
+
+The home page answered "which run do I open" with a hero card and a sixteen-row table in which
+every row repeated the same question. The jury thinks in questions, so the information
+architecture now starts there.
+
+- A scenario is one question setting, derived from run metadata (`lib/scenarios.ts`): the
+  template id, or the hash of a custom question, groups the runs; the round limit most runs of
+  the question used marks the main group, shorter runs become the check group ("Prüfläufe"),
+  and the committed fixture the demo. Only display names are mapped by hand
+  (`components/scenarios/messages.ts`); nothing is keyed by run id.
+- Home `/`: one card per scenario with the question, the number of runs, the model families,
+  the topics agreed in every run and the historical base rate of the dominant measure class
+  (overall rate as the fallback, none for custom questions). Check runs and demos fold below.
+  "Neue Frage" stays the page action.
+- Scenario `/scenarios/[key]` with URL-synced shadcn tabs (`?tab=`): Läufe (the runs data
+  table limited to the scenario, run labels instead of the question, open, replay, stage and
+  fork in the row menu), Ergebnis (the topic comparison from `components/topics` plus the
+  package figures per run), Perspektiven (one row per institution: start ring and one dot per
+  run at the final stance per topic, red lines with how often they were touched, what it
+  supported or opposed, the agent chat of the reference run, agent card per run), Koalitionen
+  (who voted with whom as a tinted matrix over all proposals and runs, the most frequent
+  alliances and blockers, minimal winning coalitions and blockers per decided proposal) and
+  Modelle (the model comparison from `feat/model-bias`).
+- `/topics/[key]` redirects to the Ergebnis tab; the run header's question links to the
+  scenario.
+
+The cross-run readings live in `lib/scenario-insights.ts` as pure functions over folded
+snapshots, tested against the two reference runs, so the tab components only lay them out.

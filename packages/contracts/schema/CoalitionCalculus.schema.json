@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "runId": {
+      "type": "string"
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "decisionRule": {
+      "type": "string",
+      "enum": [
+        "consensus",
+        "qualified_majority",
+        "veto_players"
+      ]
+    },
+    "quorum": {
+      "type": "object",
+      "properties": {
+        "needed": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "of": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "needed",
+        "of"
+      ]
+    },
+    "vetoPlayers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z]{2,4}$"
+      }
+    },
+    "proposals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "proposalId": {
+            "type": "string"
+          },
+          "supporters": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z]{2,4}$"
+            }
+          },
+          "conditional": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z]{2,4}$"
+            }
+          },
+          "opponents": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z]{2,4}$"
+            }
+          },
+          "containsAllVetoPlayers": {
+            "type": "boolean"
+          },
+          "missingVetoPlayers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z]{2,4}$"
+            }
+          },
+          "passes": {
+            "type": "boolean"
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z]{2,4}$"
+            }
+          },
+          "minimalWinningCoalitions": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z]{2,4}$"
+              }
+            }
+          },
+          "payoffs": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "pattern": "^[a-z]{2,4}$"
+            },
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "const": -1
+                },
+                {
+                  "type": "number",
+                  "const": 0
+                },
+                {
+                  "type": "number",
+                  "const": 1
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "proposalId",
+          "supporters",
+          "conditional",
+          "opponents",
+          "containsAllVetoPlayers",
+          "missingVetoPlayers",
+          "passes",
+          "blockers",
+          "minimalWinningCoalitions",
+          "payoffs"
+        ]
+      }
+    },
+    "coalitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z]{2,4}$"
+            }
+          },
+          "topicIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "supporting",
+              "blocking",
+              "alignment"
+            ]
+          },
+          "note": {
+            "type": "object",
+            "properties": {
+              "lang": {
+                "type": "string",
+                "enum": [
+                  "de",
+                  "en"
+                ]
+              },
+              "text": {
+                "type": "string"
+              },
+              "translations": {
+                "default": {},
+                "type": "object",
+                "properties": {
+                  "de": {
+                    "type": "string"
+                  },
+                  "en": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "required": [
+              "lang",
+              "text"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "members",
+          "topicIds",
+          "kind",
+          "note"
+        ]
+      }
+    },
+    "nextTabled": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "proposalId": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "object",
+              "properties": {
+                "lang": {
+                  "type": "string",
+                  "enum": [
+                    "de",
+                    "en"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                },
+                "translations": {
+                  "default": {},
+                  "type": "object",
+                  "properties": {
+                    "de": {
+                      "type": "string"
+                    },
+                    "en": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "lang",
+                "text"
+              ]
+            }
+          },
+          "required": [
+            "proposalId",
+            "reason"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "runId",
+    "round",
+    "decisionRule",
+    "quorum",
+    "vetoPlayers",
+    "proposals",
+    "coalitions",
+    "nextTabled"
+  ]
+}

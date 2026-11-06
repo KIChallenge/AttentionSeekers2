@@ -1,0 +1,126 @@
+{
+  "$comment": "Measured values for /method (apps/web/app/method). null renders as 'not measured yet'. Engine track fills palette and referenceRun (pnpm --filter @sv/engine smoke), forecasting track fills forecast and backtest. Schema: apps/web/components/method/note.server.ts. Institutions only, no person names, no keys.",
+  "version": "0.1",
+  "updatedAt": "2026-11-05",
+  "palette": [
+    {
+      "model": "azure/gpt-6-sol",
+      "family": "OpenAI",
+      "roles": ["agents", "moderator", "expert"],
+      "smoke": {
+        "streaming": null,
+        "structuredOutput": null,
+        "reasoningField": null,
+        "latencyMs": null,
+        "checkedAt": null
+      },
+      "concessionBaseline": null
+    },
+    {
+      "model": null,
+      "family": null,
+      "roles": ["verifier"],
+      "smoke": {
+        "streaming": null,
+        "structuredOutput": null,
+        "reasoningField": null,
+        "latencyMs": null,
+        "checkedAt": null
+      },
+      "concessionBaseline": null
+    }
+  ],
+  "referenceRun": {
+    "runId": "reference-wartezeiten",
+    "models": ["azure/gpt-6-sol"],
+    "rounds": null,
+    "utterances": null,
+    "claims": {
+      "verified": null,
+      "partial": null,
+      "unverified": null,
+      "contradicted": null,
+      "assumption": null
+    }
+  },
+  "forecast": {
+    "registry": {
+      "asOf": "2026-11-05",
+      "drafts": 165,
+      "episodes": 156,
+      "labels": {
+        "implemented": 74,
+        "partially_implemented": 42,
+        "lapsed": 34,
+        "superseded": 4,
+        "rejected": 1,
+        "unknown": 10
+      }
+    },
+    "brier": {
+      "referenceClass": null,
+      "statusQuo": null,
+      "nEpisodes": null
+    },
+    "ablationVerdict": null,
+    "regimeCaveat": {
+      "de": "Die Kassenfusion 2019/2020 hat die Akteure selbst verändert. Basisraten aus der Zeit davor gelten danach nur mit Vorsicht.",
+      "en": "The 2019-2020 carrier merger changed the actors themselves. Base rates from before it apply afterwards only with caution."
+    }
+  },
+  "backtest": {
+    "case": "SV-OG 2018, eImpfpass 2023",
+    "status": "done",
+    "hypothesis": {
+      "de": "Die SV-OG wurde einseitig gegen den Großteil der 75 Stellungnahmen beschlossen. Ein kompromissorientierter Simulator fällt daher erwartbar weicher aus als das Gesetz.",
+      "en": "The SV-OG was adopted unilaterally against most of the 75 Stellungnahmen. A compromise-seeking simulator is therefore expected to come out softer than the law."
+    },
+    "result": {
+      "de": "Bestätigt, deutlicher als erwartet: In keiner Variante wurde ein Paket beschlossen, obwohl die Regierungsseite es unter der realen Regel allein hätte beschließen können. Fast jede Bestimmung landet weicher als das Gesetz, unter der Konsensregel noch weicher. GPT kennt den Ausgang (Recall-Test), Qwen nicht.",
+      "en": "Confirmed, more strongly than expected: no package passed in either variant, although the government side could have passed it alone under the real rule. Almost every provision lands softer than the law, softer still under consensus. GPT recalls the outcome (recall probe), Qwen does not."
+    },
+    "runs": ["backtest-svog-2018-government", "backtest-svog-2018-consensus"],
+    "doc": "docs/backtest-svog-2018.md",
+    "compare": [
+      {
+        "case": "SV-OG 2018",
+        "forecast": {
+          "de": "Beschluss 0,85; wie Entwurf 0,43, geändert 0,38",
+          "en": "Enacted 0.85; as drafted 0.43, modified 0.38"
+        },
+        "simulation": {
+          "de": "Kein Paket in beiden Varianten; fast jede Bestimmung weicher als das Gesetz",
+          "en": "No package in either variant; almost every provision softer than the law"
+        },
+        "reality": {
+          "de": "Beschlossen, im Kern wie Entwurf; VfGH hebt 2019 Teile auf",
+          "en": "Enacted, in substance as drafted; court struck parts in 2019"
+        },
+        "runs": [
+          "backtest-svog-2018-government",
+          "backtest-svog-2018-consensus"
+        ],
+        "doc": "docs/backtest-svog-2018.md"
+      },
+      {
+        "case": "eImpfpass 2023",
+        "forecast": {
+          "de": "Beschluss 0,87; geändert 0,41, wie Entwurf 0,40",
+          "en": "Enacted 0.87; modified 0.41, as drafted 0.40"
+        },
+        "simulation": {
+          "de": "Paket getragen (7 dafür, 2 bedingt); geändert, aber weicher: Nachtragung, Datennutzung und Kosten abgeschwächt; 2 von 7 Bestimmungen getroffen",
+          "en": "Package carried (7 for, 2 conditional); modified but softer: retro entry, data use and costs weakened; 2 of 7 provisions match"
+        },
+        "reality": {
+          "de": "Beschlossen 2024, geändert: Servicestelle zusammengelegt, Doppelpunkt gestrichen, 1450 ergänzt",
+          "en": "Enacted 2024, modified: service desk merged, colon form dropped, 1450 added"
+        },
+        "runs": [
+          "backtest-gtelg-2023-government"
+        ],
+        "doc": "docs/backtest-gtelg-2023.md"
+      }
+    ]
+  }
+}

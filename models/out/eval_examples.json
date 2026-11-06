@@ -1,0 +1,177 @@
+{
+ "run": "20261105-232834",
+ "rows": 244,
+ "selection": "per institution the non-looping row nearest the median adapter in-character score, plus one looping adapter output; generations only, no reference text",
+ "examples": [
+  {
+   "role": "chamber_commerce",
+   "draft": "XXVII/SNME/253621",
+   "referenceStance": -1,
+   "adapter": {
+    "text": "Die Wirtschaftskammer Österreich (WKO) fordert, dass § 39 Abs 4 Z 2 des Entwurfs ersatzlos gestrichen wird. Die WKO ist der Auffassung, dass die Regelung in § 39 Abs 4 Z 2 des Entwurfs nicht in der Lage ist, die Ziele des § 39 Abs 4 zu erreichen. Die WKO begründet dies mit dem Umstand, dass die Regelung in § 39 Abs 4 Z 2 des Entwurfs nicht klar definiert ist, was unter „Zugang zu einem System“ zu verstehen ist. Die WKO ist der Auffassung, dass die Regelung in § 39 Abs 4 Z 2 des Entwurfs eine unzulässige Ausweitung der Zuständigkeit der Behörde zur Durchführung von Sicherheitsüberprüfungen darstellt.",
+    "inCharacter": 0.0923,
+    "stance": -2,
+    "loops": false
+   },
+   "base": {
+    "text": "**Stellungnahme der Wirtschaftskammer im Begutachtungsverfahren**  \n**zu: Netz- und Informationssystemsicherheitsgesetz 2024 - NISG 2024**  \n**Telekommunikationsgesetz, Gesundheitstelematikgesetz, Änderung (326/ME, XXVII. GP)**  \n**Datum der Stellungnahme: 2024-04-29**\n\n---\n\n**Betroffene Bestimmungen:**  \n§ 32, § 40  \n**Abschnitt:** § 39 Abs. 4 Z. 2 (ersatzlos zu streichen)\n\n---\n\n### **Position der Wirtschaftskammer**\n\nDie Wirtschaftskammer lehnt die **Einführung einer Meldepflicht für IT-Sicherheitsvorfälle** im Rahmen des **Netz- und Informationssystemsicherheitsgesetzes 2024 (NISG 2024)** entschieden ab. Die Vorschrift im **§ 39 Abs. 4 Z. 2** stellt eine zusätzliche Belastung für Unternehmen dar, die bereits unter dem Druck der bestehenden gesetzlichen Pflichten und regulatorischen Anforderungen leiden. [...]",
+    "inCharacter": 0.3731,
+    "stance": -2,
+    "loops": false
+   }
+  },
+  {
+   "role": "chamber_labour",
+   "draft": "XXVII/SNME/254577",
+   "referenceStance": -2,
+   "adapter": {
+    "text": "Die BAK begrüßt, dass die BAK in Zukunft auch in der Funktion der Begutachtung von Verordnungen und Entwürfen der Sozialversicherungskammer (SVK) mitwirken wird. Die BAK sieht in der Begutachtung von Verordnungen und Entwürfen der SVK eine wichtige Aufgabe, um die Interessen der Versicherten und der Arbeitnehmerinnen und Arbeitnehmer zu vertreten. Die BAK begrüßt, dass die BAK auch in Zukunft in der Begutachtung von Verordnungen und Entwürfen der Sozialversicherungskammer (SVK) mitwirken wird. Die BAK sieht in der Begutachtung von Verordnungen und Entwürfen der SVK eine wichtige Aufgabe, um die Interessen der Versicherten und der Arbeitnehmerinnen und Arbeitnehmer zu vertreten.",
+    "inCharacter": 0.4826,
+    "stance": 2,
+    "loops": false
+   },
+   "base": {
+    "text": "**Arbeiterkammer - Stellungnahme zum Ministerialentwurf: GuKG-Novelle 2024 (348/ME, XXVII. GP)**  \n**Datum der Stellungnahme: 2024-06-19**  \n**Abschnitt: Zu den einzelnen Bestimmungen**\n\n---\n\n### **Zu den einzelnen Bestimmungen - Position und Forderung der Arbeiterkammer**\n\nDie Arbeiterkammer vertritt die Interessen der Arbeitnehmerinnen und Arbeitnehmer sowie der Versicherten und lehnt jede Form von Selbstbehalten, Leistungskürzungen und der Entziehung von Versicherungsansprüchen ab. Sie fordert eine solidarische Finanzierung der gesetzlichen Krankenversicherung, die auf der Grundlage von Gerechtigkeit, Solidarität und der Verhältnismäßigkeit der Beiträge und Leistungen beruht. Gleichzeitig vertritt die Arbeiterkammer die Forderung nach einer intensiveren Mitsprache der Versicherten in der Selbstverwaltung der Krankenkassen. [...]",
+    "inCharacter": 0.2336,
+    "stance": -1,
+    "loops": false
+   }
+  },
+  {
+   "role": "hospitals",
+   "draft": "XXVII/SNME/253682",
+   "referenceStance": -1,
+   "adapter": {
+    "text": "Die Verhängung von Strafen für Verstöße gegen das NISG 2024 ist aus Sicht der Spitalsträger nicht angemessen. Die Verhängung von Strafen ist nur in Ausnahmefällen gerechtfertigt, wenn die Verstöße gegen das NISG 2024 besonders schwerwiegend sind und die Gefährdung der Gesundheit und Sicherheit von Patienten und Mitarbeitenden sowie der Gesundheitssysteme besonders groß ist. Die Spitalsträger verweisen auf die Tatsache, dass die Verstöße gegen das NISG 2024 meistens auf technische und organisatorische Defizite zurückzuführen sind und nicht auf bewusste und gezielte Vorsätze. Die Spitalsträger fordern daher eine angemessene Strafzumessung, die auf die Schwere des Verstoßes und die Umstände des Einzelfalls abgestimmt ist.",
+    "inCharacter": 0.1433,
+    "stance": -1,
+    "loops": false
+   },
+   "base": {
+    "text": "**Stellungnahme der Spitalsträger im Begutachtungsverfahren**  \n**Zum Ministerialentwurf: Netz- und Informationssystemsicherheitsgesetz 2024 - NISG 2024**  \n**Datum: 2024-04-30**  \n**Betroffene Bestimmungen: Z 2**  \n**Abschnitt: Zur Wahrung der Angemessenheit bei der Verhängung von Strafen - § 39 Abs 4 zusätzlich in § 39 Abs 7 aufzunehmen**\n\n---\n\n**Position der Spitalsträger:**\n\nDie Spitalsträger begrüssen die intendierte Verbesserung der Rechtslage im Hinblick auf die Angemessenheit bei der Verhängung von Strafen im Rahmen des Netz- und Informationssystemsicherheitsgesetzes (NISG 2024). Eine klare und verhältnismäßige Handhabung von Strafen ist aus Sicht der Spitalsträger von zentraler Bedeutung, um sowohl die Verantwortung der betroffenen Akteure als auch die Verhältnismäßigkeit der Strafen sicherzustellen. [...]",
+    "inCharacter": 0.072,
+    "stance": -2,
+    "loops": false
+   }
+  },
+  {
+   "role": "laender",
+   "draft": "XXVIII/SNME/4002",
+   "referenceStance": 1,
+   "adapter": {
+    "text": "-2Zu den Erläuterungen ist anzumerken, dass die im Entwurf enthaltene Regelung über die Aufnahme von Ärzten in die Ärztekammer nicht nur für die Aufnahme von Ärzten aus anderen Mitgliedsstaaten der Europäischen Union, sondern auch für die Aufnahme von Ärzten aus Drittstaaten, die im Rahmen der Vereinbarung zwischen dem Bund, den Ländern und den Gemeinden über einen Konsultationsmechanismus im Bereich der Migration und Integration (KMiG) als „Gleichwertige Drittstaaten“ bezeichnet werden, gilt.",
+    "inCharacter": 0.6421,
+    "stance": 0,
+    "loops": false
+   },
+   "base": {
+    "text": "**Landesstellungnahme zum Ministerialentwurf: Ärztegesetz, Änderung (95/ME, XXVIII. GP)**  \n**Datum der Stellungnahme: 2026-04-16**\n\n**1. Einleitung**\n\nDie Landesregierung [Name des Bundeslandes] begrüßt die geplante Änderung des Ärztegesetzes und sieht in der gegebenen Gelegenheit die Möglichkeit, die im Krankenanstaltenwesen bestehenden Kompetenzen und Verantwortlichkeiten der Länder klarzustellen und zu schützen. Im Rahmen des Begutachtungsverfahrens wird die Landesregierung auf die Bedeutung der Länderkompetenzen im Gesundheitswesen hinweisen und insbesondere die Einhaltung der im Bundesverfassungsgesetz (B-VG) verankerten Konsultationspflichten sowie die Vermeidung von Kostenüberwälzungen auf die Länder und Gemeinden fordern.\n\n**2. [...]",
+    "inCharacter": 0.694,
+    "stance": 1,
+    "loops": false
+   }
+  },
+  {
+   "role": "medical_chamber",
+   "draft": "XXVII/SNME/254609",
+   "referenceStance": -1,
+   "adapter": {
+    "text": "Die Ärztekammer hat sich in ihrer Stellungnahme zu den Änderungsanträgen zur GuKG-Novelle 2024 (348/ME) bereits dazu geäußert, dass die Schriftlichkeit für den Tatbestand gemäß § 15 Abs 1 Satz 2 nicht vorgesehen werden sollte. Die Ärztekammer begründet dies mit dem Argument, dass die Schriftlichkeit in diesem Fall nicht erforderlich ist, da die Ärztin oder der Arzt die Tätigkeit bereits im Rahmen der ärztlichen Berufsausübung durchführt.",
+    "inCharacter": 0.2053,
+    "stance": -2,
+    "loops": false
+   },
+   "base": {
+    "text": "**Österreichische Ärztekammer**  \n**Stellungnahme zum Ministerialentwurf: GuKG-Novelle 2024 (348/ME, XXVII. GP)**  \n**Datum: 2024-06-20**  \n**Abschnitt: § 15 Abs. 1 Satz 2 - Formerfordernis der Schriftlichkeit**\n\nDie Österreichische Ärztekammer lehnt die Ausweitung des Tatbestands gemäß § 15 Abs. 1 Satz 2 des Gesetzes über die gesetzliche Krankenversicherung (GuKG) ab, soweit hierdurch das Formerfordernis der Schriftlichkeit für die Anzeige von Behandlungsfehlern oder fachärztlichen Missständen vorgeschrieben wird. [...]\n\nDie Schriftlichkeit von Anzeigen im Rahmen von Begutachtungsverfahren ist im Sinne der Qualitätssicherung und der Vermeidung von Fehlinterpretationen durchaus sinnvoll. Allerdings ist es unzulässig, dies in den Tatbestand des § 15 Abs. [...]",
+    "inCharacter": 0.147,
+    "stance": -2,
+    "loops": false
+   }
+  },
+  {
+   "role": "ministry_finance",
+   "draft": "XXVII/SNME/251141",
+   "referenceStance": -1,
+   "adapter": {
+    "text": "Die Bundesregierung hat in ihrer Stellungnahme vom 25. April 2023 (Bundesregierung, Stellungnahme zu den Entwürfen des Bundesministeriums für Gesundheit, des Bundesministeriums für Landwirtschaft, Regionen und Klima und des Bundesministeriums für Wissenschaft und Forschung, zu den Entwürfen des Tierarzneimittelgesetzes, des Arzneimittelgesetzes, des Gesundheits- und Ernährungssicherheitsgesetzes und des Bundesgesetzes über die Sicherheit von Lebensmitteln und Lebensmittelzusatzstoffen, zu den Entwürfen des Bundesministeriums für Landwirtschaft, Regionen und Klima und des Bundesministeriums für Wissenschaft und Forschung, zu den Entwürfen des Bundesgesetzes über die Sicherheit von Lebensmitteln und Lebensmittelzusatzstoffen, zu den Entwürfen des Bundesministeriums für Landwirtschaft, Regionen und Klima und des Bundesministeriums für Wissenschaft und Forschung, zu den Entwürfen des Bundesg [...]",
+    "inCharacter": 0.2455,
+    "stance": 0,
+    "loops": false
+   },
+   "base": {
+    "text": "**Bundesministerium der Finanzen**  \n**Stellungnahme zum Ministerialentwurf**  \n**Tierarzneimittelgesetz; Arzneimittelgesetz, Gesundheits- und Ernährungssicherheitsgesetz u.a., Änderung (284/ME, XXVII. GP)**  \n**Datum: 31.07.2023**\n\n**Betroffene Bestimmungen:** § 17 Abs. 1, § 17 Abs. 2  \n**Abschnitt:** Arzneiwaren, die entgegen dem Verbot gemäß § 17 Abs. 1 AWEG 2010 durch\n\n**Position und Forderung:**\n\nDie Bundesministerium der Finanzen prüft die geplante Änderung der Bestimmungen im Zusammenhang mit der Verbotserwirkung von Arzneiwaren gemäß § 17 Abs. 1 AWEG 2010. Die geplante Regelung sieht vor, dass Arzneiwaren, die entgegen dem Verbot durchgeführt werden, unter bestimmten Voraussetzungen zulässig sein können.\n\nDie Bundesministerium der Finanzen weist darauf hin, dass die geplante Änderung eine Auswirkung auf die Haushaltsführung und die Budgetwirkung haben kann. [...]",
+    "inCharacter": 0.8943,
+    "stance": -1,
+    "loops": false
+   }
+  },
+  {
+   "role": "nursing",
+   "draft": "XXVII/SNME/254616",
+   "referenceStance": -2,
+   "adapter": {
+    "text": "Die Gesundheits- und Krankenpflege (GK) ist eine der ältesten und wichtigsten Gesundheitsberufe. Sie ist im Gesundheitswesen in allen Bereichen tätig und leistet einen wesentlichen Beitrag zur Gesundheitsversorgung. Die Gesundheits- und Krankenpflege ist ein Beruf mit hohem gesellschaftlichem Ansehen und hohem Vertrauensanspruch. Die Gesundheits- und Krankenpflege ist ein Beruf mit hohem gesellschaftlichem Ansehen und hohem Vertrauensanspruch.",
+    "inCharacter": 0.7375,
+    "stance": 0,
+    "loops": false
+   },
+   "base": {
+    "text": "**Stellungnahme des Berufsverbands der Pflegeberufe und der Pflegegewerkschaft zur GuKG-Novelle 2024 (348/ME, XXVII. GP)**  \n**Datum: 2024-06-20**\n\n**1. Einleitung**\n\nDer vorliegende Entwurf der GuKG-Novelle 2024 stellt eine wichtige Gelegenheit dar, die Rahmenbedingungen für die Pflege in Deutschland grundlegend zu überdenken und zu verbessern. Der Berufsverband der Pflegeberufe und die Pflegegewerkschaft begrüßen insbesondere die geplante Ausweitung der Pflegekompetenzen sowie die Forderung nach einer besseren Ausbildung und Personalausstattung. Gleichzeitig fordern wir jedoch eine klare und verbindliche Anerkennung der fachlichen Kompetenzen der Pflegeberufe, eine Vermeidung von Dequalifizierung und eine klare Abgrenzung von Aufgabenverschiebungen ohne Ressourcen.\n\n**2. [...]",
+    "inCharacter": 0.4585,
+    "stance": 1,
+    "loops": false
+   }
+  },
+  {
+   "role": "patients",
+   "draft": "XXVII/SNME/254486",
+   "referenceStance": 1,
+   "adapter": {
+    "text": "Die Patientenvertretung fordert, dass die Verordnungsermächtigung des Bundesministeriums für Gesundheit für die Ausführung des MTD-Gesetzes aufgegeben wird.",
+    "inCharacter": 0.6508,
+    "stance": -2,
+    "loops": false
+   },
+   "base": {
+    "text": "**Stellungnahme der Patientenvertretung zur MTD-Gesetzgebung 2024 - §11d (3)**  \n**Datum der Stellungnahme: 2024-05-29**\n\n---\n\n**Zu §11d (3) - Verordnungsermächtigung des Bundesministeriums**\n\nDie Patientenvertretung begrüßt die in §11d (3) des MTD-Gesetzes 2024 vorgesehene Verordnungsermächtigung des Bundesministeriums. Diese Regelung ermöglicht eine flexible und zeitnahe Umsetzung der gesetzlichen Vorgaben im Rahmen des Begutachtungsverfahrens. Allerdings ist es entscheidend, dass diese Ermächtigung nicht zur Ausweitung der Macht der Behörden führt, sondern vielmehr als ein Instrument zur Sicherstellung der Rechte der Betroffenen und zur Verbesserung der Qualität des Begutachtungsprozesses dient. [...]",
+    "inCharacter": 0.3883,
+    "stance": 1,
+    "loops": false
+   }
+  },
+  {
+   "role": "social_insurance",
+   "draft": "XXVII/SNME/253624",
+   "referenceStance": 0,
+   "adapter": {
+    "text": "Zu § 2 Abs. 1 NISG 2024 - Definition der Begriffe \"Netz- und Informationssystem\" und \"Netz- und Informationssysteme\" Die Begriffe \"Netz- und Informationssystem\" und \"Netz- und Informationssysteme\" sollten in § 2 Abs. 1 NISG 2024 einheitlich verwendet werden.",
+    "inCharacter": 0.5053,
+    "stance": 0,
+    "loops": false
+   },
+   "base": {
+    "text": "**Stellungnahme der österreichischen Sozialversicherung**  \n**zum Ministerialentwurf: Netz- und Informationssystemsicherheitsgesetz 2024 - NISG 2024**  \n**in Verbindung mit den Änderungen im Telekommunikationsgesetz, Gesundheitstelematikgesetz (326/ME, XXVII. GP)**  \n**Datum der Stellungnahme: 2024-04-29**\n\n---\n\n**1. Einleitung**\n\nDie österreichische Sozialversicherung, als Dachverband und Träger der gesetzlichen Krankenversicherung, vertritt die Interessen der Versicherten, der Kassen sowie der Selbstverwaltung. In ihrer Rolle als zentraler Akteur im Gesundheitswesen ist sie besonders sensibel gegenüber gesetzlichen Regelungen, die den Schutz von Gesundheitsdaten und die IT-Sicherheit im Gesundheitswesen betreffen. [...]",
+    "inCharacter": 0.4316,
+    "stance": -1,
+    "loops": false
+   }
+  },
+  {
+   "role": "ministry_finance",
+   "draft": "XXVIII/SNME/185",
+   "referenceStance": -1,
+   "adapter": {
+    "text": "Die Verwaltung ist mit der Regelung des § 31 TNSG nicht einverstanden. Der Bundesrat hat in seiner Stellungnahme vom 20.12.2024 zu § 31 TNSG bereits detailliert auf die Bedeutung der Verwaltungskosten hingewiesen. Die Verwaltungskosten sind in der Regelung nicht berücksichtigt worden. Die Verwaltungskosten sind in der Regelung nicht berücksichtigt worden. Die Verwaltungskosten sind in der Regelung nicht berücksichtigt worden.",
+    "inCharacter": 0.6661,
+    "stance": -1,
+    "loops": true
+   },
+   "base": {
+    "text": "**Bundesministerium der Finanzen**  \n**Stellungnahme zum Ministerialentwurf: Tabak- und Nikotinsucht-Gesetz - TNSG (5/ME, XXVIII. GP)**  \n**Datum: 26.02.2025**  \n**Abschnitt: § 31 - Zulassung neuer Tabakerzeugnisse**\n\nDie Bundesanstalt für Finanzen prüft die Budgetwirkung und die Haushaltsrechtliche Einhaltung des Vorschlags zur Zulassung neuer Tabakerzeugnisse gemäß § 31 des Entwurfs. Die geplante Regelung erfordert eine detaillierte Erfassung der damit verbundenen Ausgaben sowie eine klare Zuordnung zu den zuständigen Haushaltsstellen.\n\nDie Bundesanstalt für Finanzen fordert eine nachvollziehbare Kostendarstellung, insbesondere hinsichtlich der Kosten für die Prüfung, Genehmigung und Überwachung neuer Tabakerzeugnisse. Es ist zwingend, die Haushaltsdeckung der vorgesehenen Ausgaben sicherzustellen. Ungeklärte oder ungedeckte Mehrausgaben sind nicht zulässig. [...]",
+    "inCharacter": 0.7432,
+    "stance": -1,
+    "loops": false
+   }
+  }
+ ]
+}

@@ -1,0 +1,36 @@
+{
+  "name": "@sv/engine",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "run:once": "node --env-file-if-exists=../../.env --no-warnings src/cli.ts run",
+    "mandate": "node --env-file-if-exists=../../.env --no-warnings src/cli.ts mandate",
+    "smoke": "node --env-file-if-exists=../../.env --no-warnings src/smoke.ts",
+    "validate": "node --no-warnings src/cli.ts validate",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "quality": "node --env-file-if-exists=../../.env --no-warnings src/quality-cli.ts",
+    "eval:retrieval": "node --env-file-if-exists=../../.env --no-warnings src/retrieval-eval.ts",
+    "impact": "node --no-warnings src/impact-cli.ts",
+    "citation:measure": "node --env-file-if-exists=../../.env --no-warnings src/citation-propensity-cli.ts",
+    "compromise": "node --env-file-if-exists=../../.env --no-warnings src/compromise-cli.ts",
+    "recall": "node --env-file-if-exists=../../.env --no-warnings src/recall-probe.ts"
+  },
+  "dependencies": {
+    "@sv/contracts": "workspace:*",
+    "@sv/db": "workspace:*",
+    "drizzle-orm": "^0.44.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@sv/tsconfig": "workspace:*",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

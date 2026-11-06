@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "runId": {
+      "type": "string"
+    },
+    "agentId": {
+      "type": "string",
+      "pattern": "^[a-z]{2,4}$"
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "passed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "failed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "blockedBy": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "agentId": {
+            "type": "string",
+            "pattern": "^[a-z]{2,4}$"
+          },
+          "proposalId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "agentId",
+          "proposalId"
+        ]
+      }
+    },
+    "implication": {
+      "type": "object",
+      "properties": {
+        "lang": {
+          "type": "string",
+          "enum": [
+            "de",
+            "en"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "translations": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "de": {
+              "type": "string"
+            },
+            "en": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": [
+        "lang",
+        "text"
+      ]
+    },
+    "nextMove": {
+      "type": "object",
+      "properties": {
+        "lang": {
+          "type": "string",
+          "enum": [
+            "de",
+            "en"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "translations": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "de": {
+              "type": "string"
+            },
+            "en": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": [
+        "lang",
+        "text"
+      ]
+    },
+    "redLineExpectations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "agentId": {
+            "type": "string",
+            "pattern": "^[a-z]{2,4}$"
+          },
+          "redLineId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "text": {
+            "type": "object",
+            "properties": {
+              "lang": {
+                "type": "string",
+                "enum": [
+                  "de",
+                  "en"
+                ]
+              },
+              "text": {
+                "type": "string"
+              },
+              "translations": {
+                "default": {},
+                "type": "object",
+                "properties": {
+                  "de": {
+                    "type": "string"
+                  },
+                  "en": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "required": [
+              "lang",
+              "text"
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "required": [
+          "agentId",
+          "redLineId",
+          "text",
+          "confidence"
+        ]
+      }
+    },
+    "priorEpisodeIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "runId",
+    "agentId",
+    "round",
+    "passed",
+    "failed",
+    "blockedBy",
+    "implication",
+    "nextMove",
+    "redLineExpectations",
+    "priorEpisodeIds"
+  ]
+}

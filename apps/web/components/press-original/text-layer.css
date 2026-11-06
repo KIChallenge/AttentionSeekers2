@@ -1,0 +1,126 @@
+/* Text layer over a scanned press page. Every word is a real, transparent text span sized to
+   its OCR box (font size from the line height in container-query units, scaleX from the
+   measured glyph width), so selection and copy work like on a PDF. Modes and highlights are
+   data attributes on the root so the DOM does not change when the user switches. */
+
+.ptl-frame {
+  position: relative;
+  container-type: inline-size;
+  background: #fff;
+}
+
+.ptl {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-family: var(--font-sans), "Inter", "Helvetica Neue", Arial, sans-serif;
+  line-height: 1;
+  color: transparent;
+  cursor: text;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.ptl [data-block],
+.ptl [data-line] {
+  position: absolute;
+}
+
+.ptl [data-line] {
+  white-space: pre;
+}
+
+.ptl [data-word] {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  color: transparent;
+  white-space: pre;
+  transform-origin: 0 0;
+  border-radius: 2px;
+  transition: background-color 120ms ease;
+}
+
+.ptl ::selection {
+  background: rgb(59 130 246 / 0.45);
+  color: transparent;
+}
+
+/* Dezent: a light veil over every recognised word. */
+.ptl[data-mode="subtle"] [data-word] {
+  background: rgb(110 110 110 / 0.16);
+}
+.ptl[data-mode="subtle"] [data-word][data-low] {
+  background: rgb(190 80 40 / 0.22);
+}
+
+/* Hervorgehoben, by block: tint and outline per OCR block. */
+.ptl[data-mode="highlight"][data-color="block"] [data-block] {
+  background: color-mix(in oklch, var(--blk) 16%, transparent);
+  outline: 1px solid color-mix(in oklch, var(--blk) 55%, transparent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+.ptl[data-mode="highlight"][data-color="block"] [data-word] {
+  background: color-mix(in oklch, var(--blk) 22%, transparent);
+}
+
+/* Hervorgehoben, by confidence: colour per word. */
+.ptl[data-mode="highlight"][data-color="conf"] [data-word] {
+  background: color-mix(in oklch, var(--cc) 34%, transparent);
+}
+.ptl[data-mode="highlight"] [data-word][data-low] {
+  box-shadow: inset 0 -0.18em 0 oklch(0.6 0.2 25);
+}
+
+/* Search hits win over every mode. */
+.ptl [data-word][data-hit] {
+  background: rgb(250 204 21 / 0.65);
+  box-shadow: 0 0 0 1px rgb(161 98 7 / 0.7);
+}
+.ptl [data-word][data-hit="active"] {
+  background: rgb(249 115 22 / 0.8);
+  box-shadow: 0 0 0 2px rgb(154 52 18);
+}
+
+/* The passage our pipeline paraphrased: dashed outline with a label, in every mode. */
+.ptl [data-block][data-used] {
+  outline: 2px dashed oklch(0.62 0.15 70);
+  outline-offset: 5px;
+  border-radius: 3px;
+}
+.ptl [data-block][data-used][data-used-label]::before {
+  content: attr(data-used-label);
+  position: absolute;
+  left: -7px;
+  bottom: calc(100% + 7px);
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: oklch(0.62 0.15 70);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.ptl [data-block][data-used][data-used-label][data-side="right"]::before {
+  left: auto;
+  right: -7px;
+}
+
+.ptl-tip {
+  position: fixed;
+  z-index: 40;
+  pointer-events: none;
+  max-width: 320px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.18);
+  font-size: 12px;
+  line-height: 1.35;
+}

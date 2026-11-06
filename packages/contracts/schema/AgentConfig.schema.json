@@ -1,0 +1,417 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z]{2,4}$"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "ministry_health",
+        "social_insurance",
+        "medical_chamber",
+        "contract_physicians",
+        "elective_physicians",
+        "hospitals",
+        "nursing",
+        "patients",
+        "legislature",
+        "ministry_finance",
+        "laender",
+        "public_health",
+        "chamber_commerce",
+        "chamber_labour",
+        "chamber_agriculture",
+        "industry_pharma",
+        "other"
+      ]
+    },
+    "institution": {
+      "type": "object",
+      "properties": {
+        "nameDe": {
+          "type": "string"
+        },
+        "glossEn": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "nameDe",
+        "glossEn",
+        "unit"
+      ]
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "fitted",
+        "prompted"
+      ]
+    },
+    "goals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lang": {
+            "type": "string",
+            "enum": [
+              "de",
+              "en"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "translations": {
+            "default": {},
+            "type": "object",
+            "properties": {
+              "de": {
+                "type": "string"
+              },
+              "en": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "lang",
+          "text"
+        ]
+      }
+    },
+    "interests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lang": {
+            "type": "string",
+            "enum": [
+              "de",
+              "en"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "translations": {
+            "default": {},
+            "type": "object",
+            "properties": {
+              "de": {
+                "type": "string"
+              },
+              "en": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "lang",
+          "text"
+        ]
+      }
+    },
+    "restrictions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lang": {
+            "type": "string",
+            "enum": [
+              "de",
+              "en"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "translations": {
+            "default": {},
+            "type": "object",
+            "properties": {
+              "de": {
+                "type": "string"
+              },
+              "en": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "lang",
+          "text"
+        ]
+      }
+    },
+    "budgetConstraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lang": {
+            "type": "string",
+            "enum": [
+              "de",
+              "en"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "translations": {
+            "default": {},
+            "type": "object",
+            "properties": {
+              "de": {
+                "type": "string"
+              },
+              "en": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "lang",
+          "text"
+        ]
+      }
+    },
+    "priorities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "object",
+            "properties": {
+              "lang": {
+                "type": "string",
+                "enum": [
+                  "de",
+                  "en"
+                ]
+              },
+              "text": {
+                "type": "string"
+              },
+              "translations": {
+                "default": {},
+                "type": "object",
+                "properties": {
+                  "de": {
+                    "type": "string"
+                  },
+                  "en": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "required": [
+              "lang",
+              "text"
+            ]
+          },
+          "weight": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "label",
+          "weight"
+        ]
+      }
+    },
+    "redLineIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "temperament": {
+      "type": "object",
+      "properties": {
+        "concession": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "assertiveness": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "coalitionAppetite": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "riskTolerance": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "modelBaselineConcession": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "correctedConcession": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "inertnessChecked": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "concession",
+        "assertiveness",
+        "coalitionAppetite",
+        "riskTolerance",
+        "modelBaselineConcession",
+        "correctedConcession",
+        "inertnessChecked"
+      ]
+    },
+    "color": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string",
+      "maxLength": 3
+    },
+    "delegates": {
+      "maxItems": 3,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "role": {
+            "type": "object",
+            "properties": {
+              "lang": {
+                "type": "string",
+                "enum": [
+                  "de",
+                  "en"
+                ]
+              },
+              "text": {
+                "type": "string"
+              },
+              "translations": {
+                "default": {},
+                "type": "object",
+                "properties": {
+                  "de": {
+                    "type": "string"
+                  },
+                  "en": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "required": [
+              "lang",
+              "text"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "role"
+        ]
+      }
+    },
+    "persona": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "dossier",
+            "profile"
+          ]
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "mode",
+        "version",
+        "sha256"
+      ]
+    },
+    "citationStyle": {
+      "type": "object",
+      "properties": {
+        "propensity": {
+          "type": "number"
+        },
+        "tier": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "measured": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "propensity",
+        "tier",
+        "measured"
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "role",
+    "institution",
+    "mode",
+    "goals",
+    "interests",
+    "restrictions",
+    "budgetConstraints",
+    "priorities",
+    "redLineIds",
+    "temperament",
+    "color",
+    "code"
+  ]
+}

@@ -1,0 +1,430 @@
+"use client";
+
+import {
+  type CSSProperties,
+  type ReactNode,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { cn } from "@/lib/utils";
+import type { Rect } from "../meeting-logic";
+import type { TileRole } from "../stage-tile";
+import type { StageStrings } from "../strings";
+import type { StageLive } from "../use-stage-player";
+import type { AvatarScene, StageCue } from "./avatar-scene";
+import { type FigureKind, figureStyle, realisticAssets, realisticStyle } from "./figure-style";
+
+// 3D mode of the stage (PRD 2.15). Same grid as the tile view, but each tile is a viewport
+// into one shared WebGL canvas. The tiles themselves are transparent frames carrying the name
+// plate (institution code, name, delegate role; never a personal name, FR-S7). three.js and
+// TalkingHead are imported only when this mode mounts. Any failure (no WebGL, asset missing,
+// context lost, load timeout) calls onFail and the stage falls back to the tile grid.
+
+export interface AvatarSeat {
+  id: string;
+  code: string;
+  /** CSS colour (token or hex). */
+  color: string;
+  name: string;
+  role: string;
+  kind: TileRole;
+}
+
+const ASSET = "/avatars/figure.glb";
+const LOAD_TIMEOUT_MS = 30_000;
+
+type Rgb = [number, number, number];
+
+/** Resolve any CSS colour (var(), oklch, hex) to sRGB bytes via a 1px 2D canvas. */
+function makeResolver(host: HTMLElement) {
+  const c = document.createElement("canvas");
+  c.width = c.height = 1;
+  const ctx = c.getContext("2d", { willReadFrequently: true });
+  return (css: string): Rgb => {
+    const probe = document.createElement("span");
+    probe.style.color = css;
+    host.appendChild(probe);
+    const computed = getComputedStyle(probe).color;
+    probe.remove();
+    if (!ctx) return [128, 128, 128];
+    ctx.clearRect(0, 0, 1, 1);
+    ctx.fillStyle = "#808080";
+    ctx.fillStyle = computed;
+    ctx.fillRect(0, 0, 1, 1);
+    const d = ctx.getImageData(0, 0, 1, 1).data;
+    return [d[0] ?? 128, d[1] ?? 128, d[2] ?? 128];
+  };
+}
+
+const hex = ([r, g, b]: Rgb) =>
+  `#${[r, g, b]
+    .map((v) =>
+      Math.round(Math.max(0, Math.min(255, v)))
+        .toString(16)
+        .padStart(2, "0"),
+    )
+    .join("")}`;
+const mix = (a: Rgb, b: Rgb, t: number): Rgb => [
+  a[0] + (b[0] - a[0]) * t,
+  a[1] + (b[1] - a[1]) * t,
+  a[2] + (b[2] - a[2]) * t,
+];
+
+export function hasWebGL2(): boolean {
+  try {
+    const c = document.createElement("canvas");
+    const gl = c.getContext("webgl2");
+    if (!gl) return false;
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export interface SeatState {
+  active: boolean;
+  addressed: boolean;
+  answered: boolean;
+}
+
+/** Free layout instead of the grid: one rect per seat (CSS px in the section), plus the frame. */
+export interface AvatarLayout {
+  rects: Record<string, Rect>;
+  /** Seat background mix toward the seat colour: idle and speaking. */
+  tint?: [number, number];
+  /** Camera framing factor, see SceneOptions.frameScale. */
+  frameScale?: number;
+  frameClass?: (seat: AvatarSeat, st: SeatState) => string;
+  frameStyle?: (seat: AvatarSeat, st: SeatState) => CSSProperties;
+  plate: (seat: AvatarSeat, st: SeatState) => ReactNode;
+}
+
+const TRANSITION_MS = 450;
+
+export function AvatarStage({
+  seats,
+  cols,
+  cue,
+  addressees,
+  answeredId,
+  liveRef,
+  lang,
+  s,
+  onFail,
+  layout,
+  figures = "stylized",
+  className,
+}: {
+  seats: AvatarSeat[];
+  cols: number;
+  cue: StageCue;
+  addressees: string[];
+  answeredId: string | null;
+  liveRef: RefObject<StageLive>;
+  lang: "de" | "en";
+  s: StageStrings;
+  onFail: (why: string) => void;
+  layout?: AvatarLayout;
+  /** Figure style; "realistic" loads the textured characters (opt-in, see realistic.ts). */
+  figures?: FigureKind;
+  className?: string;
+}) {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const tileRefs = useRef(new Map<string, HTMLElement>());
+  const sceneRef = useRef<AvatarScene | null>(null);
+  const cueRef = useRef(cue);
+  cueRef.current = cue;
+  const failRef = useRef(onFail);
+  failRef.current = onFail;
+  const [progress, setProgress] = useState<[number, number]>([0, seats.length]);
+  const tintRef = useRef(layout?.tint);
+  tintRef.current = layout?.tint;
+  const free = !!layout;
+  const frameScale = layout?.frameScale;
+
+  const seatKey = seats.map((x) => `${x.id}:${x.color}`).join("|");
+  // biome-ignore lint/correctness/useExhaustiveDependencies: rebuilt only when the seats change
+  const seatList = useMemo(() => seats, [seatKey]);
+
+  const measure = useCallback(() => {
+    const scene = sceneRef.current;
+    const canvas = canvasRef.current;
+    if (!scene || !canvas) return;
+    const base = canvas.getBoundingClientRect();
+    const rects = new Map<string, DOMRect>();
+    for (const [id, el] of tileRefs.current) {
+      const r = el.getBoundingClientRect();
+      // inside the 1px border so the frame stays crisp
+      rects.set(id, new DOMRect(r.x - base.x + 1, r.y - base.y + 1, r.width - 2, r.height - 2));
+    }
+    scene.setRects(base.width, base.height, rects);
+  }, []);
+
+  const paintBackgrounds = useCallback(() => {
+    const scene = sceneRef.current;
+    const host = sectionRef.current;
+    if (!scene || !host) return;
+    const resolve = makeResolver(host);
+    const card = resolve("var(--card)");
+    const bg = new Map<string, string>();
+    const [idle, speaking] = tintRef.current ?? [0.08, 0.2];
+    for (const seat of seatList) {
+      const t = seat.id === cueRef.current.speaker ? speaking : idle;
+      bg.set(seat.id, hex(mix(card, resolve(seat.color), t)));
+    }
+    scene.setBackgrounds(bg);
+  }, [seatList]);
+
+  // Build the scene once per seat set and language.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const host = sectionRef.current;
+    if (!canvas || !host) return;
+    let alive = true;
+    let loaded = false;
+    let scene: AvatarScene | null = null;
+    const fail = (why: string) => {
+      if (!alive) return;
+      alive = false;
+      console.warn(`[stage] 3D mode unavailable, falling back to tiles: ${why}`);
+      failRef.current(why);
+    };
+    if (!hasWebGL2()) {
+      fail("WebGL 2 not available");
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      if (!loaded) fail("figure load timed out");
+    }, LOAD_TIMEOUT_MS);
+
+    void (async () => {
+      try {
+        const mod = await import("./avatar-scene");
+        if (!alive) return;
+        const resolve = makeResolver(host);
+        const card = resolve("var(--card)");
+        scene = new mod.AvatarScene(canvas, {
+          url: ASSET,
+          figures,
+          lang,
+          cols,
+          gazeFromRects: free,
+          frameScale,
+          live: liveRef,
+          onLost: fail,
+        });
+        sceneRef.current = scene;
+        const realistic = figures === "realistic";
+        const assets = realistic ? realisticAssets(seatList.map((x) => x.id)) : null;
+        const specs = seatList.flatMap((seat) => {
+          const el = tileRefs.current.get(seat.id);
+          if (!el) return [];
+          const rgb = resolve(seat.color);
+          const suit = hex(seat.kind === "agent" ? rgb : mix(rgb, card, 0.15));
+          return [
+            {
+              id: seat.id,
+              el,
+              bg: hex(mix(card, rgb, 0.08)),
+              url: assets?.get(seat.id),
+              style: realistic ? realisticStyle(seat.id, suit) : figureStyle(seat.id, suit),
+            },
+          ];
+        });
+        measure();
+        scene.setCue(cueRef.current);
+        scene.start();
+        await scene.load(specs, (done, total) => {
+          if (!alive) return;
+          loaded = true;
+          setProgress([done, total]);
+        });
+        if (alive) paintBackgrounds();
+      } catch (e) {
+        fail(e instanceof Error ? e.message : String(e));
+      }
+    })();
+
+    return () => {
+      alive = false;
+      window.clearTimeout(timer);
+      scene?.dispose();
+      sceneRef.current = null;
+    };
+  }, [seatList, lang, cols, free, frameScale, figures, liveRef, measure, paintBackgrounds]);
+
+  // Free layout: frames glide to their new rects; follow them frame by frame while they move.
+  const rectKey = layout
+    ? Object.entries(layout.rects)
+        .map(([id, r]) => `${id}:${r.x},${r.y},${r.w},${r.h}`)
+        .join("|")
+    : "";
+  useEffect(() => {
+    if (!rectKey) return;
+    let raf = 0;
+    const until = performance.now() + TRANSITION_MS + 150;
+    const step = () => {
+      measure();
+      if (performance.now() < until) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [rectKey, measure]);
+
+  // Layout: follow the section's size.
+  useEffect(() => {
+    const host = sectionRef.current;
+    if (!host) return;
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(host);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [measure]);
+
+  // Theme switch: re-resolve the tile backgrounds.
+  useEffect(() => {
+    const mo = new MutationObserver(() => paintBackgrounds());
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
+    return () => mo.disconnect();
+  }, [paintBackgrounds]);
+
+  const listenersKey = cue.listeners.join(",");
+  // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on turn, speaker, listeners
+  useEffect(() => {
+    sceneRef.current?.setCue(cueRef.current);
+    paintBackgrounds();
+  }, [cue.key, cue.speaker, listenersKey, paintBackgrounds]);
+
+  const loading = progress[0] < progress[1];
+
+  return (
+    <section
+      ref={sectionRef}
+      aria-label={s.stageLabel}
+      className={cn("relative min-h-0 flex-1", !layout && "grid gap-3", className)}
+      style={
+        layout
+          ? undefined
+          : {
+              gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+              gridAutoRows: "minmax(0, 1fr)",
+            }
+      }
+    >
+      <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
+      {seats.map((seat) => {
+        const active = cue.speaker === seat.id;
+        const addressed = !active && addressees.includes(seat.id);
+        const answered = !active && !addressed && answeredId === seat.id;
+        if (layout) {
+          const st = { active, addressed, answered };
+          const r = layout.rects[seat.id];
+          return (
+            <figure
+              key={seat.id}
+              ref={(el) => {
+                if (el) tileRefs.current.set(seat.id, el);
+                else tileRefs.current.delete(seat.id);
+              }}
+              aria-label={
+                active
+                  ? `${seat.name}, ${s.speaking}`
+                  : addressed
+                    ? `${seat.name}, ${s.addressed}`
+                    : seat.name
+              }
+              data-active={active || undefined}
+              data-seat={seat.id}
+              className={cn("absolute z-10 m-0 overflow-hidden", layout.frameClass?.(seat, st))}
+              style={{
+                left: r?.x ?? 0,
+                top: r?.y ?? 0,
+                width: r?.w ?? 0,
+                height: r?.h ?? 0,
+                visibility: r ? undefined : "hidden",
+                transition: `left ${TRANSITION_MS}ms ease, top ${TRANSITION_MS}ms ease, width ${TRANSITION_MS}ms ease, height ${TRANSITION_MS}ms ease, box-shadow 250ms ease`,
+                ...layout.frameStyle?.(seat, st),
+              }}
+            >
+              {layout.plate(seat, st)}
+            </figure>
+          );
+        }
+        return (
+          <figure
+            key={seat.id}
+            ref={(el) => {
+              if (el) tileRefs.current.set(seat.id, el);
+              else tileRefs.current.delete(seat.id);
+            }}
+            aria-label={
+              active
+                ? `${seat.name}, ${s.speaking}`
+                : addressed
+                  ? `${seat.name}, ${s.addressed}`
+                  : seat.name
+            }
+            title={seat.name}
+            data-active={active || undefined}
+            className="relative z-10 min-h-0 min-w-0 overflow-hidden rounded-lg border transition-shadow duration-300"
+            style={{
+              boxShadow: active
+                ? `0 0 0 4px ${seat.color}, 0 12px 32px -8px color-mix(in srgb, ${seat.color} 55%, transparent)`
+                : addressed
+                  ? `0 0 0 3px color-mix(in srgb, ${seat.color} 80%, transparent)`
+                  : answered
+                    ? `0 0 0 2px color-mix(in srgb, ${seat.color} 60%, transparent)`
+                    : undefined,
+            }}
+          >
+            <figcaption className="absolute inset-x-1 bottom-1 flex min-w-0 items-center gap-1.5 rounded-md border bg-card/90 px-1.5 py-0.5 shadow-xs backdrop-blur-sm">
+              <span
+                className="inline-grid h-5 min-w-5 shrink-0 place-items-center rounded-[5px] px-1 text-[10px] font-semibold text-white"
+                style={{ background: seat.color }}
+              >
+                {seat.code}
+              </span>
+              {/* one line, so short tiles keep the face clear of the plate */}
+              <span className="min-w-0 flex-1 truncate text-[13px] leading-5">
+                <span className="font-medium">{seat.name}</span>
+                {seat.role ? (
+                  <span className="text-[11px] text-muted-foreground"> · {seat.role}</span>
+                ) : null}
+              </span>
+              {active ? (
+                <span className="shrink-0 text-xs font-medium" style={{ color: seat.color }}>
+                  {s.speaking}
+                </span>
+              ) : addressed ? (
+                <span className="shrink-0 text-xs font-medium" style={{ color: seat.color }}>
+                  ← {s.addressed}
+                </span>
+              ) : answered ? (
+                <span className="shrink-0 text-xs text-muted-foreground">↩</span>
+              ) : null}
+            </figcaption>
+          </figure>
+        );
+      })}
+      {loading ? (
+        <div
+          role="status"
+          className={cn(
+            "pointer-events-none absolute top-2 left-1/2 z-20 -translate-x-1/2 rounded-full border bg-card/90 px-3 py-1 text-xs text-muted-foreground shadow-xs",
+          )}
+        >
+          {s.view3dLoading} {progress[0]}/{progress[1]}
+        </div>
+      ) : null}
+    </section>
+  );
+}

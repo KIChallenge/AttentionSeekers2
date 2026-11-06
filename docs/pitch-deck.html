@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HealthPolicy Simulator</title>
+<style>
+  :root {
+    --bg: #fafaf9; --fg: #1c1917; --muted: #57534e; --line: #d6d3d1; --card: #ffffff;
+    --accent: #0f766e; --warn: #b45309;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0c0a09; --fg: #f5f5f4; --muted: #a8a29e; --line: #44403c; --card: #1c1917;
+      --accent: #2dd4bf; --warn: #fbbf24; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .slide { display: none; position: absolute; inset: 0; padding: 6vh 7vw;
+    flex-direction: column; justify-content: center; gap: 3vh; }
+  .slide.on { display: flex; }
+  h1 { font-size: clamp(32px, 5.5vw, 76px); line-height: 1.05; margin: 0; letter-spacing: -0.02em; }
+  h2 { font-size: clamp(26px, 3.6vw, 52px); margin: 0; letter-spacing: -0.01em; }
+  p, li { font-size: clamp(18px, 2vw, 30px); line-height: 1.4; margin: 0; }
+  .muted { color: var(--muted); }
+  .kicker { text-transform: uppercase; letter-spacing: 0.12em; font-size: clamp(12px, 1.2vw, 18px);
+    color: var(--accent); font-weight: 600; }
+  ul { margin: 0; padding-left: 1.2em; display: grid; gap: 1.2vh; }
+  .grid { display: grid; gap: 2vw; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 2.4vh 1.6vw; }
+  .card b { display: block; font-size: clamp(18px, 1.8vw, 28px); margin-bottom: 0.6vh; }
+  .card span { color: var(--muted); font-size: clamp(14px, 1.4vw, 22px); line-height: 1.35; display: block; }
+  .flow { display: flex; flex-wrap: wrap; gap: 1vw; align-items: center; font-size: clamp(14px, 1.5vw, 22px); }
+  .flow div { border: 2px solid var(--accent); border-radius: 12px; padding: 1.4vh 1.2vw; background: var(--card); }
+  .flow i { font-style: normal; color: var(--muted); }
+  .big { font-size: clamp(40px, 7vw, 110px); font-weight: 700; color: var(--accent); line-height: 1; }
+  .warn { color: var(--warn); }
+  .q { font-size: clamp(22px, 2.8vw, 42px); border-left: 6px solid var(--accent); padding-left: 1.4vw; }
+  footer { position: fixed; bottom: 2vh; right: 3vw; font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<section class="slide on">
+  <div class="kicker">KI Challenge, Use Case 2</div>
+  <h1>HealthPolicy Simulator</h1>
+  <p class="muted">Ein transparenter Verhandlungsraum für die österreichische Gesundheitspolitik.
+    Institutionen verhandeln, jede Position hat eine datierte Quelle, jeder Schritt ist prüfbar.</p>
+</section>
+
+<section class="slide">
+  <div class="kicker">Problem</div>
+  <h2>Wie reagieren die anderen, bevor wir verhandeln?</h2>
+  <p class="q">„Wie können die Wartezeiten auf Facharzttermine innerhalb von fünf Jahren um 20 %
+    reduziert werden, ohne die Gesundheitsausgaben um mehr als 5 % zu erhöhen?"</p>
+  <p class="muted">Vor einer Stellungnahme oder Honorarverhandlung entscheidet heute Erfahrung,
+    welche Blockaden und Koalitionen man erwartet. Nicht wiederholbar, nicht prüfbar.</p>
+</section>
+
+<section class="slide">
+  <div class="kicker">Ansatz</div>
+  <h2>Agenten mit echten, datierten Positionen</h2>
+  <div class="flow">
+    <div>Parlament Open Data<br><i>21.588 Stellungnahmen</i></div><span>→</span>
+    <div>Namen maskiert<br><i>vor jedem Modellschritt</i></div><span>→</span>
+    <div>Agenten + Moderator<br><i>Runden, Lessons</i></div><span>→</span>
+    <div>Experte<br><i>prüft jede Zahl</i></div><span>→</span>
+    <div>Koalitionskalkül<br><i>ohne KI</i></div><span>→</span>
+    <div>Ergebnis in 8 Teilen<br><i>Konflikte zuerst</i></div>
+  </div>
+  <p class="muted">Ein Ereignisprotokoll für Live und Replay. Jeder Beitrag öffnet sich bis zu
+    Prompt, Passagen und Modell.</p>
+</section>
+
+<section class="slide">
+  <div class="kicker">Demo</div>
+  <h1>Live im Prototyp</h1>
+  <p class="muted">Setup-Raum → Agentenkarte → Gegenbeitrag → Inspector → Trajektorie →
+    Prognose → Ergebnisdokument</p>
+</section>
+
+<section class="slide">
+  <div class="kicker">Methode</div>
+  <h2>Zählen statt trainieren</h2>
+  <div class="grid">
+    <div class="card"><b>30 bis 60 Episoden</b><span>über 18 Jahre, Kassenfusion als Bruch.
+      Kein validierbares Modell möglich.</span></div>
+    <div class="card"><b>„k von n vergleichbaren Fällen"</b><span>Basisrate mit Intervall,
+      Small-n-Warnung bei n &lt; 5, Regeln präregistriert.</span></div>
+    <div class="card"><b>Labels aus dem Gesetzgebungsprotokoll</b><span>Parlament und RIS,
+      regelbasiert, kein LLM, keine Presse.</span></div>
+    <div class="card"><b>as-of-Datum</b><span>nur Quellen vor dem Stichtag, aktuelle
+      Quellen wiegen mehr.</span></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Grenzen</div>
+  <h2>Was wir nicht behaupten</h2>
+  <ul>
+    <li>Kleines n: Basisraten, keine Einzelfallvorhersage.</li>
+    <li>Frontier-Modelle kennen vergangene Ausgänge: ein Backtest-Treffer ist schwache Evidenz.</li>
+    <li class="warn">SV-OG 2018 wurde einseitig beschlossen. Erwartung vorab: der Simulator fällt weicher aus.</li>
+    <li>Stance-Labels teilweise LLM-abgeleitet; Prozessrealismus nicht gemessen.</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <div class="kicker">Time-to-Impact</div>
+  <h2>Erster Einsatz: eine Begutachtungs-Stellungnahme vorbereiten</h2>
+  <div class="grid">
+    <div class="card"><b>Braucht</b><span>Archiv-Konnektor (SOZDOK, Pressespiegel), eigener
+      Azure-Tenant hinter dem Gateway, Review durch Policy-Analyst:in.</span></div>
+    <div class="card"><b>1. Backtests</b><span>SV-OG 2018 und PrimVG 2017 ausführen und
+      veröffentlichen.</span></div>
+    <div class="card"><b>2. Rote Linien</b><span>zweite Quelle, Labels an rund 200 Passagen
+      fachlich prüfen.</span></div>
+    <div class="card"><b>3. Pilot</b><span>laufendes Begutachtungsverfahren simulieren,
+      danach mit den echten Stellungnahmen vergleichen.</span></div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Eigenständigkeit</div>
+  <h2>Übernommen und gebaut</h2>
+  <p>UI-Bausteine, Design-Tokens und das Streaming-Muster stammen aus dem früheren Projekt eines
+    Teammitglieds. <b>Engine, Agenten, Koalitionskalkül, Experte, Datenkorpus, Prognose und alle
+    Verhandlungsansichten sind in dieser Challenge entstanden.</b></p>
+</section>
+
+<section class="slide">
+  <div class="big">Danke.</div>
+  <p class="q">Der Simulator ersetzt keine Verhandlung. Er sagt vorher, wo es knirschen wird,
+    und zeigt, warum er das glaubt.</p>
+  <p class="muted">Methodennotiz: /method im Prototyp, docs/method.md im Repository.</p>
+</section>
+
+<footer id="pos"></footer>
+<script>
+  const slides = Array.from(document.querySelectorAll(".slide"));
+  let i = 0;
+  function show(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => {
+      s.classList.toggle("on", k === i);
+    });
+    document.getElementById("pos").textContent = `${i + 1} / ${slides.length}`;
+    history.replaceState(null, "", `#${i + 1}`);
+  }
+  document.addEventListener("keydown", (e) => {
+    if (["ArrowRight", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); show(i + 1); }
+    if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); show(i - 1); }
+    if (e.key === "Home") show(0);
+    if (e.key === "End") show(slides.length - 1);
+  });
+  document.addEventListener("click", (e) => show(e.clientX > window.innerWidth / 3 ? i + 1 : i - 1));
+  show((Number.parseInt(location.hash.slice(1), 10) || 1) - 1);
+</script>
+</body>
+</html>

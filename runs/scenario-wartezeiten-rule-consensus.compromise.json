@@ -1,0 +1,29 @@
+{
+  "runId": "scenario-wartezeiten-rule-consensus",
+  "packageId": "k-5",
+  "verdict": "carries",
+  "label": {
+    "lang": "de",
+    "text": "trägt",
+    "translations": {
+      "en": "carries"
+    }
+  },
+  "conditions": [
+    {
+      "agentId": "sv",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Sozialversicherung erhält bis zum Pilotstart eine verbindliche, ausgewiesene Gegenfinanzierung aus dem ambulanten Budget, die den jährlichen Honorarfür die Erstkonsultation über 1450 in voller Höhe abdeckt, ohne zusätzliche Belastung der Beiträge oder ineffiziente Umschichtungen.",
+        "translations": {
+          "en": "The Social Insurance provides, prior to pilot launch, binding and specifically allocated counter-financing from the ambulatory budget covering the full annual costs of the agreed remuneration for first consultations via 1450, without additional contribution burden or inefficient reallocations."
+        }
+      }
+    }
+  ],
+  "pairsChecked": 0,
+  "conflicts": [],
+  "model": "azure/gpt-6-sol",
+  "checkedAt": "2026-11-06T06:04:17.064Z"
+}

@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "press",
+        "stellungnahme",
+        "sozdok",
+        "statistic",
+        "parliament",
+        "ris",
+        "audit"
+      ]
+    },
+    "institution": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "nameDe": {
+          "type": "string"
+        },
+        "glossEn": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "ministry_health",
+            "social_insurance",
+            "medical_chamber",
+            "contract_physicians",
+            "elective_physicians",
+            "hospitals",
+            "nursing",
+            "patients",
+            "legislature",
+            "ministry_finance",
+            "laender",
+            "public_health",
+            "chamber_commerce",
+            "chamber_labour",
+            "chamber_agriculture",
+            "industry_pharma",
+            "other"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "nameDe",
+        "glossEn",
+        "role"
+      ]
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "datePrecision": {
+      "type": "string",
+      "enum": [
+        "day",
+        "month",
+        "year"
+      ]
+    },
+    "outlet": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "title": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "legalRef": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "url": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "uri"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "licence": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "personFiltered": {
+      "type": "boolean",
+      "const": true
+    },
+    "corpusRevision": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "institution",
+    "date",
+    "datePrecision",
+    "outlet",
+    "title",
+    "legalRef",
+    "url",
+    "personFiltered",
+    "corpusRevision"
+  ]
+}

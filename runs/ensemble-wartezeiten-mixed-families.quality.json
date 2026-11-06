@@ -1,0 +1,4480 @@
+{
+  "runId": "ensemble-wartezeiten-mixed-families",
+  "generatedAt": "2026-11-06T03:01:45.577Z",
+  "rubricVersion": "debate-quality-rubric-v1",
+  "judge": {
+    "models": [
+      "bedrock/zai.glm-5",
+      "azure/gpt-6-sol"
+    ],
+    "rule": "cross-family: Azure GPT turns judged by Bedrock Nova, Bedrock turns judged by Azure GPT",
+    "settings": "temperature 0, reasoning none, seed 20261106 (Azure), fixed rubric, batches of up to 6 utterances per exchange",
+    "calls": 45,
+    "failed": 0,
+    "tokensIn": 125160,
+    "tokensOut": 12618,
+    "costUsd": 0.2404
+  },
+  "overall": {
+    "key": "run",
+    "n": 126,
+    "overall": 0.95,
+    "scores": {
+      "relevanceMandate": 0.98,
+      "relevanceExchange": 0.91,
+      "responsiveness": 0.86,
+      "grounding": 0.86,
+      "repetition": 1,
+      "consistency": 0.98,
+      "register": 0.94,
+      "con": 1
+    },
+    "flagged": 31
+  },
+  "byAgent": [
+    {
+      "key": "moderator",
+      "n": 22,
+      "overall": 1,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.99,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 0
+    },
+    {
+      "key": "ka",
+      "n": 5,
+      "overall": 0.96,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.85,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.87,
+        "con": 1
+      },
+      "flagged": 1
+    },
+    {
+      "key": "fm",
+      "n": 14,
+      "overall": 0.97,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.93,
+        "grounding": 0.85,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.95,
+        "con": 1
+      },
+      "flagged": 2
+    },
+    {
+      "key": "gm",
+      "n": 10,
+      "overall": 0.98,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 0
+    },
+    {
+      "key": "bl",
+      "n": 7,
+      "overall": 0.87,
+      "scores": {
+        "relevanceMandate": 0.91,
+        "relevanceExchange": 0.67,
+        "responsiveness": 0.86,
+        "grounding": 0.67,
+        "repetition": 1,
+        "consistency": 0.86,
+        "register": 0.91,
+        "con": 1
+      },
+      "flagged": 4
+    },
+    {
+      "key": "ak",
+      "n": 18,
+      "overall": 0.91,
+      "scores": {
+        "relevanceMandate": 0.96,
+        "relevanceExchange": 0.87,
+        "responsiveness": 0.69,
+        "grounding": 0.84,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.95,
+        "con": 1
+      },
+      "flagged": 8
+    },
+    {
+      "key": "va",
+      "n": 10,
+      "overall": 0.95,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 0.95,
+        "responsiveness": 0.83,
+        "grounding": 0.86,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.97,
+        "con": 1
+      },
+      "flagged": 3
+    },
+    {
+      "key": "pv",
+      "n": 13,
+      "overall": 0.91,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.77,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 0.92,
+        "register": 0.8,
+        "con": 1
+      },
+      "flagged": 6
+    },
+    {
+      "key": "sv",
+      "n": 14,
+      "overall": 0.92,
+      "scores": {
+        "relevanceMandate": 0.95,
+        "relevanceExchange": 0.79,
+        "responsiveness": 0.76,
+        "grounding": 0.88,
+        "repetition": 1,
+        "consistency": 0.98,
+        "register": 0.95,
+        "con": 1
+      },
+      "flagged": 4
+    },
+    {
+      "key": "pf",
+      "n": 8,
+      "overall": 0.94,
+      "scores": {
+        "relevanceMandate": 0.96,
+        "relevanceExchange": 0.8,
+        "responsiveness": 0.92,
+        "grounding": 0.78,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.96,
+        "con": 1
+      },
+      "flagged": 3
+    },
+    {
+      "key": "expert",
+      "n": 5,
+      "overall": 1,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.96,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 0
+    }
+  ],
+  "byRound": [
+    {
+      "key": "R1",
+      "n": 22,
+      "overall": 0.98,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.93,
+        "grounding": 0.91,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.95,
+        "con": 1
+      },
+      "flagged": 2
+    },
+    {
+      "key": "R2",
+      "n": 31,
+      "overall": 0.94,
+      "scores": {
+        "relevanceMandate": 0.95,
+        "relevanceExchange": 0.79,
+        "responsiveness": 0.8,
+        "grounding": 0.91,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 12
+    },
+    {
+      "key": "R3",
+      "n": 28,
+      "overall": 0.94,
+      "scores": {
+        "relevanceMandate": 0.99,
+        "relevanceExchange": 0.91,
+        "responsiveness": 0.81,
+        "grounding": 0.86,
+        "repetition": 1,
+        "consistency": 0.96,
+        "register": 0.96,
+        "con": 1
+      },
+      "flagged": 8
+    },
+    {
+      "key": "R4",
+      "n": 33,
+      "overall": 0.94,
+      "scores": {
+        "relevanceMandate": 0.99,
+        "relevanceExchange": 0.96,
+        "responsiveness": 0.89,
+        "grounding": 0.81,
+        "repetition": 1,
+        "consistency": 0.98,
+        "register": 0.92,
+        "con": 1
+      },
+      "flagged": 6
+    },
+    {
+      "key": "R5",
+      "n": 12,
+      "overall": 0.93,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 0.97,
+        "grounding": 0.8,
+        "repetition": 1,
+        "consistency": 0.94,
+        "register": 0.81,
+        "con": 1
+      },
+      "flagged": 3
+    }
+  ],
+  "byExchange": [
+    {
+      "key": "x1-01",
+      "n": 10,
+      "overall": 0.98,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.9,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.93,
+        "con": 1
+      },
+      "flagged": 1
+    },
+    {
+      "key": "x1-02",
+      "n": 4,
+      "overall": 0.96,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.84,
+        "grounding": 0.88,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.92,
+        "con": 1
+      },
+      "flagged": 1
+    },
+    {
+      "key": "x1-03",
+      "n": 4,
+      "overall": 0.97,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.84,
+        "grounding": 0.92,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 0
+    },
+    {
+      "key": "x1-04",
+      "n": 4,
+      "overall": 1,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 0
+    },
+    {
+      "key": "x2-01",
+      "n": 1,
+      "overall": 1,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 0
+    },
+    {
+      "key": "x2-02",
+      "n": 6,
+      "overall": 0.96,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.72,
+        "grounding": 0.94,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 1
+    },
+    {
+      "key": "x2-03",
+      "n": 5,
+      "overall": 0.82,
+      "scores": {
+        "relevanceMandate": 0.67,
+        "relevanceExchange": 0.33,
+        "responsiveness": 0.67,
+        "grounding": 0.93,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 5
+    },
+    {
+      "key": "x2-04",
+      "n": 3,
+      "overall": 0.95,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.91,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 1
+    },
+    {
+      "key": "x2-05",
+      "n": 2,
+      "overall": 0.93,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.5,
+        "grounding": 0.92,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 1
+    },
+    {
+      "key": "x2-06",
+      "n": 14,
+      "overall": 0.97,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 0.95,
+        "grounding": 0.87,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 4
+    },
+    {
+      "key": "x3-01",
+      "n": 1,
+      "overall": 0.98,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.9,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 0
+    },
+    {
+      "key": "x3-02",
+      "n": 4,
+      "overall": 0.93,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.89,
+        "repetition": 1,
+        "consistency": 0.92,
+        "register": 0.92,
+        "con": 1
+      },
+      "flagged": 1
+    },
+    {
+      "key": "x3-03",
+      "n": 6,
+      "overall": 0.91,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 0.78,
+        "responsiveness": 0.67,
+        "grounding": 0.9,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.95,
+        "con": 1
+      },
+      "flagged": 3
+    },
+    {
+      "key": "x3-04",
+      "n": 3,
+      "overall": 0.95,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.91,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 1
+    },
+    {
+      "key": "x3-05",
+      "n": 14,
+      "overall": 0.95,
+      "scores": {
+        "relevanceMandate": 0.98,
+        "relevanceExchange": 0.93,
+        "responsiveness": 0.95,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 0.95,
+        "register": 0.98,
+        "con": 1
+      },
+      "flagged": 3
+    },
+    {
+      "key": "x4-01",
+      "n": 2,
+      "overall": 0.99,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.95,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 0
+    },
+    {
+      "key": "x4-02",
+      "n": 5,
+      "overall": 0.96,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.8,
+        "grounding": 0.85,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 0
+    },
+    {
+      "key": "x4-03",
+      "n": 6,
+      "overall": 0.92,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.78,
+        "grounding": 0.8,
+        "repetition": 1,
+        "consistency": 0.95,
+        "register": 0.78,
+        "con": 1
+      },
+      "flagged": 1
+    },
+    {
+      "key": "x4-04",
+      "n": 3,
+      "overall": 0.93,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 0.78,
+        "responsiveness": 0.78,
+        "grounding": 0.85,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 0
+    },
+    {
+      "key": "x4-05",
+      "n": 3,
+      "overall": 0.94,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 0.89,
+        "responsiveness": 0.78,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "flagged": 0
+    },
+    {
+      "key": "x4-06",
+      "n": 14,
+      "overall": 0.95,
+      "scores": {
+        "relevanceMandate": 0.98,
+        "relevanceExchange": 0.98,
+        "responsiveness": 1,
+        "grounding": 0.76,
+        "repetition": 1,
+        "consistency": 0.98,
+        "register": 0.91,
+        "con": 1
+      },
+      "flagged": 5
+    },
+    {
+      "key": "x5-01",
+      "n": 12,
+      "overall": 0.93,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 0.97,
+        "grounding": 0.8,
+        "repetition": 1,
+        "consistency": 0.94,
+        "register": 0.81,
+        "con": 1
+      },
+      "flagged": 3
+    }
+  ],
+  "byModel": [
+    {
+      "key": "azure/gpt-6-sol",
+      "n": 51,
+      "overall": 0.99,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.98,
+        "grounding": 0.91,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.99,
+        "con": 1
+      },
+      "flagged": 2
+    },
+    {
+      "key": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "n": 45,
+      "overall": 0.93,
+      "scores": {
+        "relevanceMandate": 0.96,
+        "relevanceExchange": 0.84,
+        "responsiveness": 0.79,
+        "grounding": 0.84,
+        "repetition": 1,
+        "consistency": 0.99,
+        "register": 0.94,
+        "con": 1
+      },
+      "flagged": 16
+    },
+    {
+      "key": "bedrock/zai.glm-5",
+      "n": 17,
+      "overall": 0.92,
+      "scores": {
+        "relevanceMandate": 0.96,
+        "relevanceExchange": 0.85,
+        "responsiveness": 0.84,
+        "grounding": 0.78,
+        "repetition": 1,
+        "consistency": 0.94,
+        "register": 0.94,
+        "con": 1
+      },
+      "flagged": 7
+    },
+    {
+      "key": "bedrock/mistral.devstral-2-123b",
+      "n": 13,
+      "overall": 0.91,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.77,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 0.92,
+        "register": 0.8,
+        "con": 1
+      },
+      "flagged": 6
+    }
+  ],
+  "utterances": [
+    {
+      "utteranceId": "u1-01",
+      "speaker": "moderator",
+      "round": 1,
+      "exchangeId": "x1-01",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": null,
+        "grounding": 0.9,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.98,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1"
+        }
+      ]
+    },
+    {
+      "utteranceId": "u1-02",
+      "speaker": "ka",
+      "round": 1,
+      "exchangeId": "x1-01",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.98,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Aussage, hohe Ambulanzfrequenzen gefährdeten die Versorgungsqualität, bleibt ohne Beleg oder ausdrückliche Kennzeichnung als Annahme."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u1-03",
+      "speaker": "fm",
+      "round": 1,
+      "exchangeId": "x1-01",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u1-04",
+      "speaker": "gm",
+      "round": 1,
+      "exchangeId": "x1-01",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u1-05",
+      "speaker": "bl",
+      "round": 1,
+      "exchangeId": "x1-01",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.9,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.99,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 15"
+        }
+      ]
+    },
+    {
+      "utteranceId": "u1-06",
+      "speaker": "ak",
+      "round": 1,
+      "exchangeId": "x1-01",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.98,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Behauptung, Wartezeiten ließen sich langfristig nur durch auskömmliche Honoraranreize senken, wird nicht belegt oder als Annahme gekennzeichnet."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u1-07",
+      "speaker": "va",
+      "round": 1,
+      "exchangeId": "x1-01",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.98,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Einstufung zusätzlicher Kassenstellen als „wirksamster Hebel“ bleibt ohne Beleg oder Kennzeichnung als Annahme."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u1-08",
+      "speaker": "pv",
+      "round": 1,
+      "exchangeId": "x1-01",
+      "model": "bedrock/mistral.devstral-2-123b",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.33,
+        "con": 1
+      },
+      "overall": 0.88,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Aussage, eine Vierwochenzusage sei für die Wartezeitreduktion entscheidend, wird nicht belegt oder als Annahme gekennzeichnet."
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Das fremdsprachige Wort „necessário“ verstößt gegen die Vorgabe eines durchgehend deutschen Beitrags."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u1-09",
+      "speaker": "sv",
+      "round": 1,
+      "exchangeId": "x1-01",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u1-10",
+      "speaker": "pf",
+      "round": 1,
+      "exchangeId": "x1-01",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.98,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Aussage, eine Aufwertung der Pflege entlaste das System nachhaltig, bleibt ohne Beleg oder Kennzeichnung als Annahme."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u1-11",
+      "speaker": "pf",
+      "round": 1,
+      "exchangeId": "x1-02",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.94,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag geht auf die Ablehnung einer Substitution ein, klärt aber nicht ausdrücklich, ob der vorgeschlagene pflegerische Erstkontakt die ärztliche Erstdiagnose ersetzt."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die behauptete Entlastung des fachärztlichen Systems durch pflegerische Erstkontakte wird nicht belegt oder als Annahme gekennzeichnet."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u1-12",
+      "speaker": "ak",
+      "round": 1,
+      "exchangeId": "x1-02",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.67,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.92,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag behandelt die Kompetenzgrenze, geht aber nicht auf den Vorschlag definierter Indikationen und klarer Kompetenzrahmen ein."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Für die Zahl von 1000 neuen Kassenstellen und deren behauptete Wirkung auf die Wartezeiten wird keine Grundlage genannt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u1-13",
+      "speaker": "pf",
+      "round": 1,
+      "exchangeId": "x1-02",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u1-14",
+      "speaker": "ak",
+      "round": 1,
+      "exchangeId": "x1-02",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.67,
+        "con": 1
+      },
+      "overall": 0.96,
+      "flags": [
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die direkte Anrede „Pflegevertretung“ wirkt weniger natürlich als eine durchgehend institutionelle Ansprache."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u1-15",
+      "speaker": "pv",
+      "round": 1,
+      "exchangeId": "x1-03",
+      "model": "bedrock/mistral.devstral-2-123b",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.94,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag erwähnt den Budgetrahmen, geht aber nicht konkret auf die geforderte Gegenfinanzierung zusätzlicher Dauerbelastungen ein."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Aussagen zur Zwei-Klassen-Medizin und zum Ausweichen auf Wahlärzte werden ohne Beleg oder Kennzeichnung als Annahme vorgebracht."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u1-16",
+      "speaker": "fm",
+      "round": 1,
+      "exchangeId": "x1-03",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u1-17",
+      "speaker": "pv",
+      "round": 1,
+      "exchangeId": "x1-03",
+      "model": "bedrock/mistral.devstral-2-123b",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.94,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag greift die befristete Umschichtung auf, lässt aber die vorgeschlagene Begrenzung auf Fachgebiete und die Evaluation unbeantwortet."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Dass eine Umschichtung bestehender Mittel die Wartezeiten fairer verteilen kann, wird als Möglichkeit behauptet, ohne die dafür nötigen Voraussetzungen zu benennen."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u1-18",
+      "speaker": "fm",
+      "round": 1,
+      "exchangeId": "x1-03",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u1-19",
+      "speaker": "expert",
+      "round": 1,
+      "exchangeId": "x1-04",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u1-20",
+      "speaker": "moderator",
+      "round": 1,
+      "exchangeId": "x1-04",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u1-21",
+      "speaker": "moderator",
+      "round": 1,
+      "exchangeId": "x1-04",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u1-22",
+      "speaker": "moderator",
+      "round": 1,
+      "exchangeId": "x1-04",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": null,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u2-01",
+      "speaker": "moderator",
+      "round": 2,
+      "exchangeId": "x2-01",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u2-02",
+      "speaker": "pv",
+      "round": 2,
+      "exchangeId": "x2-02",
+      "model": "bedrock/mistral.devstral-2-123b",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.33,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.92,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Der Beitrag geht auf die angebotene Befristung, die Finanzierungsbedingungen und die Evaluierung nicht ein, sondern schlägt lediglich eine Plattform vor."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-03",
+      "speaker": "fm",
+      "round": 2,
+      "exchangeId": "x2-02",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u2-04",
+      "speaker": "ak",
+      "round": 2,
+      "exchangeId": "x2-02",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.94,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag nennt den Gesamtvertrag, geht aber auf die angebotene Befristung, Honoraranreize und Gegenfinanzierung kaum ein."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die behauptete notwendige Zustimmung der Ärztekammer zur Planung neuer Kapazitäten wird nicht belegt oder als Forderung gekennzeichnet."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-05",
+      "speaker": "va",
+      "round": 2,
+      "exchangeId": "x2-02",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.96,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag bekräftigt die Honorierungsbedingung, geht aber auf die von der Ärztekammer geforderte Verankerung der Kapazitätsplanung im Gesamtvertrag nicht ausdrücklich ein."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-06",
+      "speaker": "pv",
+      "round": 2,
+      "exchangeId": "x2-02",
+      "model": "bedrock/mistral.devstral-2-123b",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.94,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag erkennt Honoraranreize an, beantwortet aber die angesprochenen Haftungsfragen bei telemedizinischer Vorabklärung nicht."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Aussage, eine befristete Lösung in abgegrenzten Fachgebieten reiche für das flächendeckende Wartezeitziel nicht aus, bleibt ohne Beleg oder Kennzeichnung als Einschätzung."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-07",
+      "speaker": "fm",
+      "round": 2,
+      "exchangeId": "x2-02",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u2-08",
+      "speaker": "sv",
+      "round": 2,
+      "exchangeId": "x2-03",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 0.67,
+        "relevanceExchange": 0.33,
+        "responsiveness": 0,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.73,
+      "flags": [
+        {
+          "dimension": "relevanceMandate",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag behandelt Kassenstellen statt der im Gespräch vorrangigen Planungshoheit für Primärversorgungseinheiten."
+        },
+        {
+          "dimension": "relevanceExchange",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Der Beitrag verlagert das Gespräch von der Planungshoheit für Primärversorgungseinheiten auf neue Kassenstellen."
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Auf die angesprochene Trennung von ärztlicher Erstdiagnose und pflegerischem Erstkontakt geht der Beitrag nicht ein."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Zusicherung, dass keine zusätzlichen Kosten auf Länderbudgets übertragen werden, wird nicht durch eine Finanzierungsregelung gestützt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-09",
+      "speaker": "ak",
+      "round": 2,
+      "exchangeId": "x2-03",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 0.67,
+        "relevanceExchange": 0.33,
+        "responsiveness": 0.67,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.83,
+      "flags": [
+        {
+          "dimension": "relevanceMandate",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag behandelt Kassenstellen und Honorare, nicht die Planungshoheit für Primärversorgungseinheiten."
+        },
+        {
+          "dimension": "relevanceExchange",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die geforderte Gesamtvertragsbindung betrifft die Stellenplanung, während die Planungshoheit für Primärversorgungseinheiten offenbleibt."
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die vorgeschlagene Verpflichtung zu kürzeren Wartezeiten bleibt unbeantwortet."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-10",
+      "speaker": "bl",
+      "round": 2,
+      "exchangeId": "x2-03",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 0.67,
+        "relevanceExchange": 0.33,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.85,
+      "flags": [
+        {
+          "dimension": "relevanceMandate",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Das geforderte Mitspracherecht betrifft Standorte neuer Kassenstellen statt die Planung von Primärversorgungseinheiten."
+        },
+        {
+          "dimension": "relevanceExchange",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Der Beitrag verhandelt die Standortplanung von Kassenstellen, ohne die strittige Planungshoheit für Primärversorgungseinheiten zu behandeln."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die behauptete Entlastung der Akutspitäler durch vorgeschaltete Facharzttermine wird nicht belegt oder als Annahme gekennzeichnet."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-11",
+      "speaker": "sv",
+      "round": 2,
+      "exchangeId": "x2-03",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 0.67,
+        "relevanceExchange": 0.33,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.88,
+      "flags": [
+        {
+          "dimension": "relevanceMandate",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag regelt Zuständigkeiten für Kassenstellenverträge statt für die Planung von Primärversorgungseinheiten."
+        },
+        {
+          "dimension": "relevanceExchange",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die strittige Planungshoheit für Primärversorgungseinheiten bleibt trotz der Einigung über Kassenstellenstandorte ungeklärt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-12",
+      "speaker": "ak",
+      "round": 2,
+      "exchangeId": "x2-03",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 0.67,
+        "relevanceExchange": 0.33,
+        "responsiveness": 0.67,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.83,
+      "flags": [
+        {
+          "dimension": "relevanceMandate",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag behandelt die vertragliche Stellenplanung statt die Planungshoheit für Primärversorgungseinheiten."
+        },
+        {
+          "dimension": "relevanceExchange",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die Zustimmung zur Standortplanung von Kassenstellen klärt den Konflikt um Primärversorgungseinheiten nicht."
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Auf die Bedingung, dass die finale Zustellung der Kassenstellenverträge bei der Sozialversicherung bleibt, geht der Beitrag nicht ausdrücklich ein."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-13",
+      "speaker": "ak",
+      "round": 2,
+      "exchangeId": "x2-04",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.33,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.9,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Der Beitrag geht nicht auf das geforderte Mitspracherecht der Landes-Zielsteuerung bei der Standortplanung ein."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Für die flächendeckende Vierwochenzusage mit mindestens 1000 neuen Kassenstellen wird keine Finanzierungs- oder Umsetzungsgrundlage genannt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-14",
+      "speaker": "gm",
+      "round": 2,
+      "exchangeId": "x2-04",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.9,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.99,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1000"
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-15",
+      "speaker": "sv",
+      "round": 2,
+      "exchangeId": "x2-04",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.96,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag greift die Finanzierungsbedenken auf, geht aber nicht auf den Vorschlag einer befristeten Zusage in abgegrenzten Fachgebieten ein."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-16",
+      "speaker": "fm",
+      "round": 2,
+      "exchangeId": "x2-05",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.88,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Der Beitrag antwortet auf u2-12 (Ärztekammer, Sozialversicherung, Bundesländer) zum Thema Standort-Mitspracherecht und Stellenplanung, thematisiert aber ausschließlich eine gemeinsame Linie mit den Vertragsärzt:innen zur Terminzusage - der Bezug zum vorherigen Beitrag fehlt völlig."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-17",
+      "speaker": "va",
+      "round": 2,
+      "exchangeId": "x2-05",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.98,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Einschätzung, eine Vierwochenzusage sei in ausgewählten Fachgebieten mit Vermittlung über 1450 machbar, wird nicht belegt oder ausdrücklich als Annahme gekennzeichnet."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-18",
+      "speaker": "moderator",
+      "round": 2,
+      "exchangeId": "x2-06",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": null,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u2-19",
+      "speaker": "ak",
+      "round": 2,
+      "exchangeId": "x2-06",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 0.67,
+        "grounding": 0.57,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.89,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1000"
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag hält am eigenen Vorschlag fest, ohne eine ausdrückliche Stimme zu den übrigen offenen Vorschlägen abzugeben."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Für 1000 neue Kassenstellen und deren Finanzierung durch Umschichtung honorarrechtlicher Spielräume fehlt eine belegte Berechnung; auch die behauptete notwendige Zustimmung der Ärztekammer ist nicht belegt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-20",
+      "speaker": "pv",
+      "round": 2,
+      "exchangeId": "x2-06",
+      "model": "bedrock/mistral.devstral-2-123b",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 0.67,
+        "grounding": 0.67,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.91,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag nennt Bedingungen und eine Position, gibt aber keine ausdrückliche Stimme zu den offenen Vorschlägen ab."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die Behauptung, ohne flächendeckende Vierwochenzusage sei das Ziel von 20 % kürzeren Wartezeiten nicht erreichbar, wird nicht durch einen Wirkungsbeleg gestützt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-21",
+      "speaker": "gm",
+      "round": 2,
+      "exchangeId": "x2-06",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": null,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.8,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.97,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Expertenhinweis: Finanzministerium und Sozialversicherung haben einen befristeten Versuch mit gesonderten Tarifpositionen angeboten. / Es liegt kein offener Vorschlag vor.: Diese Aussage widerspricht c-2-21-2 (\"Es liegt kein offener Vors"
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-22",
+      "speaker": "ka",
+      "round": 2,
+      "exchangeId": "x2-06",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u2-23",
+      "speaker": "sv",
+      "round": 2,
+      "exchangeId": "x2-06",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u2-24",
+      "speaker": "fm",
+      "round": 2,
+      "exchangeId": "x2-06",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": null,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.8,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.97,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1000"
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-25",
+      "speaker": "bl",
+      "round": 2,
+      "exchangeId": "x2-06",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.67,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.95,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die angebliche Zusicherung der Sozialversicherung, keine Kosten auf Länderbudgets zu übertragen, und das bereits gewährte Mitspracherecht bei der Standortplanung sind im vorliegenden Verlauf nicht belegt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-26",
+      "speaker": "pf",
+      "round": 2,
+      "exchangeId": "x2-06",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.67,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.95,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die ausschließliche Wirksamkeit einer stärkeren Pflegerolle für die Entlastung der Facharztversorgung wird zweimal behauptet, aber nicht belegt oder als Annahme gekennzeichnet."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u2-27",
+      "speaker": "va",
+      "round": 2,
+      "exchangeId": "x2-06",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u2-28",
+      "speaker": "expert",
+      "round": 2,
+      "exchangeId": "x2-06",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": null,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u2-29",
+      "speaker": "moderator",
+      "round": 2,
+      "exchangeId": "x2-06",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": null,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u2-30",
+      "speaker": "moderator",
+      "round": 2,
+      "exchangeId": "x2-06",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": null,
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u2-31",
+      "speaker": "moderator",
+      "round": 2,
+      "exchangeId": "x2-06",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": null,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u3-01",
+      "speaker": "moderator",
+      "round": 3,
+      "exchangeId": "x3-01",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.9,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.98,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1000"
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-02",
+      "speaker": "ak",
+      "round": 3,
+      "exchangeId": "x3-02",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.67,
+        "con": 1
+      },
+      "overall": 0.92,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die geforderte flächendeckende Vierwochenzusage wird durch eine Evaluation in definierten Regionen nicht eingelöst."
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die interne Kennung „p-01“ gehört nicht in einen institutionellen Redebeitrag."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-03",
+      "speaker": "pv",
+      "round": 3,
+      "exchangeId": "x3-02",
+      "model": "bedrock/mistral.devstral-2-123b",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u3-04",
+      "speaker": "ak",
+      "round": 3,
+      "exchangeId": "x3-02",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.33,
+        "grounding": 0.56,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.86,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1000, 90"
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Bezifferte Annahme ohne Beleg und ohne Kennzeichnung im Text: 90 Prozent der Termine sollen innerhalb von vier Wochen erfolgen."
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Auf die Forderung nach einer flächendeckenden Vierwochenzusage folgt nur ein regionaler Stellenaufbau, ohne zu erklären, wie die Zusage überall gelten soll."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Behauptung „So sichern wir flächendeckende Wirkung“ ist durch den vorgeschlagenen regionalen Stellenaufbau nicht belegt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-05",
+      "speaker": "pv",
+      "round": 3,
+      "exchangeId": "x3-02",
+      "model": "bedrock/mistral.devstral-2-123b",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 0.67,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.92,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Antwort geht nicht auf die Bedingung von 90 % fristgerechten Terminen in drei aufeinanderfolgenden Quartalen ein."
+        },
+        {
+          "dimension": "consistency",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die zuvor geforderte flächendeckende Vierwochenzusage bleibt bei der Zustimmung zum regionalen Stellenaufbau ungeklärt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-06",
+      "speaker": "sv",
+      "round": 3,
+      "exchangeId": "x3-03",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 0.67,
+        "responsiveness": 0.67,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.67,
+        "con": 1
+      },
+      "overall": 0.88,
+      "flags": [
+        {
+          "dimension": "relevanceExchange",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag behandelt vor allem Kassenstellen und Finanzierung, ohne die Vierwochenzusage ausdrücklich zu benennen."
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die von den Vertragsärzt:innen geforderten Tarifpositionen im Gesamtvertrag bleiben unbeantwortet."
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die interne Kennung „p-01“ gehört nicht in einen institutionellen Redebeitrag."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-07",
+      "speaker": "fm",
+      "round": 3,
+      "exchangeId": "x3-03",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u3-08",
+      "speaker": "ak",
+      "round": 3,
+      "exchangeId": "x3-03",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 0.33,
+        "responsiveness": 0.33,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.83,
+      "flags": [
+        {
+          "dimension": "relevanceExchange",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Der Beitrag beschränkt sich auf die Stellenplanung und behandelt die Vierwochenzusage nicht."
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Auf die Bedingungen des Finanzministeriums zu Gegenfinanzierung, Honorierung und befristetem Versuch geht der Beitrag nicht ein."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-09",
+      "speaker": "va",
+      "round": 3,
+      "exchangeId": "x3-03",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.33,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.92,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Der Beitrag greift die Forderung der Ärztekammer nach Stellenplanung im Gesamtvertrag nicht auf."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-10",
+      "speaker": "sv",
+      "round": 3,
+      "exchangeId": "x3-03",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 0.67,
+        "responsiveness": 0.67,
+        "grounding": 0.49,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.85,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1000"
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Bezifferte Annahme ohne Beleg und ohne Kennzeichnung im Text: Die Sozialversicherung finanziert 1000 neue Kassenstellen durch Umschichtungen."
+        },
+        {
+          "dimension": "relevanceExchange",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag behandelt Finanzierung und Tarifpositionen, nennt aber keine konkrete Bedingung für die Vierwochenzusage."
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die geforderte gesetzliche Klärung der Haftung bei Telemedizin bleibt unbeantwortet."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die Zahl „1000 neuen Kassenstellen“ und die garantierte Finanzierung durch Umschichtungen werden ohne Beleg oder Kennzeichnung als Annahme vorgebracht."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-11",
+      "speaker": "fm",
+      "round": 3,
+      "exchangeId": "x3-03",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.9,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.99,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1000"
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-12",
+      "speaker": "sv",
+      "round": 3,
+      "exchangeId": "x3-04",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.33,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.92,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Der Beitrag geht nicht auf die geforderte verbindliche Finanzierung vor Versuchsbeginn und den angebotenen dreijährigen Versuch ein."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-13",
+      "speaker": "bl",
+      "round": 3,
+      "exchangeId": "x3-04",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.9,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.95,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 15"
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag greift den Ausbau der Kassenstellen auf, geht aber nicht auf die angesprochene vertragliche und gebarungswirksame Ausgestaltung der Vierwochenzusage ein."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-14",
+      "speaker": "gm",
+      "round": 3,
+      "exchangeId": "x3-04",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.98,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Aussage zur Bundesmittelverteilung über den Finanzausgleich ist als Annahme gekennzeichnet, aber ohne Beleg oder Verweis auf geltendes Recht formuliert."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-15",
+      "speaker": "moderator",
+      "round": 3,
+      "exchangeId": "x3-05",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u3-16",
+      "speaker": "pf",
+      "round": 3,
+      "exchangeId": "x3-05",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 0.67,
+        "responsiveness": 1,
+        "grounding": 0.57,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.91,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1200"
+        },
+        {
+          "dimension": "relevanceExchange",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Gegenvorschlag verlagert den Schwerpunkt von zusätzlichen Kassenstellen auf Pflegepositionen."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die Behauptung, p-01 ignoriere Pflegekompetenzen, und die erwartete messbare Wartezeitverkürzung sind weder belegt noch als Annahmen gekennzeichnet; auch die Zahl von 1200 Positionen wird nicht hergeleitet."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-17",
+      "speaker": "pv",
+      "round": 3,
+      "exchangeId": "x3-05",
+      "model": "bedrock/mistral.devstral-2-123b",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u3-18",
+      "speaker": "bl",
+      "round": 3,
+      "exchangeId": "x3-05",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 0.67,
+        "relevanceExchange": 0.33,
+        "responsiveness": 0.33,
+        "grounding": 0.57,
+        "repetition": 1,
+        "consistency": 0.67,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.7,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 15"
+        },
+        {
+          "dimension": "relevanceMandate",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Vorschlag zu Verlegungen und nachstationärer Versorgung hat nur einen indirekten Bezug zur Verkürzung von Facharztwartezeiten."
+        },
+        {
+          "dimension": "relevanceExchange",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Statt über die gestaffelten Kassenstellen in p-01 abzustimmen, verlagert der Beitrag den Schwerpunkt auf Spitalsverlegungen."
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die Antwort greift die angesprochenen Bedingungen zu Kostenrahmen, Gegenfinanzierung und Vierwochenzusage nicht konkret auf."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die Verwendung von Spitalserlösen für nachstationäre Versorgung und die dadurch behauptete Verkürzung von Facharztwartezeiten werden ohne Beleg als gesichert dargestellt."
+        },
+        {
+          "dimension": "consistency",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag erklärt nicht, wie die vorgeschlagene Finanzierung eine zusätzliche Belastung der Länderbudgets ausschließt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-19",
+      "speaker": "va",
+      "round": 3,
+      "exchangeId": "x3-05",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.57,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.95,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Expertenhinweis: Finanzministerium und Sozialversicherung haben einen befristeten Versuch mit gesonderten Tarifpositionen angeboten. / Es liegt kein offener Vorschlag vor.: Diese Aussage widerspricht c-2-21-2 (\"Es liegt kein offener Vors"
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Das behauptete Angebot mit Tarifpositionen und Umschichtungsgarantie ist nicht belegt und steht laut Expertenhinweis im Widerspruch zu einer früheren Aussage, dass kein offener Vorschlag vorliege."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-20",
+      "speaker": "ka",
+      "round": 3,
+      "exchangeId": "x3-05",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.67,
+        "con": 1
+      },
+      "overall": 0.96,
+      "flags": [
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die englische Wendung „Best Point of Service“ widerspricht der Vorgabe, auf englische Passagen zu verzichten."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-21",
+      "speaker": "fm",
+      "round": 3,
+      "exchangeId": "x3-05",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.56,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.95,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 370"
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Bezifferte Annahme ohne Beleg und ohne Kennzeichnung im Text: Die zwei offenen Vorschläge sehen Umschichtungen von insgesamt 370 Mio. EUR jährlich vor."
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Expertenhinweis: Die zwei offenen Vorschläge sehen Umschichtungen von insgesamt 370 Mio. EUR jährlich vor. / Es liegt kein offener Vorschlag vor.: Unterschiedliche Zeitpunkte könnten erklären, ob inzwischen Vorschläge offen sind. Ein spä"
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Zahl von 370 Mio. EUR jährlich wird ohne Beleg genannt und als Annahme geführt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-22",
+      "speaker": "gm",
+      "round": 3,
+      "exchangeId": "x3-05",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.98,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Zahl von 250 Mio. EUR jährlich wird ohne Beleg genannt und als Annahme geführt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-23",
+      "speaker": "ak",
+      "round": 3,
+      "exchangeId": "x3-05",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.98,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Aussage „Eine Staffelung sichert Wirksamkeit und finanzielle Kontrolle“ stellt eine erwartete Wirkung ohne Beleg oder Kennzeichnung als Annahme als gesichert dar."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-24",
+      "speaker": "sv",
+      "round": 3,
+      "exchangeId": "x3-05",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.73,
+        "repetition": 1,
+        "consistency": 0.67,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.93,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Expertenhinweis: Die Ausweitung soll eine Evaluation nach zwei Jahren mit mindestens 15 Prozent Wartezeitreduktion voraussetzen. / Evaluierung nach drei Jahren ist gefordert.: Zwei und drei Jahre wären vereinbar, wenn unterschiedliche Ev"
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Evaluierung nach drei Jahren wird ohne Abgrenzung zur in den Expertenhinweisen genannten Evaluation nach zwei Jahren gefordert."
+        },
+        {
+          "dimension": "consistency",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Bedingung einer Evaluierung nach drei Jahren lässt offen, ob die zuvor vorgesehene Prüfung nach zwei Jahren vor einer Ausweitung bestehen bleibt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-25",
+      "speaker": "expert",
+      "round": 3,
+      "exchangeId": "x3-05",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.9,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.99,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 370"
+        }
+      ]
+    },
+    {
+      "utteranceId": "u3-26",
+      "speaker": "moderator",
+      "round": 3,
+      "exchangeId": "x3-05",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u3-27",
+      "speaker": "moderator",
+      "round": 3,
+      "exchangeId": "x3-05",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u3-28",
+      "speaker": "moderator",
+      "round": 3,
+      "exchangeId": "x3-05",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": null,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u4-01",
+      "speaker": "moderator",
+      "round": 4,
+      "exchangeId": "x4-01",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u4-02",
+      "speaker": "moderator",
+      "round": 4,
+      "exchangeId": "x4-01",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.9,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.98,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1000"
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-03",
+      "speaker": "ak",
+      "round": 4,
+      "exchangeId": "x4-02",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.94,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag greift die Finanzierung im Gesamtvertrag auf, geht aber nicht auf die vorgeschlagene Evaluierung nach drei Jahren ein."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Für die geforderte Garantie von 250 Mio. EUR wird keine Grundlage genannt, die ihre Finanzierbarkeit aus bestehenden Spielräumen belegt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-04",
+      "speaker": "sv",
+      "round": 4,
+      "exchangeId": "x4-02",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.66,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.96,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1000"
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Bezifferte Annahme ohne Beleg und ohne Kennzeichnung im Text: Es sollen 1000 neue Kassenstellen geschaffen werden."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag nennt keine Grundlage dafür, dass jährlich 250 Mio. EUR aus bestehenden Spielräumen umgeschichtet werden können."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-05",
+      "speaker": "fm",
+      "round": 4,
+      "exchangeId": "x4-02",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.98,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1000"
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Bezifferte Annahme ohne Beleg und ohne Kennzeichnung im Text: Der angebotene Ausbau umfasst höchstens 1000 Kassenstellen."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-06",
+      "speaker": "ak",
+      "round": 4,
+      "exchangeId": "x4-02",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.96,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag übernimmt die Beschränkung auf ausgewählte Fachgebiete, geht aber nicht auf den vorgeschlagenen gestaffelten Stellenausbau und die Umschichtung vor der ersten Ausschreibung ein."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-07",
+      "speaker": "sv",
+      "round": 4,
+      "exchangeId": "x4-02",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.93,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.95,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Bezifferte Annahme ohne Beleg und ohne Kennzeichnung im Text: Die Sozialversicherung verlangt, dass 250 Mio. EUR aus bestehenden Spielräumen stammen."
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag greift die Finanzierung und den Ausgabendeckel auf, klärt aber nicht, wie die geforderte kurzfristig messbare Entlastung bei der Ausweitung der Vierwochenzusage berücksichtigt wird."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-08",
+      "speaker": "pv",
+      "round": 4,
+      "exchangeId": "x4-03",
+      "model": "bedrock/mistral.devstral-2-123b",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.67,
+        "con": 1
+      },
+      "overall": 0.9,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 15"
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Bezifferte Annahme ohne Beleg und ohne Kennzeichnung im Text: Die Wartezeiten müssen um mindestens 15 % sinken."
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag greift die stufenweise Einführung auf, geht aber nicht auf die im Vorbeitrag verlangte Absicherung der Umschichtung ein."
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die interne Kennung „p-01“ gehört nicht in einen institutionellen Redebeitrag."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-09",
+      "speaker": "gm",
+      "round": 4,
+      "exchangeId": "x4-03",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u4-10",
+      "speaker": "ak",
+      "round": 4,
+      "exchangeId": "x4-03",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.73,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.93,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1000"
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag reagiert auf die Ausweitung und die Gesamtvertragsbindung, lässt aber das Angebot vergüteter Terminleistungen und der Haftungsklärung unbeantwortet."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Zahl „1000 neuen Kassenstellen“ wird im Beitrag ohne Beleg oder Kennzeichnung als Annahme genannt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-11",
+      "speaker": "va",
+      "round": 4,
+      "exchangeId": "x4-03",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.96,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag bekräftigt die Ablehnung einer unvergüteten Ausweitung, geht aber auf die vom Vorbeitrag geforderte Verankerung der neuen Kassenstellen im Gesamtvertrag nicht ausdrücklich ein."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-12",
+      "speaker": "pv",
+      "round": 4,
+      "exchangeId": "x4-03",
+      "model": "bedrock/mistral.devstral-2-123b",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.66,
+        "repetition": 1,
+        "consistency": 0.67,
+        "register": 0,
+        "con": 1
+      },
+      "overall": 0.75,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 15"
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Bezifferte Annahme ohne Beleg und ohne Kennzeichnung im Text: Die Wartezeiten müssen um 15 Prozent reduziert werden."
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag schlägt eine Finanzierung vor, klärt aber nicht, ob die geforderten Tarifpositionen vor einer Ausweitung vereinbart werden sollen."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die vorgeschlagene Verwendung der jährlich 250 Mio. EUR für die Ausweitung wird nicht mit einer Kostenabschätzung unterlegt."
+        },
+        {
+          "dimension": "consistency",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die sofortige Forderung nach einer Zusage für alle Kassenstellen lässt die zuvor angebotene schrittweise Ausweitung offen."
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die sinnfremde Passage „Massimo Bell Commerce Berlusconi“ enthält einen Personennamen und verletzt die sachliche institutionelle Sprache."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-13",
+      "speaker": "gm",
+      "round": 4,
+      "exchangeId": "x4-03",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.56,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.95,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 15"
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Bezifferte Annahme ohne Beleg und ohne Kennzeichnung im Text: Die Ausweitung soll eine Evaluation nach zwei Jahren mit mindestens 15 Prozent Wartezeitreduktion voraussetzen."
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Expertenhinweis: Die Ausweitung soll eine Evaluation nach zwei Jahren mit mindestens 15 Prozent Wartezeitreduktion voraussetzen. / Evaluierung nach drei Jahren ist gefordert.: Zwei und drei Jahre wären vereinbar, wenn unterschiedliche Ev"
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Evaluation nach zwei Jahren weicht von den Expertenhinweisen ab, die eine Evaluierung nach drei Jahren vorsehen; eine Abgrenzung der Zeiträume wird nicht dargelegt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-14",
+      "speaker": "sv",
+      "round": 4,
+      "exchangeId": "x4-04",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 0.67,
+        "responsiveness": 0.67,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.92,
+      "flags": [
+        {
+          "dimension": "relevanceExchange",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag nennt die zusätzlichen Kassenstellen nicht ausdrücklich und bleibt bei der Finanzierung der neuen Regelung."
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag greift die Finanzierung im Gesamtvertrag auf, geht aber nicht auf die angesprochene Ausweitung auf bestehende Praxen ein."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-15",
+      "speaker": "fm",
+      "round": 4,
+      "exchangeId": "x4-04",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.73,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.97,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Expertenhinweis: Finanzierung von 250 Mio. EUR aus Honorarspielräumen vertraglich gesichert / Wir verlangen als Verhandlungsbedingung eine vorab verbindliche jährliche Umschichtung von 250 Mio. EUR.: Ein späterer Vertragsabschluss könnte"
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Forderung nach 250 Mio. EUR jährlicher Umschichtung wird als Verhandlungsbedingung gestellt, aber nicht mit Belegen unterlegt; die Expertenhinweise bestätigen die Größenordnung nicht eindeutig."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-16",
+      "speaker": "pf",
+      "round": 4,
+      "exchangeId": "x4-04",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 0.67,
+        "responsiveness": 0.67,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.9,
+      "flags": [
+        {
+          "dimension": "relevanceExchange",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Vorschlag betrifft vor allem Community Nursing in PVE und stellt den Bezug zum gestaffelten Ausbau der Kassenstellen nicht ausdrücklich her."
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag greift den pflegerischen Erstkontakt und die ärztliche Erstdiagnose auf, geht aber nicht auf die geforderte verbindliche Umschichtung ein."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Entlastung der Ambulanzen wird als erwartete Wirkung dargestellt, ohne sie als Annahme zu kennzeichnen oder zu belegen."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-17",
+      "speaker": "ak",
+      "round": 4,
+      "exchangeId": "x4-05",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 0.67,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.94,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag greift die Vierwochenzusage auf, geht aber nicht auf die geforderte Ausweitung auf bestehende Kassenstellen und deren vorgeschlagene Bedingung ein."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Ob die bestehenden honorarrechtlichen Spielräume die Finanzierung tragen können, bleibt unbelegt und wird nicht ausdrücklich als Annahme gekennzeichnet."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-18",
+      "speaker": "va",
+      "round": 4,
+      "exchangeId": "x4-05",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 0.67,
+        "responsiveness": 0.67,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.92,
+      "flags": [
+        {
+          "dimension": "relevanceExchange",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die ausführliche Haftungsfrage zur Telemedizin entfernt sich etwas vom Anlass der Abstimmung über zusätzliche Kassenstellen."
+        },
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag unterstützt die Verankerung im Gesamtvertrag, geht aber nicht auf die vorgeschlagene Finanzierung aus honorarrechtlichen Spielräumen ein."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-19",
+      "speaker": "gm",
+      "round": 4,
+      "exchangeId": "x4-05",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.66,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.96,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1000"
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Bezifferte Annahme ohne Beleg und ohne Kennzeichnung im Text: Der Vorschlag sieht 1000 zusätzliche Kassenstellen vor."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Forderung nach 250 Mio. EUR jährlicher Umschichtung wird ohne Beleg oder Herleitung als Annahme präsentiert."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-20",
+      "speaker": "moderator",
+      "round": 4,
+      "exchangeId": "x4-06",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u4-21",
+      "speaker": "va",
+      "round": 4,
+      "exchangeId": "x4-06",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.57,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.95,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Expertenhinweis: Haftung wird vor Versuchsstart geklärt / Haftungsfragen bei telemedizinischem Erstkontakt sind gesetzlich ungeklärt.: c-3-19-2 besagt, dass Haftungsfragen ungeklärt sind; c-4-21-3 behauptet, sie seien vor Versuchsstart g"
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die behauptete Haftungsklärung vor Versuchsstart ist nicht belegt und steht dem Expertenhinweis zu gesetzlich ungeklärten Haftungsfragen gegenüber."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-22",
+      "speaker": "ka",
+      "round": 4,
+      "exchangeId": "x4-06",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.73,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.97,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Expertenhinweis: 250 Mio. EUR müssen aus bestehenden Spielräumen stammen. / Finanzierung soll durch interne Umschichtungen erfolgen.: c-3-24-2 spricht von internen Umschichtungen allgemein, c-4-22-2 konkretisiert auf Honorarspielräume. K"
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Für die konkret genannten jährlichen 250 Mio. EUR aus bestehenden Spielräumen wird keine Grundlage angegeben."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-23",
+      "speaker": "ak",
+      "round": 4,
+      "exchangeId": "x4-06",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.57,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.95,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Expertenhinweis: Evaluation nach zwei Jahren / Evaluierung nach drei Jahren ist gefordert.: Zwei und drei Jahre sind als Termin für dieselbe Evaluation unvereinbar. Unterschiedliche Evaluationsstufen könnten die Angaben erklären, sind ab"
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die Evaluation nach zwei Jahren wird nicht von der ebenfalls geforderten Evaluierung nach drei Jahren abgegrenzt; auch die Finanzierungssumme bleibt unbelegt."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-24",
+      "speaker": "pf",
+      "round": 4,
+      "exchangeId": "x4-06",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 0.67,
+        "relevanceExchange": 0.67,
+        "responsiveness": 1,
+        "grounding": 0.57,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.86,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Expertenhinweis: p-01 fehlt Einbindung erweiterter Pflegekompetenzen / p-01 schließt erweiterte Pflegekompetenzen aus: Beide Aussagen thematisieren das Fehlen erweiterter Pflegekompetenzen in p-01. Die Formulierungen sind kompatibel und "
+        },
+        {
+          "dimension": "relevanceMandate",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Beitrag behandelt vor allem Pflegekompetenzen und erläutert nicht, wie der Vorschlag zusätzliche Kassenstellen ergänzt."
+        },
+        {
+          "dimension": "relevanceExchange",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Der Gegenantrag verlagert den Schwerpunkt der Abstimmung über Kassenstellen auf Pflegepositionen in PVEs."
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Für 1200 Positionen, ihre Finanzierung aus bestehenden PVE-Budgets und die erweiterten befundenden Kompetenzen fehlt eine belastbare Grundlage."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-25",
+      "speaker": "gm",
+      "round": 4,
+      "exchangeId": "x4-06",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.98,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Aussage zur jährlichen Umschichtung von 250 Mio. EUR ist als Annahme gekennzeichnet, aber ohne Beleg."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-26",
+      "speaker": "sv",
+      "round": 4,
+      "exchangeId": "x4-06",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.98,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die halbjährliche Evaluierung wird als Bedingung vorgeschlagen, ihre Umsetzbarkeit aber nicht begründet."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-27",
+      "speaker": "fm",
+      "round": 4,
+      "exchangeId": "x4-06",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.39,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.33,
+        "con": 1
+      },
+      "overall": 0.84,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1000"
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Bezifferte Annahme ohne Beleg und ohne Kennzeichnung im Text: The proposal covers 1,000 new contracted specialist posts."
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Expertenhinweis: Der Vorschlag der Bundesländer beziffert diese beiden jährlichen Finanzierungsquellen; ihre verbindliche Vereinbarung steht aus. / The proposed annual reallocation is EUR 250 million.: Früher wurden 250 Mio. EUR jährlich"
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Drei zentrale Aussagen sind ohne Beleg als Annahmen geführt, darunter die 250 Mio. EUR Umschichtung und die 1000 Kassenstellen."
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Der Beitrag enthält englische Passagen wie \"Social insurance proposed evaluating effectiveness every six months\" statt durchgehend Deutsch."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-28",
+      "speaker": "pv",
+      "round": 4,
+      "exchangeId": "x4-06",
+      "model": "bedrock/mistral.devstral-2-123b",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.59,
+        "repetition": 1,
+        "consistency": 0.67,
+        "register": 0.67,
+        "con": 1
+      },
+      "overall": 0.87,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Bezifferte Annahme ohne Beleg und ohne Kennzeichnung im Text: Wartezeitenreduktion"
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die behauptete Machbarkeit der Kombination aus Kassenstellen, pflegerischem Erstkontakt und fachübergreifender Vierwochenzusage wird nicht belegt."
+        },
+        {
+          "dimension": "consistency",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die uneingeschränkte Zustimmung lässt offen, wie die geforderte fachübergreifende Vierwochenzusage mit dem zuvor beschriebenen befristeten Versuch in ausgewählten Fachgebieten vereinbar ist."
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Formulierungen „pflegerische Erstkontaktregierung“ und „fakultätsübergreifende Vierwochenzusage“ sind im Versorgungskontext unklar."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-29",
+      "speaker": "bl",
+      "round": 4,
+      "exchangeId": "x4-06",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.63,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.67,
+        "con": 1
+      },
+      "overall": 0.91,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 1000, 15"
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Finanzierung von 1000 Kassenstellen mit jährlich 250 Mio. EUR wird als gesichert dargestellt, obwohl sie nur als Annahme geführt wird und die vertragliche Vereinbarung noch aussteht."
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die interne Kennung „p-01“ gehört nicht in einen institutionellen Redebeitrag."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-30",
+      "speaker": "expert",
+      "round": 4,
+      "exchangeId": "x4-06",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 0.9,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.99,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 15"
+        }
+      ]
+    },
+    {
+      "utteranceId": "u4-31",
+      "speaker": "moderator",
+      "round": 4,
+      "exchangeId": "x4-06",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u4-32",
+      "speaker": "moderator",
+      "round": 4,
+      "exchangeId": "x4-06",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u4-33",
+      "speaker": "moderator",
+      "round": 4,
+      "exchangeId": "x4-06",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": 1,
+        "responsiveness": null,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u5-01",
+      "speaker": "moderator",
+      "round": 5,
+      "exchangeId": "x5-01",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u5-02",
+      "speaker": "pv",
+      "round": 5,
+      "exchangeId": "x5-01",
+      "model": "bedrock/mistral.devstral-2-123b",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.67,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.67,
+        "con": 1
+      },
+      "overall": 0.91,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die behauptete Finanzierungszusage von 250 Mio. EUR ist nicht belegt; die verbindliche Vereinbarung steht laut Gesprächsverlauf noch aus."
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die interne Vorschlagskennung „p-01“ gehört nicht in einen institutionellen Redebeitrag."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u5-03",
+      "speaker": "fm",
+      "round": 5,
+      "exchangeId": "x5-01",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.63,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.95,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 15"
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Expertenhinweis: Der Vorschlag der Bundesländer beziffert diese beiden jährlichen Finanzierungsquellen; ihre verbindliche Vereinbarung steht aus. / The proposed annual reallocation is EUR 250 million.: Früher wurden 250 Mio. EUR jährlich"
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Angabe von 50 Mio. EUR im 15a-Rahmen wird ohne Beleg genannt; die Expertenhinweise weisen auf eine fehlende Abgrenzung der Finanzierungsquellen hin."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u5-04",
+      "speaker": "va",
+      "round": 5,
+      "exchangeId": "x5-01",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.67,
+        "con": 1
+      },
+      "overall": 0.93,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Tarifpositionen und Haftungsklärung werden als bereits gesichert dargestellt, obwohl ihre konkrete Ausgestaltung noch offen ist."
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die internen Vorschlagskennungen wie „p-01“ gehören nicht in einen institutionellen Redebeitrag."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u5-05",
+      "speaker": "gm",
+      "round": 5,
+      "exchangeId": "x5-01",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.9,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 0.99,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 15"
+        }
+      ]
+    },
+    {
+      "utteranceId": "u5-06",
+      "speaker": "pf",
+      "round": 5,
+      "exchangeId": "x5-01",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.9,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.67,
+        "con": 1
+      },
+      "overall": 0.94,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Expertenhinweis: p-01 fehlt Einbindung erweiterter Pflegekompetenzen / p-01 schließt erweiterte Pflegekompetenzen aus: Beide Aussagen thematisieren das Fehlen erweiterter Pflegekompetenzen in p-01. Die Formulierungen sind kompatibel und "
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die internen Vorschlagskennungen wie „p-01“ gehören nicht in einen institutionellen Redebeitrag."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u5-07",
+      "speaker": "ka",
+      "round": 5,
+      "exchangeId": "x5-01",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.67,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.67,
+        "con": 1
+      },
+      "overall": 0.91,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die jährliche Umschichtung von 250 Mio. EUR und die halbjährliche Evaluierung werden als verankert dargestellt, obwohl ihre verbindliche Vereinbarung nicht belegt ist."
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die interne Vorschlagskennung „p-01“ gehört nicht in einen institutionellen Redebeitrag."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u5-08",
+      "speaker": "bl",
+      "round": 5,
+      "exchangeId": "x5-01",
+      "model": "bedrock/zai.glm-5",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.2,
+        "repetition": 1,
+        "consistency": 0.33,
+        "register": 0.67,
+        "con": 1
+      },
+      "overall": 0.74,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Zahl ohne Beleg und ohne Kennzeichnung als Annahme: 15"
+        },
+        {
+          "dimension": "grounding",
+          "source": "deterministic",
+          "severity": "minor",
+          "reason": "Expertenhinweis: Finanzierung von 250 Mio. EUR aus Honorarspielräumen vertraglich gesichert / Wir verlangen als Verhandlungsbedingung eine vorab verbindliche jährliche Umschichtung von 250 Mio. EUR.: Ein späterer Vertragsabschluss könnte"
+        },
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die vertragliche Sicherung der Finanzierung, die Zusage im 15a-Rahmen und die gesicherte Spitalsentlastung werden ohne Beleg als Tatsachen behauptet."
+        },
+        {
+          "dimension": "consistency",
+          "source": "judge",
+          "severity": "major",
+          "reason": "Die Zustimmung trotz offener Ausgestaltung der Umschichtung im 15a-Rahmen lässt die bisherige Bedingung eines Ausgleichs für die Länderbudgets unbegründet fallen."
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die internen Vorschlagskennungen wie „p-01“ gehören nicht in einen institutionellen Redebeitrag."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u5-09",
+      "speaker": "sv",
+      "round": 5,
+      "exchangeId": "x5-01",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 0.83,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.67,
+        "con": 1
+      },
+      "overall": 0.93,
+      "flags": [
+        {
+          "dimension": "grounding",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Aussage „Die Beitragsstabilität bleibt gewahrt“ ist ohne verbindlich gesicherte Finanzierung noch nicht nachgewiesen."
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die internen Vorschlagskennungen wie „p-01“ gehören nicht in einen institutionellen Redebeitrag."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u5-10",
+      "speaker": "ak",
+      "round": 5,
+      "exchangeId": "x5-01",
+      "model": "bedrock/qwen.qwen3-235b-a22b-2507-v1:0",
+      "judgeModel": "azure/gpt-6-sol",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 0.67,
+        "grounding": 1,
+        "repetition": 1,
+        "consistency": 1,
+        "register": 0.67,
+        "con": 1
+      },
+      "overall": 0.91,
+      "flags": [
+        {
+          "dimension": "responsiveness",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die Stimme zu p-01 wird begründet, aber die ausdrücklich erbetene Benennung offener Punkte fehlt."
+        },
+        {
+          "dimension": "register",
+          "source": "judge",
+          "severity": "minor",
+          "reason": "Die interne Vorschlagskennung „p-01“ steht im Redebeitrag."
+        }
+      ]
+    },
+    {
+      "utteranceId": "u5-11",
+      "speaker": "expert",
+      "round": 5,
+      "exchangeId": "x5-01",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": 1,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    },
+    {
+      "utteranceId": "u5-12",
+      "speaker": "moderator",
+      "round": 5,
+      "exchangeId": "x5-01",
+      "model": "azure/gpt-6-sol",
+      "judgeModel": "bedrock/zai.glm-5",
+      "scores": {
+        "relevanceMandate": 1,
+        "relevanceExchange": null,
+        "responsiveness": null,
+        "grounding": 1,
+        "repetition": null,
+        "consistency": 1,
+        "register": 1,
+        "con": 1
+      },
+      "overall": 1,
+      "flags": []
+    }
+  ],
+  "gates": {
+    "turns": 99,
+    "regenerated": 1,
+    "flagged": 0,
+    "moderation": [
+      {
+        "round": 3,
+        "kind": "concrete_demand",
+        "exchangeId": "x3-02",
+        "topicId": null,
+        "utteranceId": "u3-04",
+        "reason": {
+          "lang": "de",
+          "text": "Moderation verlangt von Ärztekammer einen konkreten Vorschlag oder einen begründeten Einwand; der neue Beitrag erfüllt das.",
+          "translations": {
+            "en": "Moderation asks ak for a concrete proposal or a justified objection; the new turn meets it."
+          }
+        }
+      }
+    ]
+  }
+}

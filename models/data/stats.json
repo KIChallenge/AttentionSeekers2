@@ -1,0 +1,138 @@
+{
+ "source_statements": 2667,
+ "skipped": {
+  "sft_duplicate": 135,
+  "unmapped_institution": 699,
+  "cls_dup_or_ambiguous": 294
+ },
+ "guard": {
+  "masked_sentences_user": 23,
+  "masked_sentences_assistant": 1,
+  "masked_sentences_text": 10,
+  "rows_dropped_too_masked": 40
+ },
+ "time_cutoff": "2023-01-01",
+ "backtest_cutoff": "2018-09-14",
+ "per_role": {
+  "ministry_health": {
+   "sft_train": 1,
+   "sft_heldout": 4,
+   "sft_bt_train": 1,
+   "sft_bt_eval": 0,
+   "statements_train": 1,
+   "cls_train": 5,
+   "cls_heldout": 8,
+   "adapter_eligible": false
+  },
+  "social_insurance": {
+   "sft_train": 247,
+   "sft_heldout": 72,
+   "sft_bt_train": 176,
+   "sft_bt_eval": 0,
+   "statements_train": 80,
+   "cls_train": 500,
+   "cls_heldout": 151,
+   "adapter_eligible": true
+  },
+  "medical_chamber": {
+   "sft_train": 139,
+   "sft_heldout": 32,
+   "sft_bt_train": 94,
+   "sft_bt_eval": 0,
+   "statements_train": 41,
+   "cls_train": 286,
+   "cls_heldout": 77,
+   "adapter_eligible": true
+  },
+  "contract_physicians": {
+   "sft_train": 24,
+   "sft_heldout": 19,
+   "sft_bt_train": 24,
+   "sft_bt_eval": 0,
+   "statements_train": 7,
+   "cls_train": 43,
+   "cls_heldout": 39,
+   "adapter_eligible": false
+  },
+  "elective_physicians": {
+   "sft_train": 0,
+   "sft_heldout": 0,
+   "sft_bt_train": 0,
+   "sft_bt_eval": 0,
+   "statements_train": 0,
+   "cls_train": 0,
+   "cls_heldout": 0,
+   "adapter_eligible": false
+  },
+  "hospitals": {
+   "sft_train": 151,
+   "sft_heldout": 28,
+   "sft_bt_train": 92,
+   "sft_bt_eval": 0,
+   "statements_train": 58,
+   "cls_train": 334,
+   "cls_heldout": 53,
+   "adapter_eligible": true
+  },
+  "nursing": {
+   "sft_train": 156,
+   "sft_heldout": 32,
+   "sft_bt_train": 128,
+   "sft_bt_eval": 0,
+   "statements_train": 54,
+   "cls_train": 357,
+   "cls_heldout": 57,
+   "adapter_eligible": true
+  },
+  "patients": {
+   "sft_train": 136,
+   "sft_heldout": 12,
+   "sft_bt_train": 68,
+   "sft_bt_eval": 0,
+   "statements_train": 41,
+   "cls_train": 246,
+   "cls_heldout": 23,
+   "adapter_eligible": true
+  },
+  "laender": {
+   "sft_train": 1381,
+   "sft_heldout": 332,
+   "sft_bt_train": 973,
+   "sft_bt_eval": 0,
+   "statements_train": 522,
+   "cls_train": 3032,
+   "cls_heldout": 711,
+   "adapter_eligible": true
+  },
+  "ministry_finance": {
+   "sft_train": 145,
+   "sft_heldout": 24,
+   "sft_bt_train": 124,
+   "sft_bt_eval": 0,
+   "statements_train": 62,
+   "cls_train": 287,
+   "cls_heldout": 54,
+   "adapter_eligible": true
+  },
+  "chamber_labour": {
+   "sft_train": 211,
+   "sft_heldout": 49,
+   "sft_bt_train": 118,
+   "sft_bt_eval": 0,
+   "statements_train": 72,
+   "cls_train": 457,
+   "cls_heldout": 103,
+   "adapter_eligible": true
+  },
+  "chamber_commerce": {
+   "sft_train": 140,
+   "sft_heldout": 79,
+   "sft_bt_train": 70,
+   "sft_bt_eval": 0,
+   "statements_train": 45,
+   "cls_train": 270,
+   "cls_heldout": 153,
+   "adapter_eligible": true
+  }
+ }
+}

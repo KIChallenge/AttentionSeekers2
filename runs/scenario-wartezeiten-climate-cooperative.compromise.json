@@ -1,0 +1,86 @@
+{
+  "runId": "scenario-wartezeiten-climate-cooperative",
+  "packageId": "k-5",
+  "verdict": "carries_if_reconciled",
+  "label": {
+    "lang": "de",
+    "text": "trägt nur, wenn die Bedingungen vereinbar sind",
+    "translations": {
+      "en": "carries only if the conditions can be reconciled"
+    }
+  },
+  "conditions": [
+    {
+      "agentId": "sv",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Finanzierung des 1450-Ausbaus erfolgt ausschließlich durch verbindliche Umschichtung bestehender Mittel ohne neue Ausgabenerhöhung, und die Umschichtung wird vor Pilotbeginn von Bund, Ländern und Sozialversicherung schriftlich vereinbart.",
+        "translations": {
+          "en": "The financing of the 1450 expansion must be exclusively through binding reallocation of existing funds without new expenditure increases, and the reallocation must be formally agreed in writing by the federal government, Länder, and social insurance prior to the pilot start."
+        }
+      }
+    },
+    {
+      "agentId": "pf",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Finanzierung des Piloten sichert zusätzliche Mittel für die Einbindung von Community Nursing in die Primärversorgung über PVE-Verträge, wie im Vorschlag p-01 gefordert.",
+        "translations": {
+          "en": "The pilot's financing must secure additional funding for the integration of Community Nursing into primary care via PVE contracts, as requested in proposal p-01."
+        }
+      }
+    },
+    {
+      "agentId": "ka",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Der Pilot muss messbare Entlastung der Spitalsambulanzen zeigen, bevor eine Finanzierungsverpflichtung für den flächendeckenden Ausbau erfolgt.",
+        "translations": {
+          "en": "The pilot must demonstrate measurable relief for hospital outpatient clinics before any funding commitment for nationwide rollout."
+        }
+      }
+    },
+    {
+      "agentId": "pv",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Der Pilotplan enthält die ausdrückliche Verpflichtung zu klaren Regionen und eine Erfolgsbtimeout-einige Ausstiegsmöglichkeit, sollte die Finanzierungsvereinbarung nicht innerhalb von 12 Monaten zustande kommen.",
+        "translations": {
+          "en": "The pilot plan must include a clear commitment to specific regions and a clear exit option if the financing agreement is not reached within 12 months."
+        }
+      }
+    },
+    {
+      "agentId": "ak",
+      "stance": "conditional",
+      "condition": {
+        "lang": "de",
+        "text": "Die Vergütung der über 1450 vermittelten Termine muss im Gesamtvertrag geregelt werden, bevor der Pilotstart erfolgt.",
+        "translations": {
+          "en": "The remuneration for appointments mediated via 1450 must be regulated within the comprehensive contract before the pilot launch."
+        }
+      }
+    }
+  ],
+  "pairsChecked": 10,
+  "conflicts": [
+    {
+      "a": "sv",
+      "b": "pf",
+      "severity": "tension",
+      "note": {
+        "lang": "de",
+        "text": "Zusätzliche Mittel für Community Nursing erfordern unter B1 eine ausdrücklich vereinbarte Umschichtung bestehender Mittel.",
+        "translations": {
+          "en": "Additional funding for community nursing requires an explicit reallocation of existing funds under B1."
+        }
+      }
+    }
+  ],
+  "model": "azure/gpt-6-sol",
+  "checkedAt": "2026-11-06T06:04:21.096Z"
+}

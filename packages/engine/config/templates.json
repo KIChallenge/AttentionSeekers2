@@ -1,0 +1,1549 @@
+{
+  "$comment": "Template seeds: fixed topics and axes per template so runs are comparable. Templates without topics let the moderator derive them from the question.",
+  "wartezeiten": {
+    "decisionRule": "veto_players",
+    "roundLimit": 5,
+    "budgetCeilingPct": 5,
+    "agents": ["gm", "sv", "ak", "va", "ka", "pf", "bl", "pv", "fm"],
+    "topics": [
+      {
+        "id": "t-tele",
+        "key": "telemedicine",
+        "label": {
+          "de": "Telemedizin",
+          "en": "Telemedicine"
+        },
+        "measure": {
+          "de": "Erstkontakt als Kassenleistung",
+          "en": "First contact as an insured benefit"
+        }
+      },
+      {
+        "id": "t-stellen",
+        "key": "contract_posts",
+        "label": {
+          "de": "Kassenstellen",
+          "en": "Contract posts"
+        },
+        "measure": {
+          "de": "Zusätzliche Kassenstellen, gestaffelt",
+          "en": "Additional contract posts, staggered"
+        }
+      },
+      {
+        "id": "t-tss",
+        "key": "appointment_service",
+        "label": {
+          "de": "Terminservice",
+          "en": "Appointment service"
+        },
+        "measure": {
+          "de": "Terminservicestelle über 1450",
+          "en": "Appointment service centre via 1450"
+        }
+      },
+      {
+        "id": "t-4wo",
+        "key": "appointment_guarantee",
+        "label": {
+          "de": "Terminzusage",
+          "en": "Appointment guarantee"
+        },
+        "measure": {
+          "de": "Verbindliche Terminzusage binnen vier Wochen",
+          "en": "Binding appointment within four weeks"
+        }
+      },
+      {
+        "id": "t-pve",
+        "key": "pve_planning",
+        "label": {
+          "de": "Primärversorgung",
+          "en": "Primary care"
+        },
+        "measure": {
+          "de": "Planungshoheit für PVE",
+          "en": "Planning authority for primary care units"
+        }
+      },
+      {
+        "id": "t-honorar",
+        "key": "fee_indexation",
+        "label": {
+          "de": "Honorar",
+          "en": "Fees"
+        },
+        "measure": {
+          "de": "Honoraranreize im Gesamtvertrag",
+          "en": "Fee incentives in the collective contract"
+        }
+      },
+      {
+        "id": "t-pflege",
+        "key": "nursing_first_contact",
+        "label": {
+          "de": "Pflegekompetenz",
+          "en": "Nursing scope"
+        },
+        "measure": {
+          "de": "Pflegerischer Erstkontakt in PVE",
+          "en": "Nursing first contact in primary care units"
+        }
+      }
+    ],
+    "axes": [
+      {
+        "id": "x",
+        "label": {
+          "de": "Patientensteuerung",
+          "en": "Patient steering"
+        },
+        "poles": [
+          {
+            "de": "Gegen Patientensteuerung",
+            "en": "Against patient steering"
+          },
+          {
+            "de": "Für Patientensteuerung",
+            "en": "For patient steering"
+          }
+        ],
+        "topicWeights": {
+          "t-tss": 0.3,
+          "t-4wo": 0.3,
+          "t-pve": 0.4
+        }
+      },
+      {
+        "id": "y",
+        "label": {
+          "de": "Kapazitätsausbau",
+          "en": "Capacity expansion"
+        },
+        "poles": [
+          {
+            "de": "Gegen Kapazitätsausbau",
+            "en": "Against capacity expansion"
+          },
+          {
+            "de": "Für Kapazitätsausbau",
+            "en": "For capacity expansion"
+          }
+        ],
+        "topicWeights": {
+          "t-stellen": 0.4,
+          "t-honorar": 0.4,
+          "t-tele": 0.2
+        }
+      }
+    ],
+    "scheduledEvents": [
+      {
+        "id": "ev-1",
+        "atRound": 4,
+        "kind": "budget_shock",
+        "title": {
+          "de": "Szenario: angespannte Gebarung",
+          "en": "Scenario: strained finances"
+        },
+        "body": {
+          "de": "Szenario-Annahme der Moderation, kein Messwert: Die Krankenversicherung meldet für das Folgejahr ein höheres Defizit als geplant. Zusätzliche Ausgaben brauchen eine ausgewiesene Bedeckung.",
+          "en": "Moderator scenario assumption, not a measurement: social health insurance reports a larger deficit than planned for next year. Extra spending needs an identified source of funds."
+        },
+        "sourceId": null,
+        "sourceSegmentId": null
+      }
+    ]
+  },
+  "backtest_svog_2018": {
+    "$comment": "Historical backtest (FR-H7): SV-OG 2018, ME 75/ME XXVI, first draft 2018-09-14; run with --as-of 2018-09-13. Topics are the government's announced key points as public before the cutoff, not the draft text. Profiles replace the 2026 ones; red lines and dossiers are not used (they postdate the cutoff). Rule: the government side (ministry, finance, NR majority) are the veto players and a third of the table suffices, so they can pass a package alone.",
+    "decisionRule": "veto_players",
+    "qualifiedMajority": {
+      "needed": 1,
+      "of": 3
+    },
+    "roundLimit": 5,
+    "budgetCeilingPct": 0,
+    "agents": ["gm", "fm", "nr", "sv", "abk", "wk", "bl", "ak", "pv"],
+    "topics": [
+      {
+        "id": "t-traeger",
+        "key": "carrier_count",
+        "label": {
+          "de": "Trägerzahl",
+          "en": "Number of carriers"
+        },
+        "measure": {
+          "de": "Verringerung der Sozialversicherungsträger von 21 auf höchstens fünf",
+          "en": "Reduce the social insurance carriers from 21 to at most five"
+        }
+      },
+      {
+        "id": "t-gkk",
+        "key": "gkk_merger",
+        "label": {
+          "de": "Kassenfusion",
+          "en": "Fund merger"
+        },
+        "measure": {
+          "de": "Zusammenführung der neun Gebietskrankenkassen zu einer bundesweiten Kasse mit Landesstellen",
+          "en": "Merge the nine regional health funds into one national fund with regional offices"
+        }
+      },
+      {
+        "id": "t-paritaet",
+        "key": "self_governance_parity",
+        "label": {
+          "de": "Parität",
+          "en": "Parity"
+        },
+        "measure": {
+          "de": "Parität von Dienstgeber- und Dienstnehmervertretung in den Verwaltungskörpern",
+          "en": "Parity of employer and employee representatives in the governing bodies"
+        }
+      },
+      {
+        "id": "t-gremien",
+        "key": "governance_bodies",
+        "label": {
+          "de": "Gremien",
+          "en": "Governing bodies"
+        },
+        "measure": {
+          "de": "Verkleinerung der Selbstverwaltungsgremien, Dachverband mit rotierendem Vorsitz statt Hauptverband, stärkere Aufsicht des Ministeriums",
+          "en": "Smaller self-governance bodies, an umbrella association with rotating chair instead of the Hauptverband, stronger ministerial supervision"
+        }
+      },
+      {
+        "id": "t-pruefung",
+        "key": "contribution_audit",
+        "label": {
+          "de": "Beitragsprüfung",
+          "en": "Contribution audit"
+        },
+        "measure": {
+          "de": "Prüfung der lohnabhängigen Beiträge durch die Finanzverwaltung statt durch die Krankenkassen",
+          "en": "Audit of payroll contributions by the tax administration instead of the health funds"
+        }
+      },
+      {
+        "id": "t-einsparung",
+        "key": "savings_claim",
+        "label": {
+          "de": "Einsparung",
+          "en": "Savings"
+        },
+        "measure": {
+          "de": "Verwaltungseinsparung von einer Milliarde Euro bis 2023 zugunsten der Versorgung",
+          "en": "Administrative savings of one billion euro by 2023, redirected to care"
+        }
+      },
+      {
+        "id": "t-land",
+        "key": "regional_autonomy",
+        "label": {
+          "de": "Landesstellen",
+          "en": "Regional offices"
+        },
+        "measure": {
+          "de": "Budget- und Vertragshoheit zentral bei der bundesweiten Kasse, Landesstellen mit begrenzter Eigenverantwortung",
+          "en": "Budget and contract authority central at the national fund, regional offices with limited own responsibility"
+        }
+      }
+    ],
+    "axes": [
+      {
+        "id": "x",
+        "label": {
+          "de": "Steuerung",
+          "en": "Governance"
+        },
+        "poles": [
+          {
+            "de": "Regionale Selbstverwaltung",
+            "en": "Regional self-governance"
+          },
+          {
+            "de": "Zentrale Steuerung",
+            "en": "Central steering"
+          }
+        ],
+        "topicWeights": {
+          "t-traeger": 0.25,
+          "t-gkk": 0.3,
+          "t-land": 0.25,
+          "t-gremien": 0.2
+        }
+      },
+      {
+        "id": "y",
+        "label": {
+          "de": "Machtbalance",
+          "en": "Balance of power"
+        },
+        "poles": [
+          {
+            "de": "Versichertenvertretung",
+            "en": "Insured persons' representation"
+          },
+          {
+            "de": "Dienstgeber und Staat",
+            "en": "Employers and state"
+          }
+        ],
+        "topicWeights": {
+          "t-paritaet": 0.5,
+          "t-pruefung": 0.3,
+          "t-einsparung": 0.2
+        }
+      }
+    ],
+    "scheduledEvents": [],
+    "profiles": {
+      "gm": {
+        "unit": "Sozial- und Gesundheitsressort, Sektion Sozialversicherung",
+        "vetoStatus": "formal_veto",
+        "vetoBasis": {
+          "de": "Entwurfsverantwortung, Teil der Regierungsmehrheit",
+          "en": "Drafting ministry, part of the government majority"
+        },
+        "goals": [
+          {
+            "de": "Weniger Träger und schlankere Verwaltung",
+            "en": "Fewer carriers and leaner administration"
+          },
+          {
+            "de": "Gleiche Leistungen für gleiche Beiträge",
+            "en": "Equal benefits for equal contributions"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Umsetzung des Regierungsprogramms 2017",
+            "en": "Implement the 2017 government programme"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Verfassungskonformität der Selbstverwaltung",
+            "en": "Constitutionality of self-governance"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Reform ohne zusätzliche Bundesmittel",
+            "en": "Reform without extra federal funds"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Strukturreform",
+            "en": "Structural reform",
+            "weight": 0.5
+          },
+          {
+            "de": "Einsparung",
+            "en": "Savings",
+            "weight": 0.3
+          },
+          {
+            "de": "Leistungsharmonisierung",
+            "en": "Benefit harmonisation",
+            "weight": 0.2
+          }
+        ],
+        "register": "regierungsamtlich, spricht von Strukturreform, Effizienz, Funktionärsabbau, Leistungsharmonisierung",
+        "keywords": "Sozialversicherung Strukturreform Zusammenlegung Träger Gebietskrankenkassen Hauptverband Selbstverwaltung Einsparung",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "gm-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "fm": {
+        "unit": "Budgetsektion",
+        "vetoStatus": "formal_veto",
+        "vetoBasis": {
+          "de": "Budgethoheit, Teil der Regierungsmehrheit",
+          "en": "Budget authority, part of the government majority"
+        },
+        "goals": [
+          {
+            "de": "Verwaltungskosten senken",
+            "en": "Cut administrative costs"
+          },
+          {
+            "de": "Beitragsprüfung bündeln",
+            "en": "Bundle the contribution audit"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Effiziente Abgabenprüfung",
+            "en": "Efficient levy audit"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Maastricht-Defizitpfad",
+            "en": "Maastricht deficit path"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Keine Mehrkosten für den Bund",
+            "en": "No extra cost for the federal budget"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Kosten",
+            "en": "Cost",
+            "weight": 0.6
+          },
+          {
+            "de": "Prüfeffizienz",
+            "en": "Audit efficiency",
+            "weight": 0.4
+          }
+        ],
+        "register": "budgetär, spricht von Effizienz, Verwaltungskosten, Prüfdichte, Haushaltspfad",
+        "keywords": "Budget Kosten Beitragsprüfung Finanzverwaltung Einsparung Verwaltung Träger",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "fm-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "nr": {
+        "unit": "Regierungsmehrheit (ÖVP und FPÖ) im Nationalrat",
+        "vetoStatus": "formal_veto",
+        "vetoBasis": {
+          "de": "Einfache Mehrheit im Nationalrat für das Bundesgesetz",
+          "en": "Simple majority in the Nationalrat for the federal act"
+        },
+        "goals": [
+          {
+            "de": "Sichtbare Strukturreform noch 2018 beschließen",
+            "en": "Pass a visible structural reform in 2018"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Zusage aus dem Regierungsprogramm einlösen",
+            "en": "Deliver the government programme pledge"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Inkrafttreten mit 2020",
+            "en": "Entry into force by 2020"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Kostenneutral",
+            "en": "Cost neutral"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Reformtempo",
+            "en": "Pace of reform",
+            "weight": 0.5
+          },
+          {
+            "de": "Einsparung",
+            "en": "Savings",
+            "weight": 0.3
+          },
+          {
+            "de": "Parität",
+            "en": "Parity",
+            "weight": 0.2
+          }
+        ],
+        "register": "parlamentarisch, spricht von Mehrheit, Regierungsprogramm, Funktionären, Reformstau",
+        "keywords": "Sozialversicherung Reform Zusammenlegung Parität Selbstverwaltung Träger Gebietskrankenkassen",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "nr-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "sv": {
+        "unit": "Hauptverband und Gebietskrankenkassen",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Selbstverwaltung, Begutachtung; kein Vetorecht gegen ein Bundesgesetz",
+          "en": "Self-governance, consultation; no veto over a federal act"
+        },
+        "goals": [
+          {
+            "de": "Regionale Versorgungsverantwortung erhalten",
+            "en": "Keep regional responsibility for care"
+          },
+          {
+            "de": "Selbstverwaltung durch die Versicherten sichern",
+            "en": "Secure self-governance by the insured"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Rücklagen und Budgets der Kassen in der Region",
+            "en": "Funds' reserves and budgets stay in the region"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Gesamtverträge mit den Landesärztekammern",
+            "en": "Collective contracts with the regional medical chambers"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Fusionskosten nicht aus Beiträgen",
+            "en": "Merger costs not from contributions"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Versorgung",
+            "en": "Care",
+            "weight": 0.4
+          },
+          {
+            "de": "Selbstverwaltung",
+            "en": "Self-governance",
+            "weight": 0.35
+          },
+          {
+            "de": "Kosten",
+            "en": "Cost",
+            "weight": 0.25
+          }
+        ],
+        "register": "kostenträgerorientiert, spricht von Versichertengemeinschaft, Selbstverwaltung, Gebarung, regionaler Versorgung",
+        "keywords": "Sozialversicherung Hauptverband Gebietskrankenkasse Selbstverwaltung Versicherte Fusion Träger",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "sv-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          },
+          {
+            "id": "sv-dg",
+            "role": {
+              "de": "Dienstgebervertretung in der Selbstverwaltung",
+              "en": "Employer side of self-governance"
+            },
+            "topicKeys": ["self_governance_parity", "contribution_audit", "savings_claim"]
+          },
+          {
+            "id": "sv-dn",
+            "role": {
+              "de": "Dienstnehmervertretung in der Selbstverwaltung",
+              "en": "Employee side of self-governance"
+            },
+            "topicKeys": ["gkk_merger", "carrier_count", "regional_autonomy", "governance_bodies"]
+          }
+        ]
+      },
+      "abk": {
+        "unit": "Bundesarbeitskammer, Abteilung Sozialversicherung",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Gesetzliche Interessenvertretung, Begutachtung",
+          "en": "Statutory interest body, consultation"
+        },
+        "goals": [
+          {
+            "de": "Mehrheit der Versichertenvertretung in der Krankenversicherung halten",
+            "en": "Keep the insured's majority in health insurance bodies"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Keine Leistungskürzung durch die Fusion",
+            "en": "No benefit cuts through the merger"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Sozialpartnerschaftlicher Weg",
+            "en": "Social partnership route"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Beitragsmittel für Versorgung",
+            "en": "Contribution money for care"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Selbstverwaltung",
+            "en": "Self-governance",
+            "weight": 0.5
+          },
+          {
+            "de": "Leistungen",
+            "en": "Benefits",
+            "weight": 0.5
+          }
+        ],
+        "register": "arbeitnehmerorientiert, spricht von Versicherten, Selbstverwaltung, Leistungsniveau, Machtverschiebung",
+        "keywords": "Arbeiterkammer Versicherte Selbstverwaltung Parität Gebietskrankenkasse Leistungen Beiträge",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "abk-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "wk": {
+        "unit": "Wirtschaftskammer, Abteilung Sozialpolitik",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Gesetzliche Interessenvertretung, Begutachtung",
+          "en": "Statutory interest body, consultation"
+        },
+        "goals": [
+          {
+            "de": "Parität für die Beitragszahler der Dienstgeberseite",
+            "en": "Parity for employers as contributors"
+          },
+          {
+            "de": "Lohnnebenkosten senken",
+            "en": "Cut non-wage labour costs"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Schlanke Verwaltung",
+            "en": "Lean administration"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Sozialpartnerschaft",
+            "en": "Social partnership"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Keine Beitragserhöhung",
+            "en": "No contribution increase"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Kosten",
+            "en": "Cost",
+            "weight": 0.5
+          },
+          {
+            "de": "Parität",
+            "en": "Parity",
+            "weight": 0.5
+          }
+        ],
+        "register": "wirtschaftsnah, spricht von Lohnnebenkosten, Effizienz, Beitragszahlern, Verwaltungsabbau",
+        "keywords": "Wirtschaftskammer Dienstgeber Parität Lohnnebenkosten Verwaltung Träger Beiträge",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "wk-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "bl": {
+        "unit": "Landesgesundheitsreferate",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Gesundheitsplanung und Spitäler; kein Vetorecht gegen das Bundesgesetz",
+          "en": "Health planning and hospitals; no veto over the federal act"
+        },
+        "goals": [
+          {
+            "de": "Regionale Steuerung der Versorgung",
+            "en": "Regional steering of care"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Mittel der Gebietskrankenkassen bleiben im Land",
+            "en": "Regional health fund money stays in the Land"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Zielsteuerung auf Landesebene",
+            "en": "Target-based steering at Land level"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Keine Lastverschiebung zu den Spitälern",
+            "en": "No cost shift to hospitals"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Regionalität",
+            "en": "Regional control",
+            "weight": 0.6
+          },
+          {
+            "de": "Versorgung",
+            "en": "Care",
+            "weight": 0.4
+          }
+        ],
+        "register": "föderal, spricht von Landesebene, Regionalität, Versorgungsplanung, Zielsteuerung",
+        "keywords": "Länder Land Gebietskrankenkasse regional Landesstellen Versorgung",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "bl-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "ak": {
+        "unit": "Österreichische Ärztekammer",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Gesamtvertragspartner, Begutachtung; kein Vetorecht gegen das Bundesgesetz",
+          "en": "Party to collective contracts, consultation; no veto over the federal act"
+        },
+        "goals": [
+          {
+            "de": "Regionale Gesamtverträge erhalten",
+            "en": "Keep regional collective contracts"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Einsparungen müssen bei den Patienten ankommen",
+            "en": "Savings must reach patients"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Gesamtvertrag nach ASVG",
+            "en": "Collective contract under the ASVG"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Keine Honorarkürzung durch Vereinheitlichung",
+            "en": "No fee cuts through harmonisation"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Vertragsfreiheit",
+            "en": "Contract autonomy",
+            "weight": 0.5
+          },
+          {
+            "de": "Versorgung",
+            "en": "Care",
+            "weight": 0.5
+          }
+        ],
+        "register": "standespolitisch, spricht von Gesamtvertrag, Kassenstellen, Patientenversorgung, Honorar",
+        "keywords": "Ärztekammer Gesamtvertrag Honorar Kassen Vertragspartner regional",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "ak-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "pv": {
+        "unit": "Patientenanwaltschaften",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Beratend, ohne Entscheidungsmacht",
+          "en": "Advisory, no decision power"
+        },
+        "goals": [
+          {
+            "de": "Gleiche Leistungen für alle Versicherten",
+            "en": "Equal benefits for all insured"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Versorgung vor Ort sichern",
+            "en": "Secure local care"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Keine formale Rolle in der Selbstverwaltung",
+            "en": "No formal role in self-governance"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Einsparungen in Leistungen umsetzen",
+            "en": "Turn savings into benefits"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Leistungsharmonisierung",
+            "en": "Benefit harmonisation",
+            "weight": 0.6
+          },
+          {
+            "de": "Zugang",
+            "en": "Access",
+            "weight": 0.4
+          }
+        ],
+        "register": "patientenorientiert, spricht von Versicherten, gleichen Leistungen, Wohnortnähe",
+        "keywords": "Patienten Leistungen Versicherte Harmonisierung Versorgung",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "pv-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      }
+    }
+  },
+  "backtest_gtelg_2023": {
+    "$comment": "Historical backtest (FR-H7): GTelG-Novelle 2023 (eImpfpass), ME 260/ME XXVII, first draft 2023-04-05 (sent 2023-04-04); run with --as-of 2023-04-03. Topics are the measures of the consultation draft as coded for the comparison; the outcome is not in them. 2023 profiles replace the 2026 ones; red lines and dossiers are not used (they postdate the cutoff). Rule: the government side (ministry, finance, NR majority) are the veto players and a third of the table suffices.",
+    "decisionRule": "veto_players",
+    "qualifiedMajority": {
+      "needed": 1,
+      "of": 3
+    },
+    "roundLimit": 5,
+    "budgetCeilingPct": 0,
+    "agents": ["gm", "fm", "nr", "sv", "ak", "bl", "abk", "wk", "pv"],
+    "topics": [
+      {
+        "id": "t-voll",
+        "key": "eimpf_full_operation",
+        "label": {
+          "de": "Speicherpflicht",
+          "en": "Storage duty"
+        },
+        "measure": {
+          "de": "Vollbetrieb des eImpfpasses: alle impfenden Gesundheitsdiensteanbieter (Ärzt:innen einschließlich Wahlärzt:innen, Amtsärzt:innen, diplomierte Pflegekräfte, Labore bei Antikörpertests) speichern ab einem per Verordnung festgelegten Zeitpunkt jede Impfung im zentralen Impfregister",
+          "en": "Full operation of the e-vaccination pass: every vaccinating provider (doctors including private-practice doctors, public health officers, registered nurses, labs for antibody tests) stores every vaccination in the central register from a date set by ordinance"
+        }
+      },
+      {
+        "id": "t-nachtrag",
+        "key": "retro_entry",
+        "label": {
+          "de": "Nachtragung",
+          "en": "Retro entry"
+        },
+        "measure": {
+          "de": "Verordnungsermächtigung, frühere Impfungen gegen Masern, Röteln, Hepatitis A und B, Varizellen, Polio und HPV verpflichtend im Impfregister nachzutragen",
+          "en": "Ordinance power to make retroactive entry of past vaccinations against measles, rubella, hepatitis A and B, varicella, polio and HPV mandatory"
+        }
+      },
+      {
+        "id": "t-verantw",
+        "key": "ministry_controller",
+        "label": {
+          "de": "Verantwortung",
+          "en": "Controller"
+        },
+        "measure": {
+          "de": "Nach der Pilotphase übernimmt das Gesundheitsministerium statt der ELGA GmbH Betrieb und datenschutzrechtliche Verantwortung für das zentrale Impfregister, mit gesetzlich festgelegter Rollen- und Pflichtenverteilung nach DSGVO",
+          "en": "After the pilot, the health ministry instead of ELGA GmbH runs the central register and is its data controller, with roles and duties under the GDPR set in the act"
+        }
+      },
+      {
+        "id": "t-service",
+        "key": "ehealth_service_desk",
+        "label": {
+          "de": "Servicestelle",
+          "en": "Service desk"
+        },
+        "measure": {
+          "de": "Neue eHealth-Servicestelle als Auftragsverarbeiterin des Ministeriums für Auskunftsbegehren und das Datenqualitätsmanagement des Impfregisters, neben der bestehenden ELGA-Ombudsstelle",
+          "en": "A new eHealth service desk, processor for the ministry, for access requests and data quality of the register, next to the existing ELGA ombudsman office"
+        }
+      },
+      {
+        "id": "t-auswertung",
+        "key": "public_health_use",
+        "label": {
+          "de": "Auswertung",
+          "en": "Data use"
+        },
+        "measure": {
+          "de": "Personenbezogene Verarbeitung der Impfregisterdaten für Impferinnerungen, persönliche Impfkalender, Durchimpfungsraten und die Steuerung des öffentlichen Gesundheitsdienstes",
+          "en": "Personal-level use of register data for vaccination reminders, personal schedules, coverage rates and steering of the public health service"
+        }
+      },
+      {
+        "id": "t-kosten",
+        "key": "interface_costs",
+        "label": {
+          "de": "Kostentragung",
+          "en": "Cost bearing"
+        },
+        "measure": {
+          "de": "Schnittstellen und Dokumentationsaufwand tragen die Gesundheitsdiensteanbieter und Spitalsträger selbst, ohne gesonderte Abgeltung; Mehrkosten des Bundes im Ressortbudget",
+          "en": "Providers and hospital owners bear interface and documentation costs themselves with no separate compensation; federal extra costs within the ministry budget"
+        }
+      },
+      {
+        "id": "t-sprache",
+        "key": "gender_style",
+        "label": {
+          "de": "Schreibweise",
+          "en": "Wording"
+        },
+        "measure": {
+          "de": "Durchgängige gendergerechte Schreibweise mit Doppelpunkt im Gesetzestext",
+          "en": "Gender-inclusive wording with the colon form throughout the act"
+        }
+      }
+    ],
+    "axes": [
+      {
+        "id": "x",
+        "label": {
+          "de": "Datenzugriff",
+          "en": "Data reach"
+        },
+        "poles": [
+          {
+            "de": "Freiwillig und dezentral",
+            "en": "Voluntary and decentral"
+          },
+          {
+            "de": "Verpflichtend und zentral",
+            "en": "Mandatory and central"
+          }
+        ],
+        "topicWeights": {
+          "t-voll": 0.3,
+          "t-nachtrag": 0.2,
+          "t-verantw": 0.3,
+          "t-auswertung": 0.2
+        }
+      },
+      {
+        "id": "y",
+        "label": {
+          "de": "Lastenverteilung",
+          "en": "Burden sharing"
+        },
+        "poles": [
+          {
+            "de": "Bund trägt",
+            "en": "Federal level bears"
+          },
+          {
+            "de": "Anbieter tragen",
+            "en": "Providers bear"
+          }
+        ],
+        "topicWeights": {
+          "t-kosten": 0.5,
+          "t-service": 0.3,
+          "t-sprache": 0.2
+        }
+      }
+    ],
+    "scheduledEvents": [],
+    "profiles": {
+      "gm": {
+        "unit": "Gesundheitsressort, Sektion Gesundheitstelematik und Datenschutz",
+        "vetoStatus": "formal_veto",
+        "vetoBasis": {
+          "de": "Entwurfsverantwortung, Teil der Regierungsmehrheit",
+          "en": "Drafting ministry, part of the government majority"
+        },
+        "goals": [
+          {
+            "de": "eImpfpass nach der Warnung der Datenschutzbehörde DSGVO-konform in den Vollbetrieb bringen",
+            "en": "Bring the e-vaccination pass into full operation in line with the GDPR after the data protection authority's warning"
+          },
+          {
+            "de": "Lückenlose Impfdaten für die Steuerung des öffentlichen Gesundheitswesens",
+            "en": "Complete vaccination data to steer public health"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Lehren aus der COVID-19-Impfkampagne umsetzen",
+            "en": "Act on the lessons of the COVID-19 vaccination campaign"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Datenschutzbehörde und DSGVO",
+            "en": "Data protection authority and GDPR"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Mehrkosten im eigenen Ressortbudget",
+            "en": "Extra costs within the ministry's own budget"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Vollständige Impfdaten",
+            "en": "Complete vaccination data",
+            "weight": 0.5
+          },
+          {
+            "de": "Datenschutzkonformität",
+            "en": "GDPR compliance",
+            "weight": 0.3
+          },
+          {
+            "de": "Bürgerrechte",
+            "en": "Citizens' rights",
+            "weight": 0.2
+          }
+        ],
+        "register": "regierungsamtlich, spricht von eImpfpass, Impfregister, DSGVO, Rollenverteilung, Datenqualität",
+        "keywords": "eImpfpass Impfregister Gesundheitstelematik ELGA DSGVO Datenschutzbehörde Speicherpflicht Servicestelle",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "gm-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "fm": {
+        "unit": "Budgetsektion",
+        "vetoStatus": "formal_veto",
+        "vetoBasis": {
+          "de": "Budgethoheit, Teil der Regierungsmehrheit",
+          "en": "Budget authority, part of the government majority"
+        },
+        "goals": [
+          {
+            "de": "Keine Mehranforderungen an den Bundeshaushalt",
+            "en": "No extra claims on the federal budget"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Verlässliche Identifikation und Datenqualität",
+            "en": "Reliable identification and data quality"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Bundesfinanzrahmen",
+            "en": "Federal medium-term budget frame"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Bedeckung im Ressortbudget des Gesundheitsministeriums",
+            "en": "Covered within the health ministry's budget"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Kosten",
+            "en": "Cost",
+            "weight": 0.6
+          },
+          {
+            "de": "Datenqualität",
+            "en": "Data quality",
+            "weight": 0.4
+          }
+        ],
+        "register": "budgetär, spricht von Bedeckung, Wirkungsorientierter Folgenabschätzung, Mehrkosten, Haushaltspfad",
+        "keywords": "Budget Kosten Bedeckung Folgenabschätzung Mehrkosten Identifikation",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "fm-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "nr": {
+        "unit": "Regierungsmehrheit (ÖVP und Grüne) im Nationalrat",
+        "vetoStatus": "formal_veto",
+        "vetoBasis": {
+          "de": "Einfache Mehrheit im Nationalrat für das Bundesgesetz",
+          "en": "Simple majority in the Nationalrat for the federal act"
+        },
+        "goals": [
+          {
+            "de": "Funktionierenden eImpfpass beschließen",
+            "en": "Pass a working e-vaccination pass"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Koalitionsfrieden zwischen ÖVP und Grünen",
+            "en": "Keep peace between ÖVP and Greens"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Regierungsprogramm 2020 bis 2024",
+            "en": "Government programme 2020 to 2024"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Keine zusätzlichen Belastungen für Ärzt:innen und Länder",
+            "en": "No extra burden on doctors and Länder"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Umsetzung",
+            "en": "Delivery",
+            "weight": 0.5
+          },
+          {
+            "de": "Akzeptanz",
+            "en": "Acceptance",
+            "weight": 0.5
+          }
+        ],
+        "register": "parlamentarisch, spricht von Regierungsvorlage, Gesundheitsausschuss, Mehrheit, Abänderungsantrag",
+        "keywords": "Nationalrat Gesundheitsausschuss Regierungsvorlage eImpfpass ELGA Mehrheit",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "nr-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "sv": {
+        "unit": "Dachverband der Sozialversicherungsträger",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Betreiber der e-card-Infrastruktur, Begutachtung; kein Vetorecht gegen das Bundesgesetz",
+          "en": "Runs the e-card infrastructure, consultation; no veto over the federal act"
+        },
+        "goals": [
+          {
+            "de": "Einheitlicher digitaler Zugang zu ELGA und Impfpass",
+            "en": "One digital access to ELGA and the vaccination pass"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Nutzung der e-card-Infrastruktur",
+            "en": "Use of the e-card infrastructure"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Gesamtverträge mit der Ärztekammer",
+            "en": "Collective contracts with the medical chamber"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Keine Kosten für die Versichertengemeinschaft ohne Abgeltung",
+            "en": "No costs for the insured without compensation"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Digitale Versorgung",
+            "en": "Digital care",
+            "weight": 0.5
+          },
+          {
+            "de": "Kosten",
+            "en": "Cost",
+            "weight": 0.3
+          },
+          {
+            "de": "Datenqualität",
+            "en": "Data quality",
+            "weight": 0.2
+          }
+        ],
+        "register": "kostenträgerorientiert, spricht von e-card, ELGA, Versicherten, Gesundheitsportal, Datenqualität",
+        "keywords": "Sozialversicherung Dachverband e-card ELGA eImpfpass Gesundheitsportal Versicherte",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "sv-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "ak": {
+        "unit": "Österreichische Ärztekammer",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Standesvertretung, Begutachtung; kein Vetorecht gegen das Bundesgesetz",
+          "en": "Professional chamber, consultation; no veto over the federal act"
+        },
+        "goals": [
+          {
+            "de": "Dokumentationsaufwand in den Ordinationen begrenzen",
+            "en": "Limit documentation work in practices"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Abgeltung für Eintragungen und Schnittstellen",
+            "en": "Compensation for entries and interfaces"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Berufsrecht nach Ärztegesetz",
+            "en": "Professional law under the Physicians Act"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Keine unbezahlte Mehrarbeit",
+            "en": "No unpaid extra work"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Praxistauglichkeit",
+            "en": "Practicality",
+            "weight": 0.5
+          },
+          {
+            "de": "Abgeltung",
+            "en": "Compensation",
+            "weight": 0.3
+          },
+          {
+            "de": "Versorgung",
+            "en": "Care",
+            "weight": 0.2
+          }
+        ],
+        "register": "standespolitisch, spricht von Ordination, Dokumentationspflicht, Abgeltung, Praxistauglichkeit, Wahlärzt:innen",
+        "keywords": "Ärztekammer Ordination Dokumentation Abgeltung Wahlarzt Impfung eImpfpass",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "ak-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "bl": {
+        "unit": "Landesgesundheitsreferate und Spitalsträger der Länder",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Spitalsträger, ELGA-Mitgesellschafter, Begutachtung; kein Vetorecht gegen das Bundesgesetz",
+          "en": "Hospital owners, co-owners of ELGA GmbH, consultation; no veto over the federal act"
+        },
+        "goals": [
+          {
+            "de": "Keine Kosten für Landesspitäler aus der Novelle",
+            "en": "No costs for Land hospitals from the amendment"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Klare Abgrenzung neuer Stellen zur ELGA-Ombudsstelle",
+            "en": "Clear line between new offices and the ELGA ombudsman"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Zuständigkeiten der Landessanitätsbehörden",
+            "en": "Powers of the Land health authorities"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Schnittstellenkosten nicht bei den Ländern",
+            "en": "Interface costs not with the Länder"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Kosten",
+            "en": "Cost",
+            "weight": 0.5
+          },
+          {
+            "de": "Vollzug",
+            "en": "Implementation",
+            "weight": 0.3
+          },
+          {
+            "de": "Lesbarkeit",
+            "en": "Readability",
+            "weight": 0.2
+          }
+        ],
+        "register": "föderal, spricht von Landesebene, Spitalsträgern, Vollzug, Kostentragung, Lesbarkeit des Gesetzestexts",
+        "keywords": "Länder Spitalsträger Krankenanstalten Kosten Schnittstellen ELGA Ombudsstelle Vollzug",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "bl-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "abk": {
+        "unit": "Bundesarbeitskammer, Abteilung Gesundheit",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Gesetzliche Interessenvertretung, Begutachtung",
+          "en": "Statutory interest body, consultation"
+        },
+        "goals": [
+          {
+            "de": "Rechte der Versicherten bei Gesundheitsdaten stärken",
+            "en": "Strengthen the insured's rights over health data"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Niederschwelliger Zugang zum eigenen Impfpass",
+            "en": "Low-threshold access to one's own vaccination pass"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Sozialpartnerschaftlicher Weg",
+            "en": "Social partnership route"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Keine Kosten für Versicherte",
+            "en": "No costs for the insured"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Datenschutz",
+            "en": "Data protection",
+            "weight": 0.5
+          },
+          {
+            "de": "Zugang",
+            "en": "Access",
+            "weight": 0.5
+          }
+        ],
+        "register": "arbeitnehmerorientiert, spricht von Versicherten, Datenschutz, Transparenz, Zugang",
+        "keywords": "Arbeiterkammer Versicherte Datenschutz Auskunft Impfpass Transparenz",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "abk-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "wk": {
+        "unit": "Wirtschaftskammer, Abteilung Sozial- und Gesundheitspolitik",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Gesetzliche Interessenvertretung, Begutachtung",
+          "en": "Statutory interest body, consultation"
+        },
+        "goals": [
+          {
+            "de": "Klare technische Zugänge für digitale Gesundheitsanwendungen",
+            "en": "Clear technical access for digital health applications"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Planbare Kosten für private Gesundheitsdiensteanbieter",
+            "en": "Predictable costs for private providers"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Sozialpartnerschaft",
+            "en": "Social partnership"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Keine neuen Kosten für Betriebe",
+            "en": "No new costs for businesses"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Rechtssicherheit",
+            "en": "Legal certainty",
+            "weight": 0.5
+          },
+          {
+            "de": "Kosten",
+            "en": "Cost",
+            "weight": 0.5
+          }
+        ],
+        "register": "wirtschaftsnah, spricht von Rechtssicherheit, Schnittstellen, Anwendungen, Kosten für Betriebe",
+        "keywords": "Wirtschaftskammer Anwendungen Schnittstellen Zugangsportal Rechtssicherheit Kosten",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "wk-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      },
+      "pv": {
+        "unit": "Patientenanwaltschaften",
+        "vetoStatus": "consultative",
+        "vetoBasis": {
+          "de": "Beratend, ohne Entscheidungsmacht",
+          "en": "Advisory, no decision power"
+        },
+        "goals": [
+          {
+            "de": "Auskunfts- und Berichtigungsrechte der Patient:innen durchsetzbar machen",
+            "en": "Make patients' access and rectification rights enforceable"
+          }
+        ],
+        "interests": [
+          {
+            "de": "Vertrauen in digitale Gesundheitsdaten",
+            "en": "Trust in digital health data"
+          }
+        ],
+        "restrictions": [
+          {
+            "de": "Keine formale Rolle im Gesetzgebungsverfahren",
+            "en": "No formal role in the legislative process"
+          }
+        ],
+        "budget": [
+          {
+            "de": "Keine Kosten für Patient:innen",
+            "en": "No costs for patients"
+          }
+        ],
+        "priorities": [
+          {
+            "de": "Patientenrechte",
+            "en": "Patient rights",
+            "weight": 0.6
+          },
+          {
+            "de": "Zugang",
+            "en": "Access",
+            "weight": 0.4
+          }
+        ],
+        "register": "patientenorientiert, spricht von Patientenrechten, Auskunft, Berichtigung, Vertrauen",
+        "keywords": "Patienten Auskunft Berichtigung Datenschutz Impfpass Vertrauen",
+        "redLineIds": [],
+        "delegates": [
+          {
+            "id": "pv-lead",
+            "role": {
+              "de": "Verhandlungsführung",
+              "en": "Lead negotiator"
+            },
+            "topicKeys": []
+          }
+        ]
+      }
+    }
+  }
+}

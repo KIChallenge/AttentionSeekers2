@@ -1,0 +1,433 @@
+{
+  "version": "evidence-2026-11-06",
+  "note": "Effects are percent reductions of the average specialist waiting time at full scale after phase-in (positive = shorter waits). low = weakest plausible effect, high = strongest. Where a source gives no waiting-time number the range is a documented derivation or an estimate, marked in basis. Every DOI and URL was resolved on 2026-11-06.",
+  "horizonYears": 5,
+  "sources": {
+    "oecd-2020-waiting": {
+      "title": "Waiting Times for Health Services: Next in Line",
+      "publisher": "OECD Health Policy Studies",
+      "year": 2020,
+      "url": "https://doi.org/10.1787/242e3c8c-en",
+      "kind": "official",
+      "finding": {
+        "de": "Vergleich der Wartezeitpolitik in OECD-Ländern: Garantien und Zielvorgaben wirken, wenn sie durchgesetzt und finanziert werden; reine Kapazitätsausweitung wirkt oft nur vorübergehend, weil die Nachfrage mitwächst.",
+        "en": "Comparison of waiting-time policies across OECD countries: guarantees and targets work when enforced and funded; capacity growth alone often has a temporary effect because demand rises with it."
+      }
+    },
+    "oecd-2013-policies": {
+      "title": "Waiting Time Policies in the Health Sector: What Works?",
+      "publisher": "OECD Health Policy Studies",
+      "year": 2013,
+      "url": "https://doi.org/10.1787/9789264179080-en",
+      "kind": "official",
+      "finding": {
+        "de": "Länderstudien zu Angebots- und Nachfragemaßnahmen; Wartezeitgarantien mit Sanktionen oder Wahlfreiheit senkten lange Wartezeiten.",
+        "en": "Country studies of supply and demand measures; guarantees backed by sanctions or patient choice reduced long waits."
+      }
+    },
+    "siciliani-2005-hp": {
+      "title": "Tackling excessive waiting times for elective surgery: a comparative analysis of policies in 12 OECD countries",
+      "publisher": "Health Policy 72(2):201-215",
+      "year": 2005,
+      "url": "https://doi.org/10.1016/j.healthpol.2004.07.003",
+      "kind": "peer_reviewed",
+      "finding": {
+        "de": "Wartezeiten sinken über Angebot oder Nachfrage; auf der Angebotsseite spielen Kapazität und finanzielle Anreize zur Produktivität eine wichtige Rolle.",
+        "en": "Waits fall through supply or demand; on the supply side capacity and financial incentives for productivity play an important role."
+      }
+    },
+    "siciliani-2003-wp7": {
+      "title": "Explaining Waiting Times Variations for Elective Surgery Across OECD Countries",
+      "publisher": "OECD Health Working Papers No. 7",
+      "year": 2003,
+      "url": "https://doi.org/10.1787/406746186162",
+      "kind": "official",
+      "finding": {
+        "de": "Querschnittsvergleich: mehr praktizierende Ärztinnen und Ärzte und Akutbetten gehen mit kürzeren Wartezeiten einher.",
+        "en": "Cross-country comparison: more practising doctors and acute beds go with shorter waits."
+      }
+    },
+    "propper-2008-targets": {
+      "title": "Did 'Targets and Terror' Reduce Waiting Times in England for Hospital Care?",
+      "publisher": "The B.E. Journal of Economic Analysis & Policy 8(2)",
+      "year": 2008,
+      "url": "https://doi.org/10.2202/1935-1682.1863",
+      "kind": "peer_reviewed",
+      "finding": {
+        "de": "Zielvorgaben mit veröffentlichten Wartezeiten und Sanktionen senkten in England den Anteil langer Wartezeiten gegenüber Schottland (Differenz-in-Differenzen).",
+        "en": "Targets with published waiting data and sanctions lowered the share of long waits in England relative to Scotland (difference in differences)."
+      }
+    },
+    "liddy-2016-econsult": {
+      "title": "Electronic consultation systems: worldwide prevalence and their impact on patient care, a systematic review",
+      "publisher": "Family Practice 33(3):274-285",
+      "year": 2016,
+      "url": "https://doi.org/10.1093/fampra/cmw024",
+      "kind": "systematic_review",
+      "finding": {
+        "de": "36 Studien: eKonsil-Antwort binnen 4,6 Stunden bis 3,9 Tagen, 12 bis 84 Prozent der Überweisungen vermieden; keine klinischen Endpunkte, Kostendaten kaum vergleichbar.",
+        "en": "36 studies: e-consult replies within 4.6 hours to 3.9 days, 12 to 84 percent of referrals avoided; no clinical outcomes, cost data hardly comparable."
+      }
+    },
+    "vimalananda-2015-econsult": {
+      "title": "Electronic consultations (e-consults) to improve access to specialty care: a systematic review and narrative synthesis",
+      "publisher": "Journal of Telemedicine and Telecare 21(6):323-330",
+      "year": 2015,
+      "url": "https://doi.org/10.1177/1357633X15582108",
+      "kind": "systematic_review",
+      "finding": {
+        "de": "27 Arbeiten: eKonsile geben rasch fachärztlichen Rat; die Wirkung auf den Zugang zu Facharztbesuchen ist nicht belastbar gemessen.",
+        "en": "27 papers: e-consults give timely specialist advice; the effect on access to specialist visits is not robustly measured."
+      }
+    },
+    "flodgren-2015-cochrane": {
+      "title": "Interactive telemedicine: effects on professional practice and health care outcomes",
+      "publisher": "Cochrane Database of Systematic Reviews, CD002098",
+      "year": 2015,
+      "url": "https://doi.org/10.1002/14651858.CD002098.pub2",
+      "kind": "systematic_review",
+      "finding": {
+        "de": "93 Studien: ähnliche Ergebnisse wie Präsenzversorgung bei Herzinsuffizienz, bessere Blutzuckerkontrolle bei Diabetes; Kosten und Akzeptanz unklar.",
+        "en": "93 trials: outcomes similar to face-to-face care in heart failure, better glucose control in diabetes; costs and acceptability unclear."
+      }
+    },
+    "akbari-2008-cochrane": {
+      "title": "Interventions to improve outpatient referrals from primary care to secondary care",
+      "publisher": "Cochrane Database of Systematic Reviews, CD005471",
+      "year": 2008,
+      "url": "https://doi.org/10.1002/14651858.CD005471.pub2",
+      "kind": "systematic_review",
+      "finding": {
+        "de": "17 Studien: strukturierte Überweisungsformulare und organisatorische Maßnahmen (etwa Zweitmeinung vor Überweisung, neues Terminsystem) wirkten auf Überweisungen; passive Leitlinien nicht. Wartezeiten nicht gepoolt.",
+        "en": "17 studies: structured referral sheets and organisational measures (such as in-house second opinion, a new slot system) changed referrals; passive guidelines did not. Waiting times not pooled."
+      }
+    },
+    "laurant-2018-cochrane": {
+      "title": "Nurses as substitutes for doctors in primary care",
+      "publisher": "Cochrane Database of Systematic Reviews, CD001271",
+      "year": 2018,
+      "url": "https://doi.org/10.1002/14651858.CD001271.pub3",
+      "kind": "systematic_review",
+      "finding": {
+        "de": "18 RCTs: Pflege erzielt gleiche oder bessere Ergebnisse; Überweisungen und andere Inanspruchnahme wahrscheinlich unverändert; Kosten unsicher.",
+        "en": "18 RCTs: nurses achieve equal or better outcomes; referrals and other utilisation probably unchanged; costs uncertain."
+      }
+    },
+    "maier-2017-oecd": {
+      "title": "Nurses in advanced roles in primary care: Policy levers for implementation",
+      "publisher": "OECD Health Working Papers No. 98",
+      "year": 2017,
+      "url": "https://doi.org/10.1787/a8756593-en",
+      "kind": "official",
+      "finding": {
+        "de": "Ländervergleich zu erweiterten Pflegerollen: Umsetzung hängt an Berufsrecht, Vergütung und Ausbildung; Wirkung auf Zugang in einigen Ländern berichtet, nicht quantifiziert.",
+        "en": "Country comparison of advanced nursing roles: implementation depends on scope law, payment and training; access effects reported in some countries, not quantified."
+      }
+    },
+    "metcalfe-2018-cochrane": {
+      "title": "Impact of public release of performance data on the behaviour of healthcare consumers and providers",
+      "publisher": "Cochrane Database of Systematic Reviews, CD004538",
+      "year": 2018,
+      "url": "https://doi.org/10.1002/14651858.CD004538.pub3",
+      "kind": "systematic_review",
+      "finding": {
+        "de": "12 Studien, geringe Vertrauenswürdigkeit: Veröffentlichung von Leistungsdaten ändert die Inanspruchnahme wenig oder gar nicht.",
+        "en": "12 studies, low certainty: public release of performance data makes little or no difference to utilisation."
+      }
+    },
+    "zv-2024-2028": {
+      "title": "Zielsteuerungsvertrag auf Bundesebene 2024 bis 2028",
+      "publisher": "BMSGPK, Bundes-Zielsteuerungskommission",
+      "year": 2024,
+      "url": "https://sozialministerium.at/dam/jcr:90ea0063-4f8b-4af9-86e0-c2da538e1290/ZV_2024_bis_2028.pdf",
+      "kind": "official",
+      "finding": {
+        "de": "Österreichischer Rahmen: Patientenlenkung über 1450 (digital vor ambulant vor stationär), Ausbau telemedizinischer Angebote; nennt Ziele, keine Wirkungsgröße.",
+        "en": "Austrian frame: patient steering via 1450 (digital before outpatient before inpatient), more telemedicine; states goals, no effect size."
+      }
+    },
+    "statat-sha-2024": {
+      "title": "Laufende Gesundheitsausgaben nach Funktion und Finanzierung (OGD_gesausgaben01_HVD_HCHF_1)",
+      "publisher": "Statistik Austria, CC BY 4.0",
+      "year": 2025,
+      "url": "https://data.statistik.gv.at/ogd/json?dataset=OGD_gesausgaben01_HVD_HCHF_1",
+      "kind": "official",
+      "finding": {
+        "de": "2024: laufende Gesundheitsausgaben 57.836,6 Mio. EUR, davon Sozialversicherungsträger (HF.1.2.1) 25.528,1 Mio. EUR.",
+        "en": "2024: current health expenditure EUR 57,836.6 m, of which social insurance funds (HF.1.2.1) EUR 25,528.1 m."
+      }
+    },
+    "oeak-2025": {
+      "title": "Ärztestatistik 2025, Stichtag 31.12.2025",
+      "publisher": "Österreichische Ärztekammer",
+      "year": 2026,
+      "url": "https://www.aerztekammer.at/documents/d/content-pool/20260729_oak-arztestatistik-2025",
+      "kind": "official",
+      "finding": {
+        "de": "Grafik 03: 3.389 Fachärztinnen und Fachärzte mit Ordination und Kassenvertrag plus 758 gemischt tätige mit Kassenvertrag, zusammen 4.147.",
+        "en": "Chart 03: 3,389 specialists with a practice and a sickness-fund contract plus 758 mixed-practice with contract, 4,147 in total."
+      }
+    },
+    "dvsv-handbuch-2025": {
+      "title": "Statistisches Handbuch der österreichischen Sozialversicherung 2025, Tabelle 5.09",
+      "publisher": "Dachverband der Sozialversicherungsträger",
+      "year": 2025,
+      "url": "https://www.sozialversicherung.at/cdscontent/?contentid=10007.888557&portal=svportal",
+      "kind": "official",
+      "finding": {
+        "de": "Krankenversicherung 2024: Ärztliche Hilfe und gleichgestellte Leistungen 7.239,7 Mio. EUR (27 Prozent des Leistungsaufwands).",
+        "en": "Health insurance 2024: medical care and equivalent services EUR 7,239.7 m (27 percent of benefit spending)."
+      }
+    },
+    "eurostat-silc-08": {
+      "title": "Self-reported unmet needs for medical examination by main reason (hlth_silc_08)",
+      "publisher": "Eurostat, EU-SILC",
+      "year": 2026,
+      "url": "https://ec.europa.eu/eurostat/databrowser/view/hlth_silc_08/default/table",
+      "kind": "official",
+      "finding": {
+        "de": "Unerfüllter Untersuchungsbedarf wegen Warteliste, ab 16 Jahren: Österreich 0,3 (2022), 0,4 (2023), 0,7 (2024), 0,6 Prozent (2025); EU-27 2025: 1,2 Prozent.",
+        "en": "Unmet need for examination because of waiting list, age 16+: Austria 0.3 (2022), 0.4 (2023), 0.7 (2024), 0.6 percent (2025); EU-27 2025: 1.2 percent."
+      }
+    },
+    "parlament-18419-ab": {
+      "title": "Lange Wartezeiten auf Facharzttermine und Operationen (18419/AB, XXVII. GP)",
+      "publisher": "Parlament Österreich, Anfragebeantwortung",
+      "year": 2024,
+      "url": "https://www.parlament.gv.at/gegenstand/XXVII/AB/18419",
+      "kind": "official",
+      "finding": {
+        "de": "Parlamentarische Anfragebeantwortung zu Facharzt-Wartezeiten; eine bundesweite amtliche Wartezeitenreihe gibt es nicht.",
+        "en": "Parliamentary answer on specialist waits; there is no national official waiting-time series."
+      }
+    }
+  },
+  "baselines": {
+    "healthExpenditureMioEur": { "value": 57836.6, "year": 2024, "sources": ["statat-sha-2024"] },
+    "svHealthExpenditureMioEur": { "value": 25528.1, "year": 2024, "sources": ["statat-sha-2024"] },
+    "contractSpecialists": { "value": 4147, "year": 2025, "sources": ["oeak-2025"] },
+    "kvMedicalCareMioEur": { "value": 7239.7, "year": 2024, "sources": ["dvsv-handbuch-2025"] },
+    "unmetNeedWaitingListPct": {
+      "value": 0.6,
+      "eu27": 1.2,
+      "year": 2025,
+      "sources": ["eurostat-silc-08"]
+    },
+    "specialistWaitingTime": {
+      "value": null,
+      "note": {
+        "de": "Keine amtliche Zeitreihe; Wirkungen werden daher relativ (Prozent) angegeben, nicht in Wochen.",
+        "en": "No official series; effects are therefore relative (percent), not in weeks."
+      },
+      "sources": ["parlament-18419-ab", "eurostat-silc-08"]
+    }
+  },
+  "rules": {
+    "overlapDiscount": 0.5,
+    "restrictedScope": { "low": 0.3, "central": 0.5, "high": 0.7 },
+    "restrictedScopeNote": {
+      "de": "Geschätzt: Maßnahmen nur für ausgewählte Leistungen, Fachgebiete, Mangelregionen oder als befristeter Versuch wirken auf den bundesweiten Durchschnitt mit dem Faktor 0,3 bis 0,7.",
+      "en": "Estimate: measures limited to selected services, specialties, shortage regions or a time-limited trial act on the national average with a factor of 0.3 to 0.7."
+    }
+  },
+  "classes": {
+    "capacity_expansion": {
+      "label": {
+        "de": "Zusätzliche Kassenstellen und Termine",
+        "en": "Extra contract posts and appointments"
+      },
+      "group": "supply",
+      "basis": "derived",
+      "rampYears": 3,
+      "capacity": {
+        "defaultPosts": { "low": 100, "central": 300, "high": 600 },
+        "elasticity": { "low": 0.3, "central": 0.6, "high": 0.9 },
+        "fillRate": { "low": 0.5, "central": 0.75, "high": 1.0 },
+        "costPerPostMioEur": { "low": 0.3, "central": 0.5, "high": 0.87 }
+      },
+      "derivation": {
+        "de": "Reduktion = Stellen / 4.147 Kassen-Fachärzte x Besetzungsquote x Elastizität. Elastizität unter eins, weil die Nachfrage mitwächst (OECD 2020); Richtung des Zusammenhangs laut OECD 2003. Besetzungsquote und Stellenzahl ohne Angabe sind Schätzungen. Kosten je Stelle: Obergrenze 0,87 Mio. EUR = ärztliche Hilfe 2024 / alle Vertragsärzte; 0,3 bis 0,5 Mio. EUR sind Schätzungen.",
+        "en": "Reduction = posts / 4,147 contract specialists x fill rate x elasticity. Elasticity below one because demand rises with supply (OECD 2020); direction of the relation per OECD 2003. Fill rate and the post count when none is stated are estimates. Cost per post: upper bound EUR 0.87 m = medical care 2024 / all contract doctors; EUR 0.3 to 0.5 m are estimates."
+      },
+      "sources": ["siciliani-2003-wp7", "oecd-2020-waiting", "oeak-2025"]
+    },
+    "fee_incentive": {
+      "label": {
+        "de": "Honorar- und Produktivitätsanreize",
+        "en": "Fee and productivity incentives"
+      },
+      "group": "supply",
+      "basis": "assumption",
+      "rampYears": 2,
+      "waitReductionPct": { "low": 0, "central": 1.5, "high": 5 },
+      "costMioEurPa": { "low": 20, "central": 80, "high": 250 },
+      "derivation": {
+        "de": "Die Literatur nennt Produktivitätsanreize als wirksam, ohne Größe für Facharztwartezeiten; Bandbreite ist eine Schätzung.",
+        "en": "The literature names productivity incentives as effective without a size for specialist waits; the range is an estimate."
+      },
+      "sources": ["siciliani-2005-hp"]
+    },
+    "triage_routing": {
+      "label": {
+        "de": "Terminvermittlung 1450 und digitale Facharzt-Triage",
+        "en": "1450 appointment brokering and digital specialist triage"
+      },
+      "group": "demand",
+      "basis": "derived",
+      "rampYears": 2,
+      "waitReductionPct": { "low": 0.5, "central": 3, "high": 8 },
+      "costMioEurPa": { "low": 5, "central": 20, "high": 50 },
+      "derivation": {
+        "de": "Strukturierte Überweisung und organisatorische Lenkung ändern Überweisungen (Cochrane 2008), ohne gepoolte Wartezeitgröße. Ableitung (geschätzt): 5/10/15 Prozent weniger ungeeignete Facharztkontakte x Durchreichung auf Wartezeit 0,1/0,3/0,55. Kosten sind eine Schätzung.",
+        "en": "Structured referral and organisational steering change referrals (Cochrane 2008), without a pooled waiting-time size. Derivation (estimated): 5/10/15 percent fewer unsuitable specialist contacts x pass-through to waiting time 0.1/0.3/0.55. Costs are an estimate."
+      },
+      "sources": ["akbari-2008-cochrane", "oecd-2020-waiting", "zv-2024-2028"]
+    },
+    "telemedicine": {
+      "label": { "de": "Telemedizin und eKonsil", "en": "Telemedicine and e-consults" },
+      "group": "demand",
+      "basis": "derived",
+      "rampYears": 2,
+      "waitReductionPct": { "low": 0.2, "central": 1.8, "high": 9 },
+      "costMioEurPa": { "low": 5, "central": 20, "high": 50 },
+      "derivation": {
+        "de": "Anteil geeigneter Überweisungen 5/10/20 Prozent (geschätzt) x vermiedene Überweisungen 12/30/50 Prozent (Spanne 12 bis 84 Prozent laut Review) x Durchreichung auf Wartezeit 0,3/0,6/0,9. Kosten sind eine Schätzung.",
+        "en": "Share of suitable referrals 5/10/20 percent (estimated) x avoided referrals 12/30/50 percent (review range 12 to 84 percent) x pass-through to waiting time 0.3/0.6/0.9. Costs are an estimate."
+      },
+      "sources": ["liddy-2016-econsult", "vimalananda-2015-econsult", "flodgren-2015-cochrane"]
+    },
+    "scope_of_practice": {
+      "label": {
+        "de": "Erweiterte Kompetenzen der Gesundheitsberufe",
+        "en": "Extended scope for health professions"
+      },
+      "group": "demand",
+      "basis": "derived",
+      "rampYears": 3,
+      "waitReductionPct": { "low": 0, "central": 1, "high": 3 },
+      "costMioEurPa": { "low": 10, "central": 40, "high": 100 },
+      "derivation": {
+        "de": "Pflege als Substitut erreicht gleiche Qualität, Überweisungen bleiben laut Cochrane 2018 wahrscheinlich gleich; die Wirkung auf Facharztwartezeiten ist daher klein. Kosten sind eine Schätzung.",
+        "en": "Nurse substitution reaches equal quality, but referrals probably stay the same per Cochrane 2018, so the effect on specialist waits is small. Costs are an estimate."
+      },
+      "sources": ["laurant-2018-cochrane", "maier-2017-oecd"]
+    },
+    "access_guarantee": {
+      "label": {
+        "de": "Terminzusage (Vierwochengarantie)",
+        "en": "Appointment guarantee (four weeks)"
+      },
+      "group": "governance",
+      "basis": "derived",
+      "rampYears": 2,
+      "waitReductionPct": { "low": 0, "central": 3, "high": 10 },
+      "costMioEurPa": { "low": 0, "central": 15, "high": 60 },
+      "derivation": {
+        "de": "Garantien und Zielvorgaben senkten in England und anderen OECD-Ländern vor allem lange Wartezeiten, wenn Sanktionen und Mittel dahinterstanden; der Durchschnitt sinkt weniger. Ohne Durchsetzung nahe null.",
+        "en": "Guarantees and targets lowered mainly long waits in England and other OECD countries when sanctions and funds backed them; the average falls less. Near zero without enforcement."
+      },
+      "sources": ["propper-2008-targets", "oecd-2013-policies", "oecd-2020-waiting"]
+    },
+    "monitoring_transparency": {
+      "label": {
+        "de": "Wartezeiten-Dashboard und Monitoring",
+        "en": "Waiting-time dashboard and monitoring"
+      },
+      "group": "governance",
+      "basis": "derived",
+      "rampYears": 1,
+      "waitReductionPct": { "low": 0, "central": 0.5, "high": 2 },
+      "costMioEurPa": { "low": 1, "central": 3, "high": 10 },
+      "derivation": {
+        "de": "Veröffentlichung allein ändert die Inanspruchnahme wenig (Cochrane 2018); sie ist Voraussetzung für durchgesetzte Ziele. Kosten sind eine Schätzung.",
+        "en": "Publication alone changes utilisation little (Cochrane 2018); it is a precondition for enforced targets. Costs are an estimate."
+      },
+      "sources": ["metcalfe-2018-cochrane", "propper-2008-targets"]
+    },
+    "structural_reform": {
+      "label": {
+        "de": "Strukturreform (PVE, Versorgungspfade, Ambulanzverlagerung)",
+        "en": "Structural reform (primary care units, pathways, outpatient shift)"
+      },
+      "group": "structure",
+      "basis": "assumption",
+      "rampYears": 5,
+      "waitReductionPct": { "low": -2, "central": 1, "high": 5 },
+      "costMioEurPa": { "low": 0, "central": 50, "high": 200 },
+      "derivation": {
+        "de": "Keine Evidenz, geschätzt: keine Quelle beziffert die Wirkung auf Facharztwartezeiten; die Spanne schließt eine Verschlechterung in der Umstellung ein.",
+        "en": "No evidence, estimate: no source quantifies the effect on specialist waits; the range includes a worsening during transition."
+      },
+      "sources": []
+    },
+    "financing_rule": {
+      "label": { "de": "Finanzierungsregel", "en": "Financing rule" },
+      "group": "financing",
+      "basis": "assumption",
+      "rampYears": 1,
+      "waitReductionPct": { "low": -1, "central": 0, "high": 1 },
+      "costMioEurPa": { "low": 0, "central": 0, "high": 0 },
+      "derivation": {
+        "de": "Keine Evidenz, geschätzt: eine Finanzierungsregel verschiebt Mittel, ändert aber selbst keine Kapazität.",
+        "en": "No evidence, estimate: a financing rule moves funds but does not change capacity by itself."
+      },
+      "sources": []
+    },
+    "other": {
+      "label": { "de": "Sonstige Maßnahme", "en": "Other measure" },
+      "group": "other",
+      "basis": "assumption",
+      "rampYears": 3,
+      "waitReductionPct": { "low": -1, "central": 0.5, "high": 3 },
+      "costMioEurPa": { "low": 0, "central": 20, "high": 100 },
+      "derivation": {
+        "de": "Keine Evidenz, geschätzt: Maßnahme passt in keine belegte Klasse.",
+        "en": "No evidence, estimate: the measure fits no class with evidence."
+      },
+      "sources": []
+    }
+  },
+  "briefPackage": {
+    "label": { "de": "Beispielpaket der Angabe", "en": "Example package from the brief" },
+    "claimed": { "waitChangePct": -22, "budgetChangePct": 4.3 },
+    "components": [
+      {
+        "class": "telemedicine",
+        "restricted": true,
+        "text": {
+          "de": "Telemedizin für ausgewählte Leistungen",
+          "en": "Telemedicine for selected services"
+        }
+      },
+      {
+        "class": "capacity_expansion",
+        "restricted": false,
+        "text": {
+          "de": "Zusätzliche Kassenstellen in Mangelregionen",
+          "en": "Additional contract posts in shortage regions"
+        }
+      },
+      {
+        "class": "triage_routing",
+        "restricted": false,
+        "text": { "de": "Digitale Facharzt-Triage", "en": "Digital specialist triage" }
+      },
+      {
+        "class": "scope_of_practice",
+        "restricted": false,
+        "text": {
+          "de": "Erweiterte Kompetenzen für Gesundheitsberufe",
+          "en": "Extended competences for health professions"
+        }
+      },
+      {
+        "class": "monitoring_transparency",
+        "restricted": false,
+        "text": {
+          "de": "Nationales Wartezeiten-Dashboard",
+          "en": "National waiting-time dashboard"
+        }
+      }
+    ]
+  }
+}

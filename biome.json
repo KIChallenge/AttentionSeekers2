@@ -1,0 +1,101 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.6.5/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": [
+      "**",
+      "!**/components/ui",
+      "!!**/.next",
+      "!!**/node_modules",
+      "!!**/.turbo",
+      "!**/*.lock",
+      "!pnpm-lock.yaml",
+      "!!data",
+      "!!forecasting",
+      "!!models",
+      "!!runs",
+      "!!packages/contracts/schema",
+      "!!packages/db/migrations",
+      "!!**/public"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "enabled": true,
+      "quoteStyle": "double",
+      "jsxQuoteStyle": "double",
+      "trailingCommas": "all",
+      "semicolons": "always"
+    }
+  },
+  "json": {
+    "formatter": {
+      "enabled": true
+    }
+  },
+  "css": {
+    "formatter": {
+      "enabled": true,
+      "quoteStyle": "double"
+    },
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "style": {
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": {
+            "filenameCases": ["kebab-case"],
+            "requireAscii": true
+          }
+        },
+        "noDefaultExport": "error"
+      },
+      "preset": "recommended"
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "**/app/**/page.tsx",
+        "**/app/**/layout.tsx",
+        "**/app/**/route.{ts,tsx,js,jsx}",
+        "**/app/**/{template,loading,error,global-error,not-found,default}.{ts,tsx,js,jsx}",
+        "**/app/**/{sitemap,robots,manifest,icon,apple-icon,opengraph-image,twitter-image}.{ts,tsx,js,jsx}",
+        "**/next.config.{ts,mts,js,mjs}",
+        "**/postcss.config.{ts,js,mjs,cjs}",
+        "**/drizzle.config.ts",
+        "**/vitest.config.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    }
+  ]
+}
