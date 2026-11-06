@@ -5,7 +5,7 @@ import re
 import unicodedata
 
 LIGATURES = {"\ufb00": "ff", "\ufb01": "fi", "\ufb02": "fl", "\ufb03": "ffi", "\ufb04": "ffl", "\u00ad": "",
-             "\u2014": "–", "\u2015": "–", "\u2012": "–", "\u00a0": " ", "\u2009": " ", "\u202f": " ",
+             "\u2014": "-", "\u2013": "-", "\u2015": "-", "\u2012": "-", "\u00a0": " ", "\u2009": " ", "\u202f": " ",
              "\u200b": "", "\ufeff": ""}
 _LIG_RX = re.compile("|".join(map(re.escape, LIGATURES)))
 CTRL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")

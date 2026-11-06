@@ -151,7 +151,7 @@ export default async function EpisodePage({ params }: { params: Promise<{ episod
                     <span className="absolute top-1.5 -left-[26px] size-2.5 rounded-full border-2 border-background bg-foreground" />
                     <div className="flex flex-wrap items-baseline gap-x-2">
                       <span className="num w-24 font-mono text-xs text-muted-foreground">
-                        {st.date ?? "–"}
+                        {st.date ?? "-"}
                       </span>
                       <span className="text-sm font-medium">{st.label}</span>
                       {st.url ? (
@@ -181,12 +181,12 @@ export default async function EpisodePage({ params }: { params: Promise<{ episod
                     {t.archive.episode.similarity}
                   </div>
                   <div className="num">
-                    {c.text_similarity !== null ? c.text_similarity.toFixed(3) : "–"}
+                    {c.text_similarity !== null ? c.text_similarity.toFixed(3) : "-"}
                   </div>
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">{t.archive.episode.knowable}</div>
-                  <div className="num font-mono text-xs">{c.knowable_date ?? "–"}</div>
+                  <div className="num font-mono text-xs">{c.knowable_date ?? "-"}</div>
                   {c.outcome_record ? (
                     <div className="font-mono text-[11px] text-muted-foreground">
                       {c.outcome_record.identifier}

@@ -102,7 +102,7 @@ export default async function EpisodesPage({
                   ) : null}
                 </td>
                 <td className="num px-3 py-2.5 text-xs">
-                  {e.text_similarity !== null ? e.text_similarity.toFixed(2) : "–"}
+                  {e.text_similarity !== null ? e.text_similarity.toFixed(2) : "-"}
                 </td>
               </tr>
             ))}

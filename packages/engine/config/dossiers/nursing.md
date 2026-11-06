@@ -69,7 +69,7 @@ Skala -2 bis +2, Mittelwert nach Aktualität gewichtet (Halbwertszeit fünf Jahr
 
 - 2020, Gesundheitsberuferegister-Gesetz, Gesundheits- und Krankenpflegegesetz u.a., Änderung (GBRG-Novelle 2020): überwiegend ablehnend, Änderungen gefordert (-0.7), 6 Absätze; Ausgang umgesetzt. Kern: Sie verweist bei der Gesetzesnovelle auf den Wegfall spezieller Pflegegrundausbildungen für Kinder und Jugendliche sowie für die psychiatrische Pflege. [EP-XXVII-ME-46]
 - 2019, OTA-Gesetz: überwiegend ablehnend, Änderungen gefordert (-0.5), 4 Absätze; Ausgang nicht umgesetzt (verfallen). Kern: Sie beanstandet im OTA-Gesetz eine Gleichstellung unterschiedlich qualifizierter Berufsgruppen trotz verschiedener Ausbildungsniveaus. [EP-XXVI-ME-160]
-- 2017, Gesundheitsreformumsetzungsgesetz 2017 – GRUG 2017: gemischt bzw. neutral-technisch (-0.1), 7 Absätze; Ausgang umgesetzt. Kern: Sie fordert für die Primärversorgung ein Kernteam aus mindestens vier unterschiedlichen Gesundheitsberufen. [EP-XXV-ME-312]
+- 2017, Gesundheitsreformumsetzungsgesetz 2017 - GRUG 2017: gemischt bzw. neutral-technisch (-0.1), 7 Absätze; Ausgang umgesetzt. Kern: Sie fordert für die Primärversorgung ein Kernteam aus mindestens vier unterschiedlichen Gesundheitsberufen. [EP-XXV-ME-312]
 
 ## Verwendung
 

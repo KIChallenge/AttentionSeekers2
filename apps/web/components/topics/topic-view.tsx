@@ -147,7 +147,7 @@ function HistoryCell({
   t: TopicMessages;
   lang: Lang;
 }) {
-  if (!cls) return <span className="text-xs text-muted-foreground">–</span>;
+  if (!cls) return <span className="text-xs text-muted-foreground">-</span>;
   if (!rate || rate.n === 0)
     return (
       <span className="text-xs text-muted-foreground">
@@ -232,7 +232,7 @@ function StanceStrip({
                   : "text-muted-foreground",
               )}
             >
-              {spread === null ? "–" : spread.toFixed(1)}
+              {spread === null ? "-" : spread.toFixed(1)}
             </span>
           </div>
         );
@@ -378,11 +378,11 @@ function SeatRow({ s, lang, t }: { s: SeatEffect; lang: Lang; t: TopicMessages }
               style={{ width: w(s.betweenFamilies) }}
             />
           </span>
-          <span className="num text-xs">{s.betweenFamilies?.toFixed(2) ?? "–"}</span>
+          <span className="num text-xs">{s.betweenFamilies?.toFixed(2) ?? "-"}</span>
         </div>
       </td>
       <td className="num px-3 py-2 text-xs text-muted-foreground">
-        {s.withinFamily?.toFixed(2) ?? "–"}
+        {s.withinFamily?.toFixed(2) ?? "-"}
       </td>
       <td className="px-3 py-2">
         <Badge
@@ -618,7 +618,7 @@ export function TopicView({
                     <Level min="engineer">
                       <td className="num px-3 py-2.5 text-xs text-muted-foreground">
                         {r.costUsd === null
-                          ? "–"
+                          ? "-"
                           : `${Math.round(r.tokensIn / 1000)}k / ${Math.round(r.tokensOut / 1000)}k · ~${r.costUsd.toFixed(1)} USD`}
                       </td>
                     </Level>

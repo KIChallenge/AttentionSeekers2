@@ -144,7 +144,7 @@ STOP = {"änderung", "bundesgesetz", "u.a.", "u", "a", "und", "das", "der", "die
 
 
 def tokens(s: str) -> set[str]:
-    s = re.sub(r"[–\-,;:()\"„“]", " ", (s or "").lower())
+    s = re.sub(r"[\u2013\-,;:()\"„“]", " ", (s or "").lower())
     return {t for t in s.split() if t not in STOP and not re.fullmatch(r"\d+|\d+/\d+", t) and len(t) > 2}
 
 

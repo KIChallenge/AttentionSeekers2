@@ -23,10 +23,10 @@ const de = {
   formulaTitle: "Wie der Wert entsteht",
   formula: [
     "Haltung = min(1, mittlere |Endhaltung − erwartete Haltung| / 2), über alle Institutionen und Themen (Skala −2 bis +2).",
-    "Ergebnis = |Annahmequote der Vorschläge − historische Quote|, historische Quote = Anteil der Gesundheits-Erstentwürfe, die binnen 24 Monaten beschlossen wurden.",
+    "Ergebnis = |Zustimmungsquote der Vorschläge − historische Quote|, historische Quote = Anteil der Gesundheits-Erstentwürfe, die binnen 24 Monaten beschlossen wurden.",
     "Qualität = 1 − Gesamtwert des Qualitätsaudits (Relevanz, Bezug, Belege, Konsistenz).",
     "Wert = (0,5 · Haltung + 0,25 · Ergebnis + 0,25 · Qualität) / Summe der vorhandenen Gewichte. Fehlt ein Audit, zählen nur Haltung und Ergebnis.",
-    "0 heißt: Endhaltungen wie erwartet, Annahmequote wie historisch, Audit fehlerfrei.",
+    "0 heißt: Endhaltungen wie erwartet, Zustimmungsquote wie historisch, Audit fehlerfrei.",
   ],
   noAudit: "kein Audit",
   dirTitle: "Richtung je Modell",
