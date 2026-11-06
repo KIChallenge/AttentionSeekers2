@@ -36,6 +36,9 @@ export const HALF_LIFE_YEARS = 2;
 /** Reciprocal rank fusion constant (Cormack et al.). */
 export const RRF_K = 60;
 
+/** Headings and fragments ("Datum", "Zu § 3") sit close to every query vector; skip them. */
+export const VECTOR_MIN_CHARS = 50;
+
 export type RetrievalMode = "fulltext" | "hybrid";
 
 /** Hybrid unless SV_RETRIEVAL=fulltext (fallback flag) or no embedding key is configured. */
@@ -265,6 +268,7 @@ export async function retrieve(opts: {
                 join segments s on s.id = e.segment_id
                 join sources src on src.id = s.source_id
                 where e.model = ${store.EMBED_MODEL} and src.date <= ${asOf}::date
+                  and length(s.text) >= ${VECTOR_MIN_CHARS}
                   and src.person_filtered = true and src.corpus_revision <> ${excludedRevision()}
                 order by e.embedding <=> ${lit}::vector
                 limit 40`);
