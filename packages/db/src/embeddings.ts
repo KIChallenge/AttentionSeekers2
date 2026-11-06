@@ -2,6 +2,7 @@
 // multilingual). Used by the embed job, the importer, engine retrieval and the archive.
 // Only the stored, already person-filtered segment text is ever sent.
 import { createHash } from "node:crypto";
+import https from "node:https";
 import { sql } from "drizzle-orm";
 import type { Db } from "./client.ts";
 import { SEMANTIC_DIMENSIONS } from "./schema.ts";
@@ -56,6 +57,44 @@ function endpoint(region: string): string {
 }
 
 /**
+ * Plain node:https POST. Global fetch is patched inside Next.js server components and
+ * hung there for these calls, so the embedding client does not depend on it.
+ */
+function postJson(
+  url: string,
+  key: string,
+  body: string,
+  timeoutMs: number,
+): Promise<{ status: number; text: string }> {
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      url,
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${key}`,
+          "content-type": "application/json",
+          accept: "application/json",
+          "content-length": Buffer.byteLength(body),
+        },
+        timeout: timeoutMs,
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on("data", (c: Buffer) => chunks.push(c));
+        res.on("end", () =>
+          resolve({ status: res.statusCode ?? 0, text: Buffer.concat(chunks).toString("utf8") }),
+        );
+        res.on("error", reject);
+      },
+    );
+    req.on("timeout", () => req.destroy(new Error(`timeout after ${timeoutMs} ms`)));
+    req.on("error", reject);
+    req.end(body);
+  });
+}
+
+/**
  * One InvokeModel call with retry: 429 / 5xx / network errors back off exponentially
  * with jitter (0.5 s doubling, capped at 20 s); 4xx other than 429 fails at once.
  */
@@ -81,23 +120,14 @@ export async function embedText(
       await sleep(base / 2 + Math.random() * base);
     }
     try {
-      const res = await fetch(endpoint(region), {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${key}`,
-          "content-type": "application/json",
-          accept: "application/json",
-        },
-        body,
-        signal: AbortSignal.timeout(opts.timeoutMs ?? 30_000),
-      });
-      if (res.ok) {
-        const j = (await res.json()) as { embedding?: number[]; inputTextTokenCount?: number };
+      const res = await postJson(endpoint(region), key, body, opts.timeoutMs ?? 30_000);
+      if (res.status === 200) {
+        const j = JSON.parse(res.text) as { embedding?: number[]; inputTextTokenCount?: number };
         if (!j.embedding || j.embedding.length !== SEMANTIC_DIMENSIONS)
           throw new EmbedError("embedding missing or wrong size", res.status);
         return { vector: j.embedding, tokens: j.inputTextTokenCount ?? 0 };
       }
-      const detail = (await res.text()).slice(0, 160);
+      const detail = res.text.slice(0, 160);
       lastError = new EmbedError(`bedrock ${res.status}: ${detail}`, res.status);
       if (res.status !== 429 && res.status < 500) throw lastError;
     } catch (error) {
